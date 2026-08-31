@@ -124,61 +124,61 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
 
 ## 5. Fase 1 — Workspace dan UI Foundation
 
-- [ ] **F1-01 — Migrasikan starter ke workspace target.** [Role: Solution Architect] [Model: Sol Medium]  
+- [x] **F1-01 — Migrasikan starter ke workspace target.** [Role: Solution Architect] [Model: Sol Medium]
   **Scope:** Struktur root, `apps/web`, dan `packages/*` sesuai ADR-005  
   **Depends:** F0-07  
   **DoD:** `npm install`, dev server, route generation, typecheck, lint, dan build starter lulus tanpa kehilangan riwayat source.
 
-- [ ] **F1-02 — Pasang dependency UI yang sudah disetujui.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F1-02 — Pasang dependency UI yang sudah disetujui.** [Role: Frontend Foundation Agent] [Model: Luna Max]
   **Files:** `package.json`, `package-lock.json`  
   **Depends:** F1-01  
   **DoD:** shadcn/Radix, lucide-react, Recharts, form/validation, dan test UI tersedia dengan versi terkunci.
 
-- [ ] **F1-03 — Konfigurasi token warna dan typography.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F1-03 — Konfigurasi token warna dan typography.** [Role: Frontend Foundation Agent] [Model: Luna Max]
   **Files:** `apps/web/src/styles.css`, `apps/web/src/lib/design-tokens.ts`  
   **DoD:** Token sesuai design system, Inter, tabular numbers, focus ring, semantic statuses, dan reduced motion tersedia.
 
-- [ ] **F1-04 — Buat primitive status dan badge.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F1-04 — Buat primitive status dan badge.** [Role: Frontend Foundation Agent] [Model: Luna Max]
   **Files:** `packages/ui/src/components/status-badge.tsx`, `packages/ui/src/components/rule-set-badge.tsx`  
   **Depends:** F1-03  
   **DoD:** Status tidak bergantung warna saja dan memiliki label serta accessible name.
 
-- [ ] **F1-05 — Buat komponen context header.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F1-05 — Buat komponen context header.** [Role: Frontend Foundation Agent] [Model: Luna Max]
   **Files:** `packages/ui/src/components/context-header.tsx`, `packages/ui/src/components/context-selector.tsx`  
   **Depends:** F0-11, F1-03  
   **DoD:** Satker/KPPN, tahun, periode, mode akses, dan rule set tampil responsif.
 
-- [ ] **F1-06 — Buat state loading dan error.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F1-06 — Buat state loading dan error.** [Role: Frontend Foundation Agent] [Model: Luna Max]
   **Files:** `packages/ui/src/components/loading-state.tsx`, `packages/ui/src/components/error-state.tsx`  
   **DoD:** Skeleton mempertahankan layout; error menampilkan retry dan request ID aman.
 
-- [ ] **F1-07 — Buat state empty dan incomplete.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F1-07 — Buat state empty dan incomplete.** [Role: Frontend Foundation Agent] [Model: Luna Max]
   **Files:** `packages/ui/src/components/empty-state.tsx`, `packages/ui/src/components/incomplete-state.tsx`  
   **DoD:** Kedua state memiliki penjelasan, domain terdampak, dan CTA kontekstual.
 
-- [ ] **F1-08 — Buat komponen disclaimer dan policy lock.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F1-08 — Buat komponen disclaimer dan policy lock.** [Role: Frontend Foundation Agent] [Model: Luna Max]
   **Files:** `packages/ui/src/components/simulation-disclaimer.tsx`, `packages/ui/src/components/policy-lock-alert.tsx`  
   **DoD:** Disclaimer nilai tidak resmi dan alasan field terkunci dapat dipakai lintas halaman.
 
-- [ ] **F1-09 — Buat shell publik.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F1-09 — Buat shell publik.** [Role: Frontend Foundation Agent] [Model: Luna Max]
   **Files:** `apps/web/src/components/layout/public-shell.tsx`, `apps/web/src/components/layout/public-header.tsx`  
   **DoD:** Header, content width, mobile layout, dan CTA login sesuai wireframe.
 
-- [ ] **F1-10 — Buat shell Operator.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F1-10 — Buat shell Operator.** [Role: Frontend Foundation Agent] [Model: Luna Max]
   **Files:** `apps/web/src/components/layout/operator-shell.tsx`, `apps/web/src/components/layout/operator-navigation.tsx`  
   **Depends:** F1-05  
   **DoD:** Sidebar desktop, sheet/bottom navigation mobile, dan active route lengkap.
 
-- [ ] **F1-11 — Buat shell Admin KPPN.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F1-11 — Buat shell Admin KPPN.** [Role: Frontend Foundation Agent] [Model: Luna Max]
   **Files:** `apps/web/src/components/layout/admin-shell.tsx`, `apps/web/src/components/layout/admin-navigation.tsx`  
   **Depends:** F1-05  
   **DoD:** Mode Admin terlihat jelas dan shortcut policy tersedia pada mobile.
 
-- [ ] **F1-12 — Buat format lokal Indonesia.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F1-12 — Buat format lokal Indonesia.** [Role: Frontend Foundation Agent] [Model: Luna Max]
   **Files:** `apps/web/src/lib/format.ts`, `apps/web/src/lib/format.test.ts`  
   **DoD:** Rupiah, persen, permil, nilai, tanggal, waktu WIB, dan selisih poin teruji.
 
-- [ ] **F1-13 — Buat antarmuka mock service.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F1-13 — Buat antarmuka mock service.** [Role: Frontend Foundation Agent] [Model: Luna Max]
   **Files:** `apps/web/src/mocks/service.ts`, `apps/web/src/mocks/scenario.ts`  
   **Depends:** F0-11, F0-12  
   **DoD:** UI dapat memilih scenario dan menerima Promise/structured error seperti backend.

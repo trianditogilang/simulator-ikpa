@@ -9,6 +9,9 @@ npm install
 npm run dev
 ```
 
+The root is an npm workspace. The deployable TanStack Start application lives
+in `apps/web`, while reusable packages live in `packages/*`.
+
 # Building For Production
 
 To build this application for production:
@@ -25,10 +28,10 @@ This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
 
 If you prefer not to use Tailwind CSS:
 
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Remove `@tailwindcss/vite` and `tailwindcss` from `package.json`
+1. Remove the demo pages in `apps/web/src/routes/demo/`
+2. Replace the Tailwind import in `apps/web/src/styles.css` with your own styles
+3. Remove `tailwindcss()` from the plugins array in `apps/web/vite.config.ts`
+4. Remove `@tailwindcss/vite` and `tailwindcss` from `apps/web/package.json`
 
 ## Linting & Formatting
 
@@ -45,11 +48,11 @@ npm run check
 
 ## Routing
 
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
+This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `apps/web/src/routes`.
 
 ### Adding A Route
 
-To add a new route to your application just add a new file in the `./src/routes` directory.
+To add a new route to your application just add a new file in the `./apps/web/src/routes` directory.
 
 TanStack will automatically generate the content of the route file for you.
 
@@ -75,7 +78,7 @@ More information on the `Link` component can be found in the [Link documentation
 
 ### Using A Layout
 
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
+In the File Based Routing setup the layout is located in `apps/web/src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
 
 Here is an example layout that includes a header:
 

@@ -1,0 +1,16 @@
+{
+  "name": "@simulator-ikpa/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node --test src/schemas.test.ts"
+  },
+  "dependencies": {
+    "zod": "^4.5.4"
+  }
+}

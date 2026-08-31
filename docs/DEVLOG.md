@@ -28,6 +28,304 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 [Any additional notes, observations, or reminders]
 ```
 
+### Session 34 - 2026-09-01
+**Time:** Start: 00:25 WIB | End: 00:28 WIB | Duration: 3 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F1-13] Buat antarmuka mock service
+**Code Changes:**
+- Files created/modified: `apps/web/src/mocks/service.ts`, `apps/web/src/mocks/scenario.ts`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: sekitar 170 baris mock service/scenario.
+- Key implementations: Menambahkan katalog 9 scenario canonical yang typed; `createMockService` dengan selector stateful, `listScenarios`, `selectScenario`, generic `request<T>`, dan `getScenario`; `SCN-SERVER-ERROR` mengembalikan structured `ApiError` hasil validasi schema kontrak.
+- Verifikasi: Smoke Vitest sementara 2/2 — lulus; app typecheck — lulus; root `npm.cmd run check` — lulus; `npm.cmd run build` — client/SSR lulus; Biome dan `git diff --check` — lulus. Smoke file dihapus setelah verifikasi dan tidak menjadi test permanen.
+**Issues Encountered:**
+- Issue: F0-12 mendefinisikan scenario dan kontrak tetapi belum menentukan endpoint domain spesifik.
+- Solution: Menyediakan service generik berbasis scenario selection; payload domain dapat dikirim melalui `request<T>` tanpa mengubah UI saat backend menggantikan mock.
+**Next Session Plan:**
+- Tasks to continue: Fase 2, dimulai F2-01.
+- New tasks: Tidak ada.
+**Notes:**
+Scenario metadata tetap typed dan tidak mengimpor fixture mentah ke komponen UI; service memvalidasi structured error melalui schema kontrak bersama. Fase 1 kini lengkap sampai F1-13.
+
+### Session 33 - 2026-09-01
+**Time:** Start: 00:19 WIB | End: 00:22 WIB | Duration: 3 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F1-12] Buat format lokal Indonesia
+**Code Changes:**
+- Files created/modified: `apps/web/src/lib/format.ts`, `apps/web/src/lib/format.test.ts`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: sekitar 91 baris formatter dan test.
+- Key implementations: Menambahkan formatter `Intl` untuk Rupiah tanpa spasi, persen, permil, nilai dua desimal, tanggal ringkas Indonesia, waktu `Asia/Jakarta` dengan suffix `WIB`, serta delta poin bertanda `+`/`−`; input invalid ditolak dengan `RangeError`.
+- Verifikasi: Vitest langsung pada `format.test.ts` — 4/4 lulus; app typecheck — lulus; root `npm.cmd run check` — lulus; `npm.cmd run build` — client/SSR lulus; Biome dan `git diff --check` — lulus.
+**Issues Encountered:**
+- Issue: Nilai persen dan permil di kontrak simulator dikirim sebagai nilai tampilan, bukan rasio 0–1.
+- Solution: API formatter mendokumentasikan dan menguji input sebagai angka tampilan, misalnya `88.4` menjadi `88,40%` dan `4.62` menjadi `4,62‰`.
+**Next Session Plan:**
+- Tasks to continue: Tidak ada untuk scope F1-06–F1-12.
+- New tasks: Tidak ada.
+**Notes:**
+Timezone tanggal dan waktu dipaksa ke `Asia/Jakarta`; formatter menolak angka non-finite dan tanggal invalid agar error tidak diam-diam menghasilkan UI menyesatkan. Test formatter menjadi test permanen sesuai DoD F1-12.
+
+### Session 32 - 2026-09-01
+**Time:** Start: 00:15 WIB | End: 00:18 WIB | Duration: 3 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F1-11] Buat shell Admin KPPN
+**Code Changes:**
+- Files created/modified: `apps/web/src/components/layout/admin-shell.tsx`, `apps/web/src/components/layout/admin-navigation.tsx`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: sekitar 310 baris komponen.
+- Key implementations: Menambahkan sidebar Admin KPPN dengan grup Satker, Admin Policy, audit, dan akses; mode label terlihat pada desktop/mobile; bottom navigation lima item dengan shortcut Policy; sheet Lainnya berbasis Radix Dialog; active route dengan `aria-current`.
+- Verifikasi: `npm.cmd run typecheck --workspace apps/web` — lulus; smoke Vitest/jsdom sementara 2/2 — lulus; Biome pada source dan smoke — lulus; `git diff --check` — lulus. Smoke file dihapus setelah verifikasi dan tidak menjadi test permanen.
+**Issues Encountered:**
+- Issue: Route Admin KPPN dan halaman policy belum tersedia.
+- Solution: Navigation menerima `currentPath` dan memakai anchor href stabil; route integration tetap menjadi tanggung jawab aplikasi pada task berikutnya.
+**Next Session Plan:**
+- Tasks to continue: F1-12.
+- New tasks: Tidak ada.
+**Notes:**
+Shortcut `Policy` tetap berada pada bottom navigation mobile, sedangkan seluruh submenu policy tersedia di sidebar desktop dan sheet Lainnya.
+
+### Session 31 - 2026-09-01
+**Time:** Start: 00:10 WIB | End: 00:14 WIB | Duration: 4 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F1-10] Buat shell Operator
+**Code Changes:**
+- Files created/modified: `apps/web/src/components/layout/operator-shell.tsx`, `apps/web/src/components/layout/operator-navigation.tsx`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: sekitar 310 baris komponen.
+- Key implementations: Menambahkan sidebar desktop dengan seluruh menu Operator dan grup Input Data; bottom navigation mobile maksimal lima item; sheet Lainnya berbasis Radix Dialog; active route dengan `aria-current` dan `currentPath` yang query-safe.
+- Verifikasi: `npm.cmd run typecheck --workspace apps/web` — lulus; smoke Vitest/jsdom sementara 2/2 — lulus; Biome pada source dan smoke — lulus; `git diff --check` — lulus. Smoke file dihapus setelah verifikasi dan tidak menjadi test permanen.
+**Issues Encountered:**
+- Issue: Route Operator dan halaman domain belum tersedia.
+- Solution: Navigation menerima `currentPath` dan memakai anchor href stabil; route integration tetap menjadi tanggung jawab aplikasi pada task berikutnya.
+**Next Session Plan:**
+- Tasks to continue: F1-11.
+- New tasks: Tidak ada.
+**Notes:**
+Dialog Radix dipakai hanya sebagai primitive sheet aksesibel; styling responsive dan daftar route tetap lokal di navigation foundation.
+
+### Session 30 - 2026-09-01
+**Time:** Start: 00:07 WIB | End: 00:08 WIB | Duration: 1 minute
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F1-09] Buat shell publik
+**Code Changes:**
+- Files created/modified: `apps/web/src/components/layout/public-shell.tsx`, `apps/web/src/components/layout/public-header.tsx`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: sekitar 83 baris komponen.
+- Key implementations: Menambahkan public header dengan brand mark, nama produk, CTA `Masuk`, dan shell mobile-first dengan slot header serta content width maksimum 1200px.
+- Verifikasi: `npm.cmd run typecheck --workspace apps/web` — lulus; smoke Vitest/jsdom sementara 1/1 — lulus; Biome pada source dan smoke — lulus; `git diff --check` — lulus. Smoke file dihapus setelah verifikasi dan tidak menjadi test permanen.
+**Issues Encountered:**
+- Issue: Route autentikasi belum menjadi bagian task ini.
+- Solution: Header menerima `loginHref` dan memakai anchor standar; integrasi route dapat mengganti href tanpa mengubah shell.
+**Next Session Plan:**
+- Tasks to continue: F1-10.
+- New tasks: Tidak ada.
+**Notes:**
+Shell publik tidak mengimpor router atau fixture; ia hanya menyediakan struktur layout untuk route publik.
+
+### Session 29 - 2026-09-01
+**Time:** Start: 00:05 WIB | End: 00:06 WIB | Duration: 1 minute
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F1-08] Buat komponen disclaimer dan policy lock
+**Code Changes:**
+- Files created/modified: `packages/ui/src/components/simulation-disclaimer.tsx`, `packages/ui/src/components/policy-lock-alert.tsx`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: sekitar 69 baris komponen.
+- Key implementations: Menambahkan disclaimer dengan copy canonical dan semantic note; policy lock dengan judul, penjelasan, alasan lock, dan daftar field terdampak.
+- Verifikasi: Direct TypeScript pada seluruh source component package — lulus; smoke Vitest/jsdom sementara 2/2 — lulus; Biome pada source dan smoke — lulus; `git diff --check` — lulus. Smoke file dihapus setelah verifikasi dan tidak menjadi test permanen.
+**Issues Encountered:**
+- Issue: Belum ada halaman domain yang menjadi pemilik lock state.
+- Solution: Membuat komponen presentasional dengan props teks dan daftar field; parent akan menentukan policy serta lifecycle input pada integrasi domain.
+**Next Session Plan:**
+- Tasks to continue: F1-09.
+- New tasks: Tidak ada.
+**Notes:**
+Disclaimer memakai copy canonical dari wireframe; policy lock tidak mengandalkan warna saja karena judul, alasan, dan field terkunci selalu terlihat.
+
+### Session 28 - 2026-09-01
+**Time:** Start: 00:01 WIB | End: 00:04 WIB | Duration: 3 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F1-07] Buat state empty dan incomplete
+**Code Changes:**
+- Files created/modified: `packages/ui/src/components/empty-state.tsx`, `packages/ui/src/components/incomplete-state.tsx`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: sekitar 107 baris komponen.
+- Key implementations: Menambahkan empty state dengan domain, penjelasan, CTA utama, dan CTA sekunder opsional; incomplete state dengan daftar kebutuhan yang belum lengkap serta CTA kontekstual.
+- Verifikasi: Direct TypeScript pada seluruh source component package — lulus; smoke Vitest/jsdom sementara 2/2 — lulus; Biome pada source dan smoke — lulus; `git diff --check` — lulus. Smoke file dihapus setelah verifikasi dan tidak menjadi test permanen.
+**Issues Encountered:**
+- Issue: `packages/ui` belum memiliki manifest npm workspace.
+- Solution: Mempertahankan scope F1-07 pada source component dan memvalidasi langsung bersama dependency yang sudah tersedia, mengikuti keputusan F1-04 sampai F1-06.
+**Next Session Plan:**
+- Tasks to continue: F1-08.
+- New tasks: Tidak ada.
+**Notes:**
+Komponen state hanya menerima data siap tampil dan callback dari parent; fixture serta routing tetap berada di luar package UI.
+
+### Session 27 - 2026-08-31
+**Time:** Start: 23:55 WIB | End: 00:00 WIB | Duration: 5 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F1-06] Buat state loading dan error
+**Code Changes:**
+- Files created/modified: `packages/ui/src/components/loading-state.tsx`, `packages/ui/src/components/error-state.tsx`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: sekitar 136 baris komponen.
+- Key implementations: Menambahkan skeleton page-shaped yang mempertahankan struktur title, KPI cards, dan content rows; error state memakai pesan aman, request ID dengan allowlist karakter, retry callback, dan ikon dekoratif aksesibel.
+- Verifikasi: Direct TypeScript pada seluruh source component package — lulus; smoke Vitest/jsdom sementara 3/3 — lulus; Biome pada source dan smoke — lulus; `git diff --check` — lulus. Smoke file dihapus setelah verifikasi dan tidak menjadi test permanen.
+**Issues Encountered:**
+- Issue: `packages/ui` belum memiliki manifest npm workspace.
+- Solution: Mempertahankan scope F1-06 pada source component dan memvalidasi langsung bersama dependency yang sudah tersedia, mengikuti keputusan F1-04/F1-05.
+**Next Session Plan:**
+- Tasks to continue: F1-07, lalu F1-08.
+- New tasks: Tidak ada.
+**Notes:**
+Scope tetap foundation-only; fixture, route wiring, dan test suite komponen permanen berada di task lanjutan yang memilikinya. Request ID yang tidak cocok allowlist ditampilkan sebagai `Tidak tersedia`.
+
+### Session 26 - 2026-08-31
+**Time:** Start: 23:41 WIB | End: 23:45 WIB | Duration: 4 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F1-05] Buat komponen context header
+**Code Changes:**
+- Files created/modified: `packages/ui/src/components/context-header.tsx`, `packages/ui/src/components/context-selector.tsx`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: 223 baris komponen
+- Key implementations: Menambahkan `ContextHeader` berbasis `GlobalContext` untuk scope Satker/KPPN, mode akses, rule set, dan konteks aktif; `ContextSelector` memakai native select controlled untuk tahun/periode, opsi typed, label aksesibel, callback perubahan, dan layout mobile-first.
+- Verifikasi: Direct TypeScript pada seluruh source component package dengan `--allowImportingTsExtensions`, smoke render Vitest/jsdom untuk Operator/Admin serta perubahan selector, Biome pada source task, `npm.cmd run check`, `npm.cmd run build`, dan `git diff --check` lulus.
+**Issues Encountered:**
+- Issue: `packages/ui` belum memiliki manifest npm workspace.
+- Solution: Menjaga scope Luna pada dua file source yang diminta; komponen memakai dependency yang sudah tersedia dan divalidasi langsung seperti F1-04.
+- Issue: Kontrak `GlobalContext` memiliki scope nullable dan access state lebih luas daripada dua mode valid.
+- Solution: Header merender fallback aman `Satker/KPPN scope belum dipilih` dan `Akses belum ditetapkan`, sementara konteks valid menampilkan nama, kode, serta mode yang sesuai.
+**Next Session Plan:**
+- Tasks to continue: Tidak ada; F1-05 selesai.
+- New tasks: Tidak ada.
+**Notes:**
+Selector memakai elemen native agar keyboard/accessibility dan responsive behavior tersedia tanpa menambah primitive Radix baru. Pola controlled `value`/`onChange` mengikuti boundary Select shadcn yang diperiksa melalui Context7, tetapi refresh data, dialog unsaved form, dan URL mutation tetap dimiliki parent/integrasi.
+
+### Session 25 - 2026-08-31
+**Time:** Start: 23:25 WIB | End: 23:34 WIB | Duration: 9 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F1-04] Buat primitive status dan badge
+**Code Changes:**
+- Files created/modified: `packages/ui/src/components/status-badge.tsx`, `packages/ui/src/components/rule-set-badge.tsx`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: 148 baris komponen
+- Key implementations: Menambahkan primitive status dengan enam variant (`complete`, `warning`, `danger`, `info`, `incomplete`, `locked`) dan primitive rule set dengan status `published`/`retired`; keduanya memakai `cva`, `twMerge`, semantic token, ikon Lucide dekoratif, label visible, dan accessible name via native `output`.
+- Verifikasi: Direct TypeScript pada dua source package, smoke render Vitest/jsdom untuk seluruh variant, Biome pada file task, `npm.cmd run check`, `npm.cmd run build`, dan `git diff --check` lulus.
+**Issues Encountered:**
+- Issue: `packages/ui` belum memiliki manifest npm workspace.
+- Solution: Menjaga scope Luna pada dua file source yang diminta; validasi komponen dilakukan secara langsung tanpa memperkenalkan package boundary baru.
+- Issue: Direct TypeScript awal mendeteksi `tsconfig.json` root saat file source diberikan eksplisit (`TS5112`).
+- Solution: Menjalankan pemeriksaan terisolasi dengan `--ignoreConfig`; tidak ada error source.
+**Next Session Plan:**
+- Tasks to continue: [F1-05] Buat komponen context header.
+- New tasks: Tidak ada.
+**Notes:**
+Status badge memakai label dan ikon selain warna agar tetap terbaca bagi pengguna dengan keterbatasan persepsi warna. Pola `output`/`aria-label` dipakai untuk memenuhi accessible name tanpa membuat badge statis menjadi live-region buatan.
+
+### Session 24 - 2026-08-31
+**Time:** Start: 23:13 WIB | End: 23:20 WIB | Duration: 7 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F1-03] Konfigurasi token warna dan typography
+**Code Changes:**
+- Files created/modified: `apps/web/src/styles.css`, `apps/web/src/lib/design-tokens.ts`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: sekitar 200 baris token/foundation CSS dan TypeScript.
+- Key implementations: Menambahkan token CSS-first Tailwind v4 untuk palet warna design system, alias shadcn, Inter dengan fallback sistem, typography mobile/desktop, tabular numbers, radius 6/8/12 px, focus ring `:focus-visible`, semantic status colors, dan `prefers-reduced-motion`. Referensi TypeScript memakai CSS custom properties agar tidak menduplikasi nilai.
+- Verifikasi: `npm.cmd run check` — typecheck, test contracts 1/1, dan lint lulus; `npm.cmd run build` — client/SSR lulus; `biome check` pada file task — lulus; design token source audit — lulus; built CSS token smoke pada output sementara — marker lulus; `git diff --check` — lulus.
+**Issues Encountered:**
+- Issue: Smoke build output sementara pertama kali gagal membaca cache konfigurasi Vite karena file sedang dipakai proses dev/build lain.
+- Solution: Output sementara dibersihkan; build workspace normal dijalankan ulang dan lulus. Tidak ada perubahan pada proses pengguna.
+**Next Session Plan:**
+- Tasks to continue: Tidak ada; F1-03 selesai.
+- New tasks: [F1-04] Buat primitive status dan badge.
+**Notes:**
+Nilai aktual disimpan sebagai CSS custom properties agar dapat dipakai Tailwind dan komponen/chart tanpa konfigurasi Tailwind v3 atau file config tambahan. Konfigurasi font eksternal belum ditambahkan; Inter menjadi preferred family dengan fallback sistem agar SSR/build tetap offline dan deterministik.
+
+### Session 23 - 2026-08-31
+**Time:** Start: 22:53 WIB | End: 23:08 WIB | Duration: 15 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F1-02] Pasang dependency UI yang sudah disetujui
+**Code Changes:**
+- Files created/modified: `apps/web/package.json`, `package-lock.json`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: 0 source; manifest menambahkan 9 dependency runtime dan 6 tooling test/CLI dengan versi exact.
+- Key implementations: Menambahkan `radix-ui`, shadcn utilities, `lucide-react`, `recharts`, `react-hook-form`, `@hookform/resolvers`, dan Zod pada runtime; menambahkan `shadcn`, Vitest, jsdom, serta Testing Library pada devDependencies. Dependency diletakkan pada workspace aplikasi dan lockfile diperbarui tanpa membuat komponen/config di luar scope.
+- Verifikasi: `npm.cmd install --package-lock-only --ignore-scripts --no-audit --no-fund --offline` — lulus; `npm.cmd ls --workspaces --depth=0` — seluruh workspace dan dependency target ter-resolve; runtime import smoke — lulus; `shadcn --help` dan `vitest --version` — lulus; `npm.cmd run check` — typecheck, test contracts 1/1, dan lint lulus; `npm.cmd run build` — client/SSR lulus; `git diff --check` — lulus.
+**Issues Encountered:**
+- Issue: Registry npm proyek `https://registry.npmmirror.com` timeout saat resolver dependency dijalankan.
+- Solution: Menggunakan registry npm resmi dengan akses jaringan terkontrol untuk install, kemudian memvalidasi lockfile secara offline.
+**Next Session Plan:**
+- Tasks to continue: Tidak ada; F1-02 selesai.
+- New tasks: [F1-03] Konfigurasi token warna dan typography.
+**Notes:**
+Dependency UI dideklarasikan pada manifest workspace aplikasi; root package tetap hanya mengorkestrasi script dan tooling bersama. Referensi Context7 mencatat shadcn sebagai source-component/CLI berbasis Radix, `zodResolver` sebagai boundary validasi React Hook Form, Vitest memakai environment DOM saat test UI dibuat, dan Recharts dipakai client-only untuk grafik interaktif. Konfigurasi `jsdom`/setup Testing Library dan komponen shadcn ditunda ke task yang memang membutuhkan source/config tersebut.
+
+### Session 22 - 2026-08-31
+**Time:** Start: 21:59 WIB | End: 22:20 WIB | Duration: 21 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Solution Architect
+- Model: Sol Medium
+**Tasks Completed:**
+- [F1-01] Migrasikan starter ke workspace target
+**Code Changes:**
+- Files created/modified: `package.json`, `package-lock.json`, `tsconfig.json`, `biome.json`, `README.md`, `apps/web/package.json`, `apps/web/tsconfig.json`, `apps/web/vite.config.ts`, `apps/web/tsr.config.json`, `apps/web/src/**`, `packages/contracts/package.json`, `packages/contracts/tsconfig.json`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: Migrasi struktur dan konfigurasi; source starter dipindahkan tanpa penambahan fitur.
+- Key implementations: Membentuk npm workspaces dengan satu lockfile, memindahkan TanStack Start ke `apps/web`, mempertahankan root convenience scripts, menjadikan contracts workspace nyata dengan dependency Zod langsung, memisahkan tsconfig root/app/package, menghapus metadata pnpm, serta memperbarui onboarding path.
+- Verifikasi: `npm.cmd install` — lulus; `npm.cmd run generate-routes` — lulus; `npm.cmd run check` — typecheck dua workspace, test contracts 1/1, dan lint lulus; `npm.cmd run build` — client/SSR lulus; `npm.cmd ls --workspaces --depth=0` — dua workspace valid; dev server root — Vite ready; HTTP smoke `127.0.0.1:4178` — 200 dan konten starter ditemukan; `git diff --check` — lulus.
+**Issues Encountered:**
+- Issue: Windows menolak `git mv` direktori `src` sekaligus; TypeScript 6 menolak `baseUrl` deprecated; port 3000 sudah dipakai proses yang ada sebelum task.
+- Solution: Memindahkan file tracked satu per satu, menghapus `baseUrl` karena mapping path sudah relatif, dan memakai port khusus 4178 untuk smoke test tanpa menghentikan proses pengguna.
+**Next Session Plan:**
+- Tasks to continue: Tidak ada; F1-01 selesai.
+- New tasks: [F1-02] Pasang dependency UI yang sudah disetujui.
+**Notes:**
+Package domain lain tidak dibuat sebagai placeholder. Dependency backend selain Zod tetap mengikuti F7-01.
+
+### Session 21 - 2026-08-31
+**Time:** Start: 21:59 WIB | End: ongoing
+- Status: In Progress
+- Agent/Role: Primary Agent / Solution Architect
+- Model: Sol Medium
+**Tasks Completed:**
+- Belum ada; F1-01 sedang dikerjakan.
+**Code Changes:**
+- Files created/modified: `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: 0
+- Key implementations: Menetapkan F1-01 sebagai `In Progress` setelah desain migrasi ADR-005 disetujui.
+- Verifikasi: Working tree bersih; Context7 dan TanStack Intent Start Core 1.170.14 telah diperiksa.
+**Issues Encountered:**
+- Issue: TanStack Intent pertama kali gagal mengakses npm cache/registry dalam sandbox.
+- Solution: Menjalankan ulang command yang sama dengan izin terkontrol; panduan berhasil dimuat.
+**Next Session Plan:**
+- Tasks to continue: [F1-01] Migrasi fisik, manifest workspace, install, dan quality gates.
+- New tasks: Tidak ada.
+**Notes:**
+Hanya `apps/web` dan `packages/contracts` yang dibuat sebagai workspace nyata; package domain lain tidak dibuat sebagai placeholder.
+
 ### Session 20 - 2026-08-31
 **Time:** Start: 21:22 WIB | End: 21:26 WIB | Duration: 4 minutes
 - Status: Completed

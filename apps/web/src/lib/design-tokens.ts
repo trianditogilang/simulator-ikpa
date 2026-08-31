@@ -1,0 +1,43 @@
+export const designTokens = {
+	colors: {
+		background: "var(--background)",
+		surface: "var(--surface)",
+		surfaceMuted: "var(--surface-muted)",
+		foreground: "var(--foreground)",
+		mutedForeground: "var(--muted-foreground)",
+		border: "var(--border)",
+		primary: "var(--primary)",
+		primaryHover: "var(--primary-hover)",
+		primaryForeground: "var(--primary-foreground)",
+		info: "var(--info)",
+		success: "var(--success)",
+		warning: "var(--warning)",
+		danger: "var(--danger)",
+		dangerSurface: "var(--danger-surface)",
+		warningSurface: "var(--warning-surface)",
+		successSurface: "var(--success-surface)",
+		infoSurface: "var(--info-surface)",
+	},
+	fonts: {
+		body: "var(--font-body)",
+		display: "var(--font-body)",
+	},
+	typography: {
+		display: "var(--text-display)",
+		h1: "var(--text-h1)",
+		h2: "var(--text-h2)",
+		h3: "var(--text-h3)",
+		body: "var(--text-body)",
+		bodySmall: "var(--text-body-small)",
+		label: "var(--text-label)",
+		score: "var(--text-score)",
+	},
+	radius: {
+		sm: "var(--radius-sm)",
+		md: "var(--radius-md)",
+		lg: "var(--radius-lg)",
+	},
+	shadow: {
+		card: "var(--shadow-card)",
+	},
+} as const;
