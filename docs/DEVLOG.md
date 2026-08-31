@@ -26,7 +26,79 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - New tasks: [if any]
 **Notes:**
 [Any additional notes, observations, or reminders]
-```
+### Session 37 - 2026-09-01
+**Time:** Start: 02:44 WIB | End: 02:46 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [UI-Iterasi-02] Optimasi Landing Page fit-to-viewport & simplifikasi konten disclaimer
+**Code Changes:**
+- Files created/modified: `apps/web/src/components/public/landing-content.tsx`, `apps/web/src/components/public/auth-card.tsx`, `apps/web/src/components/layout/public-shell.tsx`, `docs/DEVLOG.md`
+- Key implementations:
+  1. Penataan tinggi layout dengan `flex flex-col min-h-dvh justify-center` sehingga seluruh bagian (Header, Hero Card, Auth Area, dan Footer) pas dalam satu layar desktop tanpa vertical scrollbar.
+  2. Menghapus boks informasi redundan di bawah deskripsi hero.
+  3. Memperbarui teks disclaimer resmi menjadi: `*Hasil perhitungan hanya merupakan simulasi internal, silakan validasi kembali`.
+  4. Komponen `AuthCard` disederhanakan proporsinya (padding, font size, input height) agar selaras dan proporsional di berbagai ukuran layar desktop.
+- Verifikasi: `npm.cmd run check` (typecheck, tests contracts 1/1, Biome lint) — lulus; `npm.cmd run build` (client & SSR production build) — lulus.
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F2-03 / F2-04 (Halaman akses belum diberikan) & F2-05 (Halaman pilih satker).
+- New tasks: Tidak ada.
+**Notes:**
+- Layout desktop kini responsif, compact, dan bebas scroll.
+
+### Session 36 - 2026-09-01
+**Time:** Start: 02:32 WIB | End: 02:44 WIB | Duration: 12 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [UI-Iterasi-01] Penyesuaian layout dan form sign-in/sign-up landing page publik
+**Code Changes:**
+- Files created/modified: `apps/web/src/components/public/landing-content.tsx`, `apps/web/src/components/public/auth-card.tsx`, `apps/web/src/components/layout/public-header.tsx`, `apps/web/src/components/layout/public-shell.tsx`, `docs/DEVLOG.md`
+- Lines of code: sekitar 190 baris komponen baru/revisi.
+- Key implementations:
+  1. Membersihkan public area: hanya menampilkan hero section ringkas dengan terintegrasi kartu Sign In / Sign Up (`AuthCard`).
+  2. Mengganti tombol CTA "Masuk" pada header menjadi tautan WhatsApp "Kontak" Admin KPPN.
+  3. Mengubah label badge regulasi menjadi `PER-5/ PB/ 2024`.
+  4. Tipografi: Menggunakan font Inter murni dengan variasi regular & semibold, menghilangkan font monospace/Consolas pada angka, serta meminimalkan penggunaan ikon dekoratif.
+- Verifikasi: `npm.cmd run check` (typecheck, tests contracts 1/1, Biome lint) — lulus; `npm.cmd run build` (client & SSR production build) — lulus.
+**Issues Encountered:**
+- Issue: Biome lint rule `useValidAnchor` mendeteksi tag `<a href="#forgot">` dengan handler `onClick`.
+- Solution: Mengganti tag `<a>` menjadi elemen `<button type="button">` aksesibel.
+**Next Session Plan:**
+- Tasks to continue: F2-04 (Halaman akses belum diberikan) & F2-05 (Halaman pilih satker).
+- New tasks: Tidak ada.
+**Notes:**
+- Semua state pada form Sign In / Sign Up telah disiapkan untuk integrasi autentikasi Clerk pada Fase 8.
+
+### Session 35 - 2026-09-01
+**Time:** Start: 01:36 WIB | End: 01:42 WIB | Duration: 6 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F2-01] Buat landing page content component
+- [F2-02] Hubungkan route landing page
+**Code Changes:**
+- Files created/modified: `apps/web/src/components/public/landing-content.tsx`, `apps/web/src/components/public/indicator-summary.tsx`, `apps/web/src/routes/index.tsx`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: sekitar 280 baris komponen & integrasi route.
+- Key implementations: Mengimplementasikan Landing Page sesuai spesifikasi WF-01 dan prinsip UI/UX ponytail design:
+  1. Hero section modern dengan headline tegas, sub-headline mitigasi risiko, CTA utama "Masuk ke Simulator", disclaimer resmi, dan live-styled KPI Preview Card (Skor 94,20, Target 95,00, Gap -0,80, serta daftar tindakan prioritas).
+  2. 4 Pilar Manfaat Pengawalan IKPA (Simulasi Real-time, Deteksi Risiko & Rekomendasi, Reminder Deadline Cerdas, Monitoring KPPN Terpadu).
+  3. Katalog 8 Indikator IKPA lengkap dengan bobot persentase, aspek penilaian, ikon semantik, dan styling khusus untuk faktor pengurang (Dispensasi SPM).
+  4. Integrasi route `apps/web/src/routes/index.tsx` dibungkus dengan `PublicShell`.
+- Verifikasi: `npm.cmd run check` (typecheck, tests contracts 1/1, Biome lint) — lulus; `npm.cmd run build` (client & SSR production build) — lulus; `git diff --check` — lulus.
+**Issues Encountered:**
+- Issue: Warning unused imports pada icon Lucide awal.
+- Solution: Membersihkan import yang tidak terpakai sehingga TypeScript strict checks lulus 100%.
+**Next Session Plan:**
+- Tasks to continue: F2-03 (Buat UI sign-in dummy).
+- New tasks: Tidak ada.
+**Notes:**
+- Seluruh token warna dan tipografi konsisten dengan `UI-UX-Design-System.md` dan standar `ponytail`.
 
 ### Session 34 - 2026-09-01
 **Time:** Start: 00:25 WIB | End: 00:28 WIB | Duration: 3 minutes

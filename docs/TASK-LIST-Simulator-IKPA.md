@@ -185,12 +185,12 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
 
 ## 6. Fase 2 — UI Publik dan Akses dengan Dummy Data
 
-- [ ] **F2-01 — Buat landing page content component.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F2-01 — Buat landing page content component.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/components/public/landing-content.tsx`, `apps/web/src/components/public/indicator-summary.tsx`  
   **Depends:** F1-09  
   **DoD:** Hero, manfaat, indikator, disclaimer, dan CTA sesuai WF-01.
 
-- [ ] **F2-02 — Hubungkan route landing page.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F2-02 — Hubungkan route landing page.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/index.tsx`, `apps/web/src/routeTree.gen.ts`  
   **Depends:** F2-01  
   **DoD:** Route publik responsif dan metadata dasar benar.

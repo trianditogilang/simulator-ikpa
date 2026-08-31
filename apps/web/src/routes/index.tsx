@@ -1,14 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
+import { PublicShell } from "@/components/layout/public-shell";
+import { LandingContent } from "@/components/public/landing-content";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
 	return (
-		<div className="p-8">
-			<h1 className="text-4xl font-bold">Welcome to TanStack Start</h1>
-			<p className="mt-4 text-lg">
-				Edit <code>apps/web/src/routes/index.tsx</code> to get started.
-			</p>
-		</div>
+		<PublicShell>
+			<LandingContent />
+		</PublicShell>
 	);
 }
