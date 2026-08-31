@@ -83,41 +83,41 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
   **Depends:** F0-02  
   **DoD:** Inklusivitas tanggal awal/akhir, weekend, override hari kerja, timezone, dan contoh lintas bulan terdokumentasi tanpa ambiguitas.
 
-- [ ] **F0-04 — Putuskan versioning kalender kerja.** [Role: Solution Architect] [Model: Luna Max]  
+- [x] **F0-04 — Putuskan versioning kalender kerja.** [Role: Solution Architect] [Model: Luna Max]
   **File:** `docs/adr/ADR-002-workday-versioning.md`  
   **Depends:** F0-03  
   **DoD:** Memilih kalender immutable per rule set atau calendar version terpisah, termasuk dampak ERD dan snapshot.
 
-- [ ] **F0-05 — Putuskan semantik lead time termasuk H-0.** [Role: Solution Architect] [Model: Luna Max]  
+- [x] **F0-05 — Putuskan semantik lead time termasuk H-0.** [Role: Solution Architect] [Model: Luna Max]
   **File:** `docs/adr/ADR-003-reminder-lead-days.md`  
   **DoD:** Konflik `minLeadDays >= 1` versus H-0 diselesaikan dan schema final dijelaskan.
 
-- [ ] **F0-06 — Putuskan resolver versi rule set.** [Role: Solution Architect] [Model: Luna Max]  
+- [x] **F0-06 — Putuskan resolver versi rule set.** [Role: Solution Architect] [Model: Luna Max]
   **File:** `docs/adr/ADR-004-rule-set-resolution.md`  
   **DoD:** Aturan effective range, publish, retire, overlap, rollback, dan histori snapshot eksplisit.
 
-- [ ] **F0-07 — Tetapkan struktur monorepo dan package manager.** [Role: Solution Architect] [Model: Luna Max]  
+- [x] **F0-07 — Tetapkan struktur monorepo dan package manager.** [Role: Solution Architect] [Model: Luna Max]
   **File:** `docs/adr/ADR-005-repository-structure.md`  
   **DoD:** Memilih npm workspaces atau alternatif, mapping starter saat ini ke `apps/web`, serta boundary `db`, `ikpa-engine`, `policy-reminder`, `access-control`, dan `ui`.
 
-- [ ] **F0-08 — Pilih dependency decimal, XLSX, PDF, dan storage import.** [Role: Solution Architect] [Model: Sol Medium]  
+- [x] **F0-08 — Pilih dependency decimal, XLSX, PDF, dan storage import.** [Role: Solution Architect] [Model: Sol Medium]
   **File:** `docs/adr/ADR-006-runtime-dependencies.md`  
   **DoD:** Pilihan dibandingkan dari presisi, keamanan, serverless compatibility, ukuran bundle, lisensi, dan maintenance.
 
-- [ ] **F0-09 — Putuskan akses ganda Admin/Operator.** [Role: Product & IKPA Analyst] [Model: Luna Max]  
+- [x] **F0-09 — Putuskan akses ganda Admin/Operator.** [Role: Product & IKPA Analyst] [Model: Luna Max]
   **File:** `docs/adr/ADR-007-access-precedence.md`  
   **DoD:** Redirect default, pilihan satker, pergantian konteks, dan session behavior ditetapkan.
 
-- [ ] **F0-10 — Tetapkan kebijakan retensi dan klasifikasi data.** [Role: Security Agent] [Model: Sol Medium]  
+- [x] **F0-10 — Tetapkan kebijakan retensi dan klasifikasi data.** [Role: Security Agent] [Model: Sol Medium]
   **File:** `docs/data-retention-and-classification.md`  
   **DoD:** Retensi audit/snapshot/import/delivery, data personal, redaction log, dan prosedur penghapusan disetujui.
 
-- [ ] **F0-11 — Definisikan kontrak frontend bersama.** [Role: Solution Architect] [Model: Sol Medium]  
+- [x] **F0-11 — Definisikan kontrak frontend bersama.** [Role: Solution Architect] [Model: Sol Medium]
   **Files:** `packages/contracts/src/index.ts`, `packages/contracts/src/schemas.ts`  
   **Depends:** F0-03–F0-09  
   **DoD:** DTO akses, konteks global, indikator, snapshot, policy, delivery, pagination, filter, dan structured error tersedia tanpa dependensi UI/database.
 
-- [ ] **F0-12 — Buat katalog mock scenario.** [Role: UI/UX Designer] [Model: Luna Max]  
+- [x] **F0-12 — Buat katalog mock scenario.** [Role: UI/UX Designer] [Model: Luna Max]
   **File:** `docs/mock-scenarios.md`  
   **Depends:** F0-11  
   **DoD:** Scenario normal, empty, incomplete, risky, stale rule set, policy locked, delivery failed, unauthorized, dan server error memiliki expected UI.
