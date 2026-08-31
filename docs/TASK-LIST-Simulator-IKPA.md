@@ -70,15 +70,15 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
 
 ## 4. Fase 0 — Governance, Kontrak, dan Keputusan Arsitektur
 
-- [ ] **F0-01 — Buat matriks traceability requirement-ke-fitur.** [Role: Product & IKPA Analyst] [Model: Sol Medium]  
+- [x] **F0-01 — Buat matriks traceability requirement-ke-fitur.** [Role: Product & IKPA Analyst] [Model: Sol Medium]  
   **File:** `docs/traceability-matrix.md`  
   **DoD:** Seluruh PUB/OPS/ADM, acceptance criteria PRD/FSD, tabel ERD, state wireframe, dan test TSD memiliki ID implementasi serta status MVP.
 
-- [ ] **F0-02 — Dokumentasikan status verifikasi parameter IKPA 2026.** [Role: Product & IKPA Analyst] [Model: Sol Medium]  
+- [x] **F0-02 — Dokumentasikan status verifikasi parameter IKPA 2026.** [Role: Product & IKPA Analyst] [Model: Sol Medium]  
   **File:** `docs/regulatory-verification-2026.md`  
   **DoD:** Setiap parameter memiliki nilai sementara, sumber, pemilik verifikasi, status `verified/needs_verification`, dan larangan go-live bila belum valid.
 
-- [ ] **F0-03 — Putuskan interpretasi kalender kerja dan H+17/H-0.** [Role: Product & IKPA Analyst] [Model: Luna Max]  
+- [x] **F0-03 — Putuskan interpretasi kalender kerja dan H+17/H-0.** [Role: Product & IKPA Analyst] [Model: Luna Max]  
   **File:** `docs/adr/ADR-001-workday-boundaries.md`  
   **Depends:** F0-02  
   **DoD:** Inklusivitas tanggal awal/akhir, weekend, override hari kerja, timezone, dan contoh lintas bulan terdokumentasi tanpa ambiguitas.
