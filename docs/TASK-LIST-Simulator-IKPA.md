@@ -667,7 +667,7 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
 
 > Pada fase ini mock service diganti per domain. Mock tetap dipertahankan untuk component test dan demo scenario.
 
-- [ ] **F11-01 â€” Integrasikan auth, routing, dan active context.** [Role: Auth & Access Agent] [Model: Sol Medium]  
+- [x] **F11-01 â€” Integrasikan auth, routing, dan active context.** [Role: Auth & Access Agent] [Model: Sol Medium]
   **Scope:** Sign-in, access pending, org picker, Operator/Admin guard, context header  
   **Depends:** F5-05, F8-01â€“F8-06  
   **DoD:** Seluruh jalur akses nyata menggantikan dummy tanpa mengubah layout yang sudah diterima.

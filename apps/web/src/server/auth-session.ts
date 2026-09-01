@@ -6,9 +6,44 @@ export interface AuthSession {
 	isAuthenticated: boolean;
 }
 
+export function createUnauthenticatedAuthSession(): AuthSession {
+	return {
+		userId: null,
+		clerkUserId: null,
+		email: null,
+		name: null,
+		isAuthenticated: false,
+	};
+}
+
+function decodeCookieValue(value: string): string {
+	try {
+		return decodeURIComponent(value);
+	} catch {
+		return value;
+	}
+}
+
+function readCookieHeader(cookieHeader: string): Record<string, string> {
+	return Object.fromEntries(
+		cookieHeader.split(";").flatMap((part) => {
+			const separatorIndex = part.indexOf("=");
+			if (separatorIndex < 1) {
+				return [];
+			}
+
+			const name = part.slice(0, separatorIndex).trim();
+			const value = part.slice(separatorIndex + 1).trim();
+			return [[name, decodeCookieValue(value)]];
+		}),
+	);
+}
+
 /**
- * Extracts and verifies auth session from an incoming HTTP Request.
- * In development, supports Authorization/Cookie header or dev presets.
+ * Reads the deliberately limited local demo session.
+ *
+ * This function is only called when Clerk is not configured in development.
+ * It must never be used as production authentication.
  */
 export async function getAuthContextFromRequest(
 	request: Request,
@@ -32,12 +67,7 @@ export async function getAuthContextFromRequest(
 
 	// 2. Check Cookie for active session or active dev user
 	if (cookieHeader) {
-		const cookies = Object.fromEntries(
-			cookieHeader
-				.split(";")
-				.map((c) => c.trim().split("="))
-				.filter((parts) => parts.length === 2),
-		);
+		const cookies = readCookieHeader(cookieHeader);
 
 		if (cookies.__session || cookies.dev_session) {
 			const sessionVal = cookies.__session || cookies.dev_session;
@@ -51,11 +81,5 @@ export async function getAuthContextFromRequest(
 		}
 	}
 
-	return {
-		userId: null,
-		clerkUserId: null,
-		email: null,
-		name: null,
-		isAuthenticated: false,
-	};
+	return createUnauthenticatedAuthSession();
 }

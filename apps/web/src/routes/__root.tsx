@@ -1,3 +1,4 @@
+import { ClerkProvider } from "@clerk/tanstack-react-start";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import {
 	createRootRouteWithContext,
@@ -7,10 +8,16 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { Agentation } from "agentation";
 import type { RouterContext } from "../router";
+import { getAuthSessionFn } from "../server/access";
 
 import appCss from "../styles.css?url";
 
+const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.trim();
+
 export const Route = createRootRouteWithContext<RouterContext>()({
+	beforeLoad: async () => ({
+		auth: await getAuthSessionFn(),
+	}),
 	head: () => ({
 		meta: [
 			{
@@ -26,19 +33,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 		],
 		links: [
 			{
-				rel: "preconnect",
-				href: "https://fonts.googleapis.com",
-			},
-			{
-				rel: "preconnect",
-				href: "https://fonts.gstatic.com",
-				crossOrigin: "anonymous",
-			},
-			{
-				rel: "stylesheet",
-				href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
-			},
-			{
 				rel: "stylesheet",
 				href: appCss,
 			},
@@ -48,25 +42,37 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+	const body = (
+		<>
+			{children}
+			{process.env.NODE_ENV === "development" && <Agentation />}
+			<TanStackDevtools
+				config={{
+					position: "bottom-right",
+				}}
+				plugins={[
+					{
+						name: "Tanstack Router",
+						render: <TanStackRouterDevtoolsPanel />,
+					},
+				]}
+			/>
+		</>
+	);
+
 	return (
 		<html lang="id">
 			<head>
 				<HeadContent />
 			</head>
 			<body>
-				{children}
-				{process.env.NODE_ENV === "development" && <Agentation />}
-				<TanStackDevtools
-					config={{
-						position: "bottom-right",
-					}}
-					plugins={[
-						{
-							name: "Tanstack Router",
-							render: <TanStackRouterDevtoolsPanel />,
-						},
-					]}
-				/>
+				{clerkPublishableKey ? (
+					<ClerkProvider publishableKey={clerkPublishableKey}>
+						{body}
+					</ClerkProvider>
+				) : (
+					body
+				)}
 				<Scripts />
 			</body>
 		</html>

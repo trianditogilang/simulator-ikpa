@@ -1,4 +1,5 @@
 import * as dotenv from "dotenv";
+import { pathToFileURL } from "node:url";
 import { eq } from "drizzle-orm";
 import { default2026RuleSet } from "@simulator-ikpa/ikpa-engine";
 import { createPoolDbClient } from "./client";
@@ -70,34 +71,34 @@ export async function seed() {
 	const [admin1] = await db
 		.insert(users)
 		.values({
-			clerkUserId: "user_admin_kppn_089_1",
-			email: "admin1.kppn089@kemenkeu.go.id",
-			name: "Admin KPPN 089 Utama",
+			clerkUserId: "user_3IjPY3A3GQs6zNzUosQYErI9Z9j",
+			email: "gilangrahmadian24@gmail.com",
+			name: "Admin KPPN 032",
 		})
 		.onConflictDoUpdate({
 			target: users.email,
-			set: { name: "Admin KPPN 089 Utama", updatedAt: new Date() },
+			set: { name: "Admin KPPN 032", updatedAt: new Date() },
 		})
 		.returning();
 
 	const [admin2] = await db
 		.insert(users)
 		.values({
-			clerkUserId: "user_admin_kppn_089_2",
-			email: "admin2.kppn089@kemenkeu.go.id",
-			name: "Admin KPPN 089 Pendamping",
+			clerkUserId: "user_3IjQCSAXvbPFxqd85YbemGUlLjT",
+			email: "trianditogilang@gmail.com",
+			name: "Admin KPPN 032 Pendamping",
 		})
 		.onConflictDoUpdate({
 			target: users.email,
-			set: { name: "Admin KPPN 089 Pendamping", updatedAt: new Date() },
+			set: { name: "Admin KPPN 032 Pendamping", updatedAt: new Date() },
 		})
 		.returning();
 
 	const [operator1] = await db
 		.insert(users)
 		.values({
-			clerkUserId: "user_operator_satker_411",
-			email: "operator.satker411@kemenkeu.go.id",
+			clerkUserId:"user_3IjPcGAEXAkkjSRfROXmfnwcZII",
+			email: "operatorsatker@gmail.com",
 			name: "Operator Satker 411782",
 		})
 		.onConflictDoUpdate({
@@ -361,7 +362,7 @@ export async function seed() {
 }
 
 // Run if called directly
-if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, "/")}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
 	seed()
 		.then(() => process.exit(0))
 		.catch((err) => {

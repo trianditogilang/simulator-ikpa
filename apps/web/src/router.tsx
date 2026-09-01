@@ -3,7 +3,7 @@ import { routeTree } from "./routeTree.gen";
 import type { AuthSession } from "./server/auth-session";
 
 export interface RouterContext {
-	auth?: AuthSession;
+	auth: AuthSession;
 }
 
 export function getRouter() {
@@ -13,7 +13,7 @@ export function getRouter() {
 		defaultPreload: "intent",
 		defaultPreloadStaleTime: 0,
 		context: {
-			auth: undefined,
+			auth: undefined as unknown as AuthSession,
 		},
 	});
 

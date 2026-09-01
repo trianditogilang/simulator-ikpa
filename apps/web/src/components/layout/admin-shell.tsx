@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
+import { ActiveContextHeader } from "./active-context";
 import { AdminNavigation } from "./admin-navigation";
 
 export type AdminShellProps = Omit<ComponentProps<"div">, "children"> & {
@@ -27,6 +28,7 @@ export function AdminShell({
 		>
 			<AdminNavigation currentPath={currentPath} />
 			<div className="min-w-0">
+				<ActiveContextHeader />
 				{header}
 				<main className="min-h-[calc(100dvh-4rem)] px-4 pb-24 pt-6 sm:px-6 md:pb-8 lg:px-8">
 					<div className="mx-auto w-full max-w-[1440px]">{children}</div>

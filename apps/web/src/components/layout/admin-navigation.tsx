@@ -14,6 +14,7 @@ import { Dialog } from "radix-ui";
 import type { ComponentProps } from "react";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
+import { SignOutAction } from "@/components/auth/sign-out-action";
 
 type NavigationItem = {
 	label: string;
@@ -80,10 +81,7 @@ const mobileItems: readonly NavigationItem[] = [
 	{ label: "Policy", href: "/admin-kppn/policy/rule-sets", icon: LockKeyhole },
 ];
 
-const moreItems: readonly NavigationItem[] = [
-	...secondaryItems,
-	{ label: "Keluar", href: "/sign-in", icon: KeyRound },
-];
+const moreItems: readonly NavigationItem[] = [...secondaryItems];
 
 export type AdminNavigationProps = Omit<ComponentProps<"div">, "children"> & {
 	currentPath: string;
@@ -221,12 +219,9 @@ export function AdminNavigation({
 				<div className="border-t border-border p-4">
 					<p className="text-body-small text-muted-foreground">Akun aktif</p>
 					<p className="mt-1 text-label text-foreground">Admin KPPN</p>
-					<a
-						className="mt-3 inline-flex min-h-10 items-center text-body-small text-primary underline-offset-4 hover:underline"
-						href="/"
-					>
+					<SignOutAction className="mt-3 inline-flex min-h-10 items-center text-body-small text-primary underline-offset-4 hover:underline">
 						Keluar
-					</a>
+					</SignOutAction>
 				</div>
 			</aside>
 
@@ -306,12 +301,9 @@ export function AdminNavigation({
 										))}
 									</nav>
 									<div className="mt-4 border-t border-border pt-3">
-										<a
-											href="/"
-											className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-border bg-surface-muted px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface"
-										>
+										<SignOutAction className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-border bg-surface-muted px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface">
 											Keluar dari Sesi Admin
-										</a>
+										</SignOutAction>
 									</div>
 								</Dialog.Content>
 							</Dialog.Portal>

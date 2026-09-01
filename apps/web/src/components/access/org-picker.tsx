@@ -1,65 +1,76 @@
-import { Building2, Check, Search, SearchX } from "lucide-react";
+import {
+	AlertCircle,
+	Building2,
+	Check,
+	LoaderCircle,
+	Search,
+	SearchX,
+} from "lucide-react";
 import { useState, type ComponentProps } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import type { OrganizationSummary } from "@simulator-ikpa/contracts";
 import { twMerge } from "tailwind-merge";
+import { setActiveOrganizationFn } from "@/server/access";
 
-type Organization = {
-	code: string;
-	name: string;
-	kppn: string;
-	location: string;
+export type OrgPickerProps = Omit<ComponentProps<"section">, "children"> & {
+	organizations: readonly OrganizationSummary[];
 };
 
-const mockOrganizations: readonly Organization[] = [
-	{
-		code: "123456",
-		name: "Satker Pelayanan Anggaran A",
-		kppn: "KPPN Jakarta I",
-		location: "Jakarta Pusat",
-	},
-	{
-		code: "789012",
-		name: "Satker Pelayanan Anggaran B",
-		kppn: "KPPN Jakarta II",
-		location: "Jakarta Selatan",
-	},
-	{
-		code: "345678",
-		name: "Satker Pelayanan Anggaran C",
-		kppn: "KPPN Bandung",
-		location: "Bandung",
-	},
-];
-
-export type OrgPickerProps = Omit<ComponentProps<"section">, "children">;
-
-export function OrgPicker({ className, ...props }: OrgPickerProps) {
+export function OrgPicker({
+	organizations,
+	className,
+	...props
+}: OrgPickerProps) {
+	const navigate = useNavigate();
 	const [query, setQuery] = useState("");
-	const [selectedCode, setSelectedCode] = useState<string | null>(null);
+	const [selectedOrganizationId, setSelectedOrganizationId] = useState<
+		string | null
+	>(null);
 	const [isConfirmed, setIsConfirmed] = useState(false);
+	const [isSaving, setIsSaving] = useState(false);
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const normalizedQuery = query.trim().toLocaleLowerCase("id-ID");
-	const filteredOrganizations = mockOrganizations.filter((organization) => {
+	const filteredOrganizations = organizations.filter((organization) => {
 		if (!normalizedQuery) {
 			return true;
 		}
 
-		return [
-			organization.code,
-			organization.name,
-			organization.kppn,
-			organization.location,
-		].some((value) =>
-			value.toLocaleLowerCase("id-ID").includes(normalizedQuery),
+		return [organization.code, organization.name, organization.timezone].some(
+			(value) => value.toLocaleLowerCase("id-ID").includes(normalizedQuery),
 		);
 	});
-	const selectedOrganization = mockOrganizations.find(
-		(organization) => organization.code === selectedCode,
+	const selectedOrganization = organizations.find(
+		(organization) => organization.id === selectedOrganizationId,
 	);
 
-	const handleSelect = (code: string) => {
-		setSelectedCode(code);
+	const handleSelect = (organizationId: string) => {
+		setSelectedOrganizationId(organizationId);
 		setIsConfirmed(false);
+		setErrorMessage(null);
+	};
+
+	const handleConfirm = async () => {
+		if (!selectedOrganization) {
+			return;
+		}
+
+		setIsSaving(true);
+		setErrorMessage(null);
+
+		try {
+			await setActiveOrganizationFn({
+				data: { organizationId: selectedOrganization.id },
+			});
+			setIsConfirmed(true);
+			await navigate({ to: "/operator/dashboard", search: { org: undefined } });
+		} catch {
+			setErrorMessage(
+				"Satker tidak dapat diaktifkan. Muat ulang halaman dan coba lagi.",
+			);
+		} finally {
+			setIsSaving(false);
+		}
 	};
 
 	return (
@@ -125,7 +136,7 @@ export function OrgPicker({ className, ...props }: OrgPickerProps) {
 				>
 					{filteredOrganizations.length > 0 ? (
 						filteredOrganizations.map((organization) => {
-							const isSelected = organization.code === selectedCode;
+							const isSelected = organization.id === selectedOrganizationId;
 
 							return (
 								<button
@@ -136,8 +147,8 @@ export function OrgPicker({ className, ...props }: OrgPickerProps) {
 											? "border-primary bg-primary/5 ring-1 ring-primary/20"
 											: "border-border hover:border-primary/40 hover:bg-surface",
 									)}
-									key={organization.code}
-									onClick={() => handleSelect(organization.code)}
+									key={organization.id}
+									onClick={() => handleSelect(organization.id)}
 									role="option"
 									type="button"
 								>
@@ -159,7 +170,7 @@ export function OrgPicker({ className, ...props }: OrgPickerProps) {
 											{organization.code} — {organization.name}
 										</span>
 										<span className="mt-1 block truncate text-xs text-muted-foreground">
-											{organization.kppn} · {organization.location}
+											Zona waktu {organization.timezone}
 										</span>
 									</span>
 									<span
@@ -199,6 +210,20 @@ export function OrgPicker({ className, ...props }: OrgPickerProps) {
 					)}
 				</div>
 
+				{errorMessage ? (
+					<div
+						aria-live="assertive"
+						className="mt-4 flex items-start gap-2 rounded-lg border border-danger/30 bg-danger/10 p-3 text-xs text-danger"
+						role="alert"
+					>
+						<AlertCircle
+							aria-hidden="true"
+							className="mt-0.5 size-4 shrink-0"
+						/>
+						<p>{errorMessage}</p>
+					</div>
+				) : null}
+
 				<div className="mt-5 border-t border-border pt-5">
 					{selectedOrganization ? (
 						<div
@@ -207,7 +232,7 @@ export function OrgPicker({ className, ...props }: OrgPickerProps) {
 						>
 							<strong>Satker aktif:</strong> {selectedOrganization.code} —{" "}
 							{selectedOrganization.name}
-							{isConfirmed ? " (simulasi siap dilanjutkan)" : ""}
+							{isConfirmed ? " (konteks tersimpan)" : ""}
 						</div>
 					) : (
 						<p className="mb-4 text-xs text-muted-foreground">
@@ -215,19 +240,29 @@ export function OrgPicker({ className, ...props }: OrgPickerProps) {
 						</p>
 					)}
 					<button
-						className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-						disabled={!selectedOrganization}
-						onClick={() => setIsConfirmed(true)}
+						className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+						disabled={!selectedOrganization || isSaving}
+						onClick={() => void handleConfirm()}
 						type="button"
 					>
-						Gunakan satker terpilih
+						{isSaving ? (
+							<>
+								<LoaderCircle
+									aria-hidden="true"
+									className="size-4 animate-spin"
+								/>
+								Menyimpan konteks…
+							</>
+						) : (
+							"Gunakan satker terpilih"
+						)}
 					</button>
 				</div>
 
 				<div className="mt-5 border-t border-border pt-4 text-center">
 					<p className="text-xs leading-relaxed text-muted-foreground">
-						Pilihan ini hanya untuk simulasi UI dan belum mengubah konteks sesi
-						nyata.
+						Konteks aktif divalidasi server dan digunakan untuk seluruh modul
+						Operator pada sesi ini.
 					</p>
 					<Link
 						className="mt-3 inline-block text-xs font-medium text-primary transition-colors hover:text-primary-hover hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"

@@ -1,20 +1,26 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { uuidSchema } from "@simulator-ikpa/contracts";
+import { ActiveContextProvider } from "@/components/layout/active-context";
 import { getAccessResolutionFn } from "@/server/access";
 
 export const Route = createFileRoute("/operator")({
-	beforeLoad: async ({ context, location }) => {
-		const access = await getAccessResolutionFn({ data: { auth: context?.auth } });
+	validateSearch: (search) => ({
+		org: uuidSchema.safeParse(search.org).success
+			? String(search.org)
+			: undefined,
+	}),
+	beforeLoad: async ({ location, search }) => {
+		const access = await getAccessResolutionFn({
+			data: search.org ? { requestedOrgId: search.org } : {},
+		});
 
 		if (access.status === "unauthenticated") {
-			// In development mode, allow direct access if no session is set, or redirect to sign-in
-			if (process.env.NODE_ENV === "production") {
-				throw redirect({
-					to: "/sign-in",
-					search: {
-						next: location.href,
-					},
-				});
-			}
+			throw redirect({
+				to: "/sign-in",
+				search: {
+					next: location.href,
+				},
+			});
 		}
 
 		if (access.status === "unmapped" || access.status === "invalid_conflict") {
@@ -35,6 +41,7 @@ export const Route = createFileRoute("/operator")({
 		) {
 			throw redirect({
 				to: "/select-organization",
+				search: { org: undefined },
 			});
 		}
 
@@ -46,5 +53,10 @@ export const Route = createFileRoute("/operator")({
 });
 
 function OperatorLayout() {
-	return <Outlet />;
+	const { access } = Route.useRouteContext();
+	return (
+		<ActiveContextProvider access={access}>
+			<Outlet />
+		</ActiveContextProvider>
+	);
 }

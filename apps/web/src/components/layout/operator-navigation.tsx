@@ -15,6 +15,7 @@ import { Dialog } from "radix-ui";
 import type { ComponentProps } from "react";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
+import { SignOutAction } from "@/components/auth/sign-out-action";
 
 type NavigationItem = {
 	label: string;
@@ -80,7 +81,6 @@ const mobileItems: readonly NavigationItem[] = [
 const moreItems: readonly NavigationItem[] = [
 	...secondaryItems.filter((item) => item.label !== "Reminder Center"),
 	{ label: "Pilih Satker", href: "/select-organization", icon: Database },
-	{ label: "Keluar", href: "/sign-in", icon: Settings },
 ];
 
 export type OperatorNavigationProps = Omit<
@@ -213,12 +213,9 @@ export function OperatorNavigation({
 				<div className="border-t border-border p-4">
 					<p className="text-body-small text-muted-foreground">Akun aktif</p>
 					<p className="mt-1 text-label text-foreground">Operator Satker</p>
-					<a
-						className="mt-3 inline-flex min-h-10 items-center text-body-small text-primary underline-offset-4 hover:underline"
-						href="/"
-					>
+					<SignOutAction className="mt-3 inline-flex min-h-10 items-center text-body-small text-primary underline-offset-4 hover:underline">
 						Keluar
-					</a>
+					</SignOutAction>
 				</div>
 			</aside>
 
@@ -284,12 +281,9 @@ export function OperatorNavigation({
 										))}
 									</nav>
 									<div className="mt-4 border-t border-border pt-3">
-										<a
-											href="/"
-											className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-border bg-surface-muted px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface"
-										>
+										<SignOutAction className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-border bg-surface-muted px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface">
 											Keluar dari Sesi Operator
-										</a>
+										</SignOutAction>
 									</div>
 								</Dialog.Content>
 							</Dialog.Portal>

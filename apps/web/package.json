@@ -14,6 +14,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@clerk/tanstack-react-start": "^1.5.9",
+    "@ikpa/ui": "*",
     "@hookform/resolvers": "5.9.1",
     "@simulator-ikpa/access-control": "*",
     "@simulator-ikpa/contracts": "*",

@@ -36,7 +36,7 @@ export function LandingContent({ className, ...props }: LandingContentProps) {
 						<div className="space-y-3">
 							<h1
 								id="hero-heading"
-								className="text-balance text-4xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-[48px]"
+								className="text-balance text-[34px] font-extrabold leading-[1.08] tracking-tight text-foreground sm:text-[44px] lg:text-[44px]"
 							>
 								SIMULATOR PENILAIAN <br />
 								<span className="bg-gradient-to-r from-primary to-info bg-clip-text text-transparent">
@@ -59,7 +59,7 @@ export function LandingContent({ className, ...props }: LandingContentProps) {
 					</div>
 
 					{/* Right Column: Compact Sign In / Sign Up Area */}
-					<div className="lg:col-span-5">
+					<div className="min-w-0 lg:col-span-5">
 						<AuthCard />
 					</div>
 				</div>

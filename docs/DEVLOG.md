@@ -28,6 +28,120 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 [Any additional notes, observations, or reminders]
 ```
 
+### Session 90 - 2026-09-02
+**Time:** Start: 00:08 WIB | End: 00:42 WIB | Duration: ~34 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Sol Medium
+**Tasks Completed:**
+- Koreksi positioning dan responsive behavior Clerk SignIn pada landing page
+- Uji tipografi hero dengan Inter Extra-Bold
+- Koreksi redirect menu keluar operator/admin ke beranda
+**Code Changes:**
+- Files created/modified: `apps/web/src/components/public/auth-card.tsx`, `apps/web/src/components/public/landing-content.tsx`, `apps/web/src/components/auth/sign-out-action.tsx`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: Perubahan utilitas layout dan konfigurasi appearance Clerk minimal, tanpa dependency baru.
+- Key implementations: Wrapper AuthCard dibuat transparan; Clerk `rootBox`, `cardBox`, dan `card` dipusatkan serta dipaksa mengikuti lebar parent; kolom grid memakai `min-w-0`; hero memakai `font-extrabold` 800 dengan ukuran 34px mobile dan 44px desktop; default `SignOutAction` untuk mode demo dan Clerk diarahkan ke `/`.
+- Verifikasi: `npm.cmd run typecheck --workspace apps/web` — lulus; `npm.cmd run build --workspace apps/web` — client dan SSR lulus; `npm.cmd run lint -- --max-diagnostics=30` — lulus dengan 23 warning existing; `git diff --check` — lulus; asset Bold/ExtraBold HTTP — status 200; browser mobile CSS 358px — card 253px, fit tanpa horizontal overflow; browser desktop — card centered dan wrapper tanpa border/background.
+**Issues Encountered:**
+- Issue: CSS bawaan Clerk mempertahankan lebar `cardBox` tetap pada mobile dan menimpa `w-full/max-w` biasa.
+- Solution: Menggunakan aturan width/min-width/max-width berprioritas pada `cardBox`, ditambah `min-w-0` pada item grid, sehingga komponen menyusut secara aman tanpa memotong isi.
+**Next Session Plan:**
+- Tasks to continue: F11-02 sesuai urutan backlog
+**Notes:**
+Path `/` dipakai sebagai redirect internal agar otomatis mengikuti origin lokal maupun production. Warning lint yang tercatat berasal dari kode existing.
+
+### Session 89 - 2026-09-02
+**Time:** Start: 23:50 WIB | End: 00:07 WIB | Duration: ~17 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Sol Medium
+**Tasks Completed:**
+- Koreksi pemakaian font semi-bold pada judul hero landing page
+**Code Changes:**
+- Files created/modified: `apps/web/src/styles.css`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: 9 baris CSS dan catatan dokumentasi.
+- Key implementations: Menambahkan family font eksplisit `Inter SemiBold` yang menunjuk ke `Inter_18pt-SemiBold.ttf`, lalu menerapkannya langsung ke `#hero-heading` dengan weight 600 tanpa mengubah struktur halaman.
+- Verifikasi: `npm.cmd run typecheck --workspace apps/web` — lulus; `npm.cmd run build --workspace apps/web` — client dan SSR lulus; `npm.cmd run lint -- --max-diagnostics=30` — lulus dengan 23 warning existing; `git diff --check` — lulus; asset font HTTP — status 200; browser computed style — family `Inter SemiBold`, weight `600`.
+**Issues Encountered:**
+- Issue: CSS sebelumnya sudah meminta weight 600, tetapi family generik `Inter` membuat sumber font semi-bold sulit diverifikasi secara visual maupun computed style.
+- Solution: Memberi nama family khusus dan menetapkannya langsung pada heading.
+**Next Session Plan:**
+- Tasks to continue: F11-02 sesuai urutan backlog
+**Notes:**
+Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint yang tercatat berasal dari kode existing.
+
+### Session 88 - 2026-09-01
+**Time:** Start: 23:28 WIB | End: 23:44 WIB | Duration: ~16 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Sol Medium
+**Tasks Completed:**
+- Koreksi form autentikasi dan tipografi landing page sesuai feedback UI
+**Code Changes:**
+- Files created/modified: `apps/web/src/components/public/auth-card.tsx`, `apps/web/src/styles.css`, `apps/web/src/routes/__root.tsx`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: Form demo AuthCard diganti dengan wrapper Clerk SignIn minimal.
+- Key implementations: Form dummy pada card landing diganti `ClerkSignIn` resmi dengan redirect aman dan fallback konfigurasi; wrapper card, hero grid, serta struktur halaman tetap; `font-weight: 600` diarahkan ke `Inter_18pt-SemiBold.ttf`; dependensi font Google dihapus agar asset lokal menjadi sumber font.
+- Verifikasi: `npm.cmd run typecheck --workspace apps/web` — lulus; `npm.cmd run build --workspace apps/web` — client dan SSR lulus; `npm.cmd run lint -- --max-diagnostics=30` — lulus dengan 23 warning existing; `git diff --check` — lulus; HTTP smoke `http://localhost:3000/` — status 200, hero tetap ada, preset demo tidak ada, dan bundle Clerk terdeteksi.
+**Issues Encountered:**
+- Issue: Halaman landing masih merender `AuthCard` demo walaupun halaman sign-in sudah memakai Clerk.
+- Solution: Integrasi langsung `ClerkSignIn` di `AuthCard` tanpa mengubah `LandingContent` atau struktur hero.
+**Next Session Plan:**
+- Tasks to continue: Verifikasi visual di browser setelah refresh; lanjut F11-02 setelah setup auth/database stabil.
+- New tasks: Tidak ada.
+**Notes:**
+- Clerk `SignIn` dirender ketika `VITE_CLERK_PUBLISHABLE_KEY` tersedia; jika tidak, card menampilkan pesan konfigurasi.
+
+### Session 87 - 2026-09-01
+**Time:** Start: 23:20 WIB | End: 23:23 WIB | Duration: ~3 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Sol Medium
+**Tasks Completed:**
+- Perbaikan entrypoint seed database lintas platform
+**Code Changes:**
+- Files created/modified: `packages/db/src/seed.ts`, `docs/BACKLOG.md`, `docs/DEVLOG.md`
+- Lines of code: 2 baris implementasi
+- Key implementations: Mengganti perbandingan manual `file://` dengan `pathToFileURL(process.argv[1]).href`, sehingga `tsx` dapat mengenali `seed.ts` sebagai entrypoint pada Windows maupun Linux.
+- Verifikasi: `npm.cmd run typecheck --workspace @simulator-ikpa/db` — lulus; `npm.cmd run lint -- --max-diagnostics=30` — lulus dengan 23 warning existing; `git diff --check` — lulus.
+**Issues Encountered:**
+- Issue: `npm.cmd run seed --workspace @simulator-ikpa/db` hanya menampilkan npm notice tanpa menjalankan seed karena format URL file Windows tidak cocok.
+- Solution: Menggunakan utilitas URL bawaan Node tanpa dependency baru.
+**Next Session Plan:**
+- Tasks to continue: Jalankan seed nyata dan verifikasi mapping akses Clerk; lanjut F11-02.
+- New tasks: Tidak ada.
+**Notes:**
+- User perlu menjalankan ulang perintah seed setelah dev server dihentikan atau dari terminal terpisah. Jangan membagikan credential database atau Clerk.
+
+### Session 86 - 2026-09-01
+**Time:** Start: 17:13 WIB | End: 19:05 WIB | Duration: ~112 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Auth & Access Agent
+- Model: Sol Medium
+**Tasks Completed:**
+- [F11-01] Integrasikan auth, routing, dan active context
+**Code Changes:**
+- Files created/modified: Clerk dependency and lockfile; `apps/web/src/start.ts`; `apps/web/src/routes/__root.tsx`; `apps/web/src/router.tsx`; `apps/web/src/server/auth-session.server.ts`; `apps/web/src/server/auth-session.ts`; `apps/web/src/server/access.server.ts`; `apps/web/src/server/access.ts`; sign-in/access-pending/org-picker routes and components; Operator/Admin guards, navigation, shell, and sign-out action; `apps/web/src/components/layout/active-context.tsx`; `packages/ui/src/index.ts`; `packages/ui/package.json`; docs.
+- Lines of code: approximately 1,200 lines touched across auth/access UI, server boundaries, and documentation.
+- Key implementations: Clerk `clerkMiddleware`, `ClerkProvider`, and server `auth()` are authoritative when configured; root route supplies typed auth context; every access resolution reads the verified server session and revalidates requested organization scope; real org picker persists only a server-validated HttpOnly active-organization cookie; sign-out clears context and Clerk session; ContextHeader is reused through `ActiveContextProvider`; demo presets remain limited to development without Clerk configuration; redirect intents are constrained to safe internal paths.
+- Verifikasi: `npm.cmd run typecheck` (6 workspaces, 0 error); `npm.cmd run test` (106 test lulus); `npm.cmd run lint -- --max-diagnostics=30` (0 error, 23 warning existing/intentional); `npm.cmd run generate-routes --workspace apps/web`; `npm.cmd run build --workspace apps/web` (client dan SSR lulus); HTTP SSR smoke test untuk sign-in, operator, admin, access-pending, multi-organization, dan active-organization cookie; `git diff --check` lulus.
+**Issues Encountered:**
+- Issue: Browser embedded tidak tersedia untuk verifikasi interaktif pada environment ini.
+  - Solution: Verifikasi SSR dilakukan melalui HTTP lokal dengan beberapa kombinasi session/role dan hasil redirect/HTML.
+- Issue: Clerk dependency dan TanStack Router intent memerlukan akses package/network.
+  - Solution: Dependency dipasang setelah retry terotorisasi; panduan Router auth/guard dan dokumentasi Context7 dipakai sebagai acuan implementasi.
+**Manual Setup untuk Clerk dan database nyata:**
+1. Jalankan `Copy-Item .env.example .env` dari root repository.
+2. Buat aplikasi Clerk, aktifkan metode login yang dibutuhkan (minimal email/password), tambahkan origin `http://localhost:3000`, lalu salin publishable key dan secret key.
+3. Isi `VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `DATABASE_URL`, dan `DIRECT_URL` di `.env`; ganti semua placeholder dan jangan commit `.env`.
+4. Buat akun Clerk untuk admin/operator, catat `user_...` ID-nya, lalu ganti tiga placeholder `clerkUserId` pada `packages/db/src/seed.ts` sebelum seed pertama agar mapping akses cocok.
+5. Jalankan `npm.cmd run migrate --workspace @simulator-ikpa/db`, kemudian `npm.cmd run seed --workspace @simulator-ikpa/db`.
+6. Restart dengan `npm.cmd run dev` dan uji login nyata. Tanpa key Clerk, preset demo hanya fallback development dan bukan autentikasi production.
+**Next Session Plan:**
+- F11-02 Integrasikan Pengaturan Satker, lalu lanjut per domain sesuai urutan Fase 11.
+**Notes:**
+- Fiscal year/period pada active context saat ini adalah state UI untuk F11-01; integrasi data fiscal year dan Rule Set nyata dilanjutkan pada task domain berikutnya. `ruleSet` sengaja masih `null` sehingga header menampilkan status belum tersedia.
+- Seed bawaan berisi Clerk ID demo; pada database yang sudah pernah di-seed, mapping existing perlu diperbarui melalui alur provisioning/access-management terkontrol sebelum login nyata mendapat akses.
+
 ### Session 85 - 2026-09-01
 **Time:** Start: 16:45 WIB | End: 17:12 WIB | Duration: 27 minutes
 - Status: Completed

@@ -1,19 +1,12 @@
-import { createMiddleware, createStart } from "@tanstack/react-start";
-import { getAuthContextFromRequest } from "./server/auth-session";
+import { clerkMiddleware } from "@clerk/tanstack-react-start/server";
+import { createStart } from "@tanstack/react-start";
 
-export const authMiddleware = createMiddleware().server(
-	async ({ next, request }) => {
-		const auth = await getAuthContextFromRequest(request);
-		return next({
-			context: {
-				auth,
-			},
-		});
-	},
-);
+const requestMiddleware = process.env.CLERK_SECRET_KEY
+	? [clerkMiddleware()]
+	: [];
 
 export const startInstance = createStart(() => ({
-	requestMiddleware: [authMiddleware],
+	requestMiddleware,
 }));
 
 export const start = startInstance;

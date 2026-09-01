@@ -1,19 +1,18 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { getAccessResolutionFn } from "@/server/access";
+import { ActiveContextProvider } from "@/components/layout/active-context";
 
 export const Route = createFileRoute("/admin-kppn")({
-	beforeLoad: async ({ context, location }) => {
-		const access = await getAccessResolutionFn({ data: { auth: context?.auth } });
+	beforeLoad: async ({ location }) => {
+		const access = await getAccessResolutionFn({ data: {} });
 
 		if (access.status === "unauthenticated") {
-			if (process.env.NODE_ENV === "production") {
-				throw redirect({
-					to: "/sign-in",
-					search: {
-						next: location.href,
-					},
-				});
-			}
+			throw redirect({
+				to: "/sign-in",
+				search: {
+					next: location.href,
+				},
+			});
 		}
 
 		if (access.status === "unmapped" || access.status === "invalid_conflict") {
@@ -28,6 +27,7 @@ export const Route = createFileRoute("/admin-kppn")({
 		) {
 			throw redirect({
 				to: "/operator/dashboard",
+				search: { org: undefined },
 			});
 		}
 
@@ -39,5 +39,10 @@ export const Route = createFileRoute("/admin-kppn")({
 });
 
 function AdminKppnLayout() {
-	return <Outlet />;
+	const { access } = Route.useRouteContext();
+	return (
+		<ActiveContextProvider access={access}>
+			<Outlet />
+		</ActiveContextProvider>
+	);
 }
