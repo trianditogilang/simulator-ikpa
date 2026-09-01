@@ -59,13 +59,17 @@ export function SimulationResult({
 				<div className="rounded-xl bg-surface p-4">
 					<div className="flex items-baseline justify-between">
 						<div>
-							<span className="text-xs text-muted-foreground">Nilai Simulasi</span>
+							<span className="text-xs text-muted-foreground">
+								Nilai Simulasi
+							</span>
 							<p className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
 								{formatNumber(totalScore)}
 							</p>
 						</div>
 						<div className="text-right">
-							<span className="text-xs text-muted-foreground">Target: {formatNumber(targetScore)}</span>
+							<span className="text-xs text-muted-foreground">
+								Target: {formatNumber(targetScore)}
+							</span>
 							<p
 								className={twMerge(
 									"text-xs font-semibold",

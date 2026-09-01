@@ -249,14 +249,62 @@ export const mockAdminDashboardNormal: AdminDashboardData = {
 		},
 	],
 	monthlyTrend: [
-		{ month: "Jan", averageScore: 94.8, target: 95.0, highestScore: 98.5, lowestScore: 89.2 },
-		{ month: "Feb", averageScore: 94.2, target: 95.0, highestScore: 98.0, lowestScore: 88.0 },
-		{ month: "Mar", averageScore: 93.5, target: 95.0, highestScore: 97.6, lowestScore: 86.5 },
-		{ month: "Apr", averageScore: 93.1, target: 95.0, highestScore: 97.2, lowestScore: 87.0 },
-		{ month: "Mei", averageScore: 92.8, target: 95.0, highestScore: 96.9, lowestScore: 86.2 },
-		{ month: "Jun", averageScore: 92.5, target: 95.0, highestScore: 96.5, lowestScore: 85.8 },
-		{ month: "Jul", averageScore: 92.2, target: 95.0, highestScore: 96.8, lowestScore: 87.1 },
-		{ month: "Agu", averageScore: 92.4, target: 95.0, highestScore: 97.0, lowestScore: 88.4 },
+		{
+			month: "Jan",
+			averageScore: 94.8,
+			target: 95.0,
+			highestScore: 98.5,
+			lowestScore: 89.2,
+		},
+		{
+			month: "Feb",
+			averageScore: 94.2,
+			target: 95.0,
+			highestScore: 98.0,
+			lowestScore: 88.0,
+		},
+		{
+			month: "Mar",
+			averageScore: 93.5,
+			target: 95.0,
+			highestScore: 97.6,
+			lowestScore: 86.5,
+		},
+		{
+			month: "Apr",
+			averageScore: 93.1,
+			target: 95.0,
+			highestScore: 97.2,
+			lowestScore: 87.0,
+		},
+		{
+			month: "Mei",
+			averageScore: 92.8,
+			target: 95.0,
+			highestScore: 96.9,
+			lowestScore: 86.2,
+		},
+		{
+			month: "Jun",
+			averageScore: 92.5,
+			target: 95.0,
+			highestScore: 96.5,
+			lowestScore: 85.8,
+		},
+		{
+			month: "Jul",
+			averageScore: 92.2,
+			target: 95.0,
+			highestScore: 96.8,
+			lowestScore: 87.1,
+		},
+		{
+			month: "Agu",
+			averageScore: 92.4,
+			target: 95.0,
+			highestScore: 97.0,
+			lowestScore: 88.4,
+		},
 	],
 };
 
@@ -360,7 +408,12 @@ export const mockAdminDashboardNoData: AdminDashboardData = {
 };
 
 export function getMockAdminDashboardData(
-	scenario: "normal" | "risky" | "delivery-failed" | "policy-changed" | "no-data" = "normal",
+	scenario:
+		| "normal"
+		| "risky"
+		| "delivery-failed"
+		| "policy-changed"
+		| "no-data" = "normal",
 ): AdminDashboardData {
 	switch (scenario) {
 		case "risky":

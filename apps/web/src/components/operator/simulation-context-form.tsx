@@ -66,7 +66,9 @@ export function SimulationContextForm({
 						min="0"
 						max="100"
 						value={targetScore}
-						onChange={(e) => onTargetChange(Number.parseFloat(e.target.value) || 0)}
+						onChange={(e) =>
+							onTargetChange(Number.parseFloat(e.target.value) || 0)
+						}
 						className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
 					/>
 				</div>
@@ -81,7 +83,9 @@ export function SimulationContextForm({
 					<select
 						id="periodMonth"
 						value={periodMonth}
-						onChange={(e) => onPeriodChange(Number.parseInt(e.target.value, 10))}
+						onChange={(e) =>
+							onPeriodChange(Number.parseInt(e.target.value, 10))
+						}
 						className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
 					>
 						<option value={1}>Januari</option>

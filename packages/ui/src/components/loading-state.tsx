@@ -38,22 +38,24 @@ export function LoadingState({
 					<div className="h-4 w-3/5 animate-pulse rounded-md bg-surface-muted" />
 				</div>
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					{Array.from({ length: 3 }, (_, index) => (
+					{["card-top-1", "card-top-2", "card-top-3"].map((id) => (
 						<div
 							className="h-28 animate-pulse rounded-lg border border-border bg-surface"
-							key={`card-${index}`}
+							key={id}
 						/>
 					))}
 				</div>
 				<div className="space-y-4 rounded-lg border border-border bg-surface p-4 shadow-card sm:p-6">
 					<div className="h-5 w-1/3 animate-pulse rounded-md bg-surface-muted" />
 					<div className="space-y-3">
-						{Array.from({ length: rowCount }, (_, index) => (
-							<div
-								className="h-4 animate-pulse rounded-md bg-surface-muted"
-								key={`row-${index}`}
-							/>
-						))}
+						{["row-1", "row-2", "row-3", "row-4", "row-5", "row-6", "row-7", "row-8"]
+							.slice(0, rowCount)
+							.map((id) => (
+								<div
+									className="h-4 animate-pulse rounded-md bg-surface-muted"
+									key={id}
+								/>
+							))}
 					</div>
 				</div>
 			</div>

@@ -310,7 +310,8 @@ export function AuthCard({
 
 			<div className="border-t border-border pt-2 text-center">
 				<p className="text-[11px] text-muted-foreground">
-					Akses Operator Satker / Admin KPPN diarahkan otomatis sesuai email terdaftar.
+					Akses Operator Satker / Admin KPPN diarahkan otomatis sesuai email
+					terdaftar.
 				</p>
 			</div>
 		</div>

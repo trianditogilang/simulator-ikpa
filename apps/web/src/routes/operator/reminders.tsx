@@ -1,7 +1,10 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
-import { DomainDataTable, type ColumnDef } from "@/components/data/domain-data-table";
+import {
+	DomainDataTable,
+	type ColumnDef,
+} from "@/components/data/domain-data-table";
 import { mockReminders, type ReminderItem } from "@/mocks/reminders";
 
 export const Route = createFileRoute("/operator/reminders")({
@@ -12,9 +15,10 @@ function OperatorRemindersPage() {
 	const data = mockReminders;
 	const [search, setSearch] = useState("");
 
-	const filteredData = data.filter((item) =>
-		item.event.toLowerCase().includes(search.toLowerCase()) ||
-		item.recipients.toLowerCase().includes(search.toLowerCase())
+	const filteredData = data.filter(
+		(item) =>
+			item.event.toLowerCase().includes(search.toLowerCase()) ||
+			item.recipients.toLowerCase().includes(search.toLowerCase()),
 	);
 
 	const columns: ColumnDef<ReminderItem>[] = [
@@ -24,7 +28,9 @@ function OperatorRemindersPage() {
 			render: (item) => (
 				<div>
 					<span className="font-semibold text-foreground">{item.event}</span>
-					<p className="text-[11px] text-muted-foreground">Jatuh Tempo: {item.dueDate}</p>
+					<p className="text-[11px] text-muted-foreground">
+						Jatuh Tempo: {item.dueDate}
+					</p>
 				</div>
 			),
 		},
@@ -39,7 +45,9 @@ function OperatorRemindersPage() {
 							: "bg-primary/10 text-primary"
 					}`}
 				>
-					{item.category === "mandatory" ? "Mandatory (Terkunci)" : "Recommended"}
+					{item.category === "mandatory"
+						? "Mandatory (Terkunci)"
+						: "Recommended"}
 				</span>
 			),
 		},
@@ -52,7 +60,9 @@ function OperatorRemindersPage() {
 			key: "recipients",
 			header: "Penerima Email Notifikasi",
 			render: (item) => (
-				<span className="text-[11px] text-muted-foreground">{item.recipients}</span>
+				<span className="text-[11px] text-muted-foreground">
+					{item.recipients}
+				</span>
 			),
 		},
 		{
@@ -76,15 +86,17 @@ function OperatorRemindersPage() {
 							Reminder Center — Jadwal & Notifikasi Tenggat
 						</h1>
 						<p className="text-xs text-muted-foreground">
-							Kelola pengaturan notifikasi pengingat sebelum batas jatuh tempo IKPA
-							sesuai kebijakan Compliance Guard KPPN.
+							Kelola pengaturan notifikasi pengingat sebelum batas jatuh tempo
+							IKPA sesuai kebijakan Compliance Guard KPPN.
 						</p>
 					</div>
 
 					<div className="flex items-center gap-2">
 						<button
 							type="button"
-							onClick={() => alert("Pengaturan reminder direset ke default policy.")}
+							onClick={() =>
+								alert("Pengaturan reminder direset ke default policy.")
+							}
 							className="rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-surface-muted"
 						>
 							Reset ke Default Policy

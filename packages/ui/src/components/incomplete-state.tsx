@@ -48,8 +48,8 @@ export function IncompleteState({
 						<div className="mt-4">
 							<p className="text-label">Data yang masih diperlukan</p>
 							<ul className="mt-2 list-disc space-y-1 pl-5 text-body-small text-muted-foreground">
-								{items.map((item, index) => (
-									<li key={`${index}-${item}`}>{item}</li>
+								{items.map((item) => (
+									<li key={item}>{item}</li>
 								))}
 							</ul>
 						</div>

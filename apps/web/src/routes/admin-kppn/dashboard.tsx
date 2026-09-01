@@ -14,7 +14,9 @@ function AdminDashboardPage() {
 		"normal" | "risky" | "delivery-failed" | "policy-changed" | "no-data"
 	>("normal");
 	const [searchQuery, setSearchQuery] = useState("");
-	const [statusFilter, setStatusFilter] = useState<"all" | "danger" | "warning" | "safe">("all");
+	const [statusFilter, setStatusFilter] = useState<
+		"all" | "danger" | "warning" | "safe"
+	>("all");
 
 	const data = getMockAdminDashboardData(scenario);
 
@@ -24,7 +26,8 @@ function AdminDashboardPage() {
 			satker.code.includes(searchQuery) ||
 			satker.mainRisk.toLowerCase().includes(searchQuery.toLowerCase());
 
-		const matchStatus = statusFilter === "all" || satker.status === statusFilter;
+		const matchStatus =
+			statusFilter === "all" || satker.status === statusFilter;
 
 		return matchQuery && matchStatus;
 	});
@@ -38,8 +41,10 @@ function AdminDashboardPage() {
 						<span className="text-xs font-semibold text-muted-foreground">
 							Skenario Data Admin:
 						</span>
-						<div className="flex flex-wrap items-center gap-1">
+						<fieldset className="flex flex-wrap items-center gap-1 border-0 p-0 m-0">
+							<legend className="sr-only">Pilih skenario data Admin</legend>
 							<button
+								aria-pressed={scenario === "normal"}
 								type="button"
 								onClick={() => setScenario("normal")}
 								className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
@@ -51,6 +56,7 @@ function AdminDashboardPage() {
 								Normal (48 Satker)
 							</button>
 							<button
+								aria-pressed={scenario === "risky"}
 								type="button"
 								onClick={() => setScenario("risky")}
 								className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
@@ -62,6 +68,7 @@ function AdminDashboardPage() {
 								Banyak Risiko
 							</button>
 							<button
+								aria-pressed={scenario === "delivery-failed"}
 								type="button"
 								onClick={() => setScenario("delivery-failed")}
 								className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
@@ -73,6 +80,7 @@ function AdminDashboardPage() {
 								Delivery Gagal
 							</button>
 							<button
+								aria-pressed={scenario === "policy-changed"}
 								type="button"
 								onClick={() => setScenario("policy-changed")}
 								className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
@@ -84,20 +92,23 @@ function AdminDashboardPage() {
 								Perubahan Policy
 							</button>
 							<button
+								aria-pressed={scenario === "no-data"}
 								type="button"
 								onClick={() => setScenario("no-data")}
 								className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
 									scenario === "no-data"
-										? "bg-surface-muted text-foreground shadow-xs"
+										? "bg-primary text-primary-foreground shadow-xs"
 										: "bg-background text-foreground hover:bg-surface-muted"
 								}`}
 							>
-								Kosong (No Data)
+								KPPN Kosong
 							</button>
-						</div>
+						</fieldset>
 					</div>
 					<div className="flex items-center gap-2 text-xs text-muted-foreground">
-						<span>Scope: {data.kppnName} ({data.kppnCode})</span>
+						<span>
+							Scope: {data.kppnName} ({data.kppnCode})
+						</span>
 						<span>•</span>
 						<span>Update: {data.lastUpdated}</span>
 					</div>
@@ -110,7 +121,8 @@ function AdminDashboardPage() {
 							Dashboard Monitoring IKPA
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Pengawasan kinerja pelaksanaan anggaran satker lingkup {data.kppnName} ({data.fiscalYear})
+							Pengawasan kinerja pelaksanaan anggaran satker lingkup{" "}
+							{data.kppnName} ({data.fiscalYear})
 						</p>
 					</div>
 					<div className="flex items-center gap-2">
@@ -156,6 +168,7 @@ function AdminDashboardPage() {
 							<div className="relative">
 								<Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 								<input
+									aria-label="Cari satker pada dashboard"
 									type="text"
 									placeholder="Cari satker / kode..."
 									value={searchQuery}
@@ -166,6 +179,7 @@ function AdminDashboardPage() {
 
 							<div className="flex items-center gap-1 rounded-lg border border-border bg-background p-0.5">
 								<button
+									aria-pressed={statusFilter === "all"}
 									type="button"
 									onClick={() => setStatusFilter("all")}
 									className={`rounded px-2 py-1 text-[11px] font-semibold transition ${
@@ -177,6 +191,7 @@ function AdminDashboardPage() {
 									Semua
 								</button>
 								<button
+									aria-pressed={statusFilter === "danger"}
 									type="button"
 									onClick={() => setStatusFilter("danger")}
 									className={`rounded px-2 py-1 text-[11px] font-semibold transition ${
@@ -188,6 +203,7 @@ function AdminDashboardPage() {
 									Kritis
 								</button>
 								<button
+									aria-pressed={statusFilter === "warning"}
 									type="button"
 									onClick={() => setStatusFilter("warning")}
 									className={`rounded px-2 py-1 text-[11px] font-semibold transition ${
@@ -199,6 +215,7 @@ function AdminDashboardPage() {
 									Waspada
 								</button>
 								<button
+									aria-pressed={statusFilter === "safe"}
 									type="button"
 									onClick={() => setStatusFilter("safe")}
 									className={`rounded px-2 py-1 text-[11px] font-semibold transition ${
@@ -239,7 +256,10 @@ function AdminDashboardPage() {
 							<tbody className="divide-y divide-border/60">
 								{filteredSatkers.length === 0 ? (
 									<tr>
-										<td colSpan={8} className="py-8 text-center text-muted-foreground">
+										<td
+											colSpan={8}
+											className="py-8 text-center text-muted-foreground"
+										>
 											Tidak ada satker yang cocok dengan kriteria pencarian.
 										</td>
 									</tr>

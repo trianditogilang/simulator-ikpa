@@ -8,7 +8,8 @@ export const Route = createFileRoute("/operator/settings")({
 });
 
 function OperatorSettingsPage() {
-	const [settings, setSettings] = useState<SatkerSettingsData>(mockSatkerSettings);
+	const [settings, setSettings] =
+		useState<SatkerSettingsData>(mockSatkerSettings);
 	const [target, setTarget] = useState(settings.targetIkpa);
 	const [isBlu, setIsBlu] = useState(settings.isBlu);
 
@@ -22,8 +23,8 @@ function OperatorSettingsPage() {
 							Pengaturan Satuan Kerja
 						</h1>
 						<p className="text-xs text-muted-foreground">
-							Informasi profil Satker, KPPN pembina, target kinerja internal, dan
-							daftar operator terdaftar.
+							Informasi profil Satker, KPPN pembina, target kinerja internal,
+							dan daftar operator terdaftar.
 						</p>
 					</div>
 				</div>
@@ -36,15 +37,27 @@ function OperatorSettingsPage() {
 
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<div className="rounded-xl border border-border/80 bg-surface p-4 text-xs">
-							<span className="text-[11px] text-muted-foreground">Nama Satker:</span>
-							<p className="mt-1 font-bold text-foreground">{settings.satkerName}</p>
-							<p className="text-[11px] text-muted-foreground">Kode Satker: {settings.satkerCode}</p>
+							<span className="text-[11px] text-muted-foreground">
+								Nama Satker:
+							</span>
+							<p className="mt-1 font-bold text-foreground">
+								{settings.satkerName}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Kode Satker: {settings.satkerCode}
+							</p>
 						</div>
 
 						<div className="rounded-xl border border-border/80 bg-surface p-4 text-xs">
-							<span className="text-[11px] text-muted-foreground">KPPN Pembina:</span>
-							<p className="mt-1 font-bold text-foreground">{settings.kppnName}</p>
-							<p className="text-[11px] text-muted-foreground">Kode KPPN: {settings.kppnCode}</p>
+							<span className="text-[11px] text-muted-foreground">
+								KPPN Pembina:
+							</span>
+							<p className="mt-1 font-bold text-foreground">
+								{settings.kppnName}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Kode KPPN: {settings.kppnCode}
+							</p>
 						</div>
 					</div>
 				</div>
@@ -57,7 +70,10 @@ function OperatorSettingsPage() {
 
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 						<div>
-							<label htmlFor="settingTarget" className="block text-xs font-semibold text-foreground">
+							<label
+								htmlFor="settingTarget"
+								className="block text-xs font-semibold text-foreground"
+							>
 								Target Nilai IKPA
 							</label>
 							<input
@@ -65,7 +81,9 @@ function OperatorSettingsPage() {
 								type="number"
 								step="0.1"
 								value={target}
-								onChange={(e) => setTarget(Number.parseFloat(e.target.value) || 0)}
+								onChange={(e) =>
+									setTarget(Number.parseFloat(e.target.value) || 0)
+								}
 								className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
 							/>
 						</div>
@@ -117,10 +135,17 @@ function OperatorSettingsPage() {
 
 					<div className="divide-y divide-border/80 rounded-xl border border-border/80 bg-surface/50 text-xs">
 						{settings.operators.map((op) => (
-							<div key={op.email} className="flex items-center justify-between p-3.5">
+							<div
+								key={op.email}
+								className="flex items-center justify-between p-3.5"
+							>
 								<div>
-									<span className="font-semibold text-foreground">{op.name}</span>
-									<p className="text-[11px] text-muted-foreground">{op.email}</p>
+									<span className="font-semibold text-foreground">
+										{op.name}
+									</span>
+									<p className="text-[11px] text-muted-foreground">
+										{op.email}
+									</p>
 								</div>
 								<span className="rounded-md bg-surface-muted px-2 py-0.5 text-[11px] font-semibold text-foreground">
 									{op.role}

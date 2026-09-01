@@ -40,7 +40,8 @@ export const mockRuleSets: RuleSetItem[] = [
 		sourceRegulation: "PER-5/PB/2024 tentang Petunjuk Teknis Penilaian IKPA",
 		authorName: "Admin Pembina Kemenkeu",
 		publishedAt: "01 Jan 2026, 08.00 WIB",
-		changeSummary: "Konfigurasi dasar IKPA tahun anggaran 2026 sesuai regulasi PER-5/PB/2024.",
+		changeSummary:
+			"Konfigurasi dasar IKPA tahun anggaran 2026 sesuai regulasi PER-5/PB/2024.",
 		isLocked: true,
 		indicatorWeights: [
 			{
@@ -56,14 +57,16 @@ export const mockRuleSets: RuleSetItem[] = [
 				weight: 15,
 				target: 95,
 				tolerancePct: 5,
-				description: "Toleransi deviasi realisasi terhadap RPD bulanan maksimal 5%.",
+				description:
+					"Toleransi deviasi realisasi terhadap RPD bulanan maksimal 5%.",
 			},
 			{
 				key: "budget_absorption",
 				label: "Penyerapan Anggaran",
 				weight: 20,
 				target: 95,
-				description: "Target kumulatif penyerapan per triwulan (TW I: 15%, TW II: 50%, TW III: 75%, TW IV: 95%).",
+				description:
+					"Target kumulatif penyerapan per triwulan (TW I: 15%, TW II: 50%, TW III: 75%, TW IV: 95%).",
 			},
 			{
 				key: "contractual",
@@ -72,7 +75,8 @@ export const mockRuleSets: RuleSetItem[] = [
 				target: 95,
 				deadlineDays: 3,
 				dayType: "workday",
-				description: "Pendaftaran kontrak ≤ 3 hari kerja sejak penandatanganan.",
+				description:
+					"Pendaftaran kontrak ≤ 3 hari kerja sejak penandatanganan.",
 			},
 			{
 				key: "invoice_timeliness",
@@ -81,7 +85,8 @@ export const mockRuleSets: RuleSetItem[] = [
 				target: 95,
 				deadlineDays: 17,
 				dayType: "workday",
-				description: "Penerbitan SPM-LS maksimal H+17 hari kerja sejak BAST/BAPP.",
+				description:
+					"Penerbitan SPM-LS maksimal H+17 hari kerja sejak BAST/BAPP.",
 			},
 			{
 				key: "up_tup",
@@ -89,21 +94,24 @@ export const mockRuleSets: RuleSetItem[] = [
 				weight: 10,
 				target: 95,
 				tolerancePct: 10,
-				description: "Revolving GUP minimal 1x per bulan (≤ 30 hari) dan proporsi KKP minimal 10%.",
+				description:
+					"Revolving GUP minimal 1x per bulan (≤ 30 hari) dan proporsi KKP minimal 10%.",
 			},
 			{
 				key: "output_achievement",
 				label: "Capaian Output",
 				weight: 25,
 				target: 95,
-				description: "Ketepatan waktu (bobot 30%) dan capaian PCRO/RVRO (bobot 70%).",
+				description:
+					"Ketepatan waktu (bobot 30%) dan capaian PCRO/RVRO (bobot 70%).",
 			},
 			{
 				key: "spm_dispensation",
 				label: "Dispensasi SPM (Pengurang)",
 				weight: 0,
 				target: 0,
-				description: "Faktor pengurang nilai IKPA pada Triwulan IV (-0,50 s.d. -2,00).",
+				description:
+					"Faktor pengurang nilai IKPA pada Triwulan IV (-0,50 s.d. -2,00).",
 			},
 		],
 		validationStatus: {
@@ -138,7 +146,8 @@ export const mockRuleSets: RuleSetItem[] = [
 				weight: 15,
 				target: 95,
 				tolerancePct: 3,
-				description: "Toleransi deviasi realisasi terhadap RPD bulanan diperketat menjadi 3%.",
+				description:
+					"Toleransi deviasi realisasi terhadap RPD bulanan diperketat menjadi 3%.",
 			},
 			{
 				key: "budget_absorption",
@@ -192,7 +201,9 @@ export const mockRuleSets: RuleSetItem[] = [
 			isSchemaValid: true,
 			totalWeight: 100,
 			unverifiedParamsCount: 1,
-			warnings: ["1 parameter addendum masih menunggu nomor surat edaran formal DJPb."],
+			warnings: [
+				"1 parameter addendum masih menunggu nomor surat edaran formal DJPb.",
+			],
 		},
 	},
 	{

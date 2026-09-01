@@ -14,9 +14,11 @@ import {
 	Send,
 } from "lucide-react";
 
-export const Route = createFileRoute("/admin-kppn/policy/rule-sets/$ruleSetId")({
-	component: AdminRuleSetEditorPage,
-});
+export const Route = createFileRoute("/admin-kppn/policy/rule-sets/$ruleSetId")(
+	{
+		component: AdminRuleSetEditorPage,
+	},
+);
 
 function AdminRuleSetEditorPage() {
 	const { ruleSetId } = Route.useParams();
@@ -31,7 +33,10 @@ function AdminRuleSetEditorPage() {
 
 	const isReadOnly = ruleSet.isLocked || ruleSet.status !== "draft";
 
-	const totalWeight = ruleSet.indicatorWeights.reduce((acc, curr) => acc + curr.weight, 0);
+	const totalWeight = ruleSet.indicatorWeights.reduce(
+		(acc, curr) => acc + curr.weight,
+		0,
+	);
 	const isWeightValid = totalWeight === 100;
 
 	const handleWeightChange = (key: string, newWeight: number) => {
@@ -39,7 +44,9 @@ function AdminRuleSetEditorPage() {
 		setRuleSet((prev) => ({
 			...prev,
 			indicatorWeights: prev.indicatorWeights.map((w) =>
-				w.key === key ? { ...w, weight: Number.isNaN(newWeight) ? 0 : newWeight } : w,
+				w.key === key
+					? { ...w, weight: Number.isNaN(newWeight) ? 0 : newWeight }
+					: w,
 			),
 		}));
 	};
@@ -109,7 +116,9 @@ function AdminRuleSetEditorPage() {
 							<button
 								type="button"
 								onClick={() => {
-									alert(`Membuat kloning baru dari Rule Set ${ruleSet.version}...`);
+									alert(
+										`Membuat kloning baru dari Rule Set ${ruleSet.version}...`,
+									);
 								}}
 								className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 shadow-xs"
 							>
@@ -168,6 +177,7 @@ function AdminRuleSetEditorPage() {
 								Nomor / Kode Versi:
 							</span>
 							<input
+								aria-label="Nomor atau kode versi rule set"
 								type="text"
 								disabled={isReadOnly}
 								value={ruleSet.version}
@@ -183,11 +193,15 @@ function AdminRuleSetEditorPage() {
 								Tanggal Efektif Berlaku:
 							</span>
 							<input
+								aria-label="Tanggal efektif rule set"
 								type="text"
 								disabled={isReadOnly}
 								value={ruleSet.effectiveFrom}
 								onChange={(e) =>
-									setRuleSet((prev) => ({ ...prev, effectiveFrom: e.target.value }))
+									setRuleSet((prev) => ({
+										...prev,
+										effectiveFrom: e.target.value,
+									}))
 								}
 								className="h-9 w-full rounded-lg border border-border bg-background px-3 font-medium text-foreground focus:border-primary focus:outline-none disabled:bg-surface-muted"
 							/>
@@ -198,6 +212,7 @@ function AdminRuleSetEditorPage() {
 								Tahun Anggaran:
 							</span>
 							<input
+								aria-label="Tahun anggaran rule set"
 								type="number"
 								disabled={isReadOnly}
 								value={ruleSet.year}
@@ -216,11 +231,15 @@ function AdminRuleSetEditorPage() {
 								Sumber Dasar Regulasi:
 							</span>
 							<input
+								aria-label="Sumber dasar regulasi"
 								type="text"
 								disabled={isReadOnly}
 								value={ruleSet.sourceRegulation}
 								onChange={(e) =>
-									setRuleSet((prev) => ({ ...prev, sourceRegulation: e.target.value }))
+									setRuleSet((prev) => ({
+										...prev,
+										sourceRegulation: e.target.value,
+									}))
 								}
 								className="h-9 w-full rounded-lg border border-border bg-background px-3 font-medium text-foreground focus:border-primary focus:outline-none disabled:bg-surface-muted"
 							/>
@@ -231,11 +250,15 @@ function AdminRuleSetEditorPage() {
 								Catatan / Ringkasan Perubahan:
 							</span>
 							<textarea
+								aria-label="Catatan atau ringkasan perubahan"
 								rows={2}
 								disabled={isReadOnly}
 								value={ruleSet.changeSummary}
 								onChange={(e) =>
-									setRuleSet((prev) => ({ ...prev, changeSummary: e.target.value }))
+									setRuleSet((prev) => ({
+										...prev,
+										changeSummary: e.target.value,
+									}))
 								}
 								className="w-full rounded-lg border border-border bg-background p-2.5 text-xs text-foreground focus:border-primary focus:outline-none disabled:bg-surface-muted"
 							/>
@@ -302,7 +325,8 @@ function AdminRuleSetEditorPage() {
 						<div className="space-y-4">
 							<div className="flex items-center justify-between">
 								<p className="text-xs text-muted-foreground">
-									Atur bobot persentase untuk masing-masing indikator IKPA. Total bobot harus tepat 100%.
+									Atur bobot persentase untuk masing-masing indikator IKPA.
+									Total bobot harus tepat 100%.
 								</p>
 								<span
 									className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
@@ -311,7 +335,8 @@ function AdminRuleSetEditorPage() {
 											: "bg-danger/10 text-danger"
 									}`}
 								>
-									Total Bobot: {totalWeight}% {isWeightValid ? "✓ Valid" : "⚠ Harus 100%"}
+									Total Bobot: {totalWeight}%{" "}
+									{isWeightValid ? "✓ Valid" : "⚠ Harus 100%"}
 								</span>
 							</div>
 
@@ -332,6 +357,7 @@ function AdminRuleSetEditorPage() {
 
 										<div className="flex items-center gap-2">
 											<input
+												aria-label={`Bobot ${ind.label}`}
 												type="number"
 												min={0}
 												max={100}
@@ -366,10 +392,12 @@ function AdminRuleSetEditorPage() {
 										Toleransi Deviasi Hal III DIPA:
 									</span>
 									<p className="text-muted-foreground">
-										Batas deviasi realisasi bulanan sebelum dikenakan penalti nilai.
+										Batas deviasi realisasi bulanan sebelum dikenakan penalti
+										nilai.
 									</p>
 									<div className="flex items-center gap-2 pt-1">
 										<input
+											aria-label="Toleransi Deviasi Hal III DIPA"
 											type="number"
 											disabled={isReadOnly}
 											defaultValue={3}
@@ -388,6 +416,7 @@ function AdminRuleSetEditorPage() {
 									</p>
 									<div className="flex items-center gap-2 pt-1">
 										<input
+											aria-label="Batas waktu SPM-LS kontraktual"
 											type="number"
 											disabled={isReadOnly}
 											defaultValue={17}
@@ -406,6 +435,7 @@ function AdminRuleSetEditorPage() {
 									</p>
 									<div className="flex items-center gap-2 pt-1">
 										<input
+											aria-label="Batas pendaftaran kontrak"
 											type="number"
 											disabled={isReadOnly}
 											defaultValue={3}
@@ -420,10 +450,12 @@ function AdminRuleSetEditorPage() {
 										Target Proporsi Transaksi KKP:
 									</span>
 									<p className="text-muted-foreground">
-										Persentase minimal penggunaan Kartu Kredit Pemerintah terhadap UP.
+										Persentase minimal penggunaan Kartu Kredit Pemerintah
+										terhadap UP.
 									</p>
 									<div className="flex items-center gap-2 pt-1">
 										<input
+											aria-label="Target proporsi transaksi KKP"
 											type="number"
 											disabled={isReadOnly}
 											defaultValue={10}
@@ -443,19 +475,26 @@ function AdminRuleSetEditorPage() {
 								Formula Pengurang Dispensasi SPM (Triwulan IV)
 							</h4>
 							<p className="text-muted-foreground">
-								Dispensasi SPM di luar batas waktu pada akhir tahun anggaran menjadi faktor pengurang skor total IKPA.
+								Dispensasi SPM di luar batas waktu pada akhir tahun anggaran
+								menjadi faktor pengurang skor total IKPA.
 							</p>
 							<div className="grid grid-cols-1 gap-2 sm:grid-cols-3 pt-2">
 								<div className="rounded-lg border border-border/60 bg-surface p-3 space-y-1">
-									<span className="font-semibold text-foreground">Rasio &le; 0,5&permil;</span>
+									<span className="font-semibold text-foreground">
+										Rasio &le; 0,5&permil;
+									</span>
 									<p className="text-muted-foreground">Pengurang: -0,50 poin</p>
 								</div>
 								<div className="rounded-lg border border-border/60 bg-surface p-3 space-y-1">
-									<span className="font-semibold text-foreground">Rasio 0,5&permil; - 1,0&permil;</span>
+									<span className="font-semibold text-foreground">
+										Rasio 0,5&permil; - 1,0&permil;
+									</span>
 									<p className="text-muted-foreground">Pengurang: -1,00 poin</p>
 								</div>
 								<div className="rounded-lg border border-border/60 bg-surface p-3 space-y-1">
-									<span className="font-semibold text-foreground">Rasio &gt; 1,0&permil;</span>
+									<span className="font-semibold text-foreground">
+										Rasio &gt; 1,0&permil;
+									</span>
 									<p className="text-muted-foreground">Pengurang: -2,00 poin</p>
 								</div>
 							</div>
@@ -469,7 +508,8 @@ function AdminRuleSetEditorPage() {
 								Kaitan Reminder &amp; Jadwal Otomatis
 							</h4>
 							<p className="text-muted-foreground">
-								Setiap perubahan Rule Set ini akan menyelaraskan deadline pada modul Reminder Policy KPPN Malang.
+								Setiap perubahan Rule Set ini akan menyelaraskan deadline pada
+								modul Reminder Policy KPPN Malang.
 							</p>
 							<div className="flex items-center gap-2 pt-2">
 								<a
@@ -495,7 +535,10 @@ function AdminRuleSetEditorPage() {
 					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 text-xs">
 						<div className="flex items-center gap-2 text-success">
 							<CheckCircle2 className="size-4 shrink-0" />
-							<span>Semua 8 indikator memiliki parameter yang tervalidasi schema Zod.</span>
+							<span>
+								Semua 8 indikator memiliki parameter yang tervalidasi schema
+								Zod.
+							</span>
 						</div>
 						<div className="flex items-center gap-2 text-success">
 							<CheckCircle2 className="size-4 shrink-0" />

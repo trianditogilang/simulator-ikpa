@@ -2,11 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { getMockAdminOrganizations } from "@/mocks/admin-organizations";
-import {
-	ArrowRight,
-	Download,
-	Search,
-} from "lucide-react";
+import { ArrowRight, Download, Search } from "lucide-react";
 
 export const Route = createFileRoute("/admin-kppn/organizations/")({
 	component: AdminOrganizationsPage,
@@ -32,14 +28,22 @@ function AdminOrganizationsPage() {
 			const matchRisk = riskFilter === "all" || satker.riskLevel === riskFilter;
 
 			const matchIndicator =
-				indicatorFilter === "all" || satker.primaryIndicatorKey === indicatorFilter;
+				indicatorFilter === "all" ||
+				satker.primaryIndicatorKey === indicatorFilter;
 
 			const matchCompleteness =
-				completenessFilter === "all" || satker.dataCompleteness === completenessFilter;
+				completenessFilter === "all" ||
+				satker.dataCompleteness === completenessFilter;
 
 			return matchQuery && matchRisk && matchIndicator && matchCompleteness;
 		});
-	}, [allSatkers, searchQuery, riskFilter, indicatorFilter, completenessFilter]);
+	}, [
+		allSatkers,
+		searchQuery,
+		riskFilter,
+		indicatorFilter,
+		completenessFilter,
+	]);
 
 	const totalPages = Math.max(1, Math.ceil(filteredSatkers.length / pageSize));
 	const paginatedSatkers = filteredSatkers.slice(
@@ -57,7 +61,8 @@ function AdminOrganizationsPage() {
 							Daftar Satker Mitra KPPN
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Monitoring dan evaluasi kinerja {allSatkers.length} Satuan Kerja di bawah KPPN Malang (032)
+							Monitoring dan evaluasi kinerja {allSatkers.length} Satuan Kerja
+							di bawah KPPN Malang (032)
 						</p>
 					</div>
 
@@ -82,6 +87,7 @@ function AdminOrganizationsPage() {
 						<div className="relative flex-1">
 							<Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							<input
+								aria-label="Cari satker"
 								type="text"
 								placeholder="Cari kode satker, nama kementerian/lembaga, atau indikator risiko..."
 								value={searchQuery}
@@ -97,6 +103,7 @@ function AdminOrganizationsPage() {
 						<div className="flex flex-wrap items-center gap-2">
 							{/* Filter Risiko */}
 							<select
+								aria-label="Filter status risiko"
 								value={riskFilter}
 								onChange={(e) => {
 									setRiskFilter(e.target.value);
@@ -112,6 +119,7 @@ function AdminOrganizationsPage() {
 
 							{/* Filter Indikator */}
 							<select
+								aria-label="Filter indikator IKPA"
 								value={indicatorFilter}
 								onChange={(e) => {
 									setIndicatorFilter(e.target.value);
@@ -130,6 +138,7 @@ function AdminOrganizationsPage() {
 
 							{/* Filter Kelengkapan */}
 							<select
+								aria-label="Filter kelengkapan data"
 								value={completenessFilter}
 								onChange={(e) => {
 									setCompletenessFilter(e.target.value);
@@ -148,10 +157,16 @@ function AdminOrganizationsPage() {
 					{/* Active Filter Summary */}
 					<div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs text-muted-foreground">
 						<span>
-							Menampilkan <strong className="text-foreground">{filteredSatkers.length}</strong> dari{" "}
-							{allSatkers.length} satker
+							Menampilkan{" "}
+							<strong className="text-foreground">
+								{filteredSatkers.length}
+							</strong>{" "}
+							dari {allSatkers.length} satker
 						</span>
-						{(searchQuery || riskFilter !== "all" || indicatorFilter !== "all" || completenessFilter !== "all") && (
+						{(searchQuery ||
+							riskFilter !== "all" ||
+							indicatorFilter !== "all" ||
+							completenessFilter !== "all") && (
 							<button
 								type="button"
 								onClick={() => {
@@ -188,7 +203,10 @@ function AdminOrganizationsPage() {
 							<tbody className="divide-y divide-border/60">
 								{paginatedSatkers.length === 0 ? (
 									<tr>
-										<td colSpan={8} className="py-12 text-center text-muted-foreground">
+										<td
+											colSpan={8}
+											className="py-12 text-center text-muted-foreground"
+										>
 											Tidak ada satker yang cocok dengan filter yang dipilih.
 										</td>
 									</tr>
@@ -339,13 +357,17 @@ function AdminOrganizationsPage() {
 										</span>
 										<span
 											className={`font-semibold ${
-												satker.workDaysLeft <= 3 ? "text-danger" : "text-muted-foreground"
+												satker.workDaysLeft <= 3
+													? "text-danger"
+													: "text-muted-foreground"
 											}`}
 										>
 											H-{satker.workDaysLeft} kerja ({satker.nearestDeadline})
 										</span>
 									</div>
-									<p className="mt-1 text-[11px] text-foreground/80">{satker.primaryRisk}</p>
+									<p className="mt-1 text-[11px] text-foreground/80">
+										{satker.primaryRisk}
+									</p>
 								</div>
 
 								<div className="flex items-center justify-between pt-1">
@@ -380,7 +402,8 @@ function AdminOrganizationsPage() {
 				{/* Pagination Controls */}
 				<div className="flex items-center justify-between rounded-xl border border-border/80 bg-surface px-4 py-3 text-xs text-muted-foreground shadow-xs">
 					<span>
-						Halaman <strong className="text-foreground">{currentPage}</strong> dari {totalPages}
+						Halaman <strong className="text-foreground">{currentPage}</strong>{" "}
+						dari {totalPages}
 					</span>
 					<div className="flex items-center gap-2">
 						<button

@@ -216,12 +216,49 @@ export const mockOperatorDashboardNormal: OperatorDashboardData = {
 		},
 	],
 	completeness: [
-		{ id: "c-1", domain: "Pagu & Revisi DIPA", isComplete: true, label: "Lengkap", route: "/operator/data/budget-revisions" },
-		{ id: "c-2", domain: "RPD & Realisasi", isComplete: true, label: "Lengkap", route: "/operator/data/rpd-realization" },
-		{ id: "c-3", domain: "Kontrak & Tagihan", isComplete: true, label: "Lengkap", route: "/operator/data/contracts-invoices" },
-		{ id: "c-4", domain: "UP/TUP & KKP", isComplete: true, label: "Lengkap", route: "/operator/data/up-tup-kkp" },
-		{ id: "c-5", domain: "Capaian Output", isComplete: false, label: "2 RO Belum Konfirmasi", missingCount: 2, route: "/operator/data/output-achievement" },
-		{ id: "c-6", domain: "SPM Dispensasi", isComplete: true, label: "Lengkap", route: "/operator/data/spm-dispensation" },
+		{
+			id: "c-1",
+			domain: "Pagu & Revisi DIPA",
+			isComplete: true,
+			label: "Lengkap",
+			route: "/operator/data/budget-revisions",
+		},
+		{
+			id: "c-2",
+			domain: "RPD & Realisasi",
+			isComplete: true,
+			label: "Lengkap",
+			route: "/operator/data/rpd-realization",
+		},
+		{
+			id: "c-3",
+			domain: "Kontrak & Tagihan",
+			isComplete: true,
+			label: "Lengkap",
+			route: "/operator/data/contracts-invoices",
+		},
+		{
+			id: "c-4",
+			domain: "UP/TUP & KKP",
+			isComplete: true,
+			label: "Lengkap",
+			route: "/operator/data/up-tup-kkp",
+		},
+		{
+			id: "c-5",
+			domain: "Capaian Output",
+			isComplete: false,
+			label: "2 RO Belum Konfirmasi",
+			missingCount: 2,
+			route: "/operator/data/output-achievement",
+		},
+		{
+			id: "c-6",
+			domain: "SPM Dispensasi",
+			isComplete: true,
+			label: "Lengkap",
+			route: "/operator/data/spm-dispensation",
+		},
 	],
 	scoreHistory: [
 		{ month: "Jan", score: 91.5, target: 95.0 },
@@ -258,7 +295,9 @@ export const mockOperatorDashboardIncomplete: OperatorDashboardData = {
 	priorityActions: [],
 };
 
-export function getMockOperatorDashboard(scenario = "normal"): OperatorDashboardData {
+export function getMockOperatorDashboard(
+	scenario = "normal",
+): OperatorDashboardData {
 	if (scenario === "risky") return mockOperatorDashboardRisky;
 	if (scenario === "incomplete") return mockOperatorDashboardIncomplete;
 	return mockOperatorDashboardNormal;

@@ -1,10 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
-import {
-	getMockAuditLogs,
-	type AuditLogItem,
-} from "@/mocks/audit-logs";
+import { getMockAuditLogs, type AuditLogItem } from "@/mocks/audit-logs";
 import {
 	ChevronDown,
 	ChevronRight,
@@ -33,9 +30,10 @@ function AdminAuditLogsPage() {
 				log.actorEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				log.entityName.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				log.requestId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-				(log.organizationName?.toLowerCase().includes(searchQuery.toLowerCase()));
+				log.organizationName?.toLowerCase().includes(searchQuery.toLowerCase());
 
-			const matchAction = actionFilter === "all" || log.actionType === actionFilter;
+			const matchAction =
+				actionFilter === "all" || log.actionType === actionFilter;
 
 			return matchQuery && matchAction;
 		});
@@ -51,7 +49,8 @@ function AdminAuditLogsPage() {
 							Audit Log Aktivitas
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Pencatatan append-only untuk seluruh mutasi data, perubahan policy, import, dan manajemen akses
+							Pencatatan append-only untuk seluruh mutasi data, perubahan
+							policy, import, dan manajemen akses
 						</p>
 					</div>
 
@@ -95,7 +94,9 @@ function AdminAuditLogsPage() {
 
 					<div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs text-muted-foreground">
 						<span>
-							Menampilkan <strong className="text-foreground">{filteredLogs.length}</strong> catatan audit
+							Menampilkan{" "}
+							<strong className="text-foreground">{filteredLogs.length}</strong>{" "}
+							catatan audit
 						</span>
 						{(searchQuery || actionFilter !== "all") && (
 							<button
@@ -129,8 +130,12 @@ function AdminAuditLogsPage() {
 							<tbody className="divide-y divide-border/60">
 								{filteredLogs.length === 0 ? (
 									<tr>
-										<td colSpan={6} className="py-12 text-center text-muted-foreground">
-											Tidak ada catatan audit yang cocok dengan filter pencarian.
+										<td
+											colSpan={6}
+											className="py-12 text-center text-muted-foreground"
+										>
+											Tidak ada catatan audit yang cocok dengan filter
+											pencarian.
 										</td>
 									</tr>
 								) : (
@@ -228,28 +233,39 @@ function AdminAuditLogsPage() {
 							{/* Readable Human Summary */}
 							<div className="space-y-3 rounded-lg border border-border/80 bg-surface p-4 text-xs">
 								<div>
-									<span className="text-muted-foreground">Aktor Pelaksana:</span>
+									<span className="text-muted-foreground">
+										Aktor Pelaksana:
+									</span>
 									<p className="font-semibold text-foreground">
 										{selectedLog.actorName} ({selectedLog.actorEmail})
 									</p>
-									<p className="text-[11px] text-muted-foreground">{selectedLog.actorRole}</p>
+									<p className="text-[11px] text-muted-foreground">
+										{selectedLog.actorRole}
+									</p>
 								</div>
 
 								<div className="border-t border-border/60 pt-2.5">
-									<span className="text-muted-foreground">Aksi &amp; Entitas:</span>
+									<span className="text-muted-foreground">
+										Aksi &amp; Entitas:
+									</span>
 									<p className="font-semibold text-foreground">
 										{selectedLog.actionLabel} — {selectedLog.entityName}
 									</p>
 									{selectedLog.organizationName && (
 										<p className="text-[11px] text-muted-foreground">
-											Satker: {selectedLog.organizationName} ({selectedLog.organizationCode})
+											Satker: {selectedLog.organizationName} (
+											{selectedLog.organizationCode})
 										</p>
 									)}
 								</div>
 
 								<div className="border-t border-border/60 pt-2.5">
-									<span className="text-muted-foreground">Ringkasan Perubahan:</span>
-									<p className="font-medium text-foreground">{selectedLog.summary}</p>
+									<span className="text-muted-foreground">
+										Ringkasan Perubahan:
+									</span>
+									<p className="font-medium text-foreground">
+										{selectedLog.summary}
+									</p>
 								</div>
 
 								<div className="border-t border-border/60 pt-2.5">
@@ -285,7 +301,8 @@ function AdminAuditLogsPage() {
 												State Sebelum (Before):
 											</span>
 											<pre className="mt-1 max-h-32 overflow-auto rounded bg-background p-2 font-mono text-[10px] text-foreground border border-border">
-												{JSON.stringify(selectedLog.beforeState, null, 2) || "null (Create Baru)"}
+												{JSON.stringify(selectedLog.beforeState, null, 2) ||
+													"null (Create Baru)"}
 											</pre>
 										</div>
 

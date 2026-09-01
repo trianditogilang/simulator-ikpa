@@ -1,8 +1,14 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
-import { DomainDataTable, type ColumnDef } from "@/components/data/domain-data-table";
-import { mockSimulations, type SimulationHistoryItem } from "@/mocks/simulations";
+import {
+	DomainDataTable,
+	type ColumnDef,
+} from "@/components/data/domain-data-table";
+import {
+	mockSimulations,
+	type SimulationHistoryItem,
+} from "@/mocks/simulations";
 import { formatNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/operator/history")({
@@ -15,14 +21,19 @@ function OperatorHistoryPage() {
 	const [selectedItems, setSelectedItems] = useState<string[]>([]);
 	const [isComparing, setIsComparing] = useState(false);
 
-	const filteredData = data.filter((item) =>
-		item.name.toLowerCase().includes(search.toLowerCase()) ||
-		item.periodLabel.toLowerCase().includes(search.toLowerCase())
+	const filteredData = data.filter(
+		(item) =>
+			item.name.toLowerCase().includes(search.toLowerCase()) ||
+			item.periodLabel.toLowerCase().includes(search.toLowerCase()),
 	);
 
 	const toggleSelect = (id: string) => {
 		setSelectedItems((prev) =>
-			prev.includes(id) ? prev.filter((i) => i !== id) : prev.length < 2 ? [...prev, id] : [prev[1], id]
+			prev.includes(id)
+				? prev.filter((i) => i !== id)
+				: prev.length < 2
+					? [...prev, id]
+					: [prev[1], id],
 		);
 	};
 
@@ -47,7 +58,9 @@ function OperatorHistoryPage() {
 			render: (item) => (
 				<div>
 					<span className="font-semibold text-foreground">{item.name}</span>
-					<p className="text-[11px] text-muted-foreground">Waktu: {item.createdAt}</p>
+					<p className="text-[11px] text-muted-foreground">
+						Waktu: {item.createdAt}
+					</p>
 				</div>
 			),
 		},
@@ -64,7 +77,11 @@ function OperatorHistoryPage() {
 								: "bg-info/10 text-info"
 					}`}
 				>
-					{item.type === "actual" ? "Actual" : item.type === "scenario" ? "Skenario" : "Forecast"}
+					{item.type === "actual"
+						? "Actual"
+						: item.type === "scenario"
+							? "Skenario"
+							: "Forecast"}
 				</span>
 			),
 		},
@@ -99,8 +116,8 @@ function OperatorHistoryPage() {
 							Skenario & Riwayat Simulasi IKPA
 						</h1>
 						<p className="text-xs text-muted-foreground">
-							Kelola snapshot nilai tersimpan dan bandingkan dua skenario simulasi
-							secara langsung.
+							Kelola snapshot nilai tersimpan dan bandingkan dua skenario
+							simulasi secara langsung.
 						</p>
 					</div>
 
@@ -123,10 +140,12 @@ function OperatorHistoryPage() {
 						<div className="flex items-center justify-between border-b border-border/80 pb-3">
 							<div>
 								<h2 className="text-sm font-bold text-foreground sm:text-base">
-									Perbandingan Skenario: {selectedSims[0].name} vs {selectedSims[1].name}
+									Perbandingan Skenario: {selectedSims[0].name} vs{" "}
+									{selectedSims[1].name}
 								</h2>
 								<p className="text-xs text-muted-foreground">
-									Analisis delta selisih poin per indikator antara kedua simulasi.
+									Analisis delta selisih poin per indikator antara kedua
+									simulasi.
 								</p>
 							</div>
 							<button
@@ -159,7 +178,13 @@ function OperatorHistoryPage() {
 									{formatNumber(selectedSims[1].totalScore)}
 								</p>
 								<span className="text-[11px] font-semibold text-success">
-									Selisih: +{formatNumber(Math.abs(selectedSims[1].totalScore - selectedSims[0].totalScore))} Poin
+									Selisih: +
+									{formatNumber(
+										Math.abs(
+											selectedSims[1].totalScore - selectedSims[0].totalScore,
+										),
+									)}{" "}
+									Poin
 								</span>
 							</div>
 						</div>

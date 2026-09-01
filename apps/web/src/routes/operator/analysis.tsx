@@ -13,7 +13,9 @@ function OperatorAnalysisPage() {
 
 	const markReviewed = (id: string) => {
 		setData((prev) =>
-			prev.map((item) => (item.id === id ? { ...item, status: "reviewed" } : item))
+			prev.map((item) =>
+				item.id === id ? { ...item, status: "reviewed" } : item,
+			),
 		);
 	};
 
@@ -27,13 +29,17 @@ function OperatorAnalysisPage() {
 							Analisis Kinerja & Rekomendasi Tindakan
 						</h1>
 						<p className="text-xs text-muted-foreground">
-							Prioritas rekomendasi berbasis perhitungan weight × gap × urgensi untuk
-							memaksimalkan kenaikan nilai IKPA satker.
+							Prioritas rekomendasi berbasis perhitungan weight × gap × urgensi
+							untuk memaksimalkan kenaikan nilai IKPA satker.
 						</p>
 					</div>
 					<div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2 text-right">
-						<span className="text-[11px] text-muted-foreground">Total Rekomendasi</span>
-						<p className="text-base font-bold text-primary">{data.length} Tindakan</p>
+						<span className="text-[11px] text-muted-foreground">
+							Total Rekomendasi
+						</span>
+						<p className="text-base font-bold text-primary">
+							{data.length} Tindakan
+						</p>
 					</div>
 				</div>
 
@@ -54,7 +60,9 @@ function OperatorAnalysisPage() {
 									<div className="flex items-center gap-2">
 										<span
 											className={`rounded-md px-2 py-0.5 text-[11px] font-bold ${
-												isHigh ? "bg-warning/20 text-warning" : "bg-surface text-foreground"
+												isHigh
+													? "bg-warning/20 text-warning"
+													: "bg-surface text-foreground"
 											}`}
 										>
 											Prioritas {item.priority}
@@ -75,7 +83,8 @@ function OperatorAnalysisPage() {
 
 									<div className="pt-1">
 										<span className="text-xs font-semibold text-success">
-											Potensi Peningkatan Nilai: {formatPointDelta(item.potentialImpactPoints)}
+											Potensi Peningkatan Nilai:{" "}
+											{formatPointDelta(item.potentialImpactPoints)}
 										</span>
 									</div>
 								</div>
@@ -90,7 +99,9 @@ function OperatorAnalysisPage() {
 												: "bg-background text-foreground hover:bg-surface-muted"
 										}`}
 									>
-										{item.status === "reviewed" ? "✓ Ditinjau" : "Tandai Ditinjau"}
+										{item.status === "reviewed"
+											? "✓ Ditinjau"
+											: "Tandai Ditinjau"}
 									</button>
 									<a
 										href={item.route}

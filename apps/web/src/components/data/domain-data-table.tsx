@@ -40,14 +40,21 @@ export function DomainDataTable<T extends { id: string | number }>({
 	return (
 		<div
 			{...props}
-			className={twMerge("space-y-4 rounded-2xl border border-border bg-background p-4 shadow-xs sm:p-6", className)}
+			className={twMerge(
+				"space-y-4 rounded-2xl border border-border bg-background p-4 shadow-xs sm:p-6",
+				className,
+			)}
 			data-slot="domain-data-table"
 		>
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h2 className="text-base font-bold text-foreground sm:text-lg">{title}</h2>
+					<h2 className="text-base font-bold text-foreground sm:text-lg">
+						{title}
+					</h2>
 					{description && (
-						<p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+						<p className="mt-0.5 text-xs text-muted-foreground">
+							{description}
+						</p>
 					)}
 				</div>
 
@@ -77,6 +84,7 @@ export function DomainDataTable<T extends { id: string | number }>({
 			{onSearchChange && (
 				<div className="flex items-center justify-between gap-3">
 					<input
+						aria-label={`Cari data ${title}`}
 						type="text"
 						value={searchValue ?? ""}
 						onChange={(e) => onSearchChange(e.target.value)}
@@ -84,7 +92,9 @@ export function DomainDataTable<T extends { id: string | number }>({
 						className="max-w-xs rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
 					/>
 					{totalCount !== undefined && (
-						<span className="text-xs text-muted-foreground">{totalCount} Data</span>
+						<span className="text-xs text-muted-foreground">
+							{totalCount} Data
+						</span>
 					)}
 				</div>
 			)}
@@ -95,7 +105,13 @@ export function DomainDataTable<T extends { id: string | number }>({
 					<thead className="border-b border-border/80 bg-surface text-muted-foreground">
 						<tr>
 							{columns.map((col) => (
-								<th key={col.key} className={twMerge("px-4 py-2.5 font-semibold", col.className)}>
+								<th
+									key={col.key}
+									className={twMerge(
+										"px-4 py-2.5 font-semibold",
+										col.className,
+									)}
+								>
 									{col.header}
 								</th>
 							))}
@@ -104,21 +120,33 @@ export function DomainDataTable<T extends { id: string | number }>({
 					<tbody className="divide-y divide-border/60 bg-background text-foreground">
 						{isLoading ? (
 							<tr>
-								<td colSpan={columns.length} className="px-4 py-8 text-center text-muted-foreground">
+								<td
+									colSpan={columns.length}
+									className="px-4 py-8 text-center text-muted-foreground"
+								>
 									Memuat data...
 								</td>
 							</tr>
 						) : data.length === 0 ? (
 							<tr>
-								<td colSpan={columns.length} className="px-4 py-8 text-center text-muted-foreground">
+								<td
+									colSpan={columns.length}
+									className="px-4 py-8 text-center text-muted-foreground"
+								>
 									{emptyMessage}
 								</td>
 							</tr>
 						) : (
 							data.map((item) => (
-								<tr key={item.id} className="transition hover:bg-surface-muted/50">
+								<tr
+									key={item.id}
+									className="transition hover:bg-surface-muted/50"
+								>
 									{columns.map((col) => (
-										<td key={col.key} className={twMerge("px-4 py-2.5", col.className)}>
+										<td
+											key={col.key}
+											className={twMerge("px-4 py-2.5", col.className)}
+										>
 											{col.render(item)}
 										</td>
 									))}

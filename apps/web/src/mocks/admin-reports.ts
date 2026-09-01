@@ -21,37 +21,77 @@ export const mockAdminReportTypes: AdminReportTypeOption[] = [
 	{
 		id: "rekap-nilai",
 		title: "Rekap Nilai dan Target Satker",
-		description: "Laporan komprehensif capaian nilai IKPA seluruh satker terhadap target nasional 95,00.",
+		description:
+			"Laporan komprehensif capaian nilai IKPA seluruh satker terhadap target nasional 95,00.",
 		category: "Kinerja Utama",
-		columns: ["Kode Satker", "Nama Satker", "Nilai IKPA", "Target", "Gap Poin", "Status Kinerja"],
+		columns: [
+			"Kode Satker",
+			"Nama Satker",
+			"Nilai IKPA",
+			"Target",
+			"Gap Poin",
+			"Status Kinerja",
+		],
 	},
 	{
 		id: "indikator-gap",
 		title: "Indikator dan Gap per Satker",
-		description: "Matriks rincian 8 indikator IKPA (nilai asli dan nilai terbobot) per Satker.",
+		description:
+			"Matriks rincian 8 indikator IKPA (nilai asli dan nilai terbobot) per Satker.",
 		category: "Rincian Indikator",
-		columns: ["Kode", "Satker", "Indikator Utama", "Nilai Asli", "Bobot Poin", "Kategori Status"],
+		columns: [
+			"Kode",
+			"Satker",
+			"Indikator Utama",
+			"Nilai Asli",
+			"Bobot Poin",
+			"Kategori Status",
+		],
 	},
 	{
 		id: "risiko-deadline",
 		title: "Risiko dan Deadline Agenda",
-		description: "Daftar potensi deviasi kinerja dan agenda deadline terdekat (< 7 hari kerja).",
+		description:
+			"Daftar potensi deviasi kinerja dan agenda deadline terdekat (< 7 hari kerja).",
 		category: "Mitigasi Risiko",
-		columns: ["Satker", "Agenda Deadline", "Jatuh Tempo", "Sisa Hari Kerja", "Faktor Risiko", "Tingkat Urgensi"],
+		columns: [
+			"Satker",
+			"Agenda Deadline",
+			"Jatuh Tempo",
+			"Sisa Hari Kerja",
+			"Faktor Risiko",
+			"Tingkat Urgensi",
+		],
 	},
 	{
 		id: "kelengkapan-data",
 		title: "Kelengkapan Data Operasional",
-		description: "Audit kesiapan dan kelengkapan data operasional pada 6 modul input satker.",
+		description:
+			"Audit kesiapan dan kelengkapan data operasional pada 6 modul input satker.",
 		category: "Kualitas Data",
-		columns: ["Kode", "Satker", "Modul Belum Lengkap", "Catatan Verifikasi", "Status Data", "Update Terakhir"],
+		columns: [
+			"Kode",
+			"Satker",
+			"Modul Belum Lengkap",
+			"Catatan Verifikasi",
+			"Status Data",
+			"Update Terakhir",
+		],
 	},
 	{
 		id: "reminder-delivery",
 		title: "Status Reminder dan Log Delivery",
-		description: "Rekap pengiriman notifikasi email reminder, status keberhasilan, dan retry log.",
+		description:
+			"Rekap pengiriman notifikasi email reminder, status keberhasilan, dan retry log.",
 		category: "Komunikasi",
-		columns: ["Satker", "Event Agenda", "Jadwal Kirim", "Penerima", "Percobaan", "Status Delivery"],
+		columns: [
+			"Satker",
+			"Event Agenda",
+			"Jadwal Kirim",
+			"Penerima",
+			"Percobaan",
+			"Status Delivery",
+		],
 	},
 ];
 

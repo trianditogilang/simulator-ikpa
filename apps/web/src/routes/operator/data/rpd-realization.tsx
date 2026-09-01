@@ -1,9 +1,15 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
-import { DomainDataTable, type ColumnDef } from "@/components/data/domain-data-table";
+import {
+	DomainDataTable,
+	type ColumnDef,
+} from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
-import { mockRpdRealizations, type RpdRealizationItem } from "@/mocks/rpd-realization";
+import {
+	mockRpdRealizations,
+	type RpdRealizationItem,
+} from "@/mocks/rpd-realization";
 import { formatRupiah, formatPercent } from "@/lib/format";
 
 export const Route = createFileRoute("/operator/data/rpd-realization")({
@@ -23,8 +29,12 @@ function RpdRealizationPage() {
 			header: "Jenis Belanja",
 			render: (item) => (
 				<div>
-					<span className="font-semibold text-foreground">Akun {item.account}</span>
-					<p className="text-[11px] text-muted-foreground">{item.accountName}</p>
+					<span className="font-semibold text-foreground">
+						Akun {item.account}
+					</span>
+					<p className="text-[11px] text-muted-foreground">
+						{item.accountName}
+					</p>
 				</div>
 			),
 		},
@@ -87,19 +97,24 @@ function RpdRealizationPage() {
 							RPD & Realisasi Anggaran Bulanan
 						</h1>
 						<p className="text-xs text-muted-foreground">
-							Kelola komitmen RPD Halaman III DIPA dan pantau deviasi bulanan serta
-							penyerapan triwulanan.
+							Kelola komitmen RPD Halaman III DIPA dan pantau deviasi bulanan
+							serta penyerapan triwulanan.
 						</p>
 					</div>
 
 					<div className="flex items-center gap-2">
-						<label htmlFor="monthSelect" className="text-xs font-semibold text-muted-foreground">
+						<label
+							htmlFor="monthSelect"
+							className="text-xs font-semibold text-muted-foreground"
+						>
 							Pilih Bulan:
 						</label>
 						<select
 							id="monthSelect"
 							value={selectedMonth}
-							onChange={(e) => setSelectedMonth(Number.parseInt(e.target.value, 10))}
+							onChange={(e) =>
+								setSelectedMonth(Number.parseInt(e.target.value, 10))
+							}
 							className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
 						>
 							<option value={8}>Agustus 2026</option>
@@ -133,7 +148,10 @@ function RpdRealizationPage() {
 				>
 					<div className="space-y-3">
 						<div>
-							<label htmlFor="accountSelect" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="accountSelect"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Jenis Belanja (Akun)
 							</label>
 							<select
@@ -146,7 +164,10 @@ function RpdRealizationPage() {
 							</select>
 						</div>
 						<div>
-							<label htmlFor="rpdInput" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="rpdInput"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Target RPD (Rp)
 							</label>
 							<input
@@ -157,7 +178,10 @@ function RpdRealizationPage() {
 							/>
 						</div>
 						<div>
-							<label htmlFor="realizationInput" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="realizationInput"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Realisasi SP2D (Rp)
 							</label>
 							<input

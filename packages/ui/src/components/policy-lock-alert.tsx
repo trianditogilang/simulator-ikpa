@@ -45,8 +45,8 @@ export function PolicyLockAlert({
 						<div>
 							<p className="text-label">Field terkunci</p>
 							<ul className="mt-1 list-disc space-y-1 pl-5 text-body-small text-muted-foreground">
-								{lockedFields.map((field, index) => (
-									<li key={`${index}-${field}`}>{field}</li>
+								{lockedFields.map((field) => (
+									<li key={field}>{field}</li>
 								))}
 							</ul>
 						</div>

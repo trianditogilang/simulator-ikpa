@@ -32,13 +32,15 @@ export const mockPolicyHistory: PolicyHistoryVersionItem[] = [
 			"Penyesuaian toleransi deviasi RPD menjadi 3% dan relaksasi pengingat capaian output pada hari kerja ke-5.",
 		snapshotUsageCount: 0,
 		deliveryProcessedCount: 0,
-		impactSummary: "Akan mengevaluasi ulang 120 jadwal notifikasi reminder yang belum dikirim.",
+		impactSummary:
+			"Akan mengevaluasi ulang 120 jadwal notifikasi reminder yang belum dikirim.",
 		parameterDiffs: [
 			{
 				parameterName: "Toleransi Deviasi Hal III DIPA",
 				oldValue: "5,0% (Normal)",
 				newValue: "3,0% (Diperketat)",
-				impact: "Satker dengan deviasi > 3% akan menerima peringatan lebih dini.",
+				impact:
+					"Satker dengan deviasi > 3% akan menerima peringatan lebih dini.",
 			},
 			{
 				parameterName: "Batas Laporan Output",
@@ -56,10 +58,12 @@ export const mockPolicyHistory: PolicyHistoryVersionItem[] = [
 		sourceRegulation: "PER-5/PB/2024 tentang Juknis IKPA",
 		publishActor: "Admin Pembina DJPb Kemenkeu",
 		publishTimestamp: "01 Jan 2026, 08.00 WIB",
-		changeSummary: "Pemberlakuan formula standar 8 indikator IKPA tahun anggaran 2026.",
+		changeSummary:
+			"Pemberlakuan formula standar 8 indikator IKPA tahun anggaran 2026.",
 		snapshotUsageCount: 48,
 		deliveryProcessedCount: 312,
-		impactSummary: "Digunakan oleh seluruh simulasi dan laporan aktual semester I & II.",
+		impactSummary:
+			"Digunakan oleh seluruh simulasi dan laporan aktual semester I & II.",
 		parameterDiffs: [
 			{
 				parameterName: "Bobot Capaian Output",
@@ -87,7 +91,8 @@ export const mockPolicyHistory: PolicyHistoryVersionItem[] = [
 		changeSummary: "Arsip konfigurasi penilaian IKPA tahun 2025.",
 		snapshotUsageCount: 520,
 		deliveryProcessedCount: 1450,
-		impactSummary: "Arsip read-only untuk kebutuhan audit komparasi tahun sebelumnya.",
+		impactSummary:
+			"Arsip read-only untuk kebutuhan audit komparasi tahun sebelumnya.",
 		parameterDiffs: [],
 	},
 ];

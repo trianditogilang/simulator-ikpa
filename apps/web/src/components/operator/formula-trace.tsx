@@ -36,14 +36,18 @@ export function FormulaTrace({
 
 			<div className="mt-3 space-y-2">
 				<div>
-					<span className="text-[11px] text-muted-foreground">Rumus Regulasi:</span>
+					<span className="text-[11px] text-muted-foreground">
+						Rumus Regulasi:
+					</span>
 					<p className="font-mono text-xs font-semibold text-primary">
 						{formulaFormula}
 					</p>
 				</div>
 
 				<div>
-					<span className="text-[11px] text-muted-foreground">Variabel Masukan:</span>
+					<span className="text-[11px] text-muted-foreground">
+						Variabel Masukan:
+					</span>
 					<div className="mt-1 grid grid-cols-2 gap-2 sm:grid-cols-3">
 						{inputValues.map((val) => (
 							<div

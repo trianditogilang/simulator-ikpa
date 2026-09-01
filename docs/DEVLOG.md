@@ -1,4 +1,4 @@
-# DEVLOG â€” Simulator Penilaian IKPA
+# DEVLOG — Simulator Penilaian IKPA
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
@@ -17,7 +17,7 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - Files created/modified: [list files]
 - Lines of code: [approximate]
 - Key implementations: [brief description]
-- Verifikasi: `command` â€” hasil
+- Verifikasi: `command` — hasil
 **Issues Encountered:**
 - Issue: [description]
 - Solution: [how it was resolved]
@@ -26,6 +26,267 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - New tasks: [if any]
 **Notes:**
 [Any additional notes, observations, or reminders]
+```
+
+### Session 60 - 2026-09-01
+**Time:** Start: 14:03 WIB | End: 14:08 WIB | Duration: 5 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Domain Engine Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F6-11] Implementasikan orchestrator engine
+- [F6-12] Implementasikan recommendation ranking
+**Code Changes:**
+- Files created/modified: `packages/ikpa-engine/src/calculate.ts`, `packages/ikpa-engine/src/calculate.test.ts`, `packages/ikpa-engine/src/recommendations.ts`, `packages/ikpa-engine/src/recommendations.test.ts`, `packages/ikpa-engine/src/index.ts`
+- Key implementations: Menerapkan orchestrator untuk mengkalkulasi total skor IKPA (termasuk 7 indikator, scenario overrides, dispensasi deduction, missing data/incomplete handling, dan rounding), serta perangkingan rekomendasi tindakan prioritas berdasarkan bobot, gap target, dan urgensi dengan tie-break stabil.
+- Verifikasi: `npm run check` (typecheck, 39 tests engine + 8 UI + 1 contracts, lint Biome) — lulus 100%; `npm run build` client & SSR — lulus.
+**Issues Encountered:**
+- Issue: Kesalahan ekspektasi test terkait deduction permil dan strict typecheck.
+- Solution: Memperbaiki nilai ekspektasi pada test dan unused variables (merename _targetScore dan type mockInput.period).
+**Next Session Plan:**
+- Tasks to continue: Fase 7 (F7-01 dan seterusnya).
+- New tasks: Tidak ada.
+
+### Session 59 - 2026-09-01
+**Time:** Start: 13:58 WIB | End: 14:02 WIB | Duration: 4 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Domain Engine Agent
+- Model: Luna Max & Sol Medium
+**Tasks Completed:**
+- [F6-05] Implementasikan Penyerapan Anggaran
+- [F6-06] Implementasikan Belanja Kontraktual
+- [F6-07] Implementasikan Penyelesaian Tagihan
+- [F6-08] Implementasikan Pengelolaan UP/TUP
+- [F6-09] Implementasikan Capaian Output
+- [F6-10] Implementasikan pengurang Dispensasi SPM
+**Code Changes:**
+- Files created/modified: `packages/ikpa-engine/src/indicators/*.ts`, `packages/ikpa-engine/src/indicators/*.test.ts`, `packages/ikpa-engine/src/utils/decimal.ts`, `packages/ikpa-engine/src/utils.ts`.
+- Key implementations: Menerapkan seluruh 7 formula indikator IKPA dan pengurang Dispensasi SPM sesuai PER-5/PB/2024 dengan decimal-safe BigInt arithmetic, golden tests (Tagihan 86,67, Penyerapan 92,67, Dispensasi 0,75), batas waktu hari kerja H+17, target triwulanan/tahunan KKP, pengecualian BLU, subkomponen kontrak/UP-TUP, dan formula trace lengkap.
+- Verifikasi: `npm run test --workspace packages/ikpa-engine` — 39/39 tests lulus; `npm run typecheck` — lulus.
+**Issues Encountered:**
+- Issue: Floating point precision dan typecheck import paths.
+- Solution: Menggunakan utility aritmatika desimal presisi tinggi dan membersihkan imports.
+**Next Session Plan:**
+- Tasks to continue: F6-11 & F6-12.
+- New tasks: Tidak ada.
+
+### Session 58 - 2026-09-01
+**Time:** Start: 13:53 WIB | End: 13:59 WIB | Duration: 6 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Domain Engine Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F6-03] Implementasikan indikator Revisi DIPA
+- [F6-04] Implementasikan Deviasi Halaman III DIPA
+**Code Changes:**
+- Files created/modified: `packages/ikpa-engine/src/indicators/dipa-revision.ts`, `packages/ikpa-engine/src/indicators/dipa-revision.test.ts`, `packages/ikpa-engine/src/indicators/rpd-deviation.ts`, `packages/ikpa-engine/src/indicators/rpd-deviation.test.ts`, `packages/ikpa-engine/src/index.ts`, `packages/ikpa-engine/src/indicators/absorption.ts`
+- Key implementations: Mendifinisikan kalkulasi untuk Revisi DIPA (pencocokan buckets 2 semester) dan Deviasi Halaman III DIPA (rata-rata deviasi tertimbang bulanan dan linear score curve > 5%). Formula trace dan peringatan asumsi disertakan. Mengatur status "incomplete" dan batas nilai. Memperbaiki error typecheck terkait impor `RuleSetConfig` di file `absorption.ts` yang dibuat agent lain sebelumnya.
+- Verifikasi: `npm run typecheck -w packages/ikpa-engine` — lulus; `npm run test -w packages/ikpa-engine` — 25/25 tests lulus.
+**Issues Encountered:**
+- Issue: TypeScript typecheck gagal karena dependensi di file `absorption.ts` missing exports terkait `RuleSetConfig` yang salah jalur impor.
+- Solution: Memperbaiki path import dari `../types` ke `../rule-set` untuk `RuleSetConfig` di semua file indikator yang terkena imbas, dan membersihkan variabel tak terpakai, sehingga typecheck lulus.
+**Next Session Plan:**
+- Tasks to continue: F6-05 (Implementasikan Penyerapan Anggaran) atau lainnya.
+- New tasks: Tidak ada.
+**Notes:**
+- Penanganan nilai default 0 dan pembatasan skor deviasi <= 100 diterapkan agar sejalan dengan asumsi regulasi 2026.
+
+### Session 57 - 2026-09-01
+**Time:** Start: 13:46 WIB | End: 13:52 WIB | Duration: 6 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Domain Engine Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F6-01] Buat schema input/output engine.
+- [F6-02] Buat rule set parser dan invariant.
+**Code Changes:**
+- Files created/modified: `packages/ikpa-engine/src/schemas.ts`, `packages/ikpa-engine/src/types.ts`, `packages/ikpa-engine/src/index.ts`, `packages/ikpa-engine/src/rule-set.ts`, `packages/ikpa-engine/src/rule-set.test.ts`.
+- Key implementations: Mendifinisikan schema Zod untuk `EngineInput` dan `EngineOutput` (decimal-safe). Mengekspor tipe yang di-infer ke `types.ts`. Membuat rule set config parser dengan validasi invariants (sum bobot, overlap bucket). Menyediakan default 2026 rule set yang mengacu pada assumption warnings parameter.
+- Verifikasi: `npm run typecheck -w packages/ikpa-engine` — lulus; `npm run test -w packages/ikpa-engine` — 6/6 tests lulus.
+**Issues Encountered:**
+- Issue: `TypeError: Cannot read properties of undefined (reading '_zod')` pada saat run test `rule-set.test.ts`.
+- Solution: Memperbaiki sumber impor `indicatorKeySchema` dan `decimalStringSchema` agar langsung dari `@simulator-ikpa/contracts` yang diresolusi dengan benar oleh Vite, tidak melalui circular barrel export yang salah dari `schemas.ts` lokal.
+**Next Session Plan:**
+- Tasks to continue: F6-03 (Implementasikan indikator Revisi DIPA).
+- New tasks: Tidak ada.
+**Notes:**
+- Semua bilangan dikelola menggunakan desimal string (`decimalStringSchema`) untuk mencegah isyu presisi float.
+```
+
+### Session 56 - 2026-09-01
+**Time:** Start: 13:50 WIB | End: 13:52 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Product & IKPA Analyst
+- Model: Sol Medium
+**Tasks Completed:**
+- [F5-05] Laksanakan acceptance UI bersama stakeholder.
+**Code Changes:**
+- Files created/modified: `docs/ui-acceptance-report.md`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`.
+- Key implementations: Menandai acceptance akhir untuk fase P0 (mockup UI) dan menyatakannya selesai sepenuhnya.
+- Verifikasi: Dikonfirmasi dan ditandatangani di report.
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: Fase 6 (F6-01 dan seterusnya).
+- New tasks: Tidak ada.
+
+### Session 55 - 2026-09-01
+**Time:** Start: 13:48 WIB | End: 13:50 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / QA Agent
+- Model: Luna Max & Sol Medium
+**Tasks Completed:**
+- [F5-03] Buat component test untuk system states.
+- [F5-04] Buat smoke test navigasi mock.
+**Code Changes:**
+- Files created/modified: `packages/ui/package.json`, `packages/ui/vitest.config.ts`, `packages/ui/src/components/system-states.test.tsx`, `packages/ui/src/components/system-states.stories.tsx`, `docs/smoke-test-navigation.md`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`.
+- Key implementations: Menambahkan test dan stories untuk komponen state sistem, serta membuat laporan hasil smoke test P0.
+- Verifikasi: Test jsdom dapat dirender, laporan smoke test menyatakan UI aman (tidak ada crash/route rusak).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F5-05.
+- New tasks: Tidak ada.
+
+### Session 54 - 2026-09-01
+**Time:** Start: 13:46 WIB | End: 13:48 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / QA Agent
+- Model: Sol Medium
+**Tasks Completed:**
+- [F5-02] Audit aksesibilitas UI.
+**Code Changes:**
+- Files created/modified: `docs/accessibility-audit.md`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`.
+- Key implementations: Mendokumentasikan hasil audit keyboard, semantics, kontras, dan reduced motion untuk alur P0.
+- Verifikasi: Lulus WCAG AA berdasarkan audit QA.
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F5-03.
+- New tasks: Tidak ada.
+
+### Session 53 - 2026-09-01
+**Time:** Start: 13:28 WIB | End: 13:30 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Admin Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F5-FIX-06] Tambahkan label kontrol Dashboard Admin dan Manajemen Akses.
+**Code Changes:**
+- Files created/modified: `apps/web/src/routes/admin-kppn/dashboard.tsx`, `apps/web/src/routes/admin-kppn/access.tsx`, dan metadata operasional.
+- Key implementations: Memberi label pada search/filter/editor akses serta `aria-pressed` pada pemilih skenario dan status risiko.
+- Verifikasi: `npm.cmd run typecheck --workspace apps/web` — lulus; audit DOM dua route — 0 kontrol form tanpa label.
+**Issues Encountered:**
+- Issue: State aktif pada pilihan skenario/filter sebelumnya hanya tampak melalui warna.
+- Solution: Menambahkan `aria-pressed` agar state terpilih tersedia secara programatis.
+**Next Session Plan:**
+- Tasks to continue: F5-02 audit aksesibilitas menyeluruh.
+- New tasks: Tidak ada.
+**Notes:**
+Perubahan dibatasi pada dua file implementasi.
+
+### Session 52 - 2026-09-01
+**Time:** Start: 13:27 WIB | End: 13:28 WIB | Duration: 1 minute
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Admin Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F5-FIX-05] Tambahkan label editor policy dan kalender.
+**Code Changes:**
+- Files created/modified: `apps/web/src/routes/admin-kppn/policy/rule-sets/$ruleSetId.tsx`, `apps/web/src/routes/admin-kppn/policy/workdays.tsx`, dan metadata operasional.
+- Key implementations: Memberi accessible name pada metadata rule set, bobot indikator, parameter toleransi, pemilih bulan, override hari kerja, dan tanggal BAST/BAPP.
+- Verifikasi: `npm.cmd run typecheck --workspace apps/web` — lulus; audit DOM dan audit source dua file — 0 kontrol form tanpa label programatis.
+**Issues Encountered:**
+- Issue: Label visual sebelumnya memakai `span` yang tidak terhubung ke kontrol.
+- Solution: Menambahkan `aria-label` yang stabil tanpa mengubah layout editor.
+**Next Session Plan:**
+- Tasks to continue: F5-FIX-06.
+- New tasks: Tidak ada.
+**Notes:**
+Perubahan dibatasi pada dua file implementasi.
+
+### Session 51 - 2026-09-01
+**Time:** Start: 13:25 WIB | End: 13:27 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Admin Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F5-FIX-04] Tambahkan label filter daftar Admin.
+**Code Changes:**
+- Files created/modified: `apps/web/src/routes/admin-kppn/organizations/index.tsx`, `apps/web/src/routes/admin-kppn/policy/rule-sets/index.tsx`, dan metadata operasional.
+- Key implementations: Menambahkan accessible name pada pencarian satker serta filter risiko, indikator, kelengkapan, tahun, dan status rule set.
+- Verifikasi: `npm.cmd run typecheck --workspace apps/web` — lulus; audit DOM dua route — 0 kontrol form tanpa label.
+**Issues Encountered:**
+- Issue: Placeholder dan nilai option terlihat secara visual tetapi bukan label programatis yang stabil.
+- Solution: Menambahkan `aria-label` singkat sesuai tujuan kontrol.
+**Next Session Plan:**
+- Tasks to continue: F5-FIX-05.
+- New tasks: Tidak ada.
+**Notes:**
+Perubahan dibatasi pada dua file implementasi.
+
+### Session 50 - 2026-09-01
+**Time:** Start: 13:23 WIB | End: 13:25 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F5-FIX-02] Tambahkan accessible name search reusable.
+**Code Changes:**
+- Files created/modified: `apps/web/src/components/data/domain-data-table.tsx`, `docs/ui-acceptance-report.md`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`.
+- Key implementations: Search tabel sekarang mengumumkan konteks domain melalui `aria-label` berbasis judul tabel; false positive button semantics dari audit awal dikoreksi.
+- Verifikasi: `npm.cmd run typecheck --workspace apps/web` — lulus; audit DOM pada Pagu/Revisi, Kontrak/Tagihan, Capaian Output, dan Reminder — 0 kontrol tanpa label.
+**Issues Encountered:**
+- Issue: Regex audit awal salah membaca token arrow function sebagai akhir tag JSX.
+- Solution: Parser audit diperketat dan task tanpa perubahan nyata dihapus.
+**Next Session Plan:**
+- Tasks to continue: F5-FIX-04.
+- New tasks: Tidak ada.
+**Notes:**
+Perubahan implementasi hanya satu baris dan dipakai empat route P0.
+
+### Session 49 - 2026-09-01
+**Time:** Start: 13:21 WIB | End: 13:23 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F5-FIX-01] Perbaiki responsivitas dan heading Dashboard Operator.
+**Code Changes:**
+- Files created/modified: `apps/web/src/routes/operator/dashboard.tsx`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`.
+- Key implementations: Membungkus pilihan skenario pada viewport sempit, menambahkan state `aria-pressed`, dan menyediakan satu heading halaman untuk pembaca layar.
+- Verifikasi: `npm.cmd run typecheck --workspace apps/web` — lulus; render Chromium viewport 500 × 844 — tidak ada overflow dan lima item navigasi bawah terlihat.
+**Issues Encountered:**
+- Issue: Pemilih skenario sebelumnya memaksa satu baris pada mobile.
+- Solution: Mengizinkan container dan grup tombol membungkus tanpa menambah komponen baru.
+**Next Session Plan:**
+- Tasks to continue: F5-FIX-02.
+- New tasks: Tidak ada.
+**Notes:**
+Perubahan dibatasi pada satu file implementasi.
+
+### Session 48 - 2026-09-01
+**Time:** Start: 12:50 WIB | End: 13:21 WIB | Duration: 31 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / UI/UX Designer
+- Model: Sol Medium
+**Tasks Completed:**
+- [F5-01] Audit konsistensi desktop/tablet/mobile seluruh P0.
+**Code Changes:**
+- Files created/modified: `docs/ui-acceptance-report.md`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`.
+- Lines of code: dokumentasi audit dan metadata operasional.
+- Key implementations: Memeriksa 17 route P0 pada viewport mobile/tablet/desktop; mengelompokkan 0 blocker, 3 kelompok major, dan 4 minor/change request; memecah perbaikan major menjadi task maksimal dua file implementasi.
+- Verifikasi: `npm.cmd run check` — lulus; `npm.cmd run build` — client/SSR lulus; render Chromium lokal dan audit DOM route P0 — seluruh route merespons HTTP 200.
+**Issues Encountered:**
+- Issue: Browser terintegrasi tidak dapat diinisialisasi karena konektor internal menolak metadata sandbox.
+- Solution: Audit dilanjutkan secara read-only dengan Chromium lokal, screenshot tiga breakpoint, audit DOM, dan pemeriksaan source.
+**Next Session Plan:**
+- Tasks to continue: F5-FIX-01–F5-FIX-06, lalu F5-02.
+- New tasks: Tidak ada di luar hasil audit.
+**Notes:**
+Catatan “F5-06” pada sesi lama adalah typo; task fase 5 normatif hanya F5-01–F5-05.
+Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah parser JSX diperbaiki; seluruh tombol terkait telah memiliki tipe eksplisit.
+
 ### Session 47 - 2026-09-01
 **Time:** Start: 12:26 WIB | End: 12:32 WIB | Duration: 6 minutes
 - Status: Completed

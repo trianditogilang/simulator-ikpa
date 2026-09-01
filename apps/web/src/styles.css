@@ -179,8 +179,8 @@ pre {
 }
 
 :where(button, a, input, select, textarea):focus-visible {
-	outline: 3px solid var(--ring);
-	outline-offset: 2px;
+	outline: 3px solid var(--ring) !important;
+	outline-offset: 2px !important;
 }
 
 :where(button, input, select, textarea):disabled {

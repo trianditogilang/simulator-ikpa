@@ -23,7 +23,8 @@ export const mockWorkdayCalendar2026: WorkdayCalendarVersion = {
 	version: "2026.1",
 	year: 2026,
 	ruleSetVersion: "2026.1",
-	source: "SKB 3 Menteri tentang Hari Libur Nasional dan Cuti Bersama Tahun 2026",
+	source:
+		"SKB 3 Menteri tentang Hari Libur Nasional dan Cuti Bersama Tahun 2026",
 	totalWorkingDays: 248,
 	totalHolidays: 27,
 	lastUpdated: "01 Jan 2026, 08.00 WIB",

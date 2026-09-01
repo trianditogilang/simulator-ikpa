@@ -22,14 +22,18 @@ function AdminWorkdaysPage() {
 	const calendar = getMockWorkdayCalendar();
 
 	const [selectedMonth, setSelectedMonth] = useState<number>(8); // August
-	const [selectedOverride, setSelectedOverride] = useState<HolidayOverrideItem>({
-		date: "2026-08-17",
-		dayName: "Senin",
-		status: "holiday",
-		statusLabel: "Libur Nasional",
-		description: "Hari Kemerdekaan Republik Indonesia Ke-81",
-	});
-	const [overrides, setOverrides] = useState<HolidayOverrideItem[]>(calendar.overrides);
+	const [selectedOverride, setSelectedOverride] = useState<HolidayOverrideItem>(
+		{
+			date: "2026-08-17",
+			dayName: "Senin",
+			status: "holiday",
+			statusLabel: "Libur Nasional",
+			description: "Hari Kemerdekaan Republik Indonesia Ke-81",
+		},
+	);
+	const [overrides, setOverrides] = useState<HolidayOverrideItem[]>(
+		calendar.overrides,
+	);
 	const [saveToast, setSaveToast] = useState<string | null>(null);
 
 	// Impact preview interactive state
@@ -41,7 +45,9 @@ function AdminWorkdaysPage() {
 
 	const handleSaveOverride = () => {
 		setOverrides((prev) => {
-			const existingIndex = prev.findIndex((o) => o.date === selectedOverride.date);
+			const existingIndex = prev.findIndex(
+				(o) => o.date === selectedOverride.date,
+			);
 			if (existingIndex >= 0) {
 				const next = [...prev];
 				next[existingIndex] = selectedOverride;
@@ -64,7 +70,8 @@ function AdminWorkdaysPage() {
 							Kalender Hari Kerja ({calendar.year})
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Basis penentuan hari kerja untuk kalkulasi deadline H+17 Tagihan Kontraktual dan Capaian Output
+							Basis penentuan hari kerja untuk kalkulasi deadline H+17 Tagihan
+							Kontraktual dan Capaian Output
 						</p>
 					</div>
 
@@ -72,7 +79,9 @@ function AdminWorkdaysPage() {
 						<button
 							type="button"
 							onClick={() => {
-								alert("Sinkronisasi kalender hari kerja dari SKB 3 Menteri resmi...");
+								alert(
+									"Sinkronisasi kalender hari kerja dari SKB 3 Menteri resmi...",
+								);
 							}}
 							className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-surface-muted shadow-xs"
 						>
@@ -125,7 +134,9 @@ function AdminWorkdaysPage() {
 						<div className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
 							{calendar.totalWorkingDays} Hari
 						</div>
-						<p className="mt-1 text-xs text-muted-foreground">Tahun Anggaran {calendar.year}</p>
+						<p className="mt-1 text-xs text-muted-foreground">
+							Tahun Anggaran {calendar.year}
+						</p>
 					</div>
 
 					<div className="rounded-xl border border-border/80 bg-surface p-4 shadow-xs">
@@ -135,7 +146,9 @@ function AdminWorkdaysPage() {
 						<div className="mt-2 text-2xl font-semibold tracking-tight text-primary">
 							{overrides.length} Hari
 						</div>
-						<p className="mt-1 text-xs text-muted-foreground">Tercatat dalam kalender versi {calendar.version}</p>
+						<p className="mt-1 text-xs text-muted-foreground">
+							Tercatat dalam kalender versi {calendar.version}
+						</p>
 					</div>
 
 					<div className="rounded-xl border border-border/80 bg-surface p-4 shadow-xs">
@@ -145,7 +158,9 @@ function AdminWorkdaysPage() {
 						<div className="mt-2 text-sm font-semibold text-foreground line-clamp-1">
 							SKB 3 Menteri 2026
 						</div>
-						<p className="mt-1 text-xs text-muted-foreground">Terkunci ke Rule Set {calendar.ruleSetVersion}</p>
+						<p className="mt-1 text-xs text-muted-foreground">
+							Terkunci ke Rule Set {calendar.ruleSetVersion}
+						</p>
 					</div>
 				</div>
 
@@ -163,8 +178,11 @@ function AdminWorkdaysPage() {
 
 							<div className="flex items-center gap-1">
 								<select
+									aria-label="Pilih bulan kalender kerja"
 									value={selectedMonth}
-									onChange={(e) => setSelectedMonth(Number.parseInt(e.target.value, 10))}
+									onChange={(e) =>
+										setSelectedMonth(Number.parseInt(e.target.value, 10))
+									}
 									className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs text-foreground focus:border-primary focus:outline-none"
 								>
 									<option value={8}>Agustus 2026</option>
@@ -269,6 +287,7 @@ function AdminWorkdaysPage() {
 									Tanggal:
 								</span>
 								<input
+									aria-label="Tanggal override"
 									type="date"
 									value={selectedOverride.date}
 									onChange={(e) =>
@@ -286,11 +305,15 @@ function AdminWorkdaysPage() {
 									Status Hari:
 								</span>
 								<select
+									aria-label="Status hari"
 									value={selectedOverride.status}
 									onChange={(e) =>
 										setSelectedOverride({
 											...selectedOverride,
-											status: e.target.value as "holiday" | "joint_leave" | "special_workday",
+											status: e.target.value as
+												| "holiday"
+												| "joint_leave"
+												| "special_workday",
 											statusLabel:
 												e.target.value === "holiday"
 													? "Libur Nasional"
@@ -312,6 +335,7 @@ function AdminWorkdaysPage() {
 									Keterangan:
 								</span>
 								<textarea
+									aria-label="Keterangan override tanggal"
 									rows={3}
 									value={selectedOverride.description}
 									onChange={(e) =>
@@ -347,7 +371,8 @@ function AdminWorkdaysPage() {
 					</div>
 
 					<p className="text-xs text-muted-foreground">
-						Uji coba formula deadline SPM-LS secara langsung dengan memasukkan tanggal BAST/BAPP
+						Uji coba formula deadline SPM-LS secara langsung dengan memasukkan
+						tanggal BAST/BAPP
 					</p>
 
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-3 rounded-lg border border-border/60 bg-background p-4 text-xs">
@@ -356,6 +381,7 @@ function AdminWorkdaysPage() {
 								Tanggal BAST / BAPP:
 							</span>
 							<input
+								aria-label="Tanggal BAST atau BAPP"
 								type="date"
 								value={bastDateInput}
 								onChange={(e) => setBastDateInput(e.target.value)}
@@ -368,8 +394,12 @@ function AdminWorkdaysPage() {
 								Hari Libur yang Dilewati:
 							</span>
 							<div className="space-y-1 pt-1 text-[11px]">
-								<p className="text-danger font-medium">• 17 Agu (Hari Kemerdekaan)</p>
-								<p className="text-danger font-medium">• 25 Agu (Maulid Nabi SAW)</p>
+								<p className="text-danger font-medium">
+									• 17 Agu (Hari Kemerdekaan)
+								</p>
+								<p className="text-danger font-medium">
+									• 25 Agu (Maulid Nabi SAW)
+								</p>
 							</div>
 						</div>
 
@@ -381,7 +411,8 @@ function AdminWorkdaysPage() {
 								04 September 2026
 							</div>
 							<p className="text-[11px] text-muted-foreground">
-								(17 hari kerja + 8 hari weekend + 2 hari libur nasional = 27 hari kalender)
+								(17 hari kerja + 8 hari weekend + 2 hari libur nasional = 27
+								hari kalender)
 							</p>
 						</div>
 					</div>

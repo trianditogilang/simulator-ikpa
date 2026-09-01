@@ -1,9 +1,15 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
-import { DomainDataTable, type ColumnDef } from "@/components/data/domain-data-table";
+import {
+	DomainDataTable,
+	type ColumnDef,
+} from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
-import { mockSpmDispensations, type SpmDispensationItem } from "@/mocks/spm-dispensation";
+import {
+	mockSpmDispensations,
+	type SpmDispensationItem,
+} from "@/mocks/spm-dispensation";
 import { formatRupiah } from "@/lib/format";
 
 export const Route = createFileRoute("/operator/data/spm-dispensation")({
@@ -15,9 +21,10 @@ function SpmDispensationPage() {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [search, setSearch] = useState("");
 
-	const filteredData = data.filter((item) =>
-		item.spmNumber.toLowerCase().includes(search.toLowerCase()) ||
-		item.dispensationReason.toLowerCase().includes(search.toLowerCase())
+	const filteredData = data.filter(
+		(item) =>
+			item.spmNumber.toLowerCase().includes(search.toLowerCase()) ||
+			item.dispensationReason.toLowerCase().includes(search.toLowerCase()),
 	);
 
 	const columns: ColumnDef<SpmDispensationItem>[] = [
@@ -26,7 +33,9 @@ function SpmDispensationPage() {
 			header: "Nomor & Tanggal SPM Q4",
 			render: (item) => (
 				<div>
-					<span className="font-semibold text-foreground">{item.spmNumber}</span>
+					<span className="font-semibold text-foreground">
+						{item.spmNumber}
+					</span>
 					<p className="text-[11px] text-muted-foreground">{item.spmDate}</p>
 				</div>
 			),
@@ -68,13 +77,15 @@ function SpmDispensationPage() {
 							Dispensasi Penerbitan SPM Triwulan IV
 						</h1>
 						<p className="text-xs text-muted-foreground">
-							Pantau penerbitan SPM dispensasi pada akhir tahun anggaran sebagai faktor
-							pengurang nilai total IKPA.
+							Pantau penerbitan SPM dispensasi pada akhir tahun anggaran sebagai
+							faktor pengurang nilai total IKPA.
 						</p>
 					</div>
 
 					<div className="rounded-xl border border-danger/30 bg-danger/5 px-4 py-2 text-right">
-						<span className="text-[11px] text-muted-foreground">Potensi Pengurang IKPA</span>
+						<span className="text-[11px] text-muted-foreground">
+							Potensi Pengurang IKPA
+						</span>
 						<p className="text-base font-bold text-danger">−0,75 Poin</p>
 					</div>
 				</div>
@@ -105,7 +116,10 @@ function SpmDispensationPage() {
 				>
 					<div className="space-y-3">
 						<div>
-							<label htmlFor="spmNum" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="spmNum"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Nomor SPM
 							</label>
 							<input
@@ -116,7 +130,10 @@ function SpmDispensationPage() {
 							/>
 						</div>
 						<div>
-							<label htmlFor="spmReason" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="spmReason"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Alasan Dispensasi
 							</label>
 							<input
@@ -127,7 +144,10 @@ function SpmDispensationPage() {
 							/>
 						</div>
 						<div>
-							<label htmlFor="spmNominal" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="spmNominal"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Nominal SPM (Rp)
 							</label>
 							<input

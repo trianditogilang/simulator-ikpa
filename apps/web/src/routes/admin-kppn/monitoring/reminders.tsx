@@ -29,9 +29,14 @@ function AdminMonitoringRemindersPage() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [categoryFilter, setCategoryFilter] = useState<string>("all");
 	const [statusFilter, setStatusFilter] = useState<string>("all");
-	const [selectedItem, setSelectedItem] = useState<AdminReminderItem | null>(null);
-	const [retryConfirmItem, setRetryConfirmItem] = useState<AdminReminderItem | null>(null);
-	const [retrySuccessToast, setRetrySuccessToast] = useState<string | null>(null);
+	const [selectedItem, setSelectedItem] = useState<AdminReminderItem | null>(
+		null,
+	);
+	const [retryConfirmItem, setRetryConfirmItem] =
+		useState<AdminReminderItem | null>(null);
+	const [retrySuccessToast, setRetrySuccessToast] = useState<string | null>(
+		null,
+	);
 
 	const filteredItems = useMemo(() => {
 		return items.filter((item) => {
@@ -41,8 +46,10 @@ function AdminMonitoringRemindersPage() {
 				item.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				item.recipient.toLowerCase().includes(searchQuery.toLowerCase());
 
-			const matchCategory = categoryFilter === "all" || item.category === categoryFilter;
-			const matchStatus = statusFilter === "all" || item.deliveryStatus === statusFilter;
+			const matchCategory =
+				categoryFilter === "all" || item.category === categoryFilter;
+			const matchStatus =
+				statusFilter === "all" || item.deliveryStatus === statusFilter;
 
 			return matchQuery && matchCategory && matchStatus;
 		});
@@ -86,7 +93,8 @@ function AdminMonitoringRemindersPage() {
 							Monitoring Risiko &amp; Reminder
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Pengawasan jadwal, notifikasi peringatan dini, dan log pengiriman reminder ke seluruh Satker
+							Pengawasan jadwal, notifikasi peringatan dini, dan log pengiriman
+							reminder ke seluruh Satker
 						</p>
 					</div>
 					<div className="flex items-center gap-2">
@@ -129,7 +137,9 @@ function AdminMonitoringRemindersPage() {
 						<div className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
 							{stats.totalEvents}
 						</div>
-						<p className="mt-1 text-xs text-muted-foreground">Event IKPA triwulan berjalan</p>
+						<p className="mt-1 text-xs text-muted-foreground">
+							Event IKPA triwulan berjalan
+						</p>
 					</div>
 
 					<div className="rounded-xl border border-border/80 bg-surface p-4 shadow-xs">
@@ -142,7 +152,9 @@ function AdminMonitoringRemindersPage() {
 						<div className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
 							{stats.mandatoryCount}
 						</div>
-						<p className="mt-1 text-xs text-muted-foreground">Terkunci oleh regulasi pusat</p>
+						<p className="mt-1 text-xs text-muted-foreground">
+							Terkunci oleh regulasi pusat
+						</p>
 					</div>
 
 					<div className="rounded-xl border border-border/80 bg-surface p-4 shadow-xs">
@@ -155,7 +167,9 @@ function AdminMonitoringRemindersPage() {
 						<div className="mt-2 text-2xl font-semibold tracking-tight text-danger">
 							{stats.failedCount}
 						</div>
-						<p className="mt-1 text-xs text-muted-foreground">Memerlukan percobaan kirim ulang</p>
+						<p className="mt-1 text-xs text-muted-foreground">
+							Memerlukan percobaan kirim ulang
+						</p>
 					</div>
 
 					<div className="rounded-xl border border-border/80 bg-surface p-4 shadow-xs">
@@ -168,7 +182,9 @@ function AdminMonitoringRemindersPage() {
 						<div className="mt-2 text-2xl font-semibold tracking-tight text-warning">
 							{stats.dueSoonCount}
 						</div>
-						<p className="mt-1 text-xs text-muted-foreground">Perlu eskalasi pemantauan</p>
+						<p className="mt-1 text-xs text-muted-foreground">
+							Perlu eskalasi pemantauan
+						</p>
 					</div>
 				</div>
 
@@ -215,9 +231,15 @@ function AdminMonitoringRemindersPage() {
 
 					<div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs text-muted-foreground">
 						<span>
-							Menampilkan <strong className="text-foreground">{filteredItems.length}</strong> agenda
+							Menampilkan{" "}
+							<strong className="text-foreground">
+								{filteredItems.length}
+							</strong>{" "}
+							agenda
 						</span>
-						{(searchQuery || categoryFilter !== "all" || statusFilter !== "all") && (
+						{(searchQuery ||
+							categoryFilter !== "all" ||
+							statusFilter !== "all") && (
 							<button
 								type="button"
 								onClick={() => {
@@ -251,8 +273,12 @@ function AdminMonitoringRemindersPage() {
 							<tbody className="divide-y divide-border/60">
 								{filteredItems.length === 0 ? (
 									<tr>
-										<td colSpan={7} className="py-12 text-center text-muted-foreground">
-											Tidak ada agenda pengingat yang cocok dengan kriteria pencarian.
+										<td
+											colSpan={7}
+											className="py-12 text-center text-muted-foreground"
+										>
+											Tidak ada agenda pengingat yang cocok dengan kriteria
+											pencarian.
 										</td>
 									</tr>
 								) : (
@@ -365,7 +391,8 @@ function AdminMonitoringRemindersPage() {
 										{selectedItem.eventTitle}
 									</h3>
 									<p className="text-xs text-muted-foreground">
-										{selectedItem.satkerName} • Rule Set {selectedItem.ruleSetVersion}
+										{selectedItem.satkerName} • Rule Set{" "}
+										{selectedItem.ruleSetVersion}
 									</p>
 								</div>
 								<button
@@ -379,8 +406,12 @@ function AdminMonitoringRemindersPage() {
 
 							<div className="grid grid-cols-2 gap-3 rounded-lg border border-border/80 bg-surface p-4 text-xs">
 								<div>
-									<span className="text-muted-foreground">Jadwal Pengiriman:</span>
-									<p className="font-semibold text-foreground">{selectedItem.scheduledTime}</p>
+									<span className="text-muted-foreground">
+										Jadwal Pengiriman:
+									</span>
+									<p className="font-semibold text-foreground">
+										{selectedItem.scheduledTime}
+									</p>
 								</div>
 								<div>
 									<span className="text-muted-foreground">Waktu Terkirim:</span>
@@ -389,21 +420,31 @@ function AdminMonitoringRemindersPage() {
 									</p>
 								</div>
 								<div>
-									<span className="text-muted-foreground">Jumlah Percobaan:</span>
-									<p className="font-semibold text-foreground">{selectedItem.attemptCount} kali</p>
+									<span className="text-muted-foreground">
+										Jumlah Percobaan:
+									</span>
+									<p className="font-semibold text-foreground">
+										{selectedItem.attemptCount} kali
+									</p>
 								</div>
 								<div>
-									<span className="text-muted-foreground">Kategori Policy:</span>
+									<span className="text-muted-foreground">
+										Kategori Policy:
+									</span>
 									<p className="font-semibold text-foreground uppercase">
 										{selectedItem.category}
 									</p>
 								</div>
 								<div className="col-span-2">
 									<span className="text-muted-foreground">Email Penerima:</span>
-									<p className="font-semibold text-foreground">{selectedItem.recipient}</p>
+									<p className="font-semibold text-foreground">
+										{selectedItem.recipient}
+									</p>
 								</div>
 								<div className="col-span-2">
-									<span className="text-muted-foreground">Idempotency Key:</span>
+									<span className="text-muted-foreground">
+										Idempotency Key:
+									</span>
 									<p className="font-mono text-[11px] text-muted-foreground break-all">
 										{selectedItem.idempotencyKey}
 									</p>
@@ -411,8 +452,12 @@ function AdminMonitoringRemindersPage() {
 
 								{selectedItem.errorMessage && (
 									<div className="col-span-2 rounded-lg bg-danger/10 p-2.5 text-xs text-danger">
-										<span className="font-semibold">Pesan Kesalahan Teknis:</span>
-										<p className="mt-0.5 text-foreground">{selectedItem.errorMessage}</p>
+										<span className="font-semibold">
+											Pesan Kesalahan Teknis:
+										</span>
+										<p className="mt-0.5 text-foreground">
+											{selectedItem.errorMessage}
+										</p>
 									</div>
 								)}
 							</div>
@@ -456,7 +501,8 @@ function AdminMonitoringRemindersPage() {
 										Kirim Ulang Notifikasi Reminder?
 									</h3>
 									<p className="text-xs text-muted-foreground">
-										{retryConfirmItem.satkerName} ({retryConfirmItem.satkerCode})
+										{retryConfirmItem.satkerName} ({retryConfirmItem.satkerCode}
+										)
 									</p>
 								</div>
 							</div>
@@ -464,12 +510,17 @@ function AdminMonitoringRemindersPage() {
 							<div className="rounded-lg bg-surface p-3.5 text-xs text-muted-foreground space-y-2">
 								<p>
 									Sistem akan memicu antrean pengiriman ulang notifikasi{" "}
-									<strong className="text-foreground">{retryConfirmItem.eventTitle}</strong> ke
-									alamat:
+									<strong className="text-foreground">
+										{retryConfirmItem.eventTitle}
+									</strong>{" "}
+									ke alamat:
 								</p>
-								<p className="font-semibold text-foreground">{retryConfirmItem.recipient}</p>
+								<p className="font-semibold text-foreground">
+									{retryConfirmItem.recipient}
+								</p>
 								<p className="text-[11px] text-muted-foreground border-t border-border/60 pt-2">
-									Percobaan sebelumnya gagal dengan error: {retryConfirmItem.errorMessage}
+									Percobaan sebelumnya gagal dengan error:{" "}
+									{retryConfirmItem.errorMessage}
 								</p>
 							</div>
 

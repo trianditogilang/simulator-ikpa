@@ -2,11 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { getMockPolicyHistory } from "@/mocks/policy-history";
-import {
-	History,
-	Info,
-	Scale,
-} from "lucide-react";
+import { History, Info, Scale } from "lucide-react";
 
 export const Route = createFileRoute("/admin-kppn/policy/history")({
 	component: AdminPolicyHistoryPage,
@@ -29,7 +25,8 @@ function AdminPolicyHistoryPage() {
 							Riwayat Versi Policy &amp; Regulasi
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Rekam jejak perubahan parameter, aktor penerbitan, audit pemakaian snapshot, dan dampak schedule
+							Rekam jejak perubahan parameter, aktor penerbitan, audit pemakaian
+							snapshot, dan dampak schedule
 						</p>
 					</div>
 					<div className="flex items-center gap-2">
@@ -140,19 +137,26 @@ function AdminPolicyHistoryPage() {
 							{/* Usage Stats Box */}
 							<div className="grid grid-cols-2 gap-3 rounded-lg border border-border/60 bg-background p-3.5 text-xs">
 								<div>
-									<span className="text-muted-foreground">Penggunaan Snapshot:</span>
+									<span className="text-muted-foreground">
+										Penggunaan Snapshot:
+									</span>
 									<p className="font-semibold text-foreground text-sm">
 										{activeItem.snapshotUsageCount} Simulasi Satker
 									</p>
 								</div>
 								<div>
-									<span className="text-muted-foreground">Delivery Notifikasi:</span>
+									<span className="text-muted-foreground">
+										Delivery Notifikasi:
+									</span>
 									<p className="font-semibold text-foreground text-sm">
 										{activeItem.deliveryProcessedCount} Email Terkirim
 									</p>
 								</div>
 								<div className="col-span-2 border-t border-border/40 pt-2 text-[11px] text-muted-foreground">
-									Dampak Jadwal: <strong className="text-foreground">{activeItem.impactSummary}</strong>
+									Dampak Jadwal:{" "}
+									<strong className="text-foreground">
+										{activeItem.impactSummary}
+									</strong>
 								</div>
 							</div>
 
@@ -164,7 +168,8 @@ function AdminPolicyHistoryPage() {
 
 								{activeItem.parameterDiffs.length === 0 ? (
 									<div className="rounded-lg border border-dashed border-border/80 p-6 text-center text-xs text-muted-foreground">
-										Tidak ada perubahan parameter atau versi ini adalah versi inisial arsip.
+										Tidak ada perubahan parameter atau versi ini adalah versi
+										inisial arsip.
 									</div>
 								) : (
 									<div className="overflow-x-auto rounded-lg border border-border/80">
@@ -204,8 +209,9 @@ function AdminPolicyHistoryPage() {
 							<div className="flex items-start gap-2 rounded-lg bg-surface-muted/50 p-3 text-xs text-muted-foreground">
 								<Info className="size-4 shrink-0 text-primary mt-0.5" />
 								<p>
-									Prinsip immutability memastikan bahwa perubahan policy versi baru tidak akan
-									mengubah atau menghitung ulang nilai snapshot historis yang telah terbit.
+									Prinsip immutability memastikan bahwa perubahan policy versi
+									baru tidak akan mengubah atau menghitung ulang nilai snapshot
+									historis yang telah terbit.
 								</p>
 							</div>
 						</div>

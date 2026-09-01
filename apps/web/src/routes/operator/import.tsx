@@ -22,8 +22,8 @@ function OperatorImportPage() {
 						Wizard Import Data Transaksional
 					</h1>
 					<p className="text-xs text-muted-foreground sm:text-sm">
-						Unggah file CSV/XLSX OMSPAN untuk memperbarui data simulasi IKPA secara
-						massal dan aman.
+						Unggah file CSV/XLSX OMSPAN untuk memperbarui data simulasi IKPA
+						secara massal dan aman.
 					</p>
 				</div>
 
@@ -31,21 +31,27 @@ function OperatorImportPage() {
 				<div className="grid grid-cols-3 gap-2 rounded-xl bg-surface p-2 text-center text-xs font-semibold">
 					<div
 						className={`rounded-lg py-2 ${
-							step === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+							step === 1
+								? "bg-primary text-primary-foreground"
+								: "text-muted-foreground"
 						}`}
 					>
 						1. Unggah File
 					</div>
 					<div
 						className={`rounded-lg py-2 ${
-							step === 2 ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+							step === 2
+								? "bg-primary text-primary-foreground"
+								: "text-muted-foreground"
 						}`}
 					>
 						2. Validasi & Preview
 					</div>
 					<div
 						className={`rounded-lg py-2 ${
-							step === 3 ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+							step === 3
+								? "bg-primary text-primary-foreground"
+								: "text-muted-foreground"
 						}`}
 					>
 						3. Konfirmasi Commit
@@ -56,7 +62,10 @@ function OperatorImportPage() {
 				{step === 1 && (
 					<div className="space-y-4 rounded-2xl border border-border bg-background p-6 shadow-xs">
 						<div>
-							<label htmlFor="domainSelect" className="block text-xs font-semibold text-foreground">
+							<label
+								htmlFor="domainSelect"
+								className="block text-xs font-semibold text-foreground"
+							>
 								Pilih Jenis Data / Domain
 							</label>
 							<select
@@ -66,11 +75,19 @@ function OperatorImportPage() {
 								className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
 							>
 								<option value="Pagu & Revisi DIPA">Pagu & Revisi DIPA</option>
-								<option value="RPD & Realisasi">RPD & Realisasi Anggaran</option>
-								<option value="Kontrak & Tagihan">Kontrak & SPM-LS Tagihan</option>
-								<option value="UP/TUP & KKP">UP/TUP & Kartu Kredit Pemerintah</option>
+								<option value="RPD & Realisasi">
+									RPD & Realisasi Anggaran
+								</option>
+								<option value="Kontrak & Tagihan">
+									Kontrak & SPM-LS Tagihan
+								</option>
+								<option value="UP/TUP & KKP">
+									UP/TUP & Kartu Kredit Pemerintah
+								</option>
 								<option value="Capaian Output">Capaian Output Satker</option>
-								<option value="SPM Dispensasi">SPM Dispensasi Akhir Tahun</option>
+								<option value="SPM Dispensasi">
+									SPM Dispensasi Akhir Tahun
+								</option>
 							</select>
 						</div>
 
@@ -79,7 +96,8 @@ function OperatorImportPage() {
 								Pilih File Excel (.xlsx) atau CSV
 							</span>
 							<p className="mt-1 text-xs text-muted-foreground">
-								Ukuran maksimal file: 10 MB. Format mengikuti template resmi IKPA.
+								Ukuran maksimal file: 10 MB. Format mengikuti template resmi
+								IKPA.
 							</p>
 							<button
 								type="button"
@@ -154,8 +172,8 @@ function OperatorImportPage() {
 								Konfirmasi Penyimpanan {activeJob.validRows} Baris Data
 							</h3>
 							<p className="mt-1 text-xs text-muted-foreground">
-								Data akan disimpan ke database simulasi satker dan memperbarui nilai
-								IKPA secara otomatis.
+								Data akan disimpan ke database simulasi satker dan memperbarui
+								nilai IKPA secara otomatis.
 							</p>
 						</div>
 

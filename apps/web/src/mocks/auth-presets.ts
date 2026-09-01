@@ -31,7 +31,8 @@ export const mockAuthPresets: AuthPresetUser[] = [
 		scopeName: "KPPN Malang",
 		scopeCode: "032",
 		badgeColor: "bg-primary/10 text-primary border-primary/20",
-		description: "Akses administratif penuh pembina perbendaharaan untuk seluruh satker lingkup KPPN Malang.",
+		description:
+			"Akses administratif penuh pembina perbendaharaan untuk seluruh satker lingkup KPPN Malang.",
 		targetPath: "/admin-kppn/dashboard",
 		avatarInitials: "TG",
 		permissionsSummary: [
@@ -51,7 +52,8 @@ export const mockAuthPresets: AuthPresetUser[] = [
 		scopeName: "Politeknik Negeri Malang",
 		scopeCode: "415234",
 		badgeColor: "bg-success/10 text-success border-success/20",
-		description: "Akses operasional pengelola keuangan dan pelaporan IKPA satker mandiri.",
+		description:
+			"Akses operasional pengelola keuangan dan pelaporan IKPA satker mandiri.",
 		targetPath: "/operator/dashboard",
 		avatarInitials: "BS",
 		permissionsSummary: [
@@ -71,7 +73,8 @@ export const mockAuthPresets: AuthPresetUser[] = [
 		scopeName: "4 Satker Terdaftar",
 		scopeCode: "MULTI",
 		badgeColor: "bg-info/10 text-info border-info/20",
-		description: "Akun pengelola yang mengampu beberapa satker di bawah kementerian/lembaga yang sama.",
+		description:
+			"Akun pengelola yang mengampu beberapa satker di bawah kementerian/lembaga yang sama.",
 		targetPath: "/select-organization",
 		avatarInitials: "DS",
 		permissionsSummary: [
@@ -89,7 +92,8 @@ export const mockAuthPresets: AuthPresetUser[] = [
 		scopeName: "Belum Ada Mapping",
 		scopeCode: "-",
 		badgeColor: "bg-warning/10 text-warning border-warning/20",
-		description: "Akun terotentikasi yang belum diberikan hak akses satker atau KPPN.",
+		description:
+			"Akun terotentikasi yang belum diberikan hak akses satker atau KPPN.",
 		targetPath: "/access-pending",
 		avatarInitials: "PB",
 		permissionsSummary: [

@@ -1,7 +1,10 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
-import { DomainDataTable, type ColumnDef } from "@/components/data/domain-data-table";
+import {
+	DomainDataTable,
+	type ColumnDef,
+} from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
 import { mockUpTupKkpList, type UpTupKkpItem } from "@/mocks/up-tup-kkp";
 import { formatRupiah } from "@/lib/format";
@@ -15,9 +18,10 @@ function UpTupKkpPage() {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [search, setSearch] = useState("");
 
-	const filteredData = data.filter((item) =>
-		item.referenceNumber.toLowerCase().includes(search.toLowerCase()) ||
-		item.transactionType.toLowerCase().includes(search.toLowerCase())
+	const filteredData = data.filter(
+		(item) =>
+			item.referenceNumber.toLowerCase().includes(search.toLowerCase()) ||
+			item.transactionType.toLowerCase().includes(search.toLowerCase()),
 	);
 
 	const columns: ColumnDef<UpTupKkpItem>[] = [
@@ -26,8 +30,12 @@ function UpTupKkpPage() {
 			header: "Jenis & Nomor SP2D",
 			render: (item) => (
 				<div>
-					<span className="font-semibold text-foreground">{item.referenceNumber}</span>
-					<p className="text-[11px] text-muted-foreground">{item.transactionType}</p>
+					<span className="font-semibold text-foreground">
+						{item.referenceNumber}
+					</span>
+					<p className="text-[11px] text-muted-foreground">
+						{item.transactionType}
+					</p>
 				</div>
 			),
 		},
@@ -67,13 +75,15 @@ function UpTupKkpPage() {
 							Pengelolaan UP / TUP & Kartu Kredit Pemerintah (KKP)
 						</h1>
 						<p className="text-xs text-muted-foreground">
-							Pantau revolving GUP 1 bulan sekali, penyelesaian TUP, dan proporsi
-							penggunaan KKP (100% bobot).
+							Pantau revolving GUP 1 bulan sekali, penyelesaian TUP, dan
+							proporsi penggunaan KKP (100% bobot).
 						</p>
 					</div>
 
 					<div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2 text-right">
-						<span className="text-[11px] text-muted-foreground">Nilai Pengelolaan UP/TUP</span>
+						<span className="text-[11px] text-muted-foreground">
+							Nilai Pengelolaan UP/TUP
+						</span>
 						<p className="text-base font-bold text-primary">96,00</p>
 					</div>
 				</div>
@@ -104,7 +114,10 @@ function UpTupKkpPage() {
 				>
 					<div className="space-y-3">
 						<div>
-							<label htmlFor="txType" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="txType"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Tipe Transaksi
 							</label>
 							<select
@@ -113,11 +126,16 @@ function UpTupKkpPage() {
 							>
 								<option value="GUP">GUP - Ganti Uang Persediaan</option>
 								<option value="PTUP">PTUP - Pertanggungjawaban TUP</option>
-								<option value="KKP">KKP - Pembayaran Kartu Kredit Pemerintah</option>
+								<option value="KKP">
+									KKP - Pembayaran Kartu Kredit Pemerintah
+								</option>
 							</select>
 						</div>
 						<div>
-							<label htmlFor="txRef" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="txRef"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Nomor SP2D
 							</label>
 							<input
@@ -128,7 +146,10 @@ function UpTupKkpPage() {
 							/>
 						</div>
 						<div>
-							<label htmlFor="txAmount" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="txAmount"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Nominal (Rp)
 							</label>
 							<input

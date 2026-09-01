@@ -23,8 +23,10 @@ export const Route = createFileRoute("/admin-kppn/policy/reminders")({
 function AdminReminderPoliciesPage() {
 	const initialPolicies = getMockReminderPolicies();
 
-	const [policies, setPolicies] = useState<ReminderPolicyEventItem[]>(initialPolicies);
-	const [selectedPolicy, setSelectedPolicy] = useState<ReminderPolicyEventItem | null>(null);
+	const [policies, setPolicies] =
+		useState<ReminderPolicyEventItem[]>(initialPolicies);
+	const [selectedPolicy, setSelectedPolicy] =
+		useState<ReminderPolicyEventItem | null>(null);
 	const [isEditing, setIsEditing] = useState(false);
 	const [saveToast, setSaveToast] = useState<string | null>(null);
 
@@ -50,7 +52,8 @@ function AdminReminderPoliciesPage() {
 							Reminder Policy
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Pengaturan aturan notifikasi, formula deadline, kategori wajib, dan penerima notifikasi otomatis
+							Pengaturan aturan notifikasi, formula deadline, kategori wajib,
+							dan penerima notifikasi otomatis
 						</p>
 					</div>
 
@@ -117,11 +120,17 @@ function AdminReminderPoliciesPage() {
 					<div className="flex items-center gap-2 text-muted-foreground">
 						<ShieldCheck className="size-4 text-primary" />
 						<span>
-							Acuan Aktif: <strong className="text-foreground">Rule Set 2026.1 (PER-5/PB/2024)</strong>
+							Acuan Aktif:{" "}
+							<strong className="text-foreground">
+								Rule Set 2026.1 (PER-5/PB/2024)
+							</strong>
 						</span>
 						<span>•</span>
 						<span>
-							Total Kebijakan: <strong className="text-foreground">{policies.length} Event Terdaftar</strong>
+							Total Kebijakan:{" "}
+							<strong className="text-foreground">
+								{policies.length} Event Terdaftar
+							</strong>
 						</span>
 					</div>
 					<span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
@@ -276,14 +285,22 @@ function AdminReminderPoliciesPage() {
 											onChange={(e) =>
 												setSelectedPolicy({
 													...selectedPolicy,
-													category: e.target.value as "mandatory" | "recommended" | "optional",
-													allowDisable: e.target.value === "mandatory" ? false : selectedPolicy.allowDisable,
+													category: e.target.value as
+														| "mandatory"
+														| "recommended"
+														| "optional",
+													allowDisable:
+														e.target.value === "mandatory"
+															? false
+															: selectedPolicy.allowDisable,
 												})
 											}
 											className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none"
 										>
 											<option value="mandatory">Mandatory (Wajib)</option>
-											<option value="recommended">Recommended (Disarankan)</option>
+											<option value="recommended">
+												Recommended (Disarankan)
+											</option>
 											<option value="optional">Optional (Opsional)</option>
 										</select>
 									</div>
@@ -297,7 +314,10 @@ function AdminReminderPoliciesPage() {
 											onChange={(e) =>
 												setSelectedPolicy({
 													...selectedPolicy,
-													dayType: e.target.value as "workday" | "calendar_day" | "schedule",
+													dayType: e.target.value as
+														| "workday"
+														| "calendar_day"
+														| "schedule",
 												})
 											}
 											className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none"
@@ -337,7 +357,8 @@ function AdminReminderPoliciesPage() {
 											onChange={(e) =>
 												setSelectedPolicy({
 													...selectedPolicy,
-													allowedMinLeadDays: Number.parseInt(e.target.value, 10) || 0,
+													allowedMinLeadDays:
+														Number.parseInt(e.target.value, 10) || 0,
 												})
 											}
 											className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none"
@@ -354,7 +375,8 @@ function AdminReminderPoliciesPage() {
 											onChange={(e) =>
 												setSelectedPolicy({
 													...selectedPolicy,
-													allowedMaxLeadDays: Number.parseInt(e.target.value, 10) || 15,
+													allowedMaxLeadDays:
+														Number.parseInt(e.target.value, 10) || 15,
 												})
 											}
 											className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none"
@@ -395,7 +417,8 @@ function AdminReminderPoliciesPage() {
 												Izinkan Penambahan Penerima Kustom:
 											</span>
 											<p className="text-[11px] text-muted-foreground">
-												Operator dapat menambahkan email penerima internal satker
+												Operator dapat menambahkan email penerima internal
+												satker
 											</p>
 										</div>
 										<input

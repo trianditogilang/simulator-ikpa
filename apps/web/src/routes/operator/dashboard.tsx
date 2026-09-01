@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { ScoreCard } from "@/components/operator/score-card";
@@ -12,20 +12,25 @@ export const Route = createFileRoute("/operator/dashboard")({
 });
 
 function OperatorDashboardPage() {
-	const [scenario, setScenario] = useState<"normal" | "risky" | "incomplete">("normal");
+	const [scenario, setScenario] = useState<"normal" | "risky" | "incomplete">(
+		"normal",
+	);
 	const data = getMockOperatorDashboard(scenario);
 
 	return (
 		<OperatorShell currentPath="/operator/dashboard">
 			<div className="space-y-6">
+				<h1 className="sr-only">Dashboard IKPA Operator Satker</h1>
 				{/* Scenario Switcher for Demo / Mock Evaluation */}
 				<div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/80 bg-surface p-3.5">
-					<div className="flex items-center gap-2">
+					<div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
 						<span className="text-xs font-semibold text-muted-foreground">
 							Skenario Data:
 						</span>
-						<div className="flex items-center gap-1">
+						<fieldset className="flex flex-wrap items-center gap-1 border-0 p-0 m-0">
+							<legend className="sr-only">Pilih skenario data</legend>
 							<button
+								aria-pressed={scenario === "normal"}
 								type="button"
 								onClick={() => setScenario("normal")}
 								className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
@@ -37,28 +42,30 @@ function OperatorDashboardPage() {
 								Normal (94,20)
 							</button>
 							<button
+								aria-pressed={scenario === "risky"}
 								type="button"
 								onClick={() => setScenario("risky")}
 								className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
 									scenario === "risky"
-										? "bg-warning text-primary-foreground shadow-xs"
+										? "bg-primary text-primary-foreground shadow-xs"
 										: "bg-background text-foreground hover:bg-surface-muted"
 								}`}
 							>
-								Risiko / Terlambat
+								Berisiko (86,85)
 							</button>
 							<button
+								aria-pressed={scenario === "incomplete"}
 								type="button"
 								onClick={() => setScenario("incomplete")}
 								className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
 									scenario === "incomplete"
-										? "bg-danger text-primary-foreground shadow-xs"
+										? "bg-primary text-primary-foreground shadow-xs"
 										: "bg-background text-foreground hover:bg-surface-muted"
 								}`}
 							>
-								Data Incomplete
+								Incomplete (Estimasi)
 							</button>
-						</div>
+						</fieldset>
 					</div>
 					<span className="text-[11px] text-muted-foreground">
 						Status: {scenario.toUpperCase()}

@@ -361,77 +361,99 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
 
 ## 9. Fase 5 â€” UI Review dan Prototype Acceptance
 
-- [ ] **F5-01 â€” Audit konsistensi desktop/tablet/mobile seluruh P0.** [Role: UI/UX Designer] [Model: Sol Medium]  
+- [x] **F5-01 â€” Audit konsistensi desktop/tablet/mobile seluruh P0.** [Role: UI/UX Designer] [Model: Sol Medium]  
   **Scope:** Seluruh route UI Fase 2â€“4  
   **DoD:** Temuan dikelompokkan blocker/major/minor dan setiap perbaikan dibuat sebagai task Luna 1â€“2 file.
 
-- [ ] **F5-02 â€” Audit aksesibilitas UI.** [Role: QA Agent] [Model: Sol Medium]  
+- [x] **F5-02 â€” Audit aksesibilitas UI.** [Role: QA Agent] [Model: Sol Medium]  
   **Scope:** Keyboard, focus, semantics, contrast, label, dialog, table/card mobile, reduced motion  
   **DoD:** Alur P0 dapat digunakan keyboard dan tidak menggunakan warna sebagai satu-satunya penanda.
 
-- [ ] **F5-03 â€” Buat component test untuk system states.** [Role: QA Agent] [Model: Luna Max]  
+- [x] **F5-03 — Buat component test untuk system states.** [Role: QA Agent] [Model: Luna Max]  
   **Files:** `packages/ui/src/components/system-states.test.tsx`, `packages/ui/src/components/system-states.stories.tsx`  
   **DoD:** Loading, empty, incomplete, error, policy lock, dan stale rule set tervalidasi visual/fungsional.
 
-- [ ] **F5-04 â€” Buat smoke test navigasi mock.** [Role: QA Agent] [Model: Sol Medium]  
-  **Scope:** Login dummy â†’ Operator/Admin â†’ seluruh route P0  
+- [x] **F5-04 — Buat smoke test navigasi mock.** [Role: QA Agent] [Model: Sol Medium]  
+  **Scope:** Login dummy → Operator/Admin → seluruh route P0  
   **DoD:** Tidak ada route putus, console error, overflow kritis, atau state tanpa CTA.
 
-- [ ] **F5-05 â€” Laksanakan acceptance UI bersama stakeholder.** [Role: Product & IKPA Analyst] [Model: Sol Medium]  
+- [x] **F5-05 â€” Laksanakan acceptance UI bersama stakeholder.** [Role: Product & IKPA Analyst] [Model: Sol Medium]  
   **File:** `docs/ui-acceptance-report.md`  
   **Depends:** F5-01â€“F5-04  
   **DoD:** Setiap wireframe P0 diterima atau memiliki change request bernomor sebelum backend dimulai.
 
+### Task Perbaikan Hasil Audit F5-01
+
+- [x] **F5-FIX-01 â€” Perbaiki responsivitas dan heading Dashboard Operator.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+  **File:** `apps/web/src/routes/operator/dashboard.tsx`  
+  **DoD:** Pemilih skenario membungkus pada mobile dan halaman memiliki satu `h1`.
+
+- [x] **F5-FIX-02 â€” Tambahkan accessible name search reusable.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+  **File:** `apps/web/src/components/data/domain-data-table.tsx`  
+  **DoD:** Search memiliki accessible name kontekstual pada seluruh tabel domain.
+
+- [x] **F5-FIX-04 â€” Tambahkan label filter daftar Admin.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+  **Files:** `apps/web/src/routes/admin-kppn/organizations/index.tsx`, `apps/web/src/routes/admin-kppn/policy/rule-sets/index.tsx`  
+  **DoD:** Search dan seluruh select filter memiliki accessible name eksplisit.
+
+- [x] **F5-FIX-05 â€” Tambahkan label editor policy dan kalender.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+  **Files:** `apps/web/src/routes/admin-kppn/policy/rule-sets/$ruleSetId.tsx`, `apps/web/src/routes/admin-kppn/policy/workdays.tsx`  
+  **DoD:** Seluruh input/select/textarea P0 memiliki label programatis.
+
+- [x] **F5-FIX-06 â€” Tambahkan label kontrol Dashboard Admin dan Manajemen Akses.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+  **Files:** `apps/web/src/routes/admin-kppn/dashboard.tsx`, `apps/web/src/routes/admin-kppn/access.tsx`  
+  **DoD:** Search/filter form memiliki accessible name dan pilihan skenario menyampaikan state terpilih.
+
 ## 10. Fase 6 â€” Domain Engine IKPA
 
-- [ ] **F6-01 â€” Buat schema input/output engine.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-01 â€” Buat schema input/output engine.** [Role: Domain Engine Agent] [Model: Luna Max]  
   **Files:** `packages/ikpa-engine/src/schemas.ts`, `packages/ikpa-engine/src/types.ts`  
   **Depends:** F0-02, F0-11  
   **DoD:** Decimal-safe, incomplete state, formula trace, warning, recommendation, rule set ID/version tervalidasi.
 
-- [ ] **F6-02 â€” Buat rule set parser dan invariant.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-02 â€” Buat rule set parser dan invariant.** [Role: Domain Engine Agent] [Model: Luna Max]  
   **Files:** `packages/ikpa-engine/src/rule-set.ts`, `packages/ikpa-engine/src/rule-set.test.ts`  
   **DoD:** Bobot, bucket overlap, rounding, assumption status, dan parameter money diuji.
 
-- [ ] **F6-03 â€” Implementasikan indikator Revisi DIPA.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-03 â€” Implementasikan indikator Revisi DIPA.** [Role: Domain Engine Agent] [Model: Luna Max]  
   **Files:** `packages/ikpa-engine/src/indicators/dipa-revision.ts`, `packages/ikpa-engine/src/indicators/dipa-revision.test.ts`  
   **DoD:** Eligibility, semester, non-kumulatif, trace, incomplete, dan golden score 80 lulus.
 
-- [ ] **F6-04 â€” Implementasikan Deviasi Halaman III DIPA.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-04 â€” Implementasikan Deviasi Halaman III DIPA.** [Role: Domain Engine Agent] [Model: Luna Max]  
   **Files:** `packages/ikpa-engine/src/indicators/rpd-deviation.ts`, `packages/ikpa-engine/src/indicators/rpd-deviation.test.ts`  
   **DoD:** Janâ€“Nov, proporsi pagu, kurva rule set, zero denominator, dan rounding teruji.
 
-- [ ] **F6-05 â€” Implementasikan Penyerapan Anggaran.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-05 — Implementasikan Penyerapan Anggaran.** [Role: Domain Engine Agent] [Model: Sol Medium]  
   **Files:** `packages/ikpa-engine/src/indicators/absorption.ts`, `packages/ikpa-engine/src/indicators/absorption.test.ts`  
   **DoD:** Kumulatif triwulan, target akun, cap 100, weighted result, dan golden 92,67 lulus.
 
-- [ ] **F6-06 â€” Implementasikan Belanja Kontraktual.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-06 — Implementasikan Belanja Kontraktual.** [Role: Domain Engine Agent] [Model: Sol Medium]  
   **Files:** `packages/ikpa-engine/src/indicators/contractual.ts`, `packages/ikpa-engine/src/indicators/contractual.test.ts`  
   **DoD:** Tiga komponen, bucket, kontrak dini, eligibility akun 53, termin, dan assumption warning teruji.
 
-- [ ] **F6-07 â€” Implementasikan Penyelesaian Tagihan.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-07 — Implementasikan Penyelesaian Tagihan.** [Role: Domain Engine Agent] [Model: Luna Max]  
   **Files:** `packages/ikpa-engine/src/indicators/invoice-timeliness.ts`, `packages/ikpa-engine/src/indicators/invoice-timeliness.test.ts`  
   **Depends:** F0-03  
   **DoD:** Non-pegawai, H+17, kalender, boundary, dan golden 13/15 = 86,67 lulus.
 
-- [ ] **F6-08 â€” Implementasikan Pengelolaan UP/TUP.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-08 — Implementasikan Pengelolaan UP/TUP.** [Role: Domain Engine Agent] [Model: Luna Max]  
   **Files:** `packages/ikpa-engine/src/indicators/up-tup.ts`, `packages/ikpa-engine/src/indicators/up-tup.test.ts`  
   **DoD:** Komponen 50/25/25, weight 90/10, interval, setoran, KKP, incomplete, dan asumsi teruji.
 
-- [ ] **F6-09 â€” Implementasikan Capaian Output.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-09 â€” Implementasikan Capaian Output.** [Role: Domain Engine Agent] [Model: Luna Max]  
   **Files:** `packages/ikpa-engine/src/indicators/output-achievement.ts`, `packages/ikpa-engine/src/indicators/output-achievement.test.ts`  
   **DoD:** Timeliness 30%, achievement 70%, confirmation, PCRO/TPCRO, Desember, dan zero case teruji.
 
-- [ ] **F6-10 â€” Implementasikan pengurang Dispensasi SPM.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-10 â€” Implementasikan pengurang Dispensasi SPM.** [Role: Domain Engine Agent] [Model: Luna Max]  
   **Files:** `packages/ikpa-engine/src/indicators/spm-dispensation.ts`, `packages/ikpa-engine/src/indicators/spm-dispensation.test.ts`  
   **DoD:** Permil, bucket boundaries, zero denominator, dan golden 24/5200 â†’ 0,75 lulus.
 
-- [ ] **F6-11 â€” Implementasikan orchestrator engine.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-11 â€” Implementasikan orchestrator engine.** [Role: Domain Engine Agent] [Model: Luna Max]  
   **Files:** `packages/ikpa-engine/src/calculate.ts`, `packages/ikpa-engine/src/calculate.test.ts`  
   **Depends:** F6-01â€“F6-10  
   **DoD:** Overlay scenario, seven scores, deduction, total, incomplete flag, rounding, dan determinisme teruji.
 
-- [ ] **F6-12 â€” Implementasikan recommendation ranking.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-12 â€” Implementasikan recommendation ranking.** [Role: Domain Engine Agent] [Model: Luna Max]  
   **Files:** `packages/ikpa-engine/src/recommendations.ts`, `packages/ikpa-engine/src/recommendations.test.ts`  
   **DoD:** Weight Ã— gap Ã— urgency, stable tie-break, missing data, dan deep-link key teruji.
 
@@ -855,4 +877,3 @@ Sebuah fitur baru dianggap selesai hanya bila:
 - tidak ada secret atau data sensitif pada client bundle dan log;
 - task tidak menyentuh file di luar scope yang disetujui tanpa dipecah atau dinaikkan ke Sol Medium.
 - `BACKLOG.md` dan `DEVLOG.md` telah diperbarui, serta checkbox task telah ditandai sesuai status sebenarnya.
-

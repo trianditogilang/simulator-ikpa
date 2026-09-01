@@ -41,7 +41,9 @@ export function AdminKpiCards({ kpi }: { kpi: AdminKpiOverview }) {
 				</div>
 				<div className="mt-2 flex items-baseline gap-2">
 					<span className="text-2xl font-semibold tracking-tight text-foreground">
-						{kpi.averageScore > 0 ? kpi.averageScore.toFixed(2).replace(".", ",") : "—"}
+						{kpi.averageScore > 0
+							? kpi.averageScore.toFixed(2).replace(".", ",")
+							: "—"}
 					</span>
 					<span className="text-xs text-muted-foreground">
 						/ {kpi.targetScore.toFixed(2).replace(".", ",")}
@@ -74,7 +76,9 @@ export function AdminKpiCards({ kpi }: { kpi: AdminKpiOverview }) {
 						/ {kpi.totalOrganizations} satker
 					</span>
 				</div>
-				<p className="mt-1 text-xs text-muted-foreground">Skor &lt; 90 atau deviasi tinggi</p>
+				<p className="mt-1 text-xs text-muted-foreground">
+					Skor &lt; 90 atau deviasi tinggi
+				</p>
 			</div>
 
 			{/* Data Belum Lengkap */}
@@ -91,7 +95,9 @@ export function AdminKpiCards({ kpi }: { kpi: AdminKpiOverview }) {
 					</span>
 					<span className="text-xs text-muted-foreground">satker</span>
 				</div>
-				<p className="mt-1 text-xs text-muted-foreground">Memerlukan input operator</p>
+				<p className="mt-1 text-xs text-muted-foreground">
+					Memerlukan input operator
+				</p>
 			</div>
 
 			{/* Deadline < 7 Hari */}
@@ -108,7 +114,9 @@ export function AdminKpiCards({ kpi }: { kpi: AdminKpiOverview }) {
 					</span>
 					<span className="text-xs text-muted-foreground">agenda</span>
 				</div>
-				<p className="mt-1 text-xs text-muted-foreground">Tagihan, RO, & UP/TUP</p>
+				<p className="mt-1 text-xs text-muted-foreground">
+					Tagihan, RO, & UP/TUP
+				</p>
 			</div>
 
 			{/* Delivery Gagal */}
@@ -132,7 +140,9 @@ export function AdminKpiCards({ kpi }: { kpi: AdminKpiOverview }) {
 					<span className="text-xs text-muted-foreground">gagal kirim</span>
 				</div>
 				<p className="mt-1 text-xs text-muted-foreground">
-					{kpi.failedDeliveriesCount > 0 ? "Perlu kirim ulang" : "Semua notifikasi terkirim"}
+					{kpi.failedDeliveriesCount > 0
+						? "Perlu kirim ulang"
+						: "Semua notifikasi terkirim"}
 				</p>
 			</div>
 		</div>
@@ -148,7 +158,8 @@ export function RiskySatkerList({ satkers }: { satkers: RiskySatkerItem[] }) {
 					Tidak Ada Satker Berisiko Kritis
 				</h4>
 				<p className="mt-1 max-w-sm text-xs text-muted-foreground">
-					Semua satker dalam cakupan KPPN berada di atas batas aman target kinerja IKPA.
+					Semua satker dalam cakupan KPPN berada di atas batas aman target
+					kinerja IKPA.
 				</p>
 			</div>
 		);
@@ -166,7 +177,9 @@ export function RiskySatkerList({ satkers }: { satkers: RiskySatkerItem[] }) {
 							<span className="rounded bg-surface-muted px-1.5 py-0.5 text-xs font-semibold text-foreground">
 								{satker.code}
 							</span>
-							<h4 className="text-sm font-semibold text-foreground">{satker.name}</h4>
+							<h4 className="text-sm font-semibold text-foreground">
+								{satker.name}
+							</h4>
 							<span
 								className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
 									satker.riskLevel === "danger"
@@ -178,7 +191,8 @@ export function RiskySatkerList({ satkers }: { satkers: RiskySatkerItem[] }) {
 							</span>
 						</div>
 						<p className="text-xs text-muted-foreground">
-							Faktor Risiko: <span className="text-foreground">{satker.mainRisk}</span>
+							Faktor Risiko:{" "}
+							<span className="text-foreground">{satker.mainRisk}</span>
 						</p>
 					</div>
 
@@ -241,7 +255,9 @@ export function UpcomingDeadlinesPanel({
 								<span className="text-xs font-semibold text-foreground">
 									{dl.satkerName}
 								</span>
-								<span className="text-[11px] text-muted-foreground">({dl.satkerCode})</span>
+								<span className="text-[11px] text-muted-foreground">
+									({dl.satkerCode})
+								</span>
 							</div>
 							<p className="text-xs text-foreground/90">{dl.eventTitle}</p>
 						</div>
@@ -270,7 +286,11 @@ export function UpcomingDeadlinesPanel({
 	);
 }
 
-export function AdminTrendChart({ trend }: { trend: AdminAggregateTrendItem[] }) {
+export function AdminTrendChart({
+	trend,
+}: {
+	trend: AdminAggregateTrendItem[];
+}) {
 	if (trend.length === 0) {
 		return (
 			<div className="flex h-48 items-center justify-center rounded-xl border border-dashed border-border/80 bg-surface text-xs text-muted-foreground">
@@ -298,11 +318,17 @@ export function AdminTrendChart({ trend }: { trend: AdminAggregateTrendItem[] })
 			{/* Simple Bar-like visualization */}
 			<div className="grid grid-cols-8 gap-2 pt-4">
 				{trend.map((item) => {
-					const heightPct = Math.max(10, Math.min(100, (item.averageScore / 100) * 100));
+					const heightPct = Math.max(
+						10,
+						Math.min(100, (item.averageScore / 100) * 100),
+					);
 					const isTargetAchieved = item.averageScore >= item.target;
 
 					return (
-						<div key={item.month} className="flex flex-col items-center gap-1.5">
+						<div
+							key={item.month}
+							className="flex flex-col items-center gap-1.5"
+						>
 							<span className="text-[11px] font-semibold text-foreground">
 								{item.averageScore.toFixed(1).replace(".", ",")}
 							</span>
@@ -314,7 +340,9 @@ export function AdminTrendChart({ trend }: { trend: AdminAggregateTrendItem[] })
 									}`}
 								/>
 							</div>
-							<span className="text-xs font-medium text-muted-foreground">{item.month}</span>
+							<span className="text-xs font-medium text-muted-foreground">
+								{item.month}
+							</span>
 						</div>
 					);
 				})}
@@ -352,15 +380,21 @@ export function PolicyStatusCard({ policy }: { policy: AdminPolicyStatus }) {
 			<div className="mt-4 grid grid-cols-2 gap-3 border-t border-border/60 pt-3.5 text-xs">
 				<div>
 					<span className="text-muted-foreground">Versi Aktif:</span>
-					<p className="font-semibold text-foreground">{policy.currentVersion}</p>
+					<p className="font-semibold text-foreground">
+						{policy.currentVersion}
+					</p>
 				</div>
 				<div>
 					<span className="text-muted-foreground">Berlaku Sejak:</span>
-					<p className="font-semibold text-foreground">{policy.effectiveFrom}</p>
+					<p className="font-semibold text-foreground">
+						{policy.effectiveFrom}
+					</p>
 				</div>
 				<div className="col-span-2">
 					<span className="text-muted-foreground">Dasar Regulasi:</span>
-					<p className="font-semibold text-foreground">{policy.sourceRegulation}</p>
+					<p className="font-semibold text-foreground">
+						{policy.sourceRegulation}
+					</p>
 				</div>
 				{policy.changeSummary && (
 					<div className="col-span-2 rounded-lg bg-warning/10 p-2.5 text-xs text-warning">
@@ -371,7 +405,9 @@ export function PolicyStatusCard({ policy }: { policy: AdminPolicyStatus }) {
 			</div>
 
 			<div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
-				<span className="text-xs text-muted-foreground">Pengaturan Kebijakan</span>
+				<span className="text-xs text-muted-foreground">
+					Pengaturan Kebijakan
+				</span>
 				<a
 					href="/admin-kppn/policy/rule-sets"
 					className="inline-flex items-center gap-1 text-xs font-semibold text-primary underline-offset-4 hover:underline"

@@ -17,8 +17,8 @@ function OperatorReportsPage() {
 							Laporan & Ekspor Simulasi IKPA
 						</h1>
 						<p className="text-xs text-muted-foreground">
-							Cetak laporan proyeksi resmi internal atau ekspor data tabel ke format
-							Excel (XLSX) dan PDF.
+							Cetak laporan proyeksi resmi internal atau ekspor data tabel ke
+							format Excel (XLSX) dan PDF.
 						</p>
 					</div>
 				</div>
@@ -34,13 +34,17 @@ function OperatorReportsPage() {
 									<span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
 										Format {rep.format}
 									</span>
-									<span className="text-xs text-muted-foreground">{rep.period}</span>
+									<span className="text-xs text-muted-foreground">
+										{rep.period}
+									</span>
 								</div>
 
 								<h3 className="mt-4 text-base font-bold text-foreground">
 									{rep.title}
 								</h3>
-								<p className="mt-1 text-xs text-muted-foreground">{rep.description}</p>
+								<p className="mt-1 text-xs text-muted-foreground">
+									{rep.description}
+								</p>
 							</div>
 
 							<div className="mt-6 border-t border-border/80 pt-4">

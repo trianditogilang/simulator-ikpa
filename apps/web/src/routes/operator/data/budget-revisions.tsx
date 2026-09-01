@@ -1,9 +1,15 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
-import { DomainDataTable, type ColumnDef } from "@/components/data/domain-data-table";
+import {
+	DomainDataTable,
+	type ColumnDef,
+} from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
-import { mockBudgetRevisions, type BudgetRevisionItem } from "@/mocks/budget-revisions";
+import {
+	mockBudgetRevisions,
+	type BudgetRevisionItem,
+} from "@/mocks/budget-revisions";
 import { formatRupiah } from "@/lib/format";
 
 export const Route = createFileRoute("/operator/data/budget-revisions")({
@@ -15,9 +21,10 @@ function BudgetRevisionsPage() {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [search, setSearch] = useState("");
 
-	const filteredData = data.filter((item) =>
-		item.notes.toLowerCase().includes(search.toLowerCase()) ||
-		item.dipaNumber.toLowerCase().includes(search.toLowerCase())
+	const filteredData = data.filter(
+		(item) =>
+			item.notes.toLowerCase().includes(search.toLowerCase()) ||
+			item.dipaNumber.toLowerCase().includes(search.toLowerCase()),
 	);
 
 	const columns: ColumnDef<BudgetRevisionItem>[] = [
@@ -26,7 +33,9 @@ function BudgetRevisionsPage() {
 			header: "Revisi Ke-",
 			render: (item) => (
 				<span className="font-semibold text-foreground">
-					{item.revisionSequence === 0 ? "DIPA Induk (0)" : `Revisi ${item.revisionSequence}`}
+					{item.revisionSequence === 0
+						? "DIPA Induk (0)"
+						: `Revisi ${item.revisionSequence}`}
 				</span>
 			),
 		},
@@ -85,12 +94,14 @@ function BudgetRevisionsPage() {
 							Pagu & Histori Revisi DIPA
 						</h1>
 						<p className="text-xs text-muted-foreground">
-							Kelola alokasi pagu per jenis belanja dan catat histori pengesahan revisi
-							DIPA per semester.
+							Kelola alokasi pagu per jenis belanja dan catat histori pengesahan
+							revisi DIPA per semester.
 						</p>
 					</div>
 					<div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2 text-right">
-						<span className="text-[11px] text-muted-foreground">Total Pagu Aktif</span>
+						<span className="text-[11px] text-muted-foreground">
+							Total Pagu Aktif
+						</span>
 						<p className="text-base font-bold text-primary">
 							{formatRupiah(5500000000)}
 						</p>
@@ -123,7 +134,10 @@ function BudgetRevisionsPage() {
 				>
 					<div className="space-y-3">
 						<div>
-							<label htmlFor="dipaNumber" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="dipaNumber"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Nomor DIPA / SP DIPA
 							</label>
 							<input
@@ -135,7 +149,10 @@ function BudgetRevisionsPage() {
 						</div>
 						<div className="grid grid-cols-2 gap-2">
 							<div>
-								<label htmlFor="revSeq" className="block text-[11px] font-semibold text-foreground">
+								<label
+									htmlFor="revSeq"
+									className="block text-[11px] font-semibold text-foreground"
+								>
 									Revisi Ke-
 								</label>
 								<input
@@ -146,7 +163,10 @@ function BudgetRevisionsPage() {
 								/>
 							</div>
 							<div>
-								<label htmlFor="semester" className="block text-[11px] font-semibold text-foreground">
+								<label
+									htmlFor="semester"
+									className="block text-[11px] font-semibold text-foreground"
+								>
 									Semester
 								</label>
 								<select
@@ -159,7 +179,10 @@ function BudgetRevisionsPage() {
 							</div>
 						</div>
 						<div>
-							<label htmlFor="pagu52" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="pagu52"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Pagu Belanja Barang (52)
 							</label>
 							<input

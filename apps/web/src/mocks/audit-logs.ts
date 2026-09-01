@@ -4,7 +4,13 @@ export interface AuditLogItem {
 	actorName: string;
 	actorEmail: string;
 	actorRole: string;
-	actionType: "publish" | "update" | "create" | "delete" | "import" | "override";
+	actionType:
+		| "publish"
+		| "update"
+		| "create"
+		| "delete"
+		| "import"
+		| "override";
 	actionLabel: string;
 	targetEntity: string;
 	entityName: string;
@@ -28,11 +34,16 @@ export const mockAuditLogs: AuditLogItem[] = [
 		actionLabel: "Publikasi Regulasi",
 		targetEntity: "rule_sets",
 		entityName: "Rule Set 2026.1",
-		summary: "Mempublikasikan Rule Set versi 2026.1 sebagai acuan aktif nasional.",
+		summary:
+			"Mempublikasikan Rule Set versi 2026.1 sebagai acuan aktif nasional.",
 		requestId: "req_pub_882910398",
 		ruleSetVersion: "2026.1",
 		beforeState: { status: "draft", version: "2026.1" },
-		afterState: { status: "published", version: "2026.1", publishedAt: "2026-08-31T15:30:00+07:00" },
+		afterState: {
+			status: "published",
+			version: "2026.1",
+			publishedAt: "2026-08-31T15:30:00+07:00",
+		},
 	},
 	{
 		id: "aud-102",
@@ -67,7 +78,11 @@ export const mockAuditLogs: AuditLogItem[] = [
 		summary: "Menambahkan mapping akses operator satker untuk Polinema.",
 		requestId: "req_usr_998124567",
 		beforeState: null,
-		afterState: { email: "rian.output@polinema.ac.id", role: "operator_satker", orgCode: "415234" },
+		afterState: {
+			email: "rian.output@polinema.ac.id",
+			role: "operator_satker",
+			orgCode: "415234",
+		},
 	},
 	{
 		id: "aud-104",
@@ -97,7 +112,8 @@ export const mockAuditLogs: AuditLogItem[] = [
 		actionLabel: "Override Hari Libur",
 		targetEntity: "workday_calendars",
 		entityName: "17 Agustus 2026 (Hari Kemerdekaan)",
-		summary: "Menandai 17 Agustus 2026 sebagai Hari Libur Nasional pada kalender kerja.",
+		summary:
+			"Menandai 17 Agustus 2026 sebagai Hari Libur Nasional pada kalender kerja.",
 		requestId: "req_cal_443198022",
 		ruleSetVersion: "2026.1",
 		beforeState: { isHoliday: false },

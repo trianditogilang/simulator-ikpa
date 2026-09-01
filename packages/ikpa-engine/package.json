@@ -1,0 +1,20 @@
+{
+  "name": "@simulator-ikpa/ikpa-engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@simulator-ikpa/contracts": "*",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "vitest": "4.1.11"
+  }
+}

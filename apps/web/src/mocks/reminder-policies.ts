@@ -36,7 +36,8 @@ export const mockReminderPolicies: ReminderPolicyEventItem[] = [
 		allowRecipientOverride: true,
 		status: "published",
 		ruleSetVersion: "2026.1",
-		description: "Pengingat wajib batas pengajuan SPM-LS untuk mencegah penurunan skor tagihan.",
+		description:
+			"Pengingat wajib batas pengajuan SPM-LS untuk mencegah penurunan skor tagihan.",
 	},
 	{
 		id: "pol-02",
@@ -55,7 +56,8 @@ export const mockReminderPolicies: ReminderPolicyEventItem[] = [
 		allowRecipientOverride: true,
 		status: "published",
 		ruleSetVersion: "2026.1",
-		description: "Pengingat pelaporan capaian output bulanan ke aplikasi OM-SPAN / SAKTI.",
+		description:
+			"Pengingat pelaporan capaian output bulanan ke aplikasi OM-SPAN / SAKTI.",
 	},
 	{
 		id: "pol-03",
@@ -74,7 +76,8 @@ export const mockReminderPolicies: ReminderPolicyEventItem[] = [
 		allowRecipientOverride: true,
 		status: "published",
 		ruleSetVersion: "2026.1",
-		description: "Pengingat kewajiban revolving UP minimal 1 kali sebulan untuk satker berpagu UP.",
+		description:
+			"Pengingat kewajiban revolving UP minimal 1 kali sebulan untuk satker berpagu UP.",
 	},
 	{
 		id: "pol-04",
@@ -84,7 +87,8 @@ export const mockReminderPolicies: ReminderPolicyEventItem[] = [
 		indicatorLabel: "Dispensasi SPM",
 		category: "recommended",
 		dayType: "workday",
-		deadlineFormulaSummary: "Batas akhir pengajuan SPM akhir tahun (Langkah Akhir Tahun)",
+		deadlineFormulaSummary:
+			"Batas akhir pengajuan SPM akhir tahun (Langkah Akhir Tahun)",
 		allowedMinLeadDays: 1,
 		allowedMaxLeadDays: 14,
 		defaultLeadDays: [7, 2],
@@ -93,7 +97,8 @@ export const mockReminderPolicies: ReminderPolicyEventItem[] = [
 		allowRecipientOverride: true,
 		status: "published",
 		ruleSetVersion: "2026.1",
-		description: "Peringatan jika pengajuan SPM dispensasi melewati ambang batas toleransi permil.",
+		description:
+			"Peringatan jika pengajuan SPM dispensasi melewati ambang batas toleransi permil.",
 	},
 	{
 		id: "pol-05",
@@ -112,7 +117,8 @@ export const mockReminderPolicies: ReminderPolicyEventItem[] = [
 		allowRecipientOverride: true,
 		status: "published",
 		ruleSetVersion: "2026.1",
-		description: "Ringkasan berkala progres skor estimasi dan tindakan mitigasi risiko mingguan.",
+		description:
+			"Ringkasan berkala progres skor estimasi dan tindakan mitigasi risiko mingguan.",
 	},
 ];
 

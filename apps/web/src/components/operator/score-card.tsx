@@ -88,16 +88,16 @@ export function ScoreCard({
 							</span>
 						</div>
 						<div className="mt-2 flex items-center justify-between text-xs">
-							<span className="text-muted-foreground">Deviasi Target (Gap):</span>
+							<span className="text-muted-foreground">
+								Deviasi Target (Gap):
+							</span>
 							<span
 								className={twMerge(
 									"font-semibold",
 									isGapNegative ? "text-danger" : "text-success",
 								)}
 							>
-								{dataStatus === "incomplete"
-									? "—"
-									: formatPointDelta(gapScore)}
+								{dataStatus === "incomplete" ? "—" : formatPointDelta(gapScore)}
 							</span>
 						</div>
 					</div>
@@ -106,8 +106,8 @@ export function ScoreCard({
 
 			<div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/80 pt-4">
 				<p className="text-[11px] text-muted-foreground sm:max-w-md">
-					*Hasil perhitungan merupakan simulasi internal Satker, bukan nilai resmi
-					OMSPAN/KPPN.
+					*Hasil perhitungan merupakan simulasi internal Satker, bukan nilai
+					resmi OMSPAN/KPPN.
 				</p>
 				<div className="flex items-center gap-2">
 					{onInputClick && (

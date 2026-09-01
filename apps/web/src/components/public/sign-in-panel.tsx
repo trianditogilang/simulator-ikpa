@@ -241,7 +241,11 @@ export function SignInPanel({
 					<div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs space-y-1.5">
 						<div className="flex items-center justify-between">
 							<span className="font-semibold text-foreground">
-								Peran: <strong className="text-primary">{selectedPreset.roleLabel}</strong> ({selectedPreset.name})
+								Peran:{" "}
+								<strong className="text-primary">
+									{selectedPreset.roleLabel}
+								</strong>{" "}
+								({selectedPreset.name})
 							</span>
 							<span className="font-mono text-[11px] text-muted-foreground">
 								Scope: {selectedPreset.scopeCode} — {selectedPreset.scopeName}
@@ -266,7 +270,10 @@ export function SignInPanel({
 						className="flex items-start gap-2.5 rounded-lg border border-danger/30 bg-danger/10 p-3 text-danger text-xs"
 						role="alert"
 					>
-						<AlertCircle aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+						<AlertCircle
+							aria-hidden="true"
+							className="mt-0.5 size-4 shrink-0"
+						/>
 						<p>{errorMessage}</p>
 					</div>
 				) : null}
@@ -280,7 +287,11 @@ export function SignInPanel({
 						<div>
 							<p className="font-semibold">Pemulihan Kata Sandi</p>
 							<p className="mt-0.5 text-muted-foreground">
-								Gunakan kata sandi demo <code className="rounded bg-background px-1 font-semibold">password123</code> atau pilih preset akun di atas.
+								Gunakan kata sandi demo{" "}
+								<code className="rounded bg-background px-1 font-semibold">
+									password123
+								</code>{" "}
+								atau pilih preset akun di atas.
 							</p>
 						</div>
 					</div>
@@ -292,11 +303,15 @@ export function SignInPanel({
 						className="rounded-xl border border-success/30 bg-success/10 p-4 space-y-3"
 					>
 						<div className="flex items-start gap-2.5 text-success">
-							<CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+							<CheckCircle2
+								aria-hidden="true"
+								className="mt-0.5 size-5 shrink-0"
+							/>
 							<div>
 								<p className="text-sm font-semibold">Autentikasi Berhasil</p>
 								<p className="mt-0.5 text-xs text-muted-foreground">
-									Masuk sebagai <strong>{resolvedAuth.name}</strong> ({resolvedAuth.roleLabel}).
+									Masuk sebagai <strong>{resolvedAuth.name}</strong> (
+									{resolvedAuth.roleLabel}).
 								</p>
 							</div>
 						</div>
@@ -335,7 +350,8 @@ export function SignInPanel({
 									Verifikasi Multi-Faktor (MFA Demo)
 								</p>
 								<p className="mt-0.5 text-xs text-muted-foreground">
-									Kode OTP telah diverifikasi secara otomatis untuk sesi simulasi ini.
+									Kode OTP telah diverifikasi secara otomatis untuk sesi
+									simulasi ini.
 								</p>
 							</div>
 						</div>
@@ -440,7 +456,8 @@ export function SignInPanel({
 
 				<div className="border-t border-border/80 pt-4 text-center">
 					<p className="text-xs text-muted-foreground">
-						Hak akses ditentukan secara otomatis di server berdasarkan pemetaan email pengguna pada lingkup KPPN / Satker.
+						Hak akses ditentukan secara otomatis di server berdasarkan pemetaan
+						email pengguna pada lingkup KPPN / Satker.
 					</p>
 				</div>
 			</div>
@@ -458,7 +475,8 @@ export function SignInPanel({
 									</h3>
 								</div>
 								<p className="text-xs text-muted-foreground">
-									Perbandingan kewenangan antara peran Admin KPPN vs Operator Satker
+									Perbandingan kewenangan antara peran Admin KPPN vs Operator
+									Satker
 								</p>
 							</div>
 							<button
@@ -475,8 +493,12 @@ export function SignInPanel({
 								<thead>
 									<tr className="border-b border-border/80 bg-surface-muted/60 font-semibold text-muted-foreground">
 										<th className="px-3.5 py-3">Modul &amp; Fitur</th>
-										<th className="px-3.5 py-3 text-primary">Admin KPPN (Pembina)</th>
-										<th className="px-3.5 py-3 text-foreground">Operator Satker</th>
+										<th className="px-3.5 py-3 text-primary">
+											Admin KPPN (Pembina)
+										</th>
+										<th className="px-3.5 py-3 text-foreground">
+											Operator Satker
+										</th>
 									</tr>
 								</thead>
 								<tbody className="divide-y divide-border/60">
@@ -502,7 +524,8 @@ export function SignInPanel({
 
 						<div className="flex items-center justify-between border-t border-border pt-3 text-xs">
 							<span className="text-muted-foreground">
-								Setiap peran memiliki isolasi data dan batasan kewenangan yang terjamin.
+								Setiap peran memiliki isolasi data dan batasan kewenangan yang
+								terjamin.
 							</span>
 							<button
 								type="button"

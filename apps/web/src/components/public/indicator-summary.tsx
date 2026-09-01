@@ -80,7 +80,10 @@ const INDICATORS = [
 	},
 ];
 
-export function IndicatorSummary({ className, ...props }: IndicatorSummaryProps) {
+export function IndicatorSummary({
+	className,
+	...props
+}: IndicatorSummaryProps) {
 	return (
 		<div
 			{...props}

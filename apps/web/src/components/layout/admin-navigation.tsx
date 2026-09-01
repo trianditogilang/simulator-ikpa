@@ -28,7 +28,11 @@ const dashboardItem: NavigationItem = {
 };
 
 const satkerItems: readonly NavigationItem[] = [
-	{ label: "Daftar Satker", href: "/admin-kppn/organizations", icon: Building2 },
+	{
+		label: "Daftar Satker",
+		href: "/admin-kppn/organizations",
+		icon: Building2,
+	},
 	{
 		label: "Risiko & Reminder",
 		href: "/admin-kppn/monitoring/reminders",
@@ -68,7 +72,11 @@ const secondaryItems: readonly NavigationItem[] = [
 const mobileItems: readonly NavigationItem[] = [
 	dashboardItem,
 	{ label: "Satker", href: "/admin-kppn/organizations", icon: Building2 },
-	{ label: "Risiko", href: "/admin-kppn/monitoring/reminders", icon: TriangleAlert },
+	{
+		label: "Risiko",
+		href: "/admin-kppn/monitoring/reminders",
+		icon: TriangleAlert,
+	},
 	{ label: "Policy", href: "/admin-kppn/policy/rule-sets", icon: LockKeyhole },
 ];
 

@@ -1,9 +1,4 @@
-import {
-	AlertTriangle,
-	Lock,
-	Scale,
-	X,
-} from "lucide-react";
+import { AlertTriangle, Lock, Scale, X } from "lucide-react";
 import type { RuleSetItem } from "@/mocks/rule-sets";
 
 interface RuleSetPublishDialogProps {
@@ -54,19 +49,28 @@ export function RuleSetPublishDialog({
 						</h4>
 						<ul className="space-y-1.5 text-muted-foreground list-disc pl-4">
 							<li>
-								Rule Set ini akan menjadi <strong className="text-foreground">acuan resmi</strong> perhitungan IKPA seluruh satker untuk periode efektif.
+								Rule Set ini akan menjadi{" "}
+								<strong className="text-foreground">acuan resmi</strong>{" "}
+								perhitungan IKPA seluruh satker untuk periode efektif.
 							</li>
 							<li>
-								Seluruh jadwal reminder yang belum terkirim (<strong className="text-foreground">120 agenda</strong>) akan otomatis dievaluasi ulang berdasarkan parameter baru.
+								Seluruh jadwal reminder yang belum terkirim (
+								<strong className="text-foreground">120 agenda</strong>) akan
+								otomatis dievaluasi ulang berdasarkan parameter baru.
 							</li>
 							<li>
-								<strong className="text-foreground">Snapshot historis tidak akan berubah</strong> guna menjamin integritas audit data masa lalu.
+								<strong className="text-foreground">
+									Snapshot historis tidak akan berubah
+								</strong>{" "}
+								guna menjamin integritas audit data masa lalu.
 							</li>
 						</ul>
 					</div>
 
 					<div className="border-t border-border/60 pt-3">
-						<span className="font-semibold text-foreground">Ringkasan Perubahan:</span>
+						<span className="font-semibold text-foreground">
+							Ringkasan Perubahan:
+						</span>
 						<p className="mt-1 text-foreground/90">{ruleSet.changeSummary}</p>
 					</div>
 
@@ -74,7 +78,9 @@ export function RuleSetPublishDialog({
 						<div className="flex items-start gap-2 rounded-md bg-warning/10 p-2.5 text-xs text-warning">
 							<AlertTriangle className="size-4 shrink-0 mt-0.5" />
 							<div>
-								<span className="font-semibold">Catatan Verifikasi Regulasi:</span>
+								<span className="font-semibold">
+									Catatan Verifikasi Regulasi:
+								</span>
 								<p className="text-foreground">
 									{ruleSet.validationStatus.warnings[0] ||
 										"Pastikan dasar hukum addendum telah terbit secara resmi."}

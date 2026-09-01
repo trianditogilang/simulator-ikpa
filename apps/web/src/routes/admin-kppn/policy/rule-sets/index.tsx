@@ -29,8 +29,10 @@ function AdminRuleSetsPage() {
 		return matchYear && matchStatus;
 	});
 
-	const publishedVersion = ruleSets.find((r) => r.status === "published") || ruleSets[0];
-	const draftVersion = ruleSets.find((r) => r.status === "draft") || ruleSets[1];
+	const publishedVersion =
+		ruleSets.find((r) => r.status === "published") || ruleSets[0];
+	const draftVersion =
+		ruleSets.find((r) => r.status === "draft") || ruleSets[1];
 
 	return (
 		<AdminShell currentPath="/admin-kppn/policy/rule-sets">
@@ -42,7 +44,8 @@ function AdminRuleSetsPage() {
 							Rule Set IKPA Berversi
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Kelola parameter, bobot indikator, dan formula penilaian IKPA tanpa perlu deploy ulang aplikasi
+							Kelola parameter, bobot indikator, dan formula penilaian IKPA
+							tanpa perlu deploy ulang aplikasi
 						</p>
 					</div>
 
@@ -80,11 +83,12 @@ function AdminRuleSetsPage() {
 								</span>
 							</div>
 							<h2 className="text-base font-semibold text-foreground">
-								Versi {publishedVersion.version} — {publishedVersion.sourceRegulation}
+								Versi {publishedVersion.version} —{" "}
+								{publishedVersion.sourceRegulation}
 							</h2>
 							<p className="text-xs text-muted-foreground">
-								Berlaku efektif sejak: {publishedVersion.effectiveFrom} • Disahkan oleh:{" "}
-								{publishedVersion.authorName}
+								Berlaku efektif sejak: {publishedVersion.effectiveFrom} •
+								Disahkan oleh: {publishedVersion.authorName}
 							</p>
 						</div>
 
@@ -103,6 +107,7 @@ function AdminRuleSetsPage() {
 					<div className="flex flex-wrap items-center gap-2">
 						<span className="font-semibold text-muted-foreground">Filter:</span>
 						<select
+							aria-label="Filter tahun rule set"
 							value={yearFilter}
 							onChange={(e) => setYearFilter(e.target.value)}
 							className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs text-foreground focus:border-primary focus:outline-none"
@@ -113,6 +118,7 @@ function AdminRuleSetsPage() {
 						</select>
 
 						<select
+							aria-label="Filter status rule set"
 							value={statusFilter}
 							onChange={(e) => setStatusFilter(e.target.value)}
 							className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs text-foreground focus:border-primary focus:outline-none"
@@ -210,7 +216,9 @@ function AdminRuleSetsPage() {
 												<button
 													type="button"
 													onClick={() => {
-														alert(`Membuat kloning baru dari Rule Set ${rs.version}...`);
+														alert(
+															`Membuat kloning baru dari Rule Set ${rs.version}...`,
+														);
 													}}
 													className="rounded-md p-1 text-muted-foreground hover:bg-surface-muted hover:text-foreground"
 													title="Duplikasi / Clone Rule Set"
@@ -236,8 +244,8 @@ function AdminRuleSetsPage() {
 										Komparasi Versi Rule Set
 									</h3>
 									<p className="text-xs text-muted-foreground">
-										Membandingkan Rule Set {publishedVersion.version} (Published) vs{" "}
-										{draftVersion.version} (Draft)
+										Membandingkan Rule Set {publishedVersion.version}{" "}
+										(Published) vs {draftVersion.version} (Draft)
 									</p>
 								</div>
 								<button
@@ -252,36 +260,54 @@ function AdminRuleSetsPage() {
 							<div className="space-y-3 rounded-lg border border-border/80 bg-surface p-4 text-xs">
 								<div className="grid grid-cols-3 gap-2 border-b border-border/80 pb-2 font-semibold text-muted-foreground">
 									<span>Parameter</span>
-									<span className="text-primary">{publishedVersion.version} (Aktif)</span>
-									<span className="text-warning">{draftVersion.version} (Draft)</span>
+									<span className="text-primary">
+										{publishedVersion.version} (Aktif)
+									</span>
+									<span className="text-warning">
+										{draftVersion.version} (Draft)
+									</span>
 								</div>
 
 								<div className="grid grid-cols-3 gap-2 py-1">
-									<span className="font-semibold text-foreground">Tanggal Efektif</span>
+									<span className="font-semibold text-foreground">
+										Tanggal Efektif
+									</span>
 									<span>{publishedVersion.effectiveFrom}</span>
-									<span className="font-semibold text-warning">{draftVersion.effectiveFrom}</span>
+									<span className="font-semibold text-warning">
+										{draftVersion.effectiveFrom}
+									</span>
 								</div>
 
 								<div className="grid grid-cols-3 gap-2 py-1 border-t border-border/40">
-									<span className="font-semibold text-foreground">Toleransi Deviasi RPD</span>
+									<span className="font-semibold text-foreground">
+										Toleransi Deviasi RPD
+									</span>
 									<span>5,0% (Normal)</span>
-									<span className="font-semibold text-warning">3,0% (Diperketat)</span>
+									<span className="font-semibold text-warning">
+										3,0% (Diperketat)
+									</span>
 								</div>
 
 								<div className="grid grid-cols-3 gap-2 py-1 border-t border-border/40">
-									<span className="font-semibold text-foreground">Batas SPM-LS Tagihan</span>
+									<span className="font-semibold text-foreground">
+										Batas SPM-LS Tagihan
+									</span>
 									<span>H+17 Hari Kerja</span>
 									<span>H+17 Hari Kerja (Sama)</span>
 								</div>
 
 								<div className="grid grid-cols-3 gap-2 py-1 border-t border-border/40">
-									<span className="font-semibold text-foreground">Target Minimum KKP</span>
+									<span className="font-semibold text-foreground">
+										Target Minimum KKP
+									</span>
 									<span>10% dari proporsi UP</span>
 									<span>10% dari proporsi UP (Sama)</span>
 								</div>
 
 								<div className="grid grid-cols-3 gap-2 py-1 border-t border-border/40">
-									<span className="font-semibold text-foreground">Total Bobot 8 Indikator</span>
+									<span className="font-semibold text-foreground">
+										Total Bobot 8 Indikator
+									</span>
 									<span>100% (Valid)</span>
 									<span>100% (Valid)</span>
 								</div>

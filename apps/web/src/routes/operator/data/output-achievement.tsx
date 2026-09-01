@@ -1,9 +1,15 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
-import { DomainDataTable, type ColumnDef } from "@/components/data/domain-data-table";
+import {
+	DomainDataTable,
+	type ColumnDef,
+} from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
-import { mockOutputAchievements, type OutputAchievementItem } from "@/mocks/output-achievement";
+import {
+	mockOutputAchievements,
+	type OutputAchievementItem,
+} from "@/mocks/output-achievement";
 import { formatPercent } from "@/lib/format";
 
 export const Route = createFileRoute("/operator/data/output-achievement")({
@@ -15,9 +21,10 @@ function OutputAchievementPage() {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [search, setSearch] = useState("");
 
-	const filteredData = data.filter((item) =>
-		item.roCode.toLowerCase().includes(search.toLowerCase()) ||
-		item.roName.toLowerCase().includes(search.toLowerCase())
+	const filteredData = data.filter(
+		(item) =>
+			item.roCode.toLowerCase().includes(search.toLowerCase()) ||
+			item.roName.toLowerCase().includes(search.toLowerCase()),
 	);
 
 	const columns: ColumnDef<OutputAchievementItem>[] = [
@@ -57,7 +64,9 @@ function OutputAchievementPage() {
 							: "bg-warning/10 text-warning"
 					}`}
 				>
-					{item.isConfirmed ? "Terkonfirmasi" : "Belum Konfirmasi (Eligible Belum)"}
+					{item.isConfirmed
+						? "Terkonfirmasi"
+						: "Belum Konfirmasi (Eligible Belum)"}
 				</span>
 			),
 		},
@@ -73,8 +82,8 @@ function OutputAchievementPage() {
 							Capaian Output Satker (PCRO / RVRO)
 						</h1>
 						<p className="text-xs text-muted-foreground">
-							Kelola pelaporan capaian output bulanan dan pastikan konfirmasi data
-							sebelum batas 5 hari kerja awal bulan.
+							Kelola pelaporan capaian output bulanan dan pastikan konfirmasi
+							data sebelum batas 5 hari kerja awal bulan.
 						</p>
 					</div>
 
@@ -109,7 +118,10 @@ function OutputAchievementPage() {
 				>
 					<div className="space-y-3">
 						<div>
-							<label htmlFor="roCodeInput" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="roCodeInput"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Kode Rincian Output (RO)
 							</label>
 							<input
@@ -120,7 +132,10 @@ function OutputAchievementPage() {
 							/>
 						</div>
 						<div>
-							<label htmlFor="roNameInput" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="roNameInput"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Nama Rincian Output
 							</label>
 							<input
@@ -132,7 +147,10 @@ function OutputAchievementPage() {
 						</div>
 						<div className="grid grid-cols-2 gap-2">
 							<div>
-								<label htmlFor="pcroInput" className="block text-[11px] font-semibold text-foreground">
+								<label
+									htmlFor="pcroInput"
+									className="block text-[11px] font-semibold text-foreground"
+								>
 									PCRO (%)
 								</label>
 								<input
@@ -143,7 +161,10 @@ function OutputAchievementPage() {
 								/>
 							</div>
 							<div>
-								<label htmlFor="rvroInput" className="block text-[11px] font-semibold text-foreground">
+								<label
+									htmlFor="rvroInput"
+									className="block text-[11px] font-semibold text-foreground"
+								>
 									Realisasi Volume (RVRO)
 								</label>
 								<input

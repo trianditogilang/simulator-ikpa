@@ -79,7 +79,9 @@ export function IndicatorCard({
 
 					{!isDeduction && (
 						<div className="text-right">
-							<span className="text-[11px] text-muted-foreground">Nilai Asli</span>
+							<span className="text-[11px] text-muted-foreground">
+								Nilai Asli
+							</span>
 							<p className="text-xs font-semibold text-foreground">
 								{formatNumber(indicator.rawScore)}
 							</p>

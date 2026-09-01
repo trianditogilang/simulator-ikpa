@@ -24,7 +24,12 @@ export interface AdminOrgDetailData {
 	address: string;
 	email: string;
 	phone: string;
-	operators: { name: string; email: string; role: string; lastActive: string }[];
+	operators: {
+		name: string;
+		email: string;
+		role: string;
+		lastActive: string;
+	}[];
 	fiscalYear: number;
 	periodMonth: number;
 	ruleSetVersion: string;
@@ -126,7 +131,8 @@ export const mockAdminOrgDetailPoltek: AdminOrgDetailData = {
 			gap: 0.0,
 			status: "complete",
 			statusLabel: "Sempurna",
-			summary: "1 revisi telah disahkan pada Triwulan III (Batas: 1x/triwulan).",
+			summary:
+				"1 revisi telah disahkan pada Triwulan III (Batas: 1x/triwulan).",
 			warnings: [],
 		},
 		{
@@ -141,7 +147,9 @@ export const mockAdminOrgDetailPoltek: AdminOrgDetailData = {
 			status: "danger",
 			statusLabel: "Kritis",
 			summary: "Rata-rata deviasi bulanan 8,4% melebihi batas toleransi 5,0%.",
-			warnings: ["Penyerapan Belanja Barang (52) meleset Rp 420.000.000 dari RPD."],
+			warnings: [
+				"Penyerapan Belanja Barang (52) meleset Rp 420.000.000 dari RPD.",
+			],
 		},
 		{
 			id: "ind-3",
@@ -154,7 +162,8 @@ export const mockAdminOrgDetailPoltek: AdminOrgDetailData = {
 			gap: -2.5,
 			status: "warning",
 			statusLabel: "Waspada",
-			summary: "Realisasi kumulatif belanja 71,2% terhadap target triwulan III 75,0%.",
+			summary:
+				"Realisasi kumulatif belanja 71,2% terhadap target triwulan III 75,0%.",
 			warnings: ["Belanja Modal akun 53 masih di angka 54%."],
 		},
 		{
@@ -168,7 +177,8 @@ export const mockAdminOrgDetailPoltek: AdminOrgDetailData = {
 			gap: 0.0,
 			status: "complete",
 			statusLabel: "Baik",
-			summary: "12 dari 12 kontrak telah didaftarkan tepat waktu (≤ 3 hari kerja).",
+			summary:
+				"12 dari 12 kontrak telah didaftarkan tepat waktu (≤ 3 hari kerja).",
 			warnings: [],
 		},
 		{
@@ -182,7 +192,8 @@ export const mockAdminOrgDetailPoltek: AdminOrgDetailData = {
 			gap: -16.8,
 			status: "danger",
 			statusLabel: "Kritis",
-			summary: "3 dari 14 SPM-LS terlambat diterbitkan melewati batas H+17 hari kerja BAST.",
+			summary:
+				"3 dari 14 SPM-LS terlambat diterbitkan melewati batas H+17 hari kerja BAST.",
 			warnings: ["BAST K-001 belum diajukan SPM pada H-2 batas waktu."],
 		},
 		{
@@ -196,7 +207,8 @@ export const mockAdminOrgDetailPoltek: AdminOrgDetailData = {
 			gap: -5.0,
 			status: "warning",
 			statusLabel: "Waspada",
-			summary: "GUP revolving rata-rata 27 hari, KKP proporsi 8,2% dari target 10%.",
+			summary:
+				"GUP revolving rata-rata 27 hari, KKP proporsi 8,2% dari target 10%.",
 			warnings: [],
 		},
 		{
@@ -210,7 +222,8 @@ export const mockAdminOrgDetailPoltek: AdminOrgDetailData = {
 			gap: -11.4,
 			status: "danger",
 			statusLabel: "Kritis",
-			summary: "PCRO 78,5% dan keterisian data terkonfirmasi baru 70% dari target 100%.",
+			summary:
+				"PCRO 78,5% dan keterisian data terkonfirmasi baru 70% dari target 100%.",
 			warnings: ["2 Rincian Output belum diverifikasi oleh PPK."],
 		},
 		{
@@ -362,7 +375,9 @@ export const mockAdminOrgDetailPoltek: AdminOrgDetailData = {
 	],
 };
 
-export function getMockAdminOrganizationDetail(orgId: string): AdminOrgDetailData {
+export function getMockAdminOrganizationDetail(
+	orgId: string,
+): AdminOrgDetailData {
 	// For demo/prototype purposes, return Poltek data or customized name
 	if (orgId === "org-02") {
 		return {
@@ -373,7 +388,8 @@ export function getMockAdminOrganizationDetail(orgId: string): AdminOrgDetailDat
 			isBlu: false,
 			totalScore: 89.1,
 			gapScore: -5.9,
-			riskSummary: "Deviasi Hal III DIPA Triwulan III sebesar 8,4% melebihi ambang 5%.",
+			riskSummary:
+				"Deviasi Hal III DIPA Triwulan III sebesar 8,4% melebihi ambang 5%.",
 		};
 	}
 

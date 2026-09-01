@@ -51,7 +51,8 @@ function AdminAccessManagementPage() {
 				item.scopeCode.includes(searchQuery);
 
 			const matchRole = roleFilter === "all" || item.accessType === roleFilter;
-			const matchStatus = statusFilter === "all" || item.status === statusFilter;
+			const matchStatus =
+				statusFilter === "all" || item.status === statusFilter;
 
 			return matchQuery && matchRole && matchStatus;
 		});
@@ -63,7 +64,9 @@ function AdminAccessManagementPage() {
 			setToastMessage(`Akses pengguna "${user.name}" berhasil diperbarui.`);
 		} else {
 			setAccessList((prev) => [user, ...prev]);
-			setToastMessage(`Akses pengguna baru "${user.name}" berhasil ditambahkan.`);
+			setToastMessage(
+				`Akses pengguna baru "${user.name}" berhasil ditambahkan.`,
+			);
 		}
 
 		setIsModalOpen(false);
@@ -72,7 +75,11 @@ function AdminAccessManagementPage() {
 	};
 
 	const handleToggleStatus = (user: UserAccessItem) => {
-		if (user.accessType === "admin_kppn" && user.status === "active" && activeAdminCount <= 1) {
+		if (
+			user.accessType === "admin_kppn" &&
+			user.status === "active" &&
+			activeAdminCount <= 1
+		) {
 			setLastAdminAlert(true);
 			return;
 		}
@@ -88,7 +95,11 @@ function AdminAccessManagementPage() {
 	};
 
 	const handleDeleteAccess = (user: UserAccessItem) => {
-		if (user.accessType === "admin_kppn" && user.status === "active" && activeAdminCount <= 1) {
+		if (
+			user.accessType === "admin_kppn" &&
+			user.status === "active" &&
+			activeAdminCount <= 1
+		) {
 			setLastAdminAlert(true);
 			return;
 		}
@@ -110,7 +121,8 @@ function AdminAccessManagementPage() {
 							Manajemen Akses Pengguna
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Kelola mapping izin akses Operator Satker dan Admin KPPN lingkup KPPN Malang (032)
+							Kelola mapping izin akses Operator Satker dan Admin KPPN lingkup
+							KPPN Malang (032)
 						</p>
 					</div>
 
@@ -172,8 +184,12 @@ function AdminAccessManagementPage() {
 					<div className="flex items-center gap-2 text-foreground">
 						<ShieldCheck className="size-4 text-primary shrink-0" />
 						<span>
-							Semua Admin KPPN memiliki keleluasaan administratif yang sama. Proteksi sistem menjamin{" "}
-							<strong className="text-primary">minimal 1 Admin KPPN aktif</strong> selalu terdaftar.
+							Semua Admin KPPN memiliki keleluasaan administratif yang sama.
+							Proteksi sistem menjamin{" "}
+							<strong className="text-primary">
+								minimal 1 Admin KPPN aktif
+							</strong>{" "}
+							selalu terdaftar.
 						</span>
 					</div>
 					<span className="text-muted-foreground text-[11px] font-medium">
@@ -187,6 +203,7 @@ function AdminAccessManagementPage() {
 						<div className="relative flex-1">
 							<Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							<input
+								aria-label="Cari pengguna dan hak akses"
 								type="text"
 								placeholder="Cari nama, email, kode satker, atau nama instansi..."
 								value={searchQuery}
@@ -197,6 +214,7 @@ function AdminAccessManagementPage() {
 
 						<div className="flex flex-wrap items-center gap-2">
 							<select
+								aria-label="Filter jenis hak akses"
 								value={roleFilter}
 								onChange={(e) => setRoleFilter(e.target.value)}
 								className="h-9 rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
@@ -207,6 +225,7 @@ function AdminAccessManagementPage() {
 							</select>
 
 							<select
+								aria-label="Filter status akun"
 								value={statusFilter}
 								onChange={(e) => setStatusFilter(e.target.value)}
 								className="h-9 rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
@@ -220,9 +239,13 @@ function AdminAccessManagementPage() {
 
 					<div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs text-muted-foreground">
 						<span>
-							Menampilkan <strong className="text-foreground">{filteredList.length}</strong> pengguna
+							Menampilkan{" "}
+							<strong className="text-foreground">{filteredList.length}</strong>{" "}
+							pengguna
 						</span>
-						{(searchQuery || roleFilter !== "all" || statusFilter !== "all") && (
+						{(searchQuery ||
+							roleFilter !== "all" ||
+							statusFilter !== "all") && (
 							<button
 								type="button"
 								onClick={() => {
@@ -327,7 +350,9 @@ function AdminAccessManagementPage() {
 													onClick={() => handleToggleStatus(user)}
 													className="rounded-md border border-border bg-background px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:bg-surface-muted hover:text-foreground"
 												>
-													{user.status === "active" ? "Nonaktifkan" : "Aktifkan"}
+													{user.status === "active"
+														? "Nonaktifkan"
+														: "Aktifkan"}
 												</button>
 
 												<button
@@ -354,7 +379,9 @@ function AdminAccessManagementPage() {
 							<div className="flex items-start justify-between">
 								<div>
 									<h3 className="text-base font-semibold text-foreground">
-										{editingItem.name ? "Edit Akses Pengguna" : "Tambah Akses Baru"}
+										{editingItem.name
+											? "Edit Akses Pengguna"
+											: "Tambah Akses Baru"}
 									</h3>
 									<p className="text-xs text-muted-foreground">
 										Tetapkan izin operasional atau administratif
@@ -378,6 +405,7 @@ function AdminAccessManagementPage() {
 										Nama Lengkap:
 									</span>
 									<input
+										aria-label="Nama lengkap pengguna"
 										type="text"
 										required
 										value={editingItem.name}
@@ -394,6 +422,7 @@ function AdminAccessManagementPage() {
 										Email Akun (Verified):
 									</span>
 									<input
+										aria-label="Email akun terverifikasi"
 										type="email"
 										required
 										value={editingItem.email}
@@ -411,14 +440,19 @@ function AdminAccessManagementPage() {
 											Jenis Hak Akses:
 										</span>
 										<select
+											aria-label="Jenis hak akses pengguna"
 											value={editingItem.accessType}
 											onChange={(e) => {
-												const type = e.target.value as "operator_satker" | "admin_kppn";
+												const type = e.target.value as
+													| "operator_satker"
+													| "admin_kppn";
 												setEditingItem({
 													...editingItem,
 													accessType: type,
 													accessTypeLabel:
-														type === "admin_kppn" ? "Admin KPPN" : "Operator Satker",
+														type === "admin_kppn"
+															? "Admin KPPN"
+															: "Operator Satker",
 													scopeCode: type === "admin_kppn" ? "032" : "415234",
 													scopeName:
 														type === "admin_kppn"
@@ -438,6 +472,7 @@ function AdminAccessManagementPage() {
 											Status Akun:
 										</span>
 										<select
+											aria-label="Status akun pengguna"
 											value={editingItem.status}
 											onChange={(e) =>
 												setEditingItem({
@@ -463,6 +498,7 @@ function AdminAccessManagementPage() {
 
 									{editingItem.accessType === "admin_kppn" ? (
 										<select
+											aria-label="Scope KPPN pembina"
 											value={editingItem.scopeCode}
 											onChange={(e) =>
 												setEditingItem({
@@ -477,6 +513,7 @@ function AdminAccessManagementPage() {
 										</select>
 									) : (
 										<select
+											aria-label="Satker naungan"
 											value={editingItem.scopeCode}
 											onChange={(e) => {
 												const code = e.target.value;
@@ -499,11 +536,21 @@ function AdminAccessManagementPage() {
 											}}
 											className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none"
 										>
-											<option value="415234">415234 — Politeknik Negeri Malang</option>
-											<option value="527812">527812 — BBTN Bromo Tengger Semeru</option>
-											<option value="632190">632190 — Pengadilan Negeri Malang</option>
-											<option value="411200">411200 — Kantor Imigrasi Malang</option>
-											<option value="654321">654321 — Universitas Brawijaya</option>
+											<option value="415234">
+												415234 — Politeknik Negeri Malang
+											</option>
+											<option value="527812">
+												527812 — BBTN Bromo Tengger Semeru
+											</option>
+											<option value="632190">
+												632190 — Pengadilan Negeri Malang
+											</option>
+											<option value="411200">
+												411200 — Kantor Imigrasi Malang
+											</option>
+											<option value="654321">
+												654321 — Universitas Brawijaya
+											</option>
 										</select>
 									)}
 								</div>
@@ -553,9 +600,10 @@ function AdminAccessManagementPage() {
 							</div>
 
 							<p className="text-xs text-muted-foreground">
-								Tidak dapat menonaktifkan atau menghapus akun Admin KPPN aktif terakhir. Sistem
-								mewajibkan minimal ada <strong className="text-foreground">1 Admin KPPN aktif</strong> untuk
-								menjaga kesinambungan tata kelola dan audit kebijakan.
+								Tidak dapat menonaktifkan atau menghapus akun Admin KPPN aktif
+								terakhir. Sistem mewajibkan minimal ada{" "}
+								<strong className="text-foreground">1 Admin KPPN aktif</strong>{" "}
+								untuk menjaga kesinambungan tata kelola dan audit kebijakan.
 							</p>
 
 							<div className="flex items-center justify-end border-t border-border pt-3">
@@ -584,7 +632,8 @@ function AdminAccessManagementPage() {
 										</h3>
 									</div>
 									<p className="text-xs text-muted-foreground">
-										Perbandingan hak akses administratif Admin KPPN vs hak akses operasional Operator Satker
+										Perbandingan hak akses administratif Admin KPPN vs hak akses
+										operasional Operator Satker
 									</p>
 								</div>
 								<button
@@ -601,8 +650,12 @@ function AdminAccessManagementPage() {
 									<thead>
 										<tr className="border-b border-border/80 bg-surface-muted/60 font-semibold text-muted-foreground">
 											<th className="px-3.5 py-3">Modul &amp; Fitur</th>
-											<th className="px-3.5 py-3 text-primary">Admin KPPN (Pembina)</th>
-											<th className="px-3.5 py-3 text-foreground">Operator Satker</th>
+											<th className="px-3.5 py-3 text-primary">
+												Admin KPPN (Pembina)
+											</th>
+											<th className="px-3.5 py-3 text-foreground">
+												Operator Satker
+											</th>
 										</tr>
 									</thead>
 									<tbody className="divide-y divide-border/60">
@@ -628,7 +681,8 @@ function AdminAccessManagementPage() {
 
 							<div className="flex items-center justify-between border-t border-border pt-3 text-xs">
 								<span className="text-muted-foreground">
-									Setiap peran memiliki isolasi data dan batasan kewenangan yang terjamin.
+									Setiap peran memiliki isolasi data dan batasan kewenangan yang
+									terjamin.
 								</span>
 								<button
 									type="button"

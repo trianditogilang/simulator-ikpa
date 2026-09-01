@@ -2,12 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { getMockAdminReports } from "@/mocks/admin-reports";
-import {
-	FileSpreadsheet,
-	FileText,
-	Filter,
-	Info,
-} from "lucide-react";
+import { FileSpreadsheet, FileText, Filter, Info } from "lucide-react";
 
 export const Route = createFileRoute("/admin-kppn/reports")({
 	component: AdminReportsPage,
@@ -16,7 +11,8 @@ export const Route = createFileRoute("/admin-kppn/reports")({
 function AdminReportsPage() {
 	const { reportTypes, previewData } = getMockAdminReports();
 
-	const [selectedReportId, setSelectedReportId] = useState<string>("rekap-nilai");
+	const [selectedReportId, setSelectedReportId] =
+		useState<string>("rekap-nilai");
 	const [fiscalYear, setFiscalYear] = useState("2026");
 	const [period, setPeriod] = useState("08");
 	const [generatingFormat, setGeneratingFormat] = useState<string | null>(null);
@@ -46,7 +42,8 @@ function AdminReportsPage() {
 							Laporan Agregat IKPA
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Pusat pembuatan dan pengunduhan laporan rekapitulasi kinerja satker KPPN Malang
+							Pusat pembuatan dan pengunduhan laporan rekapitulasi kinerja
+							satker KPPN Malang
 						</p>
 					</div>
 					<div className="flex items-center gap-2">
@@ -57,7 +54,9 @@ function AdminReportsPage() {
 							className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-surface-muted shadow-xs disabled:opacity-50"
 						>
 							<FileSpreadsheet className="size-3.5 text-success" />
-							<span>{generatingFormat === "XLSX" ? "Membuat..." : "Ekspor XLSX"}</span>
+							<span>
+								{generatingFormat === "XLSX" ? "Membuat..." : "Ekspor XLSX"}
+							</span>
 						</button>
 						<button
 							type="button"
@@ -66,7 +65,9 @@ function AdminReportsPage() {
 							className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 shadow-xs disabled:opacity-50"
 						>
 							<FileText className="size-3.5" />
-							<span>{generatingFormat === "PDF" ? "Membuat..." : "Ekspor PDF"}</span>
+							<span>
+								{generatingFormat === "PDF" ? "Membuat..." : "Ekspor PDF"}
+							</span>
 						</button>
 					</div>
 				</div>
@@ -115,7 +116,9 @@ function AdminReportsPage() {
 								<h3 className="text-sm font-semibold text-foreground">
 									Parameter &amp; Cakupan Laporan
 								</h3>
-								<span className="text-xs text-muted-foreground">Scope: KPPN Malang (032)</span>
+								<span className="text-xs text-muted-foreground">
+									Scope: KPPN Malang (032)
+								</span>
 							</div>
 
 							<div className="grid grid-cols-1 gap-3 sm:grid-cols-3 text-xs">
@@ -200,7 +203,9 @@ function AdminReportsPage() {
 												<td className="px-3 py-2.5 font-medium text-foreground">
 													{row.col2}
 												</td>
-												<td className="px-3 py-2.5 text-foreground">{row.col3}</td>
+												<td className="px-3 py-2.5 text-foreground">
+													{row.col3}
+												</td>
 												<td className="px-3 py-2.5 text-muted-foreground">
 													{row.col4}
 												</td>
@@ -230,9 +235,10 @@ function AdminReportsPage() {
 							<div className="flex items-start gap-2 rounded-lg bg-surface-muted/50 p-3 text-xs text-muted-foreground">
 								<Info className="size-4 shrink-0 text-primary mt-0.5" />
 								<p>
-									*Laporan ini dihasilkan dari Simulator Penilaian IKPA KPPN Malang. Seluruh data
-									berpedoman pada formula regulasi PER-5/PB/2024. Hasil simulasi adalah alat bantu
-									monitoring internal dan dapat divalidasi dengan data resmi OM-SPAN.
+									*Laporan ini dihasilkan dari Simulator Penilaian IKPA KPPN
+									Malang. Seluruh data berpedoman pada formula regulasi
+									PER-5/PB/2024. Hasil simulasi adalah alat bantu monitoring
+									internal dan dapat divalidasi dengan data resmi OM-SPAN.
 								</p>
 							</div>
 						</div>

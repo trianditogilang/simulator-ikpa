@@ -1,7 +1,10 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
-import { SimulationModeTabs, type SimulationMode } from "@/components/operator/simulation-mode-tabs";
+import {
+	SimulationModeTabs,
+	type SimulationMode,
+} from "@/components/operator/simulation-mode-tabs";
 import { SimulationContextForm } from "@/components/operator/simulation-context-form";
 import { SimulationResult } from "@/components/operator/simulation-result";
 import { FormulaTrace } from "@/components/operator/formula-trace";
@@ -18,13 +21,18 @@ function OperatorSimulationPage() {
 	const [targetScore, setTargetScore] = useState(95.0);
 	const [periodMonth, setPeriodMonth] = useState(8);
 	const [isBlu, setIsBlu] = useState(false);
-	const [selectedIndicator, setSelectedIndicator] = useState<string | null>("tagihan");
+	const [selectedIndicator, setSelectedIndicator] = useState<string | null>(
+		"tagihan",
+	);
 
 	const dashboardData = getMockOperatorDashboard("normal");
 
 	// Nilai kalkulasi dinamis menurut mode
 	const scoreBonus = mode === "scenario" ? 1.55 : mode === "forecast" ? 0.8 : 0;
-	const currentTotalScore = Math.min(100, dashboardData.totalScore + scoreBonus);
+	const currentTotalScore = Math.min(
+		100,
+		dashboardData.totalScore + scoreBonus,
+	);
 	const currentGap = currentTotalScore - targetScore;
 
 	return (
@@ -37,8 +45,8 @@ function OperatorSimulationPage() {
 							Simulasi & Analisis Nilai IKPA
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Lakukan perhitungan skenario, periksa histori formula, dan simulasikan
-							target nilai satker.
+							Lakukan perhitungan skenario, periksa histori formula, dan
+							simulasikan target nilai satker.
 						</p>
 					</div>
 					<div className="w-full sm:w-80">
@@ -72,8 +80,8 @@ function OperatorSimulationPage() {
 								Override Variabel per Indikator
 							</h3>
 							<p className="text-xs text-muted-foreground">
-								Pilih indikator untuk melihat rincian formula atau melakukan simulasi
-								angka.
+								Pilih indikator untuk melihat rincian formula atau melakukan
+								simulasi angka.
 							</p>
 
 							<div className="space-y-2 pt-2">
@@ -116,7 +124,10 @@ function OperatorSimulationPage() {
 								formulaFormula="(Jumlah SPM Tepat Waktu / Total SPM Terbit) × 100"
 								ruleSetVersion={dashboardData.ruleSetVersion}
 								inputValues={[
-									{ label: "SPM Tepat Waktu", value: mode === "scenario" ? 15 : 13 },
+									{
+										label: "SPM Tepat Waktu",
+										value: mode === "scenario" ? 15 : 13,
+									},
 									{ label: "Total SPM", value: 15 },
 									{ label: "Batas Kebijakan", value: "17 Hari Kerja" },
 								]}

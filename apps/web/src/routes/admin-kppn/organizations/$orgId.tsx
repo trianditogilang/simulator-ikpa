@@ -23,9 +23,9 @@ function AdminOrganizationDetailPage() {
 	const { orgId } = Route.useParams();
 	const org = getMockAdminOrganizationDetail(orgId);
 
-	const [activeTab, setActiveTab] = useState<"trend" | "snapshots" | "reminders" | "audit">(
-		"trend",
-	);
+	const [activeTab, setActiveTab] = useState<
+		"trend" | "snapshots" | "reminders" | "audit"
+	>("trend");
 
 	return (
 		<AdminShell currentPath="/admin-kppn/organizations">
@@ -63,7 +63,9 @@ function AdminOrganizationDetailPage() {
 						<button
 							type="button"
 							onClick={() => {
-								alert(`Mengekspor laporan evaluasi detail untuk ${org.name} (PDF)...`);
+								alert(
+									`Mengekspor laporan evaluasi detail untuk ${org.name} (PDF)...`,
+								);
 							}}
 							className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-surface-muted shadow-xs"
 						>
@@ -77,23 +79,32 @@ function AdminOrganizationDetailPage() {
 				<div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/80 bg-surface p-3.5 text-xs">
 					<div className="flex flex-wrap items-center gap-3 text-muted-foreground">
 						<span>
-							KPPN Pembina: <strong className="text-foreground">{org.kppnName} ({org.kppnCode})</strong>
+							KPPN Pembina:{" "}
+							<strong className="text-foreground">
+								{org.kppnName} ({org.kppnCode})
+							</strong>
 						</span>
 						<span>•</span>
 						<span>
-							Tahun Anggaran: <strong className="text-foreground">{org.fiscalYear}</strong>
+							Tahun Anggaran:{" "}
+							<strong className="text-foreground">{org.fiscalYear}</strong>
 						</span>
 						<span>•</span>
 						<span>
-							Periode: <strong className="text-foreground">Agustus (Bulan 8)</strong>
+							Periode:{" "}
+							<strong className="text-foreground">Agustus (Bulan 8)</strong>
 						</span>
 						<span>•</span>
 						<span>
-							Rule Set: <strong className="text-foreground">{org.ruleSetVersion}</strong>
+							Rule Set:{" "}
+							<strong className="text-foreground">{org.ruleSetVersion}</strong>
 						</span>
 					</div>
 					<div className="text-muted-foreground">
-						Data diperbarui: <span className="text-foreground font-medium">{org.lastUpdated}</span>
+						Data diperbarui:{" "}
+						<span className="text-foreground font-medium">
+							{org.lastUpdated}
+						</span>
 					</div>
 				</div>
 
@@ -135,7 +146,9 @@ function AdminOrganizationDetailPage() {
 							{org.gapScore.toFixed(2).replace(".", ",")}
 						</div>
 						<p className="mt-1 text-xs text-muted-foreground">
-							{org.gapScore < 0 ? "Perlu percepatan perbaikan" : "Di atas target"}
+							{org.gapScore < 0
+								? "Perlu percepatan perbaikan"
+								: "Di atas target"}
 						</p>
 					</div>
 
@@ -172,7 +185,9 @@ function AdminOrganizationDetailPage() {
 						<h2 className="text-sm font-semibold text-foreground sm:text-base">
 							Rincian 8 Indikator IKPA (PER-5/PB/2024)
 						</h2>
-						<span className="text-xs text-muted-foreground">Total Bobot: 100%</span>
+						<span className="text-xs text-muted-foreground">
+							Total Bobot: 100%
+						</span>
 					</div>
 
 					<div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
@@ -204,7 +219,8 @@ function AdminOrganizationDetailPage() {
 											{ind.rawScore.toFixed(2).replace(".", ",")}
 										</span>
 										<span className="text-xs text-muted-foreground">
-											Bobot: {ind.weight}% ({ind.weightedScore.toFixed(2).replace(".", ",")} poin)
+											Bobot: {ind.weight}% (
+											{ind.weightedScore.toFixed(2).replace(".", ",")} poin)
 										</span>
 									</div>
 
@@ -261,7 +277,8 @@ function AdminOrganizationDetailPage() {
 										</span>
 									</div>
 									<div className="mt-2 text-[11px] text-muted-foreground">
-										Jatuh tempo: <strong className="text-foreground">{rd.deadline}</strong>
+										Jatuh tempo:{" "}
+										<strong className="text-foreground">{rd.deadline}</strong>
 									</div>
 								</div>
 							))}
@@ -283,8 +300,12 @@ function AdminOrganizationDetailPage() {
 									className="flex items-center justify-between rounded-lg border border-border/60 bg-background p-2.5 text-xs"
 								>
 									<div>
-										<span className="font-semibold text-foreground">{comp.domain}</span>
-										<p className="text-[11px] text-muted-foreground">{comp.details}</p>
+										<span className="font-semibold text-foreground">
+											{comp.domain}
+										</span>
+										<p className="text-[11px] text-muted-foreground">
+											{comp.details}
+										</p>
 									</div>
 									<span
 										className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
@@ -305,7 +326,9 @@ function AdminOrganizationDetailPage() {
 				<div className="rounded-xl border border-border/80 bg-surface p-4 shadow-xs">
 					<div className="flex items-center gap-2 text-xs font-semibold text-foreground">
 						<Users className="size-4 text-primary" />
-						<span>Operator Satker Terdaftar ({org.operators.length} Pengguna)</span>
+						<span>
+							Operator Satker Terdaftar ({org.operators.length} Pengguna)
+						</span>
 					</div>
 					<div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
 						{org.operators.map((op) => (
@@ -386,11 +409,15 @@ function AdminOrganizationDetailPage() {
 						{activeTab === "trend" && (
 							<div className="space-y-4">
 								<p className="text-xs text-muted-foreground">
-									Histori nilai IKPA bulanan satker dibandingkan dengan target Kemenkeu 95,00
+									Histori nilai IKPA bulanan satker dibandingkan dengan target
+									Kemenkeu 95,00
 								</p>
 								<div className="grid grid-cols-8 gap-2 pt-2">
 									{org.trend.map((item) => (
-										<div key={item.month} className="flex flex-col items-center gap-1.5">
+										<div
+											key={item.month}
+											className="flex flex-col items-center gap-1.5"
+										>
 											<span className="text-xs font-semibold text-foreground">
 												{item.score.toFixed(1).replace(".", ",")}
 											</span>
@@ -400,11 +427,15 @@ function AdminOrganizationDetailPage() {
 														height: `${Math.max(15, Math.min(100, item.score))}%`,
 													}}
 													className={`w-full rounded-sm ${
-														item.score >= item.target ? "bg-success" : "bg-danger"
+														item.score >= item.target
+															? "bg-success"
+															: "bg-danger"
 													}`}
 												/>
 											</div>
-											<span className="text-xs text-muted-foreground">{item.month}</span>
+											<span className="text-xs text-muted-foreground">
+												{item.month}
+											</span>
 										</div>
 									))}
 								</div>
@@ -419,7 +450,9 @@ function AdminOrganizationDetailPage() {
 										className="flex items-center justify-between rounded-lg border border-border/60 bg-background p-3 text-xs"
 									>
 										<div>
-											<span className="font-semibold text-foreground">{snap.name}</span>
+											<span className="font-semibold text-foreground">
+												{snap.name}
+											</span>
 											<div className="flex items-center gap-2 text-muted-foreground">
 												<span>Tipe: {snap.type}</span>
 												<span>•</span>
@@ -446,7 +479,9 @@ function AdminOrganizationDetailPage() {
 										className="flex items-center justify-between rounded-lg border border-border/60 bg-background p-3 text-xs"
 									>
 										<div>
-											<span className="font-semibold text-foreground">{rem.event}</span>
+											<span className="font-semibold text-foreground">
+												{rem.event}
+											</span>
 											<p className="text-muted-foreground">
 												Penerima: {rem.recipient} • Jadwal: {rem.scheduledFor}
 											</p>
@@ -480,14 +515,18 @@ function AdminOrganizationDetailPage() {
 									>
 										<div>
 											<div className="flex items-center gap-2">
-												<span className="font-semibold text-foreground">{aud.actor}</span>
+												<span className="font-semibold text-foreground">
+													{aud.actor}
+												</span>
 												<span className="rounded bg-surface-muted px-1.5 py-0.2 text-[10px] font-semibold uppercase text-muted-foreground">
 													{aud.action}
 												</span>
 											</div>
 											<p className="mt-0.5 text-foreground/80">{aud.summary}</p>
 										</div>
-										<span className="text-muted-foreground">{aud.timestamp}</span>
+										<span className="text-muted-foreground">
+											{aud.timestamp}
+										</span>
 									</div>
 								))}
 							</div>

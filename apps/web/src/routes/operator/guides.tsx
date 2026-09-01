@@ -17,8 +17,8 @@ function OperatorGuidesPage() {
 							Panduan & Formulasi 8 Indikator IKPA
 						</h1>
 						<p className="text-xs text-muted-foreground">
-							Referensi lengkap dasar hukum PER-5/PB/2024, formula matematis, dan tips
-							pengawalan nilai indikator.
+							Referensi lengkap dasar hukum PER-5/PB/2024, formula matematis,
+							dan tips pengawalan nilai indikator.
 						</p>
 					</div>
 				</div>
@@ -45,14 +45,18 @@ function OperatorGuidesPage() {
 								<p className="text-xs text-muted-foreground">{guide.summary}</p>
 
 								<div className="rounded-xl border border-border/80 bg-surface p-3 text-xs">
-									<span className="font-semibold text-foreground">Formula Regulasi:</span>
+									<span className="font-semibold text-foreground">
+										Formula Regulasi:
+									</span>
 									<p className="mt-1 font-mono text-[11px] text-primary">
 										{guide.formula}
 									</p>
 								</div>
 
 								<div className="rounded-xl bg-success/5 p-3 text-xs text-success-foreground">
-									<span className="font-semibold text-success">Tips Sukses:</span>
+									<span className="font-semibold text-success">
+										Tips Sukses:
+									</span>
 									<p className="mt-0.5 text-xs text-muted-foreground">
 										{guide.tips}
 									</p>

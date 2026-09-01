@@ -1,9 +1,15 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
-import { DomainDataTable, type ColumnDef } from "@/components/data/domain-data-table";
+import {
+	DomainDataTable,
+	type ColumnDef,
+} from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
-import { mockContractsInvoices, type ContractInvoiceItem } from "@/mocks/contracts-invoices";
+import {
+	mockContractsInvoices,
+	type ContractInvoiceItem,
+} from "@/mocks/contracts-invoices";
 import { formatRupiah } from "@/lib/format";
 
 export const Route = createFileRoute("/operator/data/contracts-invoices")({
@@ -15,9 +21,10 @@ function ContractsInvoicesPage() {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [search, setSearch] = useState("");
 
-	const filteredData = data.filter((item) =>
-		item.contractNumber.toLowerCase().includes(search.toLowerCase()) ||
-		item.vendorName.toLowerCase().includes(search.toLowerCase())
+	const filteredData = data.filter(
+		(item) =>
+			item.contractNumber.toLowerCase().includes(search.toLowerCase()) ||
+			item.vendorName.toLowerCase().includes(search.toLowerCase()),
 	);
 
 	const columns: ColumnDef<ContractInvoiceItem>[] = [
@@ -26,7 +33,9 @@ function ContractsInvoicesPage() {
 			header: "Nomor & Rekanan Kontrak",
 			render: (item) => (
 				<div>
-					<span className="font-semibold text-foreground">{item.contractNumber}</span>
+					<span className="font-semibold text-foreground">
+						{item.contractNumber}
+					</span>
 					<p className="text-[11px] text-muted-foreground">{item.vendorName}</p>
 				</div>
 			),
@@ -46,7 +55,9 @@ function ContractsInvoicesPage() {
 			header: "Batas 17 Hari Kerja",
 			render: (item) => (
 				<div>
-					<span className="font-semibold text-foreground">{item.deadlineDate}</span>
+					<span className="font-semibold text-foreground">
+						{item.deadlineDate}
+					</span>
 					<p className="text-[11px] text-muted-foreground">
 						{item.status === "completed"
 							? "SPM Terbit"
@@ -86,8 +97,8 @@ function ContractsInvoicesPage() {
 							Kontrak & Penyelesaian Tagihan (SPM-LS)
 						</h1>
 						<p className="text-xs text-muted-foreground">
-							Pantau kepatuhan penyampaian kontrak 3 hari kerja dan penyelesaian tagihan
-							H+17 hari kerja sejak BAST.
+							Pantau kepatuhan penyampaian kontrak 3 hari kerja dan penyelesaian
+							tagihan H+17 hari kerja sejak BAST.
 						</p>
 					</div>
 
@@ -124,7 +135,10 @@ function ContractsInvoicesPage() {
 				>
 					<div className="space-y-3">
 						<div>
-							<label htmlFor="invContract" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="invContract"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Nomor Kontrak
 							</label>
 							<input
@@ -135,7 +149,10 @@ function ContractsInvoicesPage() {
 							/>
 						</div>
 						<div>
-							<label htmlFor="invVendor" className="block text-[11px] font-semibold text-foreground">
+							<label
+								htmlFor="invVendor"
+								className="block text-[11px] font-semibold text-foreground"
+							>
 								Nama Rekanan / Penyedia
 							</label>
 							<input
@@ -147,7 +164,10 @@ function ContractsInvoicesPage() {
 						</div>
 						<div className="grid grid-cols-2 gap-2">
 							<div>
-								<label htmlFor="invVal" className="block text-[11px] font-semibold text-foreground">
+								<label
+									htmlFor="invVal"
+									className="block text-[11px] font-semibold text-foreground"
+								>
 									Nilai Tagihan (Rp)
 								</label>
 								<input
@@ -158,7 +178,10 @@ function ContractsInvoicesPage() {
 								/>
 							</div>
 							<div>
-								<label htmlFor="invDate" className="block text-[11px] font-semibold text-foreground">
+								<label
+									htmlFor="invDate"
+									className="block text-[11px] font-semibold text-foreground"
+								>
 									Tanggal BAST
 								</label>
 								<input
