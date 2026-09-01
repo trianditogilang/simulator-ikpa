@@ -22,7 +22,7 @@ function OperatorDashboardPage() {
 				<div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/80 bg-surface p-3.5">
 					<div className="flex items-center gap-2">
 						<span className="text-xs font-semibold text-muted-foreground">
-							Skenario Mock Data:
+							Skenario Data:
 						</span>
 						<div className="flex items-center gap-1">
 							<button

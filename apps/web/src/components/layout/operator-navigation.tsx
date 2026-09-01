@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+﻿import type { LucideIcon } from "lucide-react";
 import {
 	BookOpen,
 	Calculator,
@@ -30,35 +30,35 @@ const primaryItems: readonly NavigationItem[] = [
 const inputItems: readonly NavigationItem[] = [
 	{
 		label: "Pagu & Revisi DIPA",
-		href: "/operator/input/pagu-revisi",
+		href: "/operator/data/budget-revisions",
 		icon: FileText,
 	},
 	{
 		label: "RPD & Realisasi",
-		href: "/operator/input/rpd-realisasi",
+		href: "/operator/data/rpd-realization",
 		icon: FileText,
 	},
 	{
 		label: "Kontrak & Tagihan",
-		href: "/operator/input/kontrak-tagihan",
+		href: "/operator/data/contracts-invoices",
 		icon: FileText,
 	},
-	{ label: "UP/TUP & KKP", href: "/operator/input/up-tup-kkp", icon: FileText },
+	{ label: "UP/TUP & KKP", href: "/operator/data/up-tup-kkp", icon: FileText },
 	{
 		label: "Capaian Output",
-		href: "/operator/input/capaian-output",
+		href: "/operator/data/output-achievement",
 		icon: ChartLine,
 	},
 	{
 		label: "SPM Dispensasi",
-		href: "/operator/input/spm-dispensasi",
+		href: "/operator/data/spm-dispensation",
 		icon: FileText,
 	},
-	{ label: "Import Data", href: "/operator/input/import", icon: Upload },
+	{ label: "Import Data", href: "/operator/import", icon: Upload },
 ];
 
 const secondaryItems: readonly NavigationItem[] = [
-	{ label: "Skenario & Riwayat", href: "/operator/scenarios", icon: History },
+	{ label: "Skenario & Riwayat", href: "/operator/history", icon: History },
 	{
 		label: "Analisis & Rekomendasi",
 		href: "/operator/analysis",
@@ -73,14 +73,14 @@ const secondaryItems: readonly NavigationItem[] = [
 const mobileItems: readonly NavigationItem[] = [
 	primaryItems[0],
 	primaryItems[1],
-	{ label: "Input", href: "/operator/input", icon: Database },
+	{ label: "Input", href: "/operator/data/budget-revisions", icon: Database },
 	{ label: "Reminder", href: "/operator/reminders", icon: Database },
 ];
 
 const moreItems: readonly NavigationItem[] = [
 	...secondaryItems.filter((item) => item.label !== "Reminder Center"),
-	{ label: "Tahun & Periode", href: "/operator/context", icon: Database },
-	{ label: "Keluar", href: "/sign-out", icon: Settings },
+	{ label: "Pilih Satker", href: "/select-organization", icon: Database },
+	{ label: "Keluar", href: "/sign-in", icon: Settings },
 ];
 
 export type OperatorNavigationProps = Omit<
@@ -215,7 +215,7 @@ export function OperatorNavigation({
 					<p className="mt-1 text-label text-foreground">Operator Satker</p>
 					<a
 						className="mt-3 inline-flex min-h-10 items-center text-body-small text-primary underline-offset-4 hover:underline"
-						href="/sign-out"
+						href="/sign-in"
 					>
 						Keluar
 					</a>

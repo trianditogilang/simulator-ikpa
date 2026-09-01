@@ -30,7 +30,7 @@ export function SimulationModeTabs({
 						: "text-muted-foreground hover:text-foreground",
 				)}
 			>
-				Actual (Data Riil)
+				Aktual
 			</button>
 			<button
 				type="button"
@@ -42,7 +42,7 @@ export function SimulationModeTabs({
 						: "text-muted-foreground hover:text-foreground",
 				)}
 			>
-				Forecast (Proyeksi)
+				Proyeksi
 			</button>
 			<button
 				type="button"
@@ -54,7 +54,7 @@ export function SimulationModeTabs({
 						: "text-muted-foreground hover:text-foreground",
 				)}
 			>
-				Skenario (What-If)
+				Skenario
 			</button>
 		</div>
 	);

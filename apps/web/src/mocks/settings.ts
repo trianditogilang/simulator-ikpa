@@ -13,8 +13,8 @@
 export const mockSatkerSettings: SatkerSettingsData = {
 	satkerCode: "123456",
 	satkerName: "Kantor Pelayanan Perbendaharaan Satker Contoh",
-	kppnName: "KPPN Wilayah Barat",
-	kppnCode: "015",
+	kppnName: "KPPN Malang",
+	kppnCode: "032",
 	isBlu: false,
 	targetIkpa: 95.0,
 	timezone: "Asia/Jakarta (WIB)",

@@ -27,7 +27,7 @@ export function FormulaTrace({
 		>
 			<div className="flex items-center justify-between border-b border-border/60 pb-2">
 				<span className="font-semibold text-foreground">
-					Trace Formula: {indicatorName}
+					Histori Formula: {indicatorName}
 				</span>
 				<span className="text-[11px] text-muted-foreground">
 					Rule Set {ruleSetVersion}

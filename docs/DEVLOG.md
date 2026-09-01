@@ -26,6 +26,55 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - New tasks: [if any]
 **Notes:**
 [Any additional notes, observations, or reminders]
+### Session 45 - 2026-09-01
+**Time:** Start: 11:19 WIB | End: 11:21 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [UI-Iterasi-05] Update class heading landing page `h1#hero-heading` menjadi murni `font-semibold`.
+**Code Changes:**
+- Files created/modified: `apps/web/src/components/public/landing-content.tsx`, `docs/DEVLOG.md`
+- Key implementations: Menetapkan kelas Tailwind standar `font-semibold` pada elemen `h1#hero-heading` di `LandingContent` agar secara konsisten me-render font Inter Semi-Bold.
+- Verifikasi: `npm.cmd run check` (typecheck, tests 1/1, Biome lint 79 files) — lulus; `npm.cmd run build` (client & SSR production) — lulus.
+**Next Session Plan:**
+- Tasks to continue: Fase 4 — UI Admin KPPN dengan Dummy Data (F4-01 s.d. F4-13).
+- New tasks: Tidak ada.
+
+### Session 44 - 2026-09-01
+**Time:** Start: 10:45 WIB | End: 10:56 WIB | Duration: 11 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [UI-Iterasi-04] Penyesuaian Tipografi Inter Murni & Perbaikan Feedback UI Operator:
+  1. Ekstrak font resmi dari `apps/web/src/Inter.zip` ke `apps/web/public/fonts/inter/static/`.
+  2. Daftarkan `@font-face` lokal di `apps/web/src/styles.css` untuk bobot Regular (400), Medium (500), SemiBold (600), Bold (700), dan ExtraBold (800).
+  3. Hilangkan seluruh font monospace/Consolas pada tabel, angka, dan variabel rumus agar 100% menggunakan font Inter.
+  4. Perbarui label switch di Dashboard Operator (`/operator/dashboard`) menjadi `"Skenario Data:"`.
+  5. Perbarui tab mode Simulasi (`/operator/simulation`) menjadi `"Aktual"`, `"Proyeksi"`, `"Skenario"`, subtitle menjadi `"Lakukan perhitungan skenario, periksa histori formula, dan simulasikan target nilai satker"`, serta judul trace menjadi `"Histori Formula: ..."`.
+  6. Aktifkan tombol `"Bandingkan 2 Skenario"` pada Riwayat (`/operator/history`) dengan panel komparasi delta skor interaktif.
+  7. Perbarui data profil Satker (`/operator/settings`) menjadi `"KPPN Malang"` dan Kode KPPN `"032"`.
+  8. Hubungkan seluruh item navigasi sidebar/mobile (`operator-navigation.tsx`) ke route aktif dan arahkan tombol `"Keluar"` ke `/sign-in`.
+**Code Changes:**
+- Files created/modified:
+  - `apps/web/public/fonts/inter/**` (asset TTF)
+  - `apps/web/src/styles.css`
+  - `apps/web/src/components/layout/operator-navigation.tsx`
+  - `apps/web/src/components/operator/simulation-mode-tabs.tsx`
+  - `apps/web/src/components/operator/formula-trace.tsx`
+  - `apps/web/src/routes/operator/dashboard.tsx`
+  - `apps/web/src/routes/operator/simulation.tsx`
+  - `apps/web/src/routes/operator/history.tsx`
+  - `apps/web/src/mocks/settings.ts`
+  - `docs/DEVLOG.md`
+**Verifikasi:**
+- `npm.cmd run check` — typecheck TS, contract tests 1/1, dan Biome linter (79 files) lulus 100%.
+- `npm.cmd run build` — client bundle & SSR server bundle lulus 100%.
+**Next Session Plan:**
+- Tasks to continue: Fase 4 — UI Admin KPPN dengan Dummy Data (F4-01 s.d. F4-13).
+- New tasks: Tidak ada.
+
 ### Session 43 - 2026-09-01
 **Time:** Start: 09:36 WIB | End: 10:02 WIB | Duration: 26 minutes
 - Status: Completed
@@ -1000,4 +1049,6 @@ Parameter `needs_verification` hanya boleh dipakai pada UI dummy/draft rule set 
 - Verifikasi: Pemeriksaan manual terhadap aturan penyelesaian, status backlog, template devlog, dan konsistensi nama file.
 - Risiko/known issue: Belum ada task implementasi yang dimulai; tracker akan bertambah saat task diambil.
 - Next action/dependensi terbuka: Mulai Fase 0 dari `F0-01` dan isi owner/status saat task diambil.
+
+
 

@@ -37,7 +37,7 @@ function OperatorSimulationPage() {
 							Simulasi & Analisis Nilai IKPA
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Lakukan perhitungan what-if, periksa trace formula, dan simulasikan
+							Lakukan perhitungan skenario, periksa histori formula, dan simulasikan
 							target nilai satker.
 						</p>
 					</div>
