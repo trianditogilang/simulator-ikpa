@@ -566,45 +566,45 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
 
 ## 13. Fase 9 â€” Backend Domain Operasional
 
-- [ ] **F9-01 â€” Buat helper audit mutation.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-01 â€” Buat helper audit mutation.** [Role: Backend Domain Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/server/audit/write-audit.ts`, `apps/web/src/server/audit/write-audit.test.ts`  
   **DoD:** Actor, scope, before/after redacted, entity, version, policy, request ID tersimpan dalam transaksi pemanggil.
 
-- [ ] **F9-02 â€” Buat query/mutation fiscal year dan settings.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-02 â€” Buat query/mutation fiscal year dan settings.** [Role: Backend Domain Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/server/domains/settings.queries.ts`, `apps/web/src/server/domains/settings.mutations.ts`  
   **Depends:** F8-04, F9-01  
   **DoD:** Scoped read/update, timezone/BLU/target validation, uniqueness, dan audit tersedia.
 
-- [ ] **F9-03 â€” Buat query/mutation Pagu & Revisi.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-03 â€” Buat query/mutation Pagu & Revisi.** [Role: Backend Domain Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/server/domains/budget-revisions.queries.ts`, `apps/web/src/server/domains/budget-revisions.mutations.ts`  
   **DoD:** CRUD scoped, rule-set eligibility preview, soft delete, validation, dan audit tersedia.
 
-- [ ] **F9-04 â€” Buat query/mutation RPD & Realisasi.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-04 â€” Buat query/mutation RPD & Realisasi.** [Role: Backend Domain Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/server/domains/rpd-realization.queries.ts`, `apps/web/src/server/domains/rpd-realization.mutations.ts`  
   **DoD:** Upsert bulanan, batch edit, scoped uniqueness, decimal-safe, soft delete, dan audit tersedia.
 
-- [ ] **F9-05 â€” Buat query/mutation Kontrak & Tagihan.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-05 â€” Buat query/mutation Kontrak & Tagihan.** [Role: Backend Domain Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/server/domains/contracts-invoices.queries.ts`, `apps/web/src/server/domains/contracts-invoices.mutations.ts`  
   **DoD:** Same-fiscal-year relation, H+17 projection, eligibility, CRUD scoped, soft delete, dan audit tersedia.
 
-- [ ] **F9-06 â€” Buat query/mutation UP/TUP & KKP.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-06 â€” Buat query/mutation UP/TUP & KKP.** [Role: Backend Domain Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/server/domains/up-tup-kkp.queries.ts`, `apps/web/src/server/domains/up-tup-kkp.mutations.ts`  
   **DoD:** Type/date/reference validation, monthly KKP, scoped CRUD, soft delete, dan audit tersedia.
 
-- [ ] **F9-07 â€” Buat query/mutation Capaian Output.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-07 â€” Buat query/mutation Capaian Output.** [Role: Backend Domain Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/server/domains/output-achievement.queries.ts`, `apps/web/src/server/domains/output-achievement.mutations.ts`  
   **DoD:** Range, confirmation, deadline, unique month/RO, scoped CRUD, soft delete, dan audit tersedia.
 
-- [ ] **F9-08 â€” Buat query/mutation SPM Dispensasi.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-08 â€” Buat query/mutation SPM Dispensasi.** [Role: Backend Domain Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/server/domains/spm-dispensation.queries.ts`, `apps/web/src/server/domains/spm-dispensation.mutations.ts`  
   **DoD:** Q4 validation, ratio preview, scoped CRUD, soft delete, dan audit tersedia.
 
-- [ ] **F9-09 â€” Buat service kalkulasi dan snapshot.** [Role: Backend Domain Agent] [Model: Sol Medium]  
+- [x] **F9-09 â€” Buat service kalkulasi dan snapshot.** [Role: Backend Domain Agent] [Model: Sol Medium]  
   **Scope:** Load scoped input, resolve rule set/calendar, call pure engine, hash input, persist immutable snapshot  
   **Depends:** F6-11, F7-11, F9-02â€“F9-08  
   **DoD:** Actual/forecast/scenario tidak saling menimpa; snapshot lama tidak dihitung ulang.
 
-- [ ] **F9-10 â€” Buat query monitoring Admin KPPN.** [Role: Backend Domain Agent] [Model: Sol Medium]  
+- [x] **F9-10 â€” Buat query monitoring Admin KPPN.** [Role: Backend Domain Agent] [Model: Sol Medium]  
   **Scope:** Dashboard aggregate, organization list/detail read-only, risk, completeness, snapshot, reminder  
   **Depends:** F8-04, F9-09  
   **DoD:** Semua query terbatasi `kppn_scope_id`, paginated, terindeks, dan tidak menyediakan mutasi data operasional.

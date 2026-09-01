@@ -28,6 +28,42 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 [Any additional notes, observations, or reminders]
 ```
 
+### Session 84 - 2026-09-01
+**Time:** Start: 16:25 WIB | End: 16:42 WIB | Duration: 17 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Backend Domain Agent
+- Model: Luna Max & Sol Medium
+**Tasks Completed:**
+- [F9-01] Buat helper audit mutation
+- [F9-02] Buat query/mutation fiscal year dan settings
+- [F9-03] Buat query/mutation Pagu & Revisi
+- [F9-04] Buat query/mutation RPD & Realisasi
+- [F9-05] Buat query/mutation Kontrak & Tagihan
+- [F9-06] Buat query/mutation UP/TUP & KKP
+- [F9-07] Buat query/mutation Capaian Output
+- [F9-08] Buat query/mutation SPM Dispensasi
+- [F9-09] Buat service kalkulasi dan snapshot
+- [F9-10] Buat query monitoring Admin KPPN
+**Code Changes:**
+- Files created/modified: `apps/web/src/server/audit/write-audit.ts`, `apps/web/src/server/audit/write-audit.test.ts`, `apps/web/src/server/domains/settings.queries.ts`, `apps/web/src/server/domains/settings.mutations.ts`, `apps/web/src/server/domains/budget-revisions.queries.ts`, `apps/web/src/server/domains/budget-revisions.mutations.ts`, `apps/web/src/server/domains/rpd-realization.queries.ts`, `apps/web/src/server/domains/rpd-realization.mutations.ts`, `apps/web/src/server/domains/contracts-invoices.queries.ts`, `apps/web/src/server/domains/contracts-invoices.mutations.ts`, `apps/web/src/server/domains/up-tup-kkp.queries.ts`, `apps/web/src/server/domains/up-tup-kkp.mutations.ts`, `apps/web/src/server/domains/output-achievement.queries.ts`, `apps/web/src/server/domains/output-achievement.mutations.ts`, `apps/web/src/server/domains/spm-dispensation.queries.ts`, `apps/web/src/server/domains/spm-dispensation.mutations.ts`, `apps/web/src/server/simulation/calculate.ts`, `apps/web/src/server/admin/monitoring.queries.ts`, `apps/web/src/server/access.ts` (fix unused import), `docs/BACKLOG.md`, `docs/TASK-LIST-Simulator-IKPA.md`
+- Lines of code: ~1100 (18 files)
+- Key implementations: Menerapkan seluruh backend domain operasional Fase 9 sesuai pendekatan ponytail: `writeAudit` dengan redaksi SENSITIVE_KEYS dan insert dalam transaksi pemanggil; 6 pasangan query/mutation domain (budgets, rpd/realization, contracts/spmLs, upTup/kkp, output, spmQ4) masing-masing dengan `assertOperatorOrgScope`, validasi Zod (decimal 18,2/8,4, enum, date), guard same-fiscal-year, soft-delete via `deletedAt`, dan audit; validasi khusus seperti Q4 Okt-Des, monthly uniqueness KKP, reference GUP/PTUP, range RVRO/PCRO, H+17 projection, dan batch upsert; service kalkulasi `calculateAndPersistSnapshot` yang load seluruh input scoped, resolve `activeRuleSetId` ke `ruleSets.configJson` via `parseRuleSet`, bangun `EngineInput` lengkap, call pure `calculateIkpa`, hash SHA-256 deterministik, dan persist immutable `simulations` + `scoreSnapshots` (isolasi actual/forecast/scenario); serta monitoring Admin KPPN dengan `assertAdminKppnScope`, agregat dashboard, list/detail satker paginated & search ILIKE, dan snapshot history read-only.
+- Verifikasi: `npm run typecheck` (5 workspaces, 0 error), `npm run test --workspaces` (31 access-control + 39 ikpa-engine + 8 ui + 1 contracts + 2 write-audit = 81 test lulus), `npx vitest run apps/web/src/server/audit/write-audit.test.ts` (2/2 lulus).
+**Issues Encountered:**
+- Issue 1: `apps/web/src/server/access.ts` import `AccessResolution` unused menyebabkan typecheck gagal.
+  - Solution: Hapus import unused tersebut.
+- Issue 2: `output-achievement.mutations.ts` men-set `reportedAt` sebagai string ke kolom timestamp, typecheck error.
+  - Solution: Konversi `z.iso.datetime` string ke `Date` objek sebelum insert/update.
+- Issue 3: `apps/web/src/server/simulation/calculate.ts` mengimpor via path `src/...` yang tidak terekspos oleh barrel `@simulator-ikpa/ikpa-engine`, typecheck error.
+  - Solution: Ganti ke `import { calculateIkpa, parseRuleSet } from "@simulator-ikpa/ikpa-engine"` dan `EngineInput` dari barrel.
+- Issue 4: Beberapa file `*.queries.ts`/`*.mutations.ts` mengandung import `isNull`/`ilike` tidak terpakai.
+  - Solution: Hapus import yang tidak digunakan agar lolos `noUnusedLocals`.
+**Next Session Plan:**
+- Fase 9 resmi selesai 100%. Lanjut ke Fase 10 (Policy, Reminder, Scheduler, Email) — dimulai dari F10-01 workday calendar & F10-02 rule-set resolver.
+**Notes:**
+- Seluruh mutasi operator terbatasi org scope, seluruh query admin terbatasi kppn_scope_id, dan tidak ada data sensitif yang bocor ke client bundle/logs (redacted audit).
+- Perlu integrasi server function `createServerFn` layer di Fase 11 untuk menghubungkan domain ini ke route loader/action.
+
 ### Session 83 - 2026-09-01
 **Time:** Start: 15:58 WIB | End: 16:08 WIB | Duration: 10 minutes
 - Status: Completed

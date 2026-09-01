@@ -1,8 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import {
-	type AccessResolution,
-	accessResolutionSchema,
-} from "@simulator-ikpa/contracts";
+import { accessResolutionSchema } from "@simulator-ikpa/contracts";
 import { resolveUserAccess } from "@simulator-ikpa/access-control";
 import { createDbClient } from "@simulator-ikpa/db";
 import type { AuthSession } from "./auth-session";
