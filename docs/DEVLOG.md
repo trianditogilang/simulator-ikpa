@@ -1,4 +1,4 @@
-﻿# DEVLOG â€” Simulator Penilaian IKPA
+# DEVLOG â€” Simulator Penilaian IKPA
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
@@ -26,6 +26,82 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - New tasks: [if any]
 **Notes:**
 [Any additional notes, observations, or reminders]
+### Session 47 - 2026-09-01
+**Time:** Start: 12:26 WIB | End: 12:32 WIB | Duration: 6 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Foundation Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [UI-Iterasi-06] Perbaikan Arah Link "Keluar" & Penyediaan Mock Data Perbedaan Hak Akses Admin vs Operator:
+  1. Memperbaiki link "Keluar" pada sidebar desktop dan bottom sheet mobile di `apps/web/src/components/layout/admin-navigation.tsx` agar mengarah ke `/sign-in`.
+  2. Membuat mock data `apps/web/src/mocks/auth-presets.ts` berisi daftar 4 preset akun demo (Admin KPPN, Operator Satker, Operator Multi-Satker, dan Akun Pending) lengkap dengan ringkasan peran, target redirect, serta matriks perbandingan hak akses 9 modul fungsional.
+  3. Memperbarui `apps/web/src/components/public/sign-in-panel.tsx` dengan fitur selector preset demo interaktif, autofill form, preview izin peran aktif, modal matriks perbandingan hak akses Admin vs Operator, dan smart redirect sesuai peran yang dipilih.
+  4. Menambahkan tombol dan modal "Perbedaan Hak Akses" pada halaman Manajemen Akses Admin (`apps/web/src/routes/admin-kppn/access.tsx`).
+**Code Changes:**
+- Files created/modified:
+  - `apps/web/src/components/layout/admin-navigation.tsx`
+  - `apps/web/src/mocks/auth-presets.ts`
+  - `apps/web/src/components/public/sign-in-panel.tsx`
+  - `apps/web/src/routes/admin-kppn/access.tsx`
+  - `docs/DEVLOG.md`
+- Verifikasi: `npm.cmd run check` (typecheck, tests 1/1, Biome lint 106 files) — lulus; `npm.cmd run build` (client & SSR production) — lulus.
+**Next Session Plan:**
+- Tasks to continue: Fase 5 — UI Review dan Prototype Acceptance (F5-01 s.d. F5-06).
+- New tasks: Tidak ada.
+
+### Session 46 - 2026-09-01
+**Time:** Start: 11:35 WIB | End: 11:53 WIB | Duration: 18 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Admin Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F4-01] Buat fixture dashboard dan scope Admin (`apps/web/src/mocks/admin-context.ts`, `apps/web/src/mocks/admin-dashboard.ts`).
+- [F4-02] Buat UI Dashboard Monitoring Admin (`apps/web/src/routes/admin-kppn/dashboard.tsx`, `apps/web/src/components/admin/risk-overview.tsx`).
+- [F4-03] Buat UI Daftar Satker Mitra KPPN (`apps/web/src/routes/admin-kppn/organizations/index.tsx`, `apps/web/src/mocks/admin-organizations.ts`).
+- [F4-04] Buat UI Detail Satker read-only (`apps/web/src/routes/admin-kppn/organizations/$orgId.tsx`, `apps/web/src/mocks/admin-organization-detail.ts`).
+- [F4-05] Buat UI Monitoring Risiko & Reminder (`apps/web/src/routes/admin-kppn/monitoring/reminders.tsx`, `apps/web/src/mocks/admin-reminders.ts`).
+- [F4-06] Buat UI Laporan Agregat IKPA (`apps/web/src/routes/admin-kppn/reports.tsx`, `apps/web/src/mocks/admin-reports.ts`).
+- [F4-07] Buat UI Daftar Rule Set Berversi (`apps/web/src/routes/admin-kppn/policy/rule-sets/index.tsx`, `apps/web/src/mocks/rule-sets.ts`).
+- [F4-08] Buat UI Editor dan Publish Rule Set (`apps/web/src/routes/admin-kppn/policy/rule-sets/$ruleSetId.tsx`, `apps/web/src/components/admin/rule-set-publish-dialog.tsx`).
+- [F4-09] Buat UI Reminder Policy (`apps/web/src/routes/admin-kppn/policy/reminders.tsx`, `apps/web/src/mocks/reminder-policies.ts`).
+- [F4-10] Buat UI Kalender Hari Kerja & Simulator Deadline (`apps/web/src/routes/admin-kppn/policy/workdays.tsx`, `apps/web/src/mocks/workdays.ts`).
+- [F4-11] Buat UI Riwayat Versi Policy & Parameter Diff (`apps/web/src/routes/admin-kppn/policy/history.tsx`, `apps/web/src/mocks/policy-history.ts`).
+- [F4-12] Buat UI Audit Log & Before-After Viewer (`apps/web/src/routes/admin-kppn/audit-logs.tsx`, `apps/web/src/mocks/audit-logs.ts`).
+- [F4-13] Buat UI Manajemen Akses & Proteksi Admin Terakhir (`apps/web/src/routes/admin-kppn/access.tsx`, `apps/web/src/mocks/access-management.ts`).
+**Code Changes:**
+- Files created/modified:
+  - `apps/web/src/mocks/admin-dashboard.ts`
+  - `apps/web/src/components/admin/risk-overview.tsx`
+  - `apps/web/src/routes/admin-kppn/dashboard.tsx`
+  - `apps/web/src/mocks/admin-organizations.ts`
+  - `apps/web/src/routes/admin-kppn/organizations/index.tsx`
+  - `apps/web/src/mocks/admin-organization-detail.ts`
+  - `apps/web/src/routes/admin-kppn/organizations/$orgId.tsx`
+  - `apps/web/src/mocks/admin-reminders.ts`
+  - `apps/web/src/routes/admin-kppn/monitoring/reminders.tsx`
+  - `apps/web/src/mocks/admin-reports.ts`
+  - `apps/web/src/routes/admin-kppn/reports.tsx`
+  - `apps/web/src/mocks/rule-sets.ts`
+  - `apps/web/src/routes/admin-kppn/policy/rule-sets/index.tsx`
+  - `apps/web/src/components/admin/rule-set-publish-dialog.tsx`
+  - `apps/web/src/routes/admin-kppn/policy/rule-sets/$ruleSetId.tsx`
+  - `apps/web/src/mocks/reminder-policies.ts`
+  - `apps/web/src/routes/admin-kppn/policy/reminders.tsx`
+  - `apps/web/src/mocks/workdays.ts`
+  - `apps/web/src/routes/admin-kppn/policy/workdays.tsx`
+  - `apps/web/src/mocks/policy-history.ts`
+  - `apps/web/src/routes/admin-kppn/policy/history.tsx`
+  - `apps/web/src/mocks/audit-logs.ts`
+  - `apps/web/src/routes/admin-kppn/audit-logs.tsx`
+  - `apps/web/src/mocks/access-management.ts`
+  - `apps/web/src/routes/admin-kppn/access.tsx`
+  - `apps/web/src/components/layout/admin-navigation.tsx`
+  - `docs/BACKLOG.md`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/DEVLOG.md`
+- Verifikasi: `npm.cmd run check` (typecheck, tests 1/1, Biome lint 105 files) — lulus; `npm.cmd run build` (client & SSR production) — lulus.
+**Next Session Plan:**
+- Tasks to continue: Fase 5 — UI Review dan Prototype Acceptance (F5-01 s.d. F5-06).
+- New tasks: Tidak ada.
+
 ### Session 45 - 2026-09-01
 **Time:** Start: 11:19 WIB | End: 11:21 WIB | Duration: 2 minutes
 - Status: Completed

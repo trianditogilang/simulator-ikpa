@@ -28,10 +28,10 @@ const dashboardItem: NavigationItem = {
 };
 
 const satkerItems: readonly NavigationItem[] = [
-	{ label: "Daftar Satker", href: "/admin-kppn/satker", icon: Building2 },
+	{ label: "Daftar Satker", href: "/admin-kppn/organizations", icon: Building2 },
 	{
 		label: "Risiko & Reminder",
-		href: "/admin-kppn/risks",
+		href: "/admin-kppn/monitoring/reminders",
 		icon: TriangleAlert,
 	},
 ];
@@ -67,19 +67,14 @@ const secondaryItems: readonly NavigationItem[] = [
 
 const mobileItems: readonly NavigationItem[] = [
 	dashboardItem,
-	{ label: "Satker", href: "/admin-kppn/satker", icon: Building2 },
-	{ label: "Risiko", href: "/admin-kppn/risks", icon: TriangleAlert },
-	{ label: "Policy", href: "/admin-kppn/policy", icon: LockKeyhole },
+	{ label: "Satker", href: "/admin-kppn/organizations", icon: Building2 },
+	{ label: "Risiko", href: "/admin-kppn/monitoring/reminders", icon: TriangleAlert },
+	{ label: "Policy", href: "/admin-kppn/policy/rule-sets", icon: LockKeyhole },
 ];
 
 const moreItems: readonly NavigationItem[] = [
 	...secondaryItems,
-	{
-		label: "Tahun & Periode",
-		href: "/admin-kppn/context",
-		icon: CalendarRange,
-	},
-	{ label: "Keluar", href: "/sign-out", icon: KeyRound },
+	{ label: "Keluar", href: "/sign-in", icon: KeyRound },
 ];
 
 export type AdminNavigationProps = Omit<ComponentProps<"div">, "children"> & {
@@ -220,7 +215,7 @@ export function AdminNavigation({
 					<p className="mt-1 text-label text-foreground">Admin KPPN</p>
 					<a
 						className="mt-3 inline-flex min-h-10 items-center text-body-small text-primary underline-offset-4 hover:underline"
-						href="/sign-out"
+						href="/"
 					>
 						Keluar
 					</a>
@@ -302,6 +297,14 @@ export function AdminNavigation({
 											/>
 										))}
 									</nav>
+									<div className="mt-4 border-t border-border pt-3">
+										<a
+											href="/"
+											className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-border bg-surface-muted px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface"
+										>
+											Keluar dari Sesi Admin
+										</a>
+									</div>
 								</Dialog.Content>
 							</Dialog.Portal>
 						</Dialog.Root>

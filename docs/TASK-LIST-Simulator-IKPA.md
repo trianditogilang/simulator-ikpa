@@ -1,4 +1,4 @@
-﻿# TASK LIST Simulator Penilaian IKPA
+# TASK LIST Simulator Penilaian IKPA
 
 **Basis:** PRD v1.3, FSD v1.0, TSD v1.0, ERD v1.0, UI/UX Design System v1.0, dan UI/UX Wireframes v1.0  
 **Strategi delivery:** UI-first dengan dummy data yang contract-driven, dilanjutkan backend, kemudian integrasi bertahap per domain   
@@ -303,59 +303,59 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
   **Files:** `apps/web/src/routes/operator/settings.tsx`, `apps/web/src/mocks/settings.ts`  
   **DoD:** Profil, BLU, timezone, target, rule set, source regulation, dan daftar operator read-only tersedia.
 
-## 8. Fase 4 â€” UI Admin KPPN dengan Dummy Data
+## 8. Fase 4 — UI Admin KPPN dengan Dummy Data
 
-- [ ] **F4-01 â€” Buat fixture dashboard dan scope Admin.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-01 — Buat fixture dashboard dan scope Admin.** [Role: Frontend Admin Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/mocks/admin-context.ts`, `apps/web/src/mocks/admin-dashboard.ts`  
   **DoD:** Normal, no-data, risky, delivery-failed, dan policy-changed tersedia.
 
-- [ ] **F4-02 â€” Buat UI Dashboard Monitoring Admin.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-02 — Buat UI Dashboard Monitoring Admin.** [Role: Frontend Admin Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/admin-kppn/dashboard.tsx`, `apps/web/src/components/admin/risk-overview.tsx`  
   **Depends:** F4-01  
   **DoD:** Agregat, distribusi status, tren, satker prioritas, deadline, delivery, dan rule set tampil.
 
-- [ ] **F4-03 â€” Buat UI Daftar Satker.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-03 — Buat UI Daftar Satker.** [Role: Frontend Admin Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/admin-kppn/organizations/index.tsx`, `apps/web/src/mocks/admin-organizations.ts`  
   **DoD:** Search/filter/pagination, card mobile, skor, gap, risiko, deadline, dan update time tersedia.
 
-- [ ] **F4-04 â€” Buat UI Detail Satker read-only.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-04 — Buat UI Detail Satker read-only.** [Role: Frontend Admin Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/admin-kppn/organizations/$orgId.tsx`, `apps/web/src/mocks/admin-organization-detail.ts`  
   **DoD:** Dashboard, indikator, snapshot, reminder, audit relevan, export, dan tanpa aksi edit operasional.
 
-- [ ] **F4-05 â€” Buat UI Monitoring Risiko & Reminder.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-05 — Buat UI Monitoring Risiko & Reminder.** [Role: Frontend Admin Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/admin-kppn/monitoring/reminders.tsx`, `apps/web/src/mocks/admin-reminders.ts`  
   **DoD:** Filter lintas satker, detail delivery drawer, error aman, dan retry confirmation dummy tersedia.
 
-- [ ] **F4-06 â€” Buat UI Laporan Agregat.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-06 — Buat UI Laporan Agregat.** [Role: Frontend Admin Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/admin-kppn/reports.tsx`, `apps/web/src/mocks/admin-reports.ts`  
   **DoD:** Rekap nilai, indikator, risiko, kelengkapan, delivery, filter scope, dan preview export tersedia.
 
-- [ ] **F4-07 â€” Buat UI daftar Rule Set.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-07 — Buat UI daftar Rule Set.** [Role: Frontend Admin Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/admin-kppn/policy/rule-sets/index.tsx`, `apps/web/src/mocks/rule-sets.ts`  
   **DoD:** Draft/published/retired, version, effective date, source, compare, clone, dan action availability tampil.
 
-- [ ] **F4-08 â€” Buat UI editor dan publish Rule Set.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-08 — Buat UI editor dan publish Rule Set.** [Role: Frontend Admin Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/admin-kppn/policy/rule-sets/$ruleSetId.tsx`, `apps/web/src/components/admin/rule-set-publish-dialog.tsx`  
   **DoD:** Sectioned editor, validation summary, assumptions, diff, impact reminder, dan explicit confirmation tersedia.
 
-- [ ] **F4-09 â€” Buat UI Reminder Policy.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-09 — Buat UI Reminder Policy.** [Role: Frontend Admin Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/admin-kppn/policy/reminders.tsx`, `apps/web/src/mocks/reminder-policies.ts`  
   **DoD:** Event, category, deadline DSL summary, allowed lead days, recipient, active state, dan validation preview tersedia.
 
-- [ ] **F4-10 â€” Buat UI Kalender Hari Kerja.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-10 — Buat UI Kalender Hari Kerja.** [Role: Frontend Admin Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/admin-kppn/policy/workdays.tsx`, `apps/web/src/mocks/workdays.ts`  
   **Depends:** F0-04  
   **DoD:** Kalender desktop/mobile, import preview, holiday/workday override, version, dan deadline impact tersedia.
 
-- [ ] **F4-11 â€” Buat UI Riwayat Versi Policy.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-11 — Buat UI Riwayat Versi Policy.** [Role: Frontend Admin Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/admin-kppn/policy/history.tsx`, `apps/web/src/mocks/policy-history.ts`  
   **DoD:** Diff versi, snapshot/delivery usage, publish actor, dan upcoming schedule impact tampil.
 
-- [ ] **F4-12 â€” Buat UI Audit Log.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-12 — Buat UI Audit Log.** [Role: Frontend Admin Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/admin-kppn/audit-logs.tsx`, `apps/web/src/mocks/audit-logs.ts`  
   **DoD:** Filter, actor/action/entity/time, before-after drawer, rule set, policy, dan request ID tersedia tanpa JSON mentah default.
 
-- [ ] **F4-13 â€” Buat UI Manajemen Akses.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-13 — Buat UI Manajemen Akses.** [Role: Frontend Admin Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/admin-kppn/access.tsx`, `apps/web/src/mocks/access-management.ts`  
   **DoD:** Add/edit/disable/delete dummy, dynamic scope field, verified identity state, dan proteksi admin terakhir divisualisasikan.
 

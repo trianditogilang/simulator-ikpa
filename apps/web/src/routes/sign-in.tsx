@@ -12,7 +12,7 @@ function isSafeRedirectIntent(value: unknown): value is string {
 
 export const Route = createFileRoute("/sign-in")({
 	validateSearch: (search) => ({
-		next: isSafeRedirectIntent(search.next) ? search.next : "/access-pending",
+		next: isSafeRedirectIntent(search.next) ? search.next : undefined,
 	}),
 	component: SignInPage,
 });

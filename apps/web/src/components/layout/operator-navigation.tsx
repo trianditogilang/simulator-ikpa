@@ -1,4 +1,4 @@
-﻿import type { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
 	BookOpen,
 	Calculator,
@@ -215,7 +215,7 @@ export function OperatorNavigation({
 					<p className="mt-1 text-label text-foreground">Operator Satker</p>
 					<a
 						className="mt-3 inline-flex min-h-10 items-center text-body-small text-primary underline-offset-4 hover:underline"
-						href="/sign-in"
+						href="/"
 					>
 						Keluar
 					</a>
@@ -283,6 +283,14 @@ export function OperatorNavigation({
 											/>
 										))}
 									</nav>
+									<div className="mt-4 border-t border-border pt-3">
+										<a
+											href="/"
+											className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-border bg-surface-muted px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface"
+										>
+											Keluar dari Sesi Operator
+										</a>
+									</div>
 								</Dialog.Content>
 							</Dialog.Portal>
 						</Dialog.Root>

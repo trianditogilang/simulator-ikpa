@@ -1,14 +1,23 @@
 import {
 	AlertCircle,
 	ArrowLeft,
+	ArrowRight,
 	CheckCircle2,
+	HelpCircle,
 	KeyRound,
 	LoaderCircle,
+	Scale,
 	ShieldCheck,
+	X,
 } from "lucide-react";
 import { useState, type ComponentProps, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { twMerge } from "tailwind-merge";
+import {
+	mockAuthPresets,
+	mockPermissionMatrix,
+	type AuthPresetUser,
+} from "@/mocks/auth-presets";
 
 type SignInStatus = "idle" | "loading" | "error" | "reset" | "mfa" | "success";
 
@@ -16,12 +25,75 @@ export type SignInPanelProps = Omit<ComponentProps<"section">, "children"> & {
 	redirectIntent?: string;
 };
 
-const defaultRedirectIntent = "/access-pending";
+function determineDestination(
+	email: string,
+	selectedPreset: AuthPresetUser,
+	redirectIntent?: string,
+): { targetPath: string; roleLabel: string; name: string } {
+	if (
+		redirectIntent?.startsWith("/") &&
+		!redirectIntent.startsWith("//") &&
+		redirectIntent !== "/access-pending"
+	) {
+		return {
+			targetPath: redirectIntent,
+			roleLabel: "Pengguna",
+			name: email.split("@")[0] || "User",
+		};
+	}
 
-function getSafeRedirectIntent(value: string | undefined) {
-	return value?.startsWith("/") && !value.startsWith("//")
-		? value
-		: defaultRedirectIntent;
+	const lower = email.toLowerCase().trim();
+	const matched = mockAuthPresets.find((p) => p.email.toLowerCase() === lower);
+	if (matched) {
+		return {
+			targetPath: matched.targetPath,
+			roleLabel: matched.roleLabel,
+			name: matched.name,
+		};
+	}
+
+	// Keyword-based fallback detection
+	if (
+		lower.includes("admin") ||
+		lower.includes("kppn") ||
+		lower.includes("pembina")
+	) {
+		return {
+			targetPath: "/admin-kppn/dashboard",
+			roleLabel: "Admin KPPN",
+			name: "Admin KPPN (Custom)",
+		};
+	}
+
+	if (
+		lower.includes("satker") ||
+		lower.includes("operator") ||
+		lower.includes("polinema") ||
+		lower.includes("btn") ||
+		lower.includes("pn-") ||
+		lower.includes("imigrasi")
+	) {
+		return {
+			targetPath: "/operator/dashboard",
+			roleLabel: "Operator Satker",
+			name: "Operator Satker (Custom)",
+		};
+	}
+
+	if (lower.includes("wilayah") || lower.includes("multi")) {
+		return {
+			targetPath: "/select-organization",
+			roleLabel: "Operator Multi-Satker",
+			name: "Koordinator Wilayah",
+		};
+	}
+
+	// Default fallback if unknown
+	return {
+		targetPath: selectedPreset.targetPath,
+		roleLabel: selectedPreset.roleLabel,
+		name: selectedPreset.name,
+	};
 }
 
 export function SignInPanel({
@@ -29,12 +101,30 @@ export function SignInPanel({
 	className,
 	...props
 }: SignInPanelProps) {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+	const [selectedPreset, setSelectedPreset] = useState<AuthPresetUser>(
+		mockAuthPresets[0], // Default: Admin KPPN
+	);
+	const [email, setEmail] = useState(mockAuthPresets[0].email);
+	const [password, setPassword] = useState("password123");
 	const [status, setStatus] = useState<SignInStatus>("idle");
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const safeRedirectIntent = getSafeRedirectIntent(redirectIntent);
+	const [isMatrixOpen, setIsMatrixOpen] = useState(false);
+
 	const isBusy = status === "loading";
+
+	const resolvedAuth = determineDestination(
+		email,
+		selectedPreset,
+		redirectIntent,
+	);
+
+	const handleSelectPreset = (preset: AuthPresetUser) => {
+		setSelectedPreset(preset);
+		setEmail(preset.email);
+		setPassword("password123");
+		setStatus("idle");
+		setErrorMessage(null);
+	};
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -53,7 +143,7 @@ export function SignInPanel({
 		}
 
 		setStatus("loading");
-		await new Promise((resolve) => window.setTimeout(resolve, 550));
+		await new Promise((resolve) => window.setTimeout(resolve, 450));
 		setStatus("success");
 	};
 
@@ -65,75 +155,132 @@ export function SignInPanel({
 	return (
 		<section
 			{...props}
-			className={twMerge("w-full max-w-md self-center", className)}
+			className={twMerge("w-full max-w-xl self-center space-y-5", className)}
 			data-slot="sign-in-panel"
 		>
 			<Link
 				to="/"
-				className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-md px-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+				className="inline-flex min-h-10 items-center gap-2 rounded-md px-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
 			>
 				<ArrowLeft aria-hidden="true" className="size-4" />
-				Kembali ke beranda
+				<span>Kembali ke Beranda</span>
 			</Link>
 
-			<div className="rounded-2xl border border-border bg-background p-6 shadow-sm sm:p-8">
-				<div className="flex items-start gap-3">
-					<span
-						aria-hidden="true"
-						className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-xs font-semibold text-primary-foreground shadow-xs"
+			<div className="rounded-2xl border border-border bg-background p-6 shadow-sm sm:p-8 space-y-6">
+				{/* Header */}
+				<div className="flex items-start justify-between gap-4">
+					<div className="flex items-start gap-3">
+						<span
+							aria-hidden="true"
+							className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-xs font-semibold text-primary-foreground shadow-xs"
+						>
+							SI
+						</span>
+						<div>
+							<p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+								Simulator IKPA
+							</p>
+							<h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
+								Masuk ke Akun Anda
+							</h1>
+						</div>
+					</div>
+
+					<button
+						type="button"
+						onClick={() => setIsMatrixOpen(true)}
+						className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-surface-muted transition"
 					>
-						SI
-					</span>
-					<div>
-						<p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
-							Simulator IKPA
+						<HelpCircle className="size-3.5" />
+						<span className="hidden sm:inline">Perbedaan Hak Akses</span>
+					</button>
+				</div>
+
+				{/* Quick Role Selection Presets */}
+				<div className="space-y-2 rounded-xl border border-border/80 bg-surface p-4 text-xs">
+					<div className="flex items-center justify-between">
+						<span className="font-semibold text-foreground">
+							Uji Coba Hak Akses (Demo Preset):
+						</span>
+						<span className="text-[11px] text-muted-foreground">
+							Pilih peran untuk login
+						</span>
+					</div>
+
+					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+						{mockAuthPresets.map((preset) => {
+							const isSelected = selectedPreset.id === preset.id;
+							return (
+								<button
+									key={preset.id}
+									type="button"
+									onClick={() => handleSelectPreset(preset)}
+									className={`flex flex-col items-start rounded-lg border p-2.5 text-left transition-all ${
+										isSelected
+											? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary"
+											: "border-border/80 bg-background hover:border-primary/40 hover:bg-surface-muted"
+									}`}
+								>
+									<div className="flex w-full items-center justify-between">
+										<span className="font-semibold text-foreground truncate">
+											{preset.roleLabel}
+										</span>
+										{isSelected && (
+											<CheckCircle2 className="size-3.5 text-primary shrink-0" />
+										)}
+									</div>
+									<span className="mt-1 text-[11px] text-muted-foreground truncate">
+										{preset.scopeName}
+									</span>
+								</button>
+							);
+						})}
+					</div>
+
+					{/* Selected Preset Details Box */}
+					<div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs space-y-1.5">
+						<div className="flex items-center justify-between">
+							<span className="font-semibold text-foreground">
+								Peran: <strong className="text-primary">{selectedPreset.roleLabel}</strong> ({selectedPreset.name})
+							</span>
+							<span className="font-mono text-[11px] text-muted-foreground">
+								Scope: {selectedPreset.scopeCode} — {selectedPreset.scopeName}
+							</span>
+						</div>
+						<p className="text-muted-foreground leading-relaxed">
+							{selectedPreset.description}
 						</p>
-						<h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
-							Masuk ke akun Anda
-						</h1>
+						<div className="flex items-center gap-1.5 pt-1 text-[11px] text-primary font-medium">
+							<span>Akan diarahkan ke:</span>
+							<code className="rounded bg-primary/10 px-1.5 py-0.5 font-semibold text-foreground">
+								{resolvedAuth.targetPath}
+							</code>
+						</div>
 					</div>
 				</div>
 
-				<p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-					Gunakan email kedinasan terdaftar. Setelah login, akses ditentukan
-					sesuai mapping Operator Satker atau Admin KPPN.
-				</p>
-
-				<div className="mt-5 flex items-start gap-2.5 rounded-lg border border-info/30 bg-info-surface px-3 py-2.5 text-info">
-					<ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-					<p className="text-xs leading-relaxed">
-						Intent demo setelah login: sistem akan melanjutkan ke{" "}
-						<code className="rounded bg-background/70 px-1.5 py-0.5 font-semibold">
-							{safeRedirectIntent}
-						</code>
-					</p>
-				</div>
-
+				{/* Status Banners */}
 				{status === "error" && errorMessage ? (
 					<div
 						aria-live="assertive"
-						className="mt-4 flex items-start gap-2.5 rounded-lg border border-danger/30 bg-danger-surface px-3 py-2.5 text-danger"
+						className="flex items-start gap-2.5 rounded-lg border border-danger/30 bg-danger/10 p-3 text-danger text-xs"
 						role="alert"
 					>
-						<AlertCircle
-							aria-hidden="true"
-							className="mt-0.5 size-4 shrink-0"
-						/>
-						<p className="text-xs leading-relaxed">{errorMessage}</p>
+						<AlertCircle aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+						<p>{errorMessage}</p>
 					</div>
 				) : null}
 
 				{status === "reset" ? (
 					<div
 						aria-live="polite"
-						className="mt-4 flex items-start gap-2.5 rounded-lg border border-info/30 bg-info-surface px-3 py-2.5 text-info"
+						className="flex items-start gap-2.5 rounded-lg border border-info/30 bg-info/10 p-3 text-info text-xs"
 					>
 						<KeyRound aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-						<div className="space-y-1">
-							<p className="text-xs font-semibold">Pemulihan kata sandi</p>
-							<p className="text-xs leading-relaxed">
-								Fitur reset password akan tersedia melalui Clerk. Untuk dummy
-								ini, hubungi Admin KPPN.
+						<div>
+							<p className="font-semibold">Pemulihan Kata Sandi</p>
+							<p className="mt-0.5 text-muted-foreground">
+								Gunakan kata sandi demo <code className="rounded bg-background px-1 font-semibold">password123</code> atau pilih preset akun di atas.
 							</p>
 						</div>
 					</div>
@@ -142,33 +289,32 @@ export function SignInPanel({
 				{status === "success" ? (
 					<div
 						aria-live="polite"
-						className="mt-5 rounded-xl border border-success/30 bg-success-surface p-4"
+						className="rounded-xl border border-success/30 bg-success/10 p-4 space-y-3"
 					>
 						<div className="flex items-start gap-2.5 text-success">
-							<CheckCircle2
-								aria-hidden="true"
-								className="mt-0.5 size-5 shrink-0"
-							/>
+							<CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
 							<div>
-								<p className="text-sm font-semibold">Login dummy berhasil</p>
-								<p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-									Tahap berikutnya menunggu pemeriksaan mapping akses.
+								<p className="text-sm font-semibold">Autentikasi Berhasil</p>
+								<p className="mt-0.5 text-xs text-muted-foreground">
+									Masuk sebagai <strong>{resolvedAuth.name}</strong> ({resolvedAuth.roleLabel}).
 								</p>
 							</div>
 						</div>
-						<div className="mt-4 flex flex-col gap-2 sm:flex-row">
+
+						<div className="flex flex-col gap-2 sm:flex-row pt-1">
 							<a
-								className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
-								href={safeRedirectIntent}
+								className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
+								href={resolvedAuth.targetPath}
 							>
-								Lanjutkan demo
+								<span>Buka Dashboard {resolvedAuth.roleLabel}</span>
+								<ArrowRight className="size-3.5" />
 							</a>
 							<button
-								className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
+								className="inline-flex min-h-10 items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-muted transition"
 								onClick={() => setStatus("mfa")}
 								type="button"
 							>
-								Lihat langkah MFA
+								Verifikasi MFA
 							</button>
 						</div>
 					</div>
@@ -177,7 +323,7 @@ export function SignInPanel({
 				{status === "mfa" ? (
 					<div
 						aria-live="polite"
-						className="mt-5 rounded-xl border border-primary/25 bg-primary/5 p-4"
+						className="rounded-xl border border-primary/25 bg-primary/5 p-4 space-y-3"
 					>
 						<div className="flex items-start gap-2.5">
 							<ShieldCheck
@@ -186,36 +332,36 @@ export function SignInPanel({
 							/>
 							<div>
 								<p className="text-sm font-semibold text-foreground">
-									Verifikasi MFA (placeholder)
+									Verifikasi Multi-Faktor (MFA Demo)
 								</p>
-								<p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-									Clerk akan menangani kode verifikasi pada integrasi
-									autentikasi.
+								<p className="mt-0.5 text-xs text-muted-foreground">
+									Kode OTP telah diverifikasi secara otomatis untuk sesi simulasi ini.
 								</p>
 							</div>
 						</div>
-						<button
-							className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
-							onClick={() => setStatus("success")}
-							type="button"
+						<a
+							className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
+							href={resolvedAuth.targetPath}
 						>
-							Kembali ke hasil login
-						</button>
+							<span>Lanjutkan ke Dashboard {resolvedAuth.roleLabel}</span>
+							<ArrowRight className="size-3.5" />
+						</a>
 					</div>
 				) : null}
 
+				{/* Sign In Form */}
 				{status !== "success" && status !== "mfa" ? (
-					<form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+					<form className="space-y-4" onSubmit={handleSubmit}>
 						<div className="space-y-1.5">
 							<label
 								className="block text-xs font-semibold text-foreground"
 								htmlFor="sign-in-email"
 							>
-								Email kedinasan
+								Email Kedinasan
 							</label>
 							<input
 								autoComplete="email"
-								className="min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:bg-surface-muted"
+								className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
 								disabled={isBusy}
 								id="sign-in-email"
 								name="email"
@@ -233,10 +379,10 @@ export function SignInPanel({
 									className="block text-xs font-semibold text-foreground"
 									htmlFor="sign-in-password"
 								>
-									Kata sandi
+									Kata Sandi
 								</label>
 								<button
-									className="min-h-10 rounded-md px-1 text-xs font-medium text-primary transition-colors hover:text-primary-hover hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+									className="text-xs font-medium text-primary hover:underline"
 									disabled={isBusy}
 									onClick={() => {
 										setStatus("reset");
@@ -249,7 +395,7 @@ export function SignInPanel({
 							</div>
 							<input
 								autoComplete="current-password"
-								className="min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:bg-surface-muted"
+								className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
 								disabled={isBusy}
 								id="sign-in-password"
 								minLength={8}
@@ -260,13 +406,10 @@ export function SignInPanel({
 								type="password"
 								value={password}
 							/>
-							<p className="text-xs text-muted-foreground">
-								Kata sandi minimal 8 karakter.
-							</p>
 						</div>
 
 						<button
-							className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+							className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
 							disabled={isBusy}
 							type="submit"
 						>
@@ -276,10 +419,10 @@ export function SignInPanel({
 										aria-hidden="true"
 										className="size-4 animate-spin"
 									/>
-									Memeriksa akses...
+									<span>Memverifikasi Hak Akses...</span>
 								</>
 							) : (
-								"Masuk ke sistem"
+								<span>Masuk Sebagai {selectedPreset.roleLabel}</span>
 							)}
 						</button>
 					</form>
@@ -287,21 +430,91 @@ export function SignInPanel({
 
 				{status === "reset" ? (
 					<button
-						className="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
+						className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-muted transition"
 						onClick={resetToForm}
 						type="button"
 					>
-						Kembali ke form login
+						Kembali ke Form Login
 					</button>
 				) : null}
 
-				<div className="mt-6 border-t border-border pt-4">
-					<p className="text-center text-xs leading-relaxed text-muted-foreground">
-						Akses ditentukan setelah autentikasi dan tidak dapat dipilih dari
-						sisi pengguna.
+				<div className="border-t border-border/80 pt-4 text-center">
+					<p className="text-xs text-muted-foreground">
+						Hak akses ditentukan secara otomatis di server berdasarkan pemetaan email pengguna pada lingkup KPPN / Satker.
 					</p>
 				</div>
 			</div>
+
+			{/* Comparison Matrix Modal */}
+			{isMatrixOpen && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4 backdrop-blur-xs">
+					<div className="w-full max-w-3xl rounded-xl border border-border bg-background p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+						<div className="flex items-start justify-between">
+							<div className="space-y-1">
+								<div className="flex items-center gap-2">
+									<Scale className="size-4 text-primary" />
+									<h3 className="text-base font-semibold text-foreground">
+										Matriks Perbedaan Hak Akses
+									</h3>
+								</div>
+								<p className="text-xs text-muted-foreground">
+									Perbandingan kewenangan antara peran Admin KPPN vs Operator Satker
+								</p>
+							</div>
+							<button
+								type="button"
+								onClick={() => setIsMatrixOpen(false)}
+								className="rounded-lg p-1 text-muted-foreground hover:bg-surface-muted"
+							>
+								<X className="size-4" />
+							</button>
+						</div>
+
+						<div className="overflow-x-auto rounded-lg border border-border/80">
+							<table className="w-full text-left text-xs">
+								<thead>
+									<tr className="border-b border-border/80 bg-surface-muted/60 font-semibold text-muted-foreground">
+										<th className="px-3.5 py-3">Modul &amp; Fitur</th>
+										<th className="px-3.5 py-3 text-primary">Admin KPPN (Pembina)</th>
+										<th className="px-3.5 py-3 text-foreground">Operator Satker</th>
+									</tr>
+								</thead>
+								<tbody className="divide-y divide-border/60">
+									{mockPermissionMatrix.map((item) => (
+										<tr
+											key={item.moduleName}
+											className="transition-colors hover:bg-surface-muted/30"
+										>
+											<td className="px-3.5 py-2.5 font-semibold text-foreground">
+												{item.moduleName}
+											</td>
+											<td className="px-3.5 py-2.5 font-medium text-primary">
+												{item.adminKppnAccess}
+											</td>
+											<td className="px-3.5 py-2.5 text-foreground">
+												{item.operatorSatkerAccess}
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+
+						<div className="flex items-center justify-between border-t border-border pt-3 text-xs">
+							<span className="text-muted-foreground">
+								Setiap peran memiliki isolasi data dan batasan kewenangan yang terjamin.
+							</span>
+							<button
+								type="button"
+								onClick={() => setIsMatrixOpen(false)}
+								className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-xs"
+							>
+								Tutup
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</section>
 	);
 }

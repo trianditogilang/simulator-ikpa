@@ -13,6 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccessPendingRouteImport } from './routes/access-pending'
 import { Route as SelectOrganizationRouteImport } from './routes/select-organization'
 import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as AdminKppnAccessRouteImport } from './routes/admin-kppn/access'
+import { Route as AdminKppnAuditLogsRouteImport } from './routes/admin-kppn/audit-logs'
+import { Route as AdminKppnDashboardRouteImport } from './routes/admin-kppn/dashboard'
+import { Route as AdminKppnReportsRouteImport } from './routes/admin-kppn/reports'
 import { Route as OperatorAnalysisRouteImport } from './routes/operator/analysis'
 import { Route as OperatorDashboardRouteImport } from './routes/operator/dashboard'
 import { Route as OperatorGuidesRouteImport } from './routes/operator/guides'
@@ -22,12 +26,20 @@ import { Route as OperatorRemindersRouteImport } from './routes/operator/reminde
 import { Route as OperatorReportsRouteImport } from './routes/operator/reports'
 import { Route as OperatorSettingsRouteImport } from './routes/operator/settings'
 import { Route as OperatorSimulationRouteImport } from './routes/operator/simulation'
+import { Route as AdminKppnMonitoringRemindersRouteImport } from './routes/admin-kppn/monitoring/reminders'
+import { Route as AdminKppnOrganizationsIndexRouteImport } from './routes/admin-kppn/organizations/index'
+import { Route as AdminKppnOrganizationsOrgIdRouteImport } from './routes/admin-kppn/organizations/$orgId'
+import { Route as AdminKppnPolicyHistoryRouteImport } from './routes/admin-kppn/policy/history'
+import { Route as AdminKppnPolicyRemindersRouteImport } from './routes/admin-kppn/policy/reminders'
+import { Route as AdminKppnPolicyWorkdaysRouteImport } from './routes/admin-kppn/policy/workdays'
 import { Route as OperatorDataBudgetRevisionsRouteImport } from './routes/operator/data/budget-revisions'
 import { Route as OperatorDataContractsInvoicesRouteImport } from './routes/operator/data/contracts-invoices'
 import { Route as OperatorDataOutputAchievementRouteImport } from './routes/operator/data/output-achievement'
 import { Route as OperatorDataRpdRealizationRouteImport } from './routes/operator/data/rpd-realization'
 import { Route as OperatorDataSpmDispensationRouteImport } from './routes/operator/data/spm-dispensation'
 import { Route as OperatorDataUpTupKkpRouteImport } from './routes/operator/data/up-tup-kkp'
+import { Route as AdminKppnPolicyRuleSetsIndexRouteImport } from './routes/admin-kppn/policy/rule-sets/index'
+import { Route as AdminKppnPolicyRuleSetsRuleSetIdRouteImport } from './routes/admin-kppn/policy/rule-sets/$ruleSetId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -47,6 +59,26 @@ const SelectOrganizationRoute = SelectOrganizationRouteImport.update({
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminKppnAccessRoute = AdminKppnAccessRouteImport.update({
+  id: '/admin-kppn/access',
+  path: '/admin-kppn/access',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminKppnAuditLogsRoute = AdminKppnAuditLogsRouteImport.update({
+  id: '/admin-kppn/audit-logs',
+  path: '/admin-kppn/audit-logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminKppnDashboardRoute = AdminKppnDashboardRouteImport.update({
+  id: '/admin-kppn/dashboard',
+  path: '/admin-kppn/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminKppnReportsRoute = AdminKppnReportsRouteImport.update({
+  id: '/admin-kppn/reports',
+  path: '/admin-kppn/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OperatorAnalysisRoute = OperatorAnalysisRouteImport.update({
@@ -94,6 +126,40 @@ const OperatorSimulationRoute = OperatorSimulationRouteImport.update({
   path: '/operator/simulation',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminKppnMonitoringRemindersRoute =
+  AdminKppnMonitoringRemindersRouteImport.update({
+    id: '/admin-kppn/monitoring/reminders',
+    path: '/admin-kppn/monitoring/reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminKppnOrganizationsIndexRoute =
+  AdminKppnOrganizationsIndexRouteImport.update({
+    id: '/admin-kppn/organizations/',
+    path: '/admin-kppn/organizations/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminKppnOrganizationsOrgIdRoute =
+  AdminKppnOrganizationsOrgIdRouteImport.update({
+    id: '/admin-kppn/organizations/$orgId',
+    path: '/admin-kppn/organizations/$orgId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminKppnPolicyHistoryRoute = AdminKppnPolicyHistoryRouteImport.update({
+  id: '/admin-kppn/policy/history',
+  path: '/admin-kppn/policy/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminKppnPolicyRemindersRoute =
+  AdminKppnPolicyRemindersRouteImport.update({
+    id: '/admin-kppn/policy/reminders',
+    path: '/admin-kppn/policy/reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminKppnPolicyWorkdaysRoute = AdminKppnPolicyWorkdaysRouteImport.update({
+  id: '/admin-kppn/policy/workdays',
+  path: '/admin-kppn/policy/workdays',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OperatorDataBudgetRevisionsRoute =
   OperatorDataBudgetRevisionsRouteImport.update({
     id: '/operator/data/budget-revisions',
@@ -129,12 +195,28 @@ const OperatorDataUpTupKkpRoute = OperatorDataUpTupKkpRouteImport.update({
   path: '/operator/data/up-tup-kkp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminKppnPolicyRuleSetsIndexRoute =
+  AdminKppnPolicyRuleSetsIndexRouteImport.update({
+    id: '/admin-kppn/policy/rule-sets/',
+    path: '/admin-kppn/policy/rule-sets/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminKppnPolicyRuleSetsRuleSetIdRoute =
+  AdminKppnPolicyRuleSetsRuleSetIdRouteImport.update({
+    id: '/admin-kppn/policy/rule-sets/$ruleSetId',
+    path: '/admin-kppn/policy/rule-sets/$ruleSetId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/access-pending': typeof AccessPendingRoute
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
+  '/admin-kppn/access': typeof AdminKppnAccessRoute
+  '/admin-kppn/audit-logs': typeof AdminKppnAuditLogsRoute
+  '/admin-kppn/dashboard': typeof AdminKppnDashboardRoute
+  '/admin-kppn/reports': typeof AdminKppnReportsRoute
   '/operator/analysis': typeof OperatorAnalysisRoute
   '/operator/dashboard': typeof OperatorDashboardRoute
   '/operator/guides': typeof OperatorGuidesRoute
@@ -144,18 +226,30 @@ export interface FileRoutesByFullPath {
   '/operator/reports': typeof OperatorReportsRoute
   '/operator/settings': typeof OperatorSettingsRoute
   '/operator/simulation': typeof OperatorSimulationRoute
+  '/admin-kppn/monitoring/reminders': typeof AdminKppnMonitoringRemindersRoute
+  '/admin-kppn/organizations/$orgId': typeof AdminKppnOrganizationsOrgIdRoute
+  '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
+  '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
+  '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
   '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
   '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
   '/operator/data/rpd-realization': typeof OperatorDataRpdRealizationRoute
   '/operator/data/spm-dispensation': typeof OperatorDataSpmDispensationRoute
   '/operator/data/up-tup-kkp': typeof OperatorDataUpTupKkpRoute
+  '/admin-kppn/organizations/': typeof AdminKppnOrganizationsIndexRoute
+  '/admin-kppn/policy/rule-sets/$ruleSetId': typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
+  '/admin-kppn/policy/rule-sets/': typeof AdminKppnPolicyRuleSetsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/access-pending': typeof AccessPendingRoute
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
+  '/admin-kppn/access': typeof AdminKppnAccessRoute
+  '/admin-kppn/audit-logs': typeof AdminKppnAuditLogsRoute
+  '/admin-kppn/dashboard': typeof AdminKppnDashboardRoute
+  '/admin-kppn/reports': typeof AdminKppnReportsRoute
   '/operator/analysis': typeof OperatorAnalysisRoute
   '/operator/dashboard': typeof OperatorDashboardRoute
   '/operator/guides': typeof OperatorGuidesRoute
@@ -165,12 +259,20 @@ export interface FileRoutesByTo {
   '/operator/reports': typeof OperatorReportsRoute
   '/operator/settings': typeof OperatorSettingsRoute
   '/operator/simulation': typeof OperatorSimulationRoute
+  '/admin-kppn/monitoring/reminders': typeof AdminKppnMonitoringRemindersRoute
+  '/admin-kppn/organizations/$orgId': typeof AdminKppnOrganizationsOrgIdRoute
+  '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
+  '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
+  '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
   '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
   '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
   '/operator/data/rpd-realization': typeof OperatorDataRpdRealizationRoute
   '/operator/data/spm-dispensation': typeof OperatorDataSpmDispensationRoute
   '/operator/data/up-tup-kkp': typeof OperatorDataUpTupKkpRoute
+  '/admin-kppn/organizations': typeof AdminKppnOrganizationsIndexRoute
+  '/admin-kppn/policy/rule-sets/$ruleSetId': typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
+  '/admin-kppn/policy/rule-sets': typeof AdminKppnPolicyRuleSetsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -178,6 +280,10 @@ export interface FileRoutesById {
   '/access-pending': typeof AccessPendingRoute
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
+  '/admin-kppn/access': typeof AdminKppnAccessRoute
+  '/admin-kppn/audit-logs': typeof AdminKppnAuditLogsRoute
+  '/admin-kppn/dashboard': typeof AdminKppnDashboardRoute
+  '/admin-kppn/reports': typeof AdminKppnReportsRoute
   '/operator/analysis': typeof OperatorAnalysisRoute
   '/operator/dashboard': typeof OperatorDashboardRoute
   '/operator/guides': typeof OperatorGuidesRoute
@@ -187,12 +293,20 @@ export interface FileRoutesById {
   '/operator/reports': typeof OperatorReportsRoute
   '/operator/settings': typeof OperatorSettingsRoute
   '/operator/simulation': typeof OperatorSimulationRoute
+  '/admin-kppn/monitoring/reminders': typeof AdminKppnMonitoringRemindersRoute
+  '/admin-kppn/organizations/$orgId': typeof AdminKppnOrganizationsOrgIdRoute
+  '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
+  '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
+  '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
   '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
   '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
   '/operator/data/rpd-realization': typeof OperatorDataRpdRealizationRoute
   '/operator/data/spm-dispensation': typeof OperatorDataSpmDispensationRoute
   '/operator/data/up-tup-kkp': typeof OperatorDataUpTupKkpRoute
+  '/admin-kppn/organizations/': typeof AdminKppnOrganizationsIndexRoute
+  '/admin-kppn/policy/rule-sets/$ruleSetId': typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
+  '/admin-kppn/policy/rule-sets/': typeof AdminKppnPolicyRuleSetsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -201,6 +315,10 @@ export interface FileRouteTypes {
     | '/access-pending'
     | '/select-organization'
     | '/sign-in'
+    | '/admin-kppn/access'
+    | '/admin-kppn/audit-logs'
+    | '/admin-kppn/dashboard'
+    | '/admin-kppn/reports'
     | '/operator/analysis'
     | '/operator/dashboard'
     | '/operator/guides'
@@ -210,18 +328,30 @@ export interface FileRouteTypes {
     | '/operator/reports'
     | '/operator/settings'
     | '/operator/simulation'
+    | '/admin-kppn/monitoring/reminders'
+    | '/admin-kppn/organizations/$orgId'
+    | '/admin-kppn/policy/history'
+    | '/admin-kppn/policy/reminders'
+    | '/admin-kppn/policy/workdays'
     | '/operator/data/budget-revisions'
     | '/operator/data/contracts-invoices'
     | '/operator/data/output-achievement'
     | '/operator/data/rpd-realization'
     | '/operator/data/spm-dispensation'
     | '/operator/data/up-tup-kkp'
+    | '/admin-kppn/organizations/'
+    | '/admin-kppn/policy/rule-sets/$ruleSetId'
+    | '/admin-kppn/policy/rule-sets/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/access-pending'
     | '/select-organization'
     | '/sign-in'
+    | '/admin-kppn/access'
+    | '/admin-kppn/audit-logs'
+    | '/admin-kppn/dashboard'
+    | '/admin-kppn/reports'
     | '/operator/analysis'
     | '/operator/dashboard'
     | '/operator/guides'
@@ -231,18 +361,30 @@ export interface FileRouteTypes {
     | '/operator/reports'
     | '/operator/settings'
     | '/operator/simulation'
+    | '/admin-kppn/monitoring/reminders'
+    | '/admin-kppn/organizations/$orgId'
+    | '/admin-kppn/policy/history'
+    | '/admin-kppn/policy/reminders'
+    | '/admin-kppn/policy/workdays'
     | '/operator/data/budget-revisions'
     | '/operator/data/contracts-invoices'
     | '/operator/data/output-achievement'
     | '/operator/data/rpd-realization'
     | '/operator/data/spm-dispensation'
     | '/operator/data/up-tup-kkp'
+    | '/admin-kppn/organizations'
+    | '/admin-kppn/policy/rule-sets/$ruleSetId'
+    | '/admin-kppn/policy/rule-sets'
   id:
     | '__root__'
     | '/'
     | '/access-pending'
     | '/select-organization'
     | '/sign-in'
+    | '/admin-kppn/access'
+    | '/admin-kppn/audit-logs'
+    | '/admin-kppn/dashboard'
+    | '/admin-kppn/reports'
     | '/operator/analysis'
     | '/operator/dashboard'
     | '/operator/guides'
@@ -252,12 +394,20 @@ export interface FileRouteTypes {
     | '/operator/reports'
     | '/operator/settings'
     | '/operator/simulation'
+    | '/admin-kppn/monitoring/reminders'
+    | '/admin-kppn/organizations/$orgId'
+    | '/admin-kppn/policy/history'
+    | '/admin-kppn/policy/reminders'
+    | '/admin-kppn/policy/workdays'
     | '/operator/data/budget-revisions'
     | '/operator/data/contracts-invoices'
     | '/operator/data/output-achievement'
     | '/operator/data/rpd-realization'
     | '/operator/data/spm-dispensation'
     | '/operator/data/up-tup-kkp'
+    | '/admin-kppn/organizations/'
+    | '/admin-kppn/policy/rule-sets/$ruleSetId'
+    | '/admin-kppn/policy/rule-sets/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -265,6 +415,10 @@ export interface RootRouteChildren {
   AccessPendingRoute: typeof AccessPendingRoute
   SelectOrganizationRoute: typeof SelectOrganizationRoute
   SignInRoute: typeof SignInRoute
+  AdminKppnAccessRoute: typeof AdminKppnAccessRoute
+  AdminKppnAuditLogsRoute: typeof AdminKppnAuditLogsRoute
+  AdminKppnDashboardRoute: typeof AdminKppnDashboardRoute
+  AdminKppnReportsRoute: typeof AdminKppnReportsRoute
   OperatorAnalysisRoute: typeof OperatorAnalysisRoute
   OperatorDashboardRoute: typeof OperatorDashboardRoute
   OperatorGuidesRoute: typeof OperatorGuidesRoute
@@ -274,12 +428,20 @@ export interface RootRouteChildren {
   OperatorReportsRoute: typeof OperatorReportsRoute
   OperatorSettingsRoute: typeof OperatorSettingsRoute
   OperatorSimulationRoute: typeof OperatorSimulationRoute
+  AdminKppnMonitoringRemindersRoute: typeof AdminKppnMonitoringRemindersRoute
+  AdminKppnOrganizationsOrgIdRoute: typeof AdminKppnOrganizationsOrgIdRoute
+  AdminKppnPolicyHistoryRoute: typeof AdminKppnPolicyHistoryRoute
+  AdminKppnPolicyRemindersRoute: typeof AdminKppnPolicyRemindersRoute
+  AdminKppnPolicyWorkdaysRoute: typeof AdminKppnPolicyWorkdaysRoute
   OperatorDataBudgetRevisionsRoute: typeof OperatorDataBudgetRevisionsRoute
   OperatorDataContractsInvoicesRoute: typeof OperatorDataContractsInvoicesRoute
   OperatorDataOutputAchievementRoute: typeof OperatorDataOutputAchievementRoute
   OperatorDataRpdRealizationRoute: typeof OperatorDataRpdRealizationRoute
   OperatorDataSpmDispensationRoute: typeof OperatorDataSpmDispensationRoute
   OperatorDataUpTupKkpRoute: typeof OperatorDataUpTupKkpRoute
+  AdminKppnOrganizationsIndexRoute: typeof AdminKppnOrganizationsIndexRoute
+  AdminKppnPolicyRuleSetsRuleSetIdRoute: typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
+  AdminKppnPolicyRuleSetsIndexRoute: typeof AdminKppnPolicyRuleSetsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -310,6 +472,34 @@ declare module '@tanstack/react-router' {
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-kppn/access': {
+      id: '/admin-kppn/access'
+      path: '/admin-kppn/access'
+      fullPath: '/admin-kppn/access'
+      preLoaderRoute: typeof AdminKppnAccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-kppn/audit-logs': {
+      id: '/admin-kppn/audit-logs'
+      path: '/admin-kppn/audit-logs'
+      fullPath: '/admin-kppn/audit-logs'
+      preLoaderRoute: typeof AdminKppnAuditLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-kppn/dashboard': {
+      id: '/admin-kppn/dashboard'
+      path: '/admin-kppn/dashboard'
+      fullPath: '/admin-kppn/dashboard'
+      preLoaderRoute: typeof AdminKppnDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-kppn/reports': {
+      id: '/admin-kppn/reports'
+      path: '/admin-kppn/reports'
+      fullPath: '/admin-kppn/reports'
+      preLoaderRoute: typeof AdminKppnReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/operator/analysis': {
@@ -375,6 +565,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OperatorSimulationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-kppn/monitoring/reminders': {
+      id: '/admin-kppn/monitoring/reminders'
+      path: '/admin-kppn/monitoring/reminders'
+      fullPath: '/admin-kppn/monitoring/reminders'
+      preLoaderRoute: typeof AdminKppnMonitoringRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-kppn/organizations/': {
+      id: '/admin-kppn/organizations/'
+      path: '/admin-kppn/organizations'
+      fullPath: '/admin-kppn/organizations/'
+      preLoaderRoute: typeof AdminKppnOrganizationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-kppn/organizations/$orgId': {
+      id: '/admin-kppn/organizations/$orgId'
+      path: '/admin-kppn/organizations/$orgId'
+      fullPath: '/admin-kppn/organizations/$orgId'
+      preLoaderRoute: typeof AdminKppnOrganizationsOrgIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-kppn/policy/history': {
+      id: '/admin-kppn/policy/history'
+      path: '/admin-kppn/policy/history'
+      fullPath: '/admin-kppn/policy/history'
+      preLoaderRoute: typeof AdminKppnPolicyHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-kppn/policy/reminders': {
+      id: '/admin-kppn/policy/reminders'
+      path: '/admin-kppn/policy/reminders'
+      fullPath: '/admin-kppn/policy/reminders'
+      preLoaderRoute: typeof AdminKppnPolicyRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-kppn/policy/workdays': {
+      id: '/admin-kppn/policy/workdays'
+      path: '/admin-kppn/policy/workdays'
+      fullPath: '/admin-kppn/policy/workdays'
+      preLoaderRoute: typeof AdminKppnPolicyWorkdaysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/operator/data/budget-revisions': {
       id: '/operator/data/budget-revisions'
       path: '/operator/data/budget-revisions'
@@ -417,6 +649,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OperatorDataUpTupKkpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-kppn/policy/rule-sets/': {
+      id: '/admin-kppn/policy/rule-sets/'
+      path: '/admin-kppn/policy/rule-sets'
+      fullPath: '/admin-kppn/policy/rule-sets/'
+      preLoaderRoute: typeof AdminKppnPolicyRuleSetsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-kppn/policy/rule-sets/$ruleSetId': {
+      id: '/admin-kppn/policy/rule-sets/$ruleSetId'
+      path: '/admin-kppn/policy/rule-sets/$ruleSetId'
+      fullPath: '/admin-kppn/policy/rule-sets/$ruleSetId'
+      preLoaderRoute: typeof AdminKppnPolicyRuleSetsRuleSetIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -425,6 +671,10 @@ const rootRouteChildren: RootRouteChildren = {
   AccessPendingRoute: AccessPendingRoute,
   SelectOrganizationRoute: SelectOrganizationRoute,
   SignInRoute: SignInRoute,
+  AdminKppnAccessRoute: AdminKppnAccessRoute,
+  AdminKppnAuditLogsRoute: AdminKppnAuditLogsRoute,
+  AdminKppnDashboardRoute: AdminKppnDashboardRoute,
+  AdminKppnReportsRoute: AdminKppnReportsRoute,
   OperatorAnalysisRoute: OperatorAnalysisRoute,
   OperatorDashboardRoute: OperatorDashboardRoute,
   OperatorGuidesRoute: OperatorGuidesRoute,
@@ -434,12 +684,20 @@ const rootRouteChildren: RootRouteChildren = {
   OperatorReportsRoute: OperatorReportsRoute,
   OperatorSettingsRoute: OperatorSettingsRoute,
   OperatorSimulationRoute: OperatorSimulationRoute,
+  AdminKppnMonitoringRemindersRoute: AdminKppnMonitoringRemindersRoute,
+  AdminKppnOrganizationsOrgIdRoute: AdminKppnOrganizationsOrgIdRoute,
+  AdminKppnPolicyHistoryRoute: AdminKppnPolicyHistoryRoute,
+  AdminKppnPolicyRemindersRoute: AdminKppnPolicyRemindersRoute,
+  AdminKppnPolicyWorkdaysRoute: AdminKppnPolicyWorkdaysRoute,
   OperatorDataBudgetRevisionsRoute: OperatorDataBudgetRevisionsRoute,
   OperatorDataContractsInvoicesRoute: OperatorDataContractsInvoicesRoute,
   OperatorDataOutputAchievementRoute: OperatorDataOutputAchievementRoute,
   OperatorDataRpdRealizationRoute: OperatorDataRpdRealizationRoute,
   OperatorDataSpmDispensationRoute: OperatorDataSpmDispensationRoute,
   OperatorDataUpTupKkpRoute: OperatorDataUpTupKkpRoute,
+  AdminKppnOrganizationsIndexRoute: AdminKppnOrganizationsIndexRoute,
+  AdminKppnPolicyRuleSetsRuleSetIdRoute: AdminKppnPolicyRuleSetsRuleSetIdRoute,
+  AdminKppnPolicyRuleSetsIndexRoute: AdminKppnPolicyRuleSetsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
