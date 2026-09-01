@@ -36,8 +36,7 @@ export function LandingContent({ className, ...props }: LandingContentProps) {
 						<div className="space-y-3">
 							<h1
 								id="hero-heading"
-								style={{ fontWeight: 600 }}
-								className="text-balance text-3xl font-semibold leading-[1.15] tracking-tight text-foreground sm:text-4xl lg:text-[42px]"
+								className="text-balance text-4xl font-[600] leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-[48px]"
 							>
 								SIMULATOR PENILAIAN <br />
 								<span className="bg-gradient-to-r from-primary to-info bg-clip-text text-transparent">

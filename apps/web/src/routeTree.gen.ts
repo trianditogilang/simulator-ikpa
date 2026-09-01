@@ -10,33 +10,276 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccessPendingRouteImport } from './routes/access-pending'
+import { Route as SelectOrganizationRouteImport } from './routes/select-organization'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as OperatorAnalysisRouteImport } from './routes/operator/analysis'
+import { Route as OperatorDashboardRouteImport } from './routes/operator/dashboard'
+import { Route as OperatorGuidesRouteImport } from './routes/operator/guides'
+import { Route as OperatorHistoryRouteImport } from './routes/operator/history'
+import { Route as OperatorImportRouteImport } from './routes/operator/import'
+import { Route as OperatorRemindersRouteImport } from './routes/operator/reminders'
+import { Route as OperatorReportsRouteImport } from './routes/operator/reports'
+import { Route as OperatorSettingsRouteImport } from './routes/operator/settings'
+import { Route as OperatorSimulationRouteImport } from './routes/operator/simulation'
+import { Route as OperatorDataBudgetRevisionsRouteImport } from './routes/operator/data/budget-revisions'
+import { Route as OperatorDataContractsInvoicesRouteImport } from './routes/operator/data/contracts-invoices'
+import { Route as OperatorDataOutputAchievementRouteImport } from './routes/operator/data/output-achievement'
+import { Route as OperatorDataRpdRealizationRouteImport } from './routes/operator/data/rpd-realization'
+import { Route as OperatorDataSpmDispensationRouteImport } from './routes/operator/data/spm-dispensation'
+import { Route as OperatorDataUpTupKkpRouteImport } from './routes/operator/data/up-tup-kkp'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccessPendingRoute = AccessPendingRouteImport.update({
+  id: '/access-pending',
+  path: '/access-pending',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SelectOrganizationRoute = SelectOrganizationRouteImport.update({
+  id: '/select-organization',
+  path: '/select-organization',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorAnalysisRoute = OperatorAnalysisRouteImport.update({
+  id: '/operator/analysis',
+  path: '/operator/analysis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorDashboardRoute = OperatorDashboardRouteImport.update({
+  id: '/operator/dashboard',
+  path: '/operator/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorGuidesRoute = OperatorGuidesRouteImport.update({
+  id: '/operator/guides',
+  path: '/operator/guides',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorHistoryRoute = OperatorHistoryRouteImport.update({
+  id: '/operator/history',
+  path: '/operator/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorImportRoute = OperatorImportRouteImport.update({
+  id: '/operator/import',
+  path: '/operator/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorRemindersRoute = OperatorRemindersRouteImport.update({
+  id: '/operator/reminders',
+  path: '/operator/reminders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorReportsRoute = OperatorReportsRouteImport.update({
+  id: '/operator/reports',
+  path: '/operator/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorSettingsRoute = OperatorSettingsRouteImport.update({
+  id: '/operator/settings',
+  path: '/operator/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorSimulationRoute = OperatorSimulationRouteImport.update({
+  id: '/operator/simulation',
+  path: '/operator/simulation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorDataBudgetRevisionsRoute =
+  OperatorDataBudgetRevisionsRouteImport.update({
+    id: '/operator/data/budget-revisions',
+    path: '/operator/data/budget-revisions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const OperatorDataContractsInvoicesRoute =
+  OperatorDataContractsInvoicesRouteImport.update({
+    id: '/operator/data/contracts-invoices',
+    path: '/operator/data/contracts-invoices',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const OperatorDataOutputAchievementRoute =
+  OperatorDataOutputAchievementRouteImport.update({
+    id: '/operator/data/output-achievement',
+    path: '/operator/data/output-achievement',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const OperatorDataRpdRealizationRoute =
+  OperatorDataRpdRealizationRouteImport.update({
+    id: '/operator/data/rpd-realization',
+    path: '/operator/data/rpd-realization',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const OperatorDataSpmDispensationRoute =
+  OperatorDataSpmDispensationRouteImport.update({
+    id: '/operator/data/spm-dispensation',
+    path: '/operator/data/spm-dispensation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const OperatorDataUpTupKkpRoute = OperatorDataUpTupKkpRouteImport.update({
+  id: '/operator/data/up-tup-kkp',
+  path: '/operator/data/up-tup-kkp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/access-pending': typeof AccessPendingRoute
+  '/select-organization': typeof SelectOrganizationRoute
+  '/sign-in': typeof SignInRoute
+  '/operator/analysis': typeof OperatorAnalysisRoute
+  '/operator/dashboard': typeof OperatorDashboardRoute
+  '/operator/guides': typeof OperatorGuidesRoute
+  '/operator/history': typeof OperatorHistoryRoute
+  '/operator/import': typeof OperatorImportRoute
+  '/operator/reminders': typeof OperatorRemindersRoute
+  '/operator/reports': typeof OperatorReportsRoute
+  '/operator/settings': typeof OperatorSettingsRoute
+  '/operator/simulation': typeof OperatorSimulationRoute
+  '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
+  '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
+  '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
+  '/operator/data/rpd-realization': typeof OperatorDataRpdRealizationRoute
+  '/operator/data/spm-dispensation': typeof OperatorDataSpmDispensationRoute
+  '/operator/data/up-tup-kkp': typeof OperatorDataUpTupKkpRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/access-pending': typeof AccessPendingRoute
+  '/select-organization': typeof SelectOrganizationRoute
+  '/sign-in': typeof SignInRoute
+  '/operator/analysis': typeof OperatorAnalysisRoute
+  '/operator/dashboard': typeof OperatorDashboardRoute
+  '/operator/guides': typeof OperatorGuidesRoute
+  '/operator/history': typeof OperatorHistoryRoute
+  '/operator/import': typeof OperatorImportRoute
+  '/operator/reminders': typeof OperatorRemindersRoute
+  '/operator/reports': typeof OperatorReportsRoute
+  '/operator/settings': typeof OperatorSettingsRoute
+  '/operator/simulation': typeof OperatorSimulationRoute
+  '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
+  '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
+  '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
+  '/operator/data/rpd-realization': typeof OperatorDataRpdRealizationRoute
+  '/operator/data/spm-dispensation': typeof OperatorDataSpmDispensationRoute
+  '/operator/data/up-tup-kkp': typeof OperatorDataUpTupKkpRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/access-pending': typeof AccessPendingRoute
+  '/select-organization': typeof SelectOrganizationRoute
+  '/sign-in': typeof SignInRoute
+  '/operator/analysis': typeof OperatorAnalysisRoute
+  '/operator/dashboard': typeof OperatorDashboardRoute
+  '/operator/guides': typeof OperatorGuidesRoute
+  '/operator/history': typeof OperatorHistoryRoute
+  '/operator/import': typeof OperatorImportRoute
+  '/operator/reminders': typeof OperatorRemindersRoute
+  '/operator/reports': typeof OperatorReportsRoute
+  '/operator/settings': typeof OperatorSettingsRoute
+  '/operator/simulation': typeof OperatorSimulationRoute
+  '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
+  '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
+  '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
+  '/operator/data/rpd-realization': typeof OperatorDataRpdRealizationRoute
+  '/operator/data/spm-dispensation': typeof OperatorDataSpmDispensationRoute
+  '/operator/data/up-tup-kkp': typeof OperatorDataUpTupKkpRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/access-pending'
+    | '/select-organization'
+    | '/sign-in'
+    | '/operator/analysis'
+    | '/operator/dashboard'
+    | '/operator/guides'
+    | '/operator/history'
+    | '/operator/import'
+    | '/operator/reminders'
+    | '/operator/reports'
+    | '/operator/settings'
+    | '/operator/simulation'
+    | '/operator/data/budget-revisions'
+    | '/operator/data/contracts-invoices'
+    | '/operator/data/output-achievement'
+    | '/operator/data/rpd-realization'
+    | '/operator/data/spm-dispensation'
+    | '/operator/data/up-tup-kkp'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/access-pending'
+    | '/select-organization'
+    | '/sign-in'
+    | '/operator/analysis'
+    | '/operator/dashboard'
+    | '/operator/guides'
+    | '/operator/history'
+    | '/operator/import'
+    | '/operator/reminders'
+    | '/operator/reports'
+    | '/operator/settings'
+    | '/operator/simulation'
+    | '/operator/data/budget-revisions'
+    | '/operator/data/contracts-invoices'
+    | '/operator/data/output-achievement'
+    | '/operator/data/rpd-realization'
+    | '/operator/data/spm-dispensation'
+    | '/operator/data/up-tup-kkp'
+  id:
+    | '__root__'
+    | '/'
+    | '/access-pending'
+    | '/select-organization'
+    | '/sign-in'
+    | '/operator/analysis'
+    | '/operator/dashboard'
+    | '/operator/guides'
+    | '/operator/history'
+    | '/operator/import'
+    | '/operator/reminders'
+    | '/operator/reports'
+    | '/operator/settings'
+    | '/operator/simulation'
+    | '/operator/data/budget-revisions'
+    | '/operator/data/contracts-invoices'
+    | '/operator/data/output-achievement'
+    | '/operator/data/rpd-realization'
+    | '/operator/data/spm-dispensation'
+    | '/operator/data/up-tup-kkp'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccessPendingRoute: typeof AccessPendingRoute
+  SelectOrganizationRoute: typeof SelectOrganizationRoute
+  SignInRoute: typeof SignInRoute
+  OperatorAnalysisRoute: typeof OperatorAnalysisRoute
+  OperatorDashboardRoute: typeof OperatorDashboardRoute
+  OperatorGuidesRoute: typeof OperatorGuidesRoute
+  OperatorHistoryRoute: typeof OperatorHistoryRoute
+  OperatorImportRoute: typeof OperatorImportRoute
+  OperatorRemindersRoute: typeof OperatorRemindersRoute
+  OperatorReportsRoute: typeof OperatorReportsRoute
+  OperatorSettingsRoute: typeof OperatorSettingsRoute
+  OperatorSimulationRoute: typeof OperatorSimulationRoute
+  OperatorDataBudgetRevisionsRoute: typeof OperatorDataBudgetRevisionsRoute
+  OperatorDataContractsInvoicesRoute: typeof OperatorDataContractsInvoicesRoute
+  OperatorDataOutputAchievementRoute: typeof OperatorDataOutputAchievementRoute
+  OperatorDataRpdRealizationRoute: typeof OperatorDataRpdRealizationRoute
+  OperatorDataSpmDispensationRoute: typeof OperatorDataSpmDispensationRoute
+  OperatorDataUpTupKkpRoute: typeof OperatorDataUpTupKkpRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +291,155 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/access-pending': {
+      id: '/access-pending'
+      path: '/access-pending'
+      fullPath: '/access-pending'
+      preLoaderRoute: typeof AccessPendingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/select-organization': {
+      id: '/select-organization'
+      path: '/select-organization'
+      fullPath: '/select-organization'
+      preLoaderRoute: typeof SelectOrganizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/analysis': {
+      id: '/operator/analysis'
+      path: '/operator/analysis'
+      fullPath: '/operator/analysis'
+      preLoaderRoute: typeof OperatorAnalysisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/dashboard': {
+      id: '/operator/dashboard'
+      path: '/operator/dashboard'
+      fullPath: '/operator/dashboard'
+      preLoaderRoute: typeof OperatorDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/guides': {
+      id: '/operator/guides'
+      path: '/operator/guides'
+      fullPath: '/operator/guides'
+      preLoaderRoute: typeof OperatorGuidesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/history': {
+      id: '/operator/history'
+      path: '/operator/history'
+      fullPath: '/operator/history'
+      preLoaderRoute: typeof OperatorHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/import': {
+      id: '/operator/import'
+      path: '/operator/import'
+      fullPath: '/operator/import'
+      preLoaderRoute: typeof OperatorImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/reminders': {
+      id: '/operator/reminders'
+      path: '/operator/reminders'
+      fullPath: '/operator/reminders'
+      preLoaderRoute: typeof OperatorRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/reports': {
+      id: '/operator/reports'
+      path: '/operator/reports'
+      fullPath: '/operator/reports'
+      preLoaderRoute: typeof OperatorReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/settings': {
+      id: '/operator/settings'
+      path: '/operator/settings'
+      fullPath: '/operator/settings'
+      preLoaderRoute: typeof OperatorSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/simulation': {
+      id: '/operator/simulation'
+      path: '/operator/simulation'
+      fullPath: '/operator/simulation'
+      preLoaderRoute: typeof OperatorSimulationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/data/budget-revisions': {
+      id: '/operator/data/budget-revisions'
+      path: '/operator/data/budget-revisions'
+      fullPath: '/operator/data/budget-revisions'
+      preLoaderRoute: typeof OperatorDataBudgetRevisionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/data/contracts-invoices': {
+      id: '/operator/data/contracts-invoices'
+      path: '/operator/data/contracts-invoices'
+      fullPath: '/operator/data/contracts-invoices'
+      preLoaderRoute: typeof OperatorDataContractsInvoicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/data/output-achievement': {
+      id: '/operator/data/output-achievement'
+      path: '/operator/data/output-achievement'
+      fullPath: '/operator/data/output-achievement'
+      preLoaderRoute: typeof OperatorDataOutputAchievementRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/data/rpd-realization': {
+      id: '/operator/data/rpd-realization'
+      path: '/operator/data/rpd-realization'
+      fullPath: '/operator/data/rpd-realization'
+      preLoaderRoute: typeof OperatorDataRpdRealizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/data/spm-dispensation': {
+      id: '/operator/data/spm-dispensation'
+      path: '/operator/data/spm-dispensation'
+      fullPath: '/operator/data/spm-dispensation'
+      preLoaderRoute: typeof OperatorDataSpmDispensationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/data/up-tup-kkp': {
+      id: '/operator/data/up-tup-kkp'
+      path: '/operator/data/up-tup-kkp'
+      fullPath: '/operator/data/up-tup-kkp'
+      preLoaderRoute: typeof OperatorDataUpTupKkpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccessPendingRoute: AccessPendingRoute,
+  SelectOrganizationRoute: SelectOrganizationRoute,
+  SignInRoute: SignInRoute,
+  OperatorAnalysisRoute: OperatorAnalysisRoute,
+  OperatorDashboardRoute: OperatorDashboardRoute,
+  OperatorGuidesRoute: OperatorGuidesRoute,
+  OperatorHistoryRoute: OperatorHistoryRoute,
+  OperatorImportRoute: OperatorImportRoute,
+  OperatorRemindersRoute: OperatorRemindersRoute,
+  OperatorReportsRoute: OperatorReportsRoute,
+  OperatorSettingsRoute: OperatorSettingsRoute,
+  OperatorSimulationRoute: OperatorSimulationRoute,
+  OperatorDataBudgetRevisionsRoute: OperatorDataBudgetRevisionsRoute,
+  OperatorDataContractsInvoicesRoute: OperatorDataContractsInvoicesRoute,
+  OperatorDataOutputAchievementRoute: OperatorDataOutputAchievementRoute,
+  OperatorDataRpdRealizationRoute: OperatorDataRpdRealizationRoute,
+  OperatorDataSpmDispensationRoute: OperatorDataSpmDispensationRoute,
+  OperatorDataUpTupKkpRoute: OperatorDataUpTupKkpRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
