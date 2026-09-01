@@ -28,6 +28,278 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 [Any additional notes, observations, or reminders]
 ```
 
+### Session 76 - 2026-09-01
+**Time:** Start: 15:16 WIB | End: 15:23 WIB | Duration: 7 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Sol Medium
+**Tasks Completed:**
+- [F7-16] Buat seed minimum 2026
+**Code Changes:**
+- Files created/modified: `packages/db/src/seed.ts`, `packages/ui/src/components/status-badge.tsx`, `packages/ui/src/components/error-state.tsx`, `packages/ui/src/components/incomplete-state.tsx`, `packages/ui/src/components/rule-set-badge.tsx`, `packages/ui/package.json`
+- Key implementations: Menerapkan skrip seed minimum 2026 (`packages/db/src/seed.ts`) yang idempoten (`onConflictDoUpdate` / `onConflictDoNothing`) untuk menginisialisasi cakupan KPPN (KPPN-089 Jakarta II), dua akun Admin KPPN, satker percontohan (411782), akun Operator Satker, hak akses, Rule Set 2026.1 (7 indikator terhitung), 5 event reminder policy, kalender 16 hari libur nasional 2026 (SKB 3 Menteri), data tahun anggaran (Fiscal Year 2026), dan konfigurasi awal reminder satker. Memperbaiki kompatibilitas icon Lucide pada komponen system-states paket `@ikpa/ui`.
+- Verifikasi: `npm run check` (typecheck monorepo, 48/48 unit tests lulus [contracts, engine, ui], Biome lint 0 error) dan `npm run build` (client & SSR production bundle) — 100% lulus.
+**Issues Encountered:**
+- Issue: Nama icon baru Lucide `TriangleAlert`, `CircleAlert`, `CircleCheck`, `LockKeyhole` tidak teresolusi di lingkungan test `@ikpa/ui`.
+- Solution: Mengupdate icon ke identifier standar universal (`AlertTriangle`, `AlertCircle`, `CheckCircle2`, `Lock`) dan menyesuaikan versi dep di `packages/ui/package.json`.
+**Next Session Plan:**
+- Fase 7 resmi selesai 100%. Lanjut ke Fase 8 (Integrasi Autentikasi dan Otorisasi).
+
+### Session 75 - 2026-09-01
+**Time:** Start: 15:14 WIB | End: 15:16 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Sol Medium
+**Tasks Completed:**
+- [F7-15] Generate dan review migration awal
+**Code Changes:**
+- Files created/modified: `packages/db/drizzle/0000_quiet_hiroim.sql`, `packages/db/drizzle/meta/_journal.json`, `packages/db/drizzle/meta/0000_snapshot.json`
+- Key implementations: Menjalankan `drizzle-kit generate` untuk menghasilkan migrasi SQL PostgreSQL Neon yang mencakup 9 custom enums, 25 schema tables, 45 foreign key constraints, 40+ indexes (unique & search composite), dan default random UUIDv4. Seluruh struktur tervalidasi memenuhi ERD & ADR-001 hingga ADR-007.
+- Verifikasi: `npm run generate --workspace @simulator-ikpa/db` — sukses membuat `0000_quiet_hiroim.sql`.
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-16 (Buat seed minimum 2026).
+- New tasks: Tidak ada.
+
+### Session 74 - 2026-09-01
+**Time:** Start: 15:13 WIB | End: 15:15 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-14] Buat relations dan schema barrel
+**Code Changes:**
+- Files created/modified: `packages/db/src/schema/relations.ts`, `packages/db/src/schema/index.ts`
+- Key implementations: Mendefinisikan seluruh relasi ORM untuk 25 tabel/entitas Drizzle yang mencakup hubungan many-to-one dan one-to-many antara scope KPPN, satker, user auth, hak akses, rule sets regulasi, reminder policies, kalender hari kerja, transaksi anggaran (pagu, revisi, RPD, realisasi, kontrak, SPM-LS, UP/TUP, KKP, output, SPM Q4), simulasi & snapshot, serta konfigurasi delivery reminder, import jobs, dan audit trail.
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/db` — lulus (0 error).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-15 (Generate dan review migration awal) & F7-16 (Buat seed minimum 2026).
+- New tasks: Tidak ada.
+
+### Session 73 - 2026-09-01
+**Time:** Start: 15:11 WIB | End: 15:13 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-13] Buat tabel import dan audit
+**Code Changes:**
+- Files created/modified: `packages/db/src/schema/import-jobs.ts`, `packages/db/src/schema/audit-logs.ts`, `packages/db/src/schema/index.ts`
+- Key implementations: Mendefinisikan tabel `import_jobs` (domain data import, filename, storage key, status pipeline enum, count rows total/valid/invalid, error report JSONB) dan `audit_logs` (tabel append-only audit trail komprehensif dengan tracking actor, access type, entity target, action, snapshot before/after JSONB, rule set version, policy ID, request ID untuk korelasi).
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/db` — lulus (0 error).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-14 (Buat relations dan schema barrel).
+- New tasks: Tidak ada.
+
+### Session 72 - 2026-09-01
+**Time:** Start: 15:09 WIB | End: 15:11 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-12] Buat tabel reminder config dan delivery
+**Code Changes:**
+- Files created/modified: `packages/db/src/schema/reminder-configs.ts`, `packages/db/src/schema/notification-deliveries.ts`, `packages/db/src/schema/index.ts`
+- Key implementations: Mendefinisikan tabel `org_reminder_configs` (konfigurasi per satker/fiscal_year/reminder_policy, schedule JSONB, recipients JSONB, custom message, status enabled) dan `notification_deliveries` (status delivery enum scheduled/sent/skipped/failed, attempt counter, payload JSONB, error message, dan `idempotency_key` unik pencegah duplikasi pengiriman email).
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/db` — lulus (0 error).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-13 (Buat tabel import dan audit).
+- New tasks: Tidak ada.
+
+### Session 71 - 2026-09-01
+**Time:** Start: 15:07 WIB | End: 15:09 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-11] Buat tabel simulation dan snapshot
+**Code Changes:**
+- Files created/modified: `packages/db/src/schema/simulations.ts`, `packages/db/src/schema/score-snapshots.ts`, `packages/db/src/schema/index.ts`
+- Key implementations: Mendefinisikan tabel `simulations` (actual, forecast, scenario, target score, parent snapshot lineage), `simulation_overrides` (patch assumptions JSONB), dan `score_snapshots` (immutable historis perhitungan, total score `numeric(8,4)`, breakdown JSONB, rule set FK/version, dan SHA-256 input hash integritas).
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/db` — lulus (0 error).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-12 (Buat tabel reminder config dan delivery).
+- New tasks: Tidak ada.
+
+### Session 70 - 2026-09-01
+**Time:** Start: 15:06 WIB | End: 15:07 WIB | Duration: 1 minute
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-10] Buat tabel output dan SPM Q4
+**Code Changes:**
+- Files created/modified: `packages/db/src/schema/output-reports.ts`, `packages/db/src/schema/spm-q4.ts`, `packages/db/src/schema/index.ts`
+- Key implementations: Mendefinisikan tabel `output_reports` (kode RO, bulan pelaporan, RVRO, volume DIPA, PCRO/TPCRO dengan presisi desimal 4 digit, timestamp pelaporan, status konfirmasi) dan `spm_q4` (nomor referensi SPM, tanggal terbit, flag dispensasi SPM) dengan relasi fiscal_years, soft delete, dan indeks pencarian.
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/db` — lulus (0 error).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-11 (Buat tabel simulation dan snapshot).
+- New tasks: Tidak ada.
+
+### Session 69 - 2026-09-01
+**Time:** Start: 15:04 WIB | End: 15:06 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-09] Buat tabel UP/TUP dan KKP
+**Code Changes:**
+- Files created/modified: `packages/db/src/schema/up-tup.ts`, `packages/db/src/schema/kkp.ts`, `packages/db/src/schema/index.ts`
+- Key implementations: Mendefinisikan tabel `up_tup_transactions` (tipe transaksi enum UP/TUP/GUP/GUP_NIHIL/PTUP/SETORAN_TUP, tanggal SP2D/pertanggungjawaban/settlement, status settled, nilai nominal `numeric(18,2)`) dan `kkp_usages` (penggunaan KKP bulanan) dengan relasi fiscal_years, soft delete, dan indeks komposit.
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/db` — lulus (0 error).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-10 (Buat tabel output dan SPM Q4).
+- New tasks: Tidak ada.
+
+### Session 68 - 2026-09-01
+**Time:** Start: 15:04 WIB | End: 15:05 WIB | Duration: 1 minute
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-08] Buat tabel kontrak dan SPM-LS
+**Code Changes:**
+- Files created/modified: `packages/db/src/schema/contracts.ts`, `packages/db/src/schema/spm-ls.ts`, `packages/db/src/schema/index.ts`
+- Key implementations: Mendefinisikan tabel `contracts` (nomor kontrak, jenis belanja, nilai nominal `numeric(18,2)`, tipe pembayaran sekaligus/termin, tanggal kontrak & SP2D) dan `spm_ls` (nomor referensi, tanggal BAST/BAPP, tanggal penerimaan KPPN, flag belanja pegawai) dengan foreign key ke contracts & fiscal_years, soft delete, dan indeks pencarian deadline.
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/db` — lulus (0 error).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-09 (Buat tabel UP/TUP dan KKP).
+- New tasks: Tidak ada.
+
+### Session 67 - 2026-09-01
+**Time:** Start: 15:03 WIB | End: 15:04 WIB | Duration: 1 minute
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-07] Buat tabel RPD dan realisasi
+**Code Changes:**
+- Files created/modified: `packages/db/src/schema/rpd-realizations.ts`, `packages/db/src/schema/index.ts`
+- Key implementations: Mendefinisikan tabel `rpd_lines` dan `realizations` per jenis belanja (51/52/53/57) dan per bulan (1–12) dengan presisi desimal `numeric(18,2)`, referensi fiscal_years, soft delete, dan indeks pencarian komposit.
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/db` — lulus (0 error).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-08 (Buat tabel kontrak dan SPM-LS).
+- New tasks: Tidak ada.
+
+### Session 66 - 2026-09-01
+**Time:** Start: 15:02 WIB | End: 15:03 WIB | Duration: 1 minute
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-06] Buat tabel fiscal year, budget, dan revisi
+**Code Changes:**
+- Files created/modified: `packages/db/src/schema/fiscal-years.ts`, `packages/db/src/schema/budget-revisions.ts`, `packages/db/src/schema/index.ts`
+- Key implementations: Mendefinisikan tabel `fiscal_years` sebagai anchor konteks tahunan satker & rule set aktif, `budgets` untuk pagu akun belanja 51/52/53/57 (`numeric(18,2)`), dan `dipa_revisions` untuk riwayat revisi DIPA dengan tracking pembuat dan soft delete.
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/db` — lulus (0 error).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-07 (Buat tabel RPD dan realisasi).
+- New tasks: Tidak ada.
+
+### Session 65 - 2026-09-01
+**Time:** Start: 15:01 WIB | End: 15:03 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-05] Buat tabel rule set, policy, dan kalender
+**Code Changes:**
+- Files created/modified: `packages/db/src/schema/policy.ts`, `packages/db/src/schema/workdays.ts`, `packages/db/src/schema/index.ts`
+- Key implementations: Membuat tabel `rule_sets` (versi regulasi berbobot & parameter formula JSONB), `reminder_policies` (event reminder terikat rule set, mandatory lock, lead time formula), dan `workdays` (kalender hari kerja/libur nasional SKB 3 Menteri) dengan integritas referensial dan indeks pencarian efisien.
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/db` — lulus (0 error).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-06 (Buat tabel fiscal year, budget, dan revisi).
+- New tasks: Tidak ada.
+
+### Session 64 - 2026-09-01
+**Time:** Start: 15:00 WIB | End: 15:02 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-04] Buat enum dan tabel identitas/scope
+**Code Changes:**
+- Files created/modified: `packages/db/src/schema/enums.ts`, `packages/db/src/schema/identity.ts`, `packages/db/src/schema/index.ts`
+- Key implementations: Mendefinisikan enum database PostgreSQL (access_type, rule_set_status, reminder_category, day_type, payment_type, up_tup_type, simulation_type, delivery_status, import_status) serta tabel domain identitas/akses: `kppn_scopes`, `organizations`, `users`, dan `user_accesses` dengan constraint relasi cascade/restrict dan indeks query performa tinggi.
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/db` — lulus (0 error).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-05 (Buat tabel rule set, policy, dan kalender).
+- New tasks: Tidak ada.
+
+### Session 63 - 2026-09-01
+**Time:** Start: 14:59 WIB | End: 15:01 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-03] Konfigurasi Drizzle dan client Neon
+**Code Changes:**
+- Files created/modified: `packages/db/drizzle.config.ts`, `packages/db/src/client.ts`, `packages/db/src/index.ts`, `packages/db/src/schema/enums.ts`, `packages/db/src/schema/index.ts`
+- Key implementations: Mengonfigurasi `drizzle.config.ts` untuk migrasi PostgreSQL (Neon) dan menyediakan client database HTTP/Serverless Pool berbasis schema Drizzle ORM.
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/db` — lulus (0 error).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-04 (Buat enum dan tabel identitas/scope).
+- New tasks: Tidak ada.
+
+### Session 62 - 2026-09-01
+**Time:** Start: 14:57 WIB | End: 14:59 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / DevOps Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-02] Konfigurasi environment tervalidasi
+**Code Changes:**
+- Files created/modified: `.env.example`, `apps/web/src/env.server.ts`
+- Key implementations: Menerapkan validasi environment server-side runtime menggunakan schema Zod terpusat dengan penanganan fallback di development/test serta pemeriksaan kegagalan startup fatal jika variabel environment produksi (DATABASE_URL, CLERK_SECRET_KEY) tidak terdefinisi. Template .env.example dibuat lengkap dengan dokumentasi keamanan secret.
+- Verifikasi: `npm run typecheck --workspace apps/web` — lulus (0 error).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-03 (Konfigurasi Drizzle dan client Neon).
+- New tasks: Tidak ada.
+
+### Session 61 - 2026-09-01
+**Time:** Start: 14:48 WIB | End: 14:57 WIB | Duration: 9 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Database Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F7-01] Pasang dependency backend yang disetujui
+**Code Changes:**
+- Files created/modified: `packages/db/package.json`, `packages/db/tsconfig.json`, `apps/web/package.json`, `package-lock.json`
+- Key implementations: Menginisialisasi workspace `@simulator-ikpa/db` dan memasang runtime database yang disetujui (Drizzle ORM, @neondatabase/serverless, drizzle-kit, big.js, zod, dotenv, tsx) serta menghubungkannya ke dependensi `apps/web`.
+- Verifikasi: `npm install` — sukses (added 200 packages).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F7-02 (Konfigurasi environment tervalidasi) & F7-03 (Konfigurasi Drizzle dan client Neon).
+- New tasks: Tidak ada.
+
 ### Session 60 - 2026-09-01
 **Time:** Start: 14:03 WIB | End: 14:08 WIB | Duration: 5 minutes
 - Status: Completed

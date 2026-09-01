@@ -1,4 +1,4 @@
-import { TriangleAlert } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -34,7 +34,7 @@ export function IncompleteState({
 			data-slot="incomplete-state"
 		>
 			<div className="flex items-start gap-3">
-				<TriangleAlert
+				<AlertTriangle
 					aria-hidden="true"
 					className="mt-0.5 size-5 shrink-0 text-warning"
 				/>

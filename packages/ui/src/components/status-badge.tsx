@@ -1,12 +1,12 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import {
-	CircleAlert,
-	CircleCheck,
-	CircleDashed,
+	AlertCircle,
+	AlertTriangle,
+	CheckCircle2,
+	HelpCircle,
 	Info,
-	LockKeyhole,
+	Lock,
 	type LucideIcon,
-	TriangleAlert,
 } from "lucide-react";
 import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
@@ -44,12 +44,12 @@ const statusLabels: Record<StatusBadgeStatus, string> = {
 };
 
 const statusIcons: Record<StatusBadgeStatus, LucideIcon> = {
-	complete: CircleCheck,
-	warning: TriangleAlert,
-	danger: CircleAlert,
+	complete: CheckCircle2,
+	warning: AlertTriangle,
+	danger: AlertCircle,
 	info: Info,
-	incomplete: CircleDashed,
-	locked: LockKeyhole,
+	incomplete: HelpCircle,
+	locked: Lock,
 };
 
 export type StatusBadgeProps = Omit<ComponentProps<"output">, "children"> & {

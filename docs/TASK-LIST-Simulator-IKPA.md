@@ -459,71 +459,72 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
 
 ## 11. Fase 7 â€” Database dan Backend Foundation
 
-- [ ] **F7-01 â€” Pasang dependency backend yang disetujui.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-01 — Pasang dependency backend yang disetujui.** [Role: Database Agent] [Model: Luna Max]  
   **Files:** `package.json`, `package-lock.json`  
   **Depends:** F0-08  
   **DoD:** Drizzle/Neon, Zod, decimal, auth, queue, email, import/export dependency terpasang tanpa duplicate runtime.
 
-- [ ] **F7-02 â€” Konfigurasi environment tervalidasi.** [Role: DevOps Agent] [Model: Luna Max]  
+- [x] **F7-02 — Konfigurasi environment tervalidasi.** [Role: DevOps Agent] [Model: Luna Max]  
   **Files:** `.env.example`, `apps/web/src/env.server.ts`  
   **DoD:** Public/server secret dipisah, startup gagal jelas bila env wajib tidak ada, dan tidak ada nilai rahasia di repo.
 
-- [ ] **F7-03 â€” Konfigurasi Drizzle dan client Neon.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-03 — Konfigurasi Drizzle dan client Neon.** [Role: Database Agent] [Model: Luna Max]  
   **Files:** `packages/db/drizzle.config.ts`, `packages/db/src/client.ts`  
   **DoD:** Generate/migrate dapat dijalankan pada database kosong dan koneksi server-only.
 
-- [ ] **F7-04 â€” Buat enum dan tabel identitas/scope.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-04 — Buat enum dan tabel identitas/scope.** [Role: Database Agent] [Model: Luna Max]  
   **Files:** `packages/db/src/schema/enums.ts`, `packages/db/src/schema/identity.ts`  
   **DoD:** `kppn_scopes`, `organizations`, `users`, `user_accesses` beserta check/unique/index sesuai ERD.
 
-- [ ] **F7-05 â€” Buat tabel rule set, policy, dan kalender.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-05 — Buat tabel rule set, policy, dan kalender.** [Role: Database Agent] [Model: Luna Max]  
   **Files:** `packages/db/src/schema/policy.ts`, `packages/db/src/schema/workdays.ts`  
-  **Depends:** F0-04â€“F0-06  
+  **Depends:** F0-04–F0-06  
   **DoD:** Versioning final, effective resolver support, immutable published policy, dan JSONB columns terdefinisi.
 
-- [ ] **F7-06 â€” Buat tabel fiscal year, budget, dan revisi.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-06 — Buat tabel fiscal year, budget, dan revisi.** [Role: Database Agent] [Model: Luna Max]  
   **Files:** `packages/db/src/schema/fiscal-years.ts`, `packages/db/src/schema/budget-revisions.ts`  
   **DoD:** FK, numeric, dates, soft delete, unique active rows, dan index tersedia.
 
-- [ ] **F7-07 â€” Buat tabel RPD dan realisasi.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-07 — Buat tabel RPD dan realisasi.** [Role: Database Agent] [Model: Luna Max]  
   **File:** `packages/db/src/schema/rpd-realizations.ts`  
   **DoD:** Month/account constraints, numeric precision, soft-delete uniqueness, dan index tersedia.
 
-- [ ] **F7-08 â€” Buat tabel kontrak dan SPM-LS.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-08 — Buat tabel kontrak dan SPM-LS.** [Role: Database Agent] [Model: Luna Max]  
   **Files:** `packages/db/src/schema/contracts.ts`, `packages/db/src/schema/spm-ls.ts`  
   **DoD:** Referential fields, payment type, soft delete, uniqueness, dan deadline query index tersedia.
 
-- [ ] **F7-09 â€” Buat tabel UP/TUP dan KKP.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-09 — Buat tabel UP/TUP dan KKP.** [Role: Database Agent] [Model: Luna Max]  
   **Files:** `packages/db/src/schema/up-tup.ts`, `packages/db/src/schema/kkp.ts`  
   **DoD:** Transaction type, dates, numeric precision, monthly uniqueness, dan index tersedia.
 
-- [ ] **F7-10 â€” Buat tabel output dan SPM Q4.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-10 — Buat tabel output dan SPM Q4.** [Role: Database Agent] [Model: Luna Max]  
   **Files:** `packages/db/src/schema/output-reports.ts`, `packages/db/src/schema/spm-q4.ts`  
   **DoD:** Range checks, confirmation, Q4 validation boundary, uniqueness, dan index tersedia.
 
-- [ ] **F7-11 â€” Buat tabel simulation dan snapshot.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-11 — Buat tabel simulation dan snapshot.** [Role: Database Agent] [Model: Luna Max]  
   **Files:** `packages/db/src/schema/simulations.ts`, `packages/db/src/schema/score-snapshots.ts`  
-  **DoD:** Override JSONB, immutable snapshot support, parent relation, input hash, rule set FK/version, dan index tersedia.
+  **Depends:** F0-06  
+  **DoD:** Simulation type, parent snapshot lineage, override patch JSONB, snapshot immutability, input hash, dan index tersedia.
 
-- [ ] **F7-12 â€” Buat tabel reminder config dan delivery.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-12 — Buat tabel reminder config dan delivery.** [Role: Database Agent] [Model: Luna Max]  
   **Files:** `packages/db/src/schema/reminder-configs.ts`, `packages/db/src/schema/notification-deliveries.ts`  
   **DoD:** Unique config, idempotency key, scheduling index, attempts, status, payload, dan immutable version tersedia.
 
-- [ ] **F7-13 â€” Buat tabel import dan audit.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-13 — Buat tabel import dan audit.** [Role: Database Agent] [Model: Luna Max]  
   **Files:** `packages/db/src/schema/import-jobs.ts`, `packages/db/src/schema/audit-logs.ts`  
   **DoD:** Import lifecycle, error report, append-only audit fields, request ID, actor, before/after, dan index tersedia.
 
-- [ ] **F7-14 â€” Buat relations dan schema barrel.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-14 — Buat relations dan schema barrel.** [Role: Database Agent] [Model: Luna Max]  
   **Files:** `packages/db/src/schema/relations.ts`, `packages/db/src/schema/index.ts`  
-  **Depends:** F7-04â€“F7-13  
+  **Depends:** F7-04–F7-13  
   **DoD:** Semua relasi ERD dapat di-query dan tidak menggantikan authorization guard.
 
-- [ ] **F7-15 â€” Generate dan review migration awal.** [Role: Database Agent] [Model: Sol Medium]  
+- [x] **F7-15 — Generate dan review migration awal.** [Role: Database Agent] [Model: Sol Medium]  
   **Scope:** Generated Drizzle migration + metadata  
   **Depends:** F7-14  
   **DoD:** Urutan FK valid, migration kosong lulus, constraint/index cocok ERD/ADR, dan rollback strategy terdokumentasi.
 
-- [ ] **F7-16 â€” Buat seed minimum 2026.** [Role: Database Agent] [Model: Sol Medium]  
+- [x] **F7-16 — Buat seed minimum 2026.** [Role: Database Agent] [Model: Sol Medium]  
   **Scope:** Seed scope, dua admin, satker, operator, fiscal year, rule set, policy, dan kalender  
   **Depends:** F0-02, F7-15  
   **DoD:** Seed idempotent, parameter belum valid diberi `needs_verification`, dan tidak membuat mandatory tanpa keputusan formal.

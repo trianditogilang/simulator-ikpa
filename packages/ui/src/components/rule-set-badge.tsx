@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { Archive, CircleCheck, type LucideIcon } from "lucide-react";
+import { Archive, CheckCircle2, type LucideIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -28,7 +28,7 @@ const statusLabels: Record<RuleSetBadgeStatus, string> = {
 };
 
 const statusIcons: Record<RuleSetBadgeStatus, LucideIcon> = {
-	published: CircleCheck,
+	published: CheckCircle2,
 	retired: Archive,
 };
 

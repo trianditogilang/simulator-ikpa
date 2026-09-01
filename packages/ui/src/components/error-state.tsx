@@ -1,4 +1,4 @@
-import { CircleAlert, RotateCcw } from "lucide-react";
+import { AlertCircle, RotateCcw } from "lucide-react";
 import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -48,7 +48,7 @@ export function ErrorState({
 			role="alert"
 		>
 			<div className="flex items-start gap-3">
-				<CircleAlert
+				<AlertCircle
 					aria-hidden="true"
 					className="mt-0.5 size-5 shrink-0 text-danger"
 				/>
