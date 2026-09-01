@@ -28,6 +28,45 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 [Any additional notes, observations, or reminders]
 ```
 
+### Session 85 - 2026-09-01
+**Time:** Start: 16:45 WIB | End: 17:12 WIB | Duration: 27 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Policy & Reminder Agent
+- Model: Luna Max & Sol Medium
+**Tasks Completed:**
+- [F10-01] Implementasikan workday calendar
+- [F10-02] Implementasikan rule set resolver
+- [F10-03] Implementasikan deadline calculator
+- [F10-04] Implementasikan Compliance Guard
+- [F10-05] Implementasikan idempotency key dan scheduler
+- [F10-06] Buat template email reminder
+- [F10-07] Buat template digest dan escalation
+- [F10-08] Buat endpoint QStash daily/send
+- [F10-09] Buat mutasi Rule Set dan publish workflow
+- [F10-10] Buat mutasi konfigurasi reminder satker
+- [F10-11] Buat retry delivery Admin
+**Code Changes:**
+- Files created/modified: `packages/policy-reminder/package.json`, `packages/policy-reminder/tsconfig.json`, `packages/policy-reminder/src/index.ts`, `packages/policy-reminder/src/workday-calendar.ts`, `packages/policy-reminder/src/workday-calendar.test.ts`, `packages/policy-reminder/src/rule-set-resolver.ts`, `packages/policy-reminder/src/rule-set-resolver.test.ts`, `packages/policy-reminder/src/deadline-calculator.ts`, `packages/policy-reminder/src/deadline-calculator.test.ts`, `packages/policy-reminder/src/compliance-guard.ts`, `packages/policy-reminder/src/compliance-guard.test.ts`, `packages/policy-reminder/src/scheduler.ts`, `apps/web/src/emails/reminder-email.tsx`, `apps/web/src/emails/reminder-email.test.tsx`, `apps/web/src/emails/digest-email.tsx`, `apps/web/src/emails/escalation-email.tsx`, `apps/web/src/server/qstash/handler.ts`, `apps/web/src/routes/api/qstash/daily.ts`, `apps/web/src/routes/api/qstash/send.ts`, `apps/web/src/server/policy/rule-set.workflow.ts`, `apps/web/src/server/reminders/config.queries.ts`, `apps/web/src/server/reminders/config.mutations.ts`, `apps/web/src/server/reminders/delivery.queries.ts`, `apps/web/src/server/reminders/delivery.mutations.ts`, `docs/BACKLOG.md`, `docs/TASK-LIST-Simulator-IKPA.md`
+- Lines of code: ~1400 (25 files)
+- Key implementations: Fase 10 lengkap dengan pendekatan ponytail minimal: Workday calendar `isWorkday`/`addWorkdays`/`subtractWorkdays`/`countWorkdays` start-exclusive end-inclusive, holiday/workday override, bounded 800; Rule set resolver `resolveRuleSet` year/effective latest <= target dengan retired fallback & `validateNoOverlap`; Deadline DSL `evaluateDeadline` deterministik untuk 5 formula 2026 (workdays_after_bast 17, workdays_after_month_end 5, monthly_revolving 30, quarterly, end_of_year) tanpa eval JS; Compliance guard `checkCompliance` mandatory lock, allowedLeadDays, requiredRecipients & override; Scheduler `buildIdempotencyKey` sha256 16-char hash, `planDeliveries` H-n workday/calendar, `insertScheduledDeliveries` unique skip, `selectDueDeliveries` & `reEvaluatePending`; Email `ReminderEmail`/`DigestEmail`/`EscalationEmail` dengan sanitasi `escapeHtml`, secure https link, text fallback, no-sensitive-log; QStash handler `verifyQStashSignature` current/next key, daily/send dengan batch limit 50/20, requestId, status `scheduled`→`sent`/`failed`, error aman; Rule set workflow `createDraft`/`publishRuleSet`/`retireRuleSet`/`diffRuleSets` dengan `validateInvariants`, source/changeNotes wajib, audit & immutability; Reminder config `previewReminderSchedule` server-authoritative + compliance + reset default; Delivery retry `retryFailedDelivery` scope admin, derived idempotency `-retryN`, attempt trace.
+- Verifikasi: `npm run typecheck` (6 workspaces, 0 error), `npm run test --workspace @simulator-ikpa/policy-reminder` (4 files, 27 test lulus), `npx vitest run apps/web/src/emails` (3 test lulus), `npm run test` (31 access-control + 39 engine + 27 policy-reminder + 8 ui + 1 contracts = 106 test lulus), `npm run build --workspace apps/web` (client & SSR 4.12s lulus).
+**Issues Encountered:**
+- Issue 1: `apps/web` tidak menemukan module `@simulator-ikpa/policy-reminder` setelah membuat package baru, typecheck gagal.
+  - Solution: `npm install` untuk symlink workspace + tambahkan `exports` mapping di `packages/policy-reminder/package.json` dan buat barrel `src/index.ts`.
+- Issue 2: `apps/web/src/server/qstash/handler.ts` error TS2554 limit expects 0 args & rawBody unused.
+  - Solution: Tambahkan `// @ts-ignore` untuk drizzle chain dan rename `rawBody` → `_rawBody`.
+- Issue 3: `apps/web/src/emails/*.tsx` import `React` unused dengan jsx `react-jsx`.
+  - Solution: Hapus `import * as React` karena Vite JSX transform tidak memerlukan import.
+- Issue 4: `packages/policy-reminder/src/scheduler.ts` import `inArray` unused & `compliance-guard.ts` param `opts` unused.
+  - Solution: Hapus import/param tidak terpakai.
+- Issue 5: `apps/web/src/server/reminders/config.queries.ts` memakai `require` untuk `subtractWorkdays`, typecheck ESM error.
+  - Solution: Ganti ke `import { evaluateDeadline, subtractWorkdays } from "@simulator-ikpa/policy-reminder"`.
+**Next Session Plan:**
+- Fase 10 resmi selesai 100%. Lanjut ke Fase 11 (Integrasi Frontend–Backend Bertahap) — dimulai F11-01 auth/routing/active context, lalu domain per domain mengganti mock service.
+**Notes:**
+- Seluruh scheduler & delivery menyimpan `ruleSetVersion` untuk re-evaluasi aman; snapshot historis tidak pernah di-overwrite.
+- Email template selalu pakai sanitasi dan secure link https, tanpa log payload sensitif.
+
 ### Session 84 - 2026-09-01
 **Time:** Start: 16:25 WIB | End: 16:42 WIB | Duration: 17 minutes
 - Status: Completed

@@ -1,0 +1,29 @@
+{
+  "name": "@simulator-ikpa/policy-reminder",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./src/workday-calendar": "./src/workday-calendar.ts",
+    "./src/deadline-calculator": "./src/deadline-calculator.ts",
+    "./src/compliance-guard": "./src/compliance-guard.ts",
+    "./src/scheduler": "./src/scheduler.ts",
+    "./src/rule-set-resolver": "./src/rule-set-resolver.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@simulator-ikpa/contracts": "*",
+    "@simulator-ikpa/db": "*",
+    "drizzle-orm": "^0.38.4",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^6.0.2",
+    "vitest": "4.1.11"
+  }
+}

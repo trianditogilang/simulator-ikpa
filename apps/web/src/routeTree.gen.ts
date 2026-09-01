@@ -34,6 +34,8 @@ import { Route as AdminKppnOrganizationsOrgIdRouteImport } from './routes/admin-
 import { Route as AdminKppnPolicyHistoryRouteImport } from './routes/admin-kppn/policy/history'
 import { Route as AdminKppnPolicyRemindersRouteImport } from './routes/admin-kppn/policy/reminders'
 import { Route as AdminKppnPolicyWorkdaysRouteImport } from './routes/admin-kppn/policy/workdays'
+import { Route as ApiQstashDailyRouteImport } from './routes/api/qstash/daily'
+import { Route as ApiQstashSendRouteImport } from './routes/api/qstash/send'
 import { Route as OperatorDataBudgetRevisionsRouteImport } from './routes/operator/data/budget-revisions'
 import { Route as OperatorDataContractsInvoicesRouteImport } from './routes/operator/data/contracts-invoices'
 import { Route as OperatorDataOutputAchievementRouteImport } from './routes/operator/data/output-achievement'
@@ -172,6 +174,16 @@ const AdminKppnPolicyWorkdaysRoute = AdminKppnPolicyWorkdaysRouteImport.update({
   path: '/policy/workdays',
   getParentRoute: () => AdminKppnRouteRoute,
 } as any)
+const ApiQstashDailyRoute = ApiQstashDailyRouteImport.update({
+  id: '/api/qstash/daily',
+  path: '/api/qstash/daily',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiQstashSendRoute = ApiQstashSendRouteImport.update({
+  id: '/api/qstash/send',
+  path: '/api/qstash/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OperatorDataBudgetRevisionsRoute =
   OperatorDataBudgetRevisionsRouteImport.update({
     id: '/data/budget-revisions',
@@ -245,6 +257,8 @@ export interface FileRoutesByFullPath {
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
   '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
   '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
+  '/api/qstash/daily': typeof ApiQstashDailyRoute
+  '/api/qstash/send': typeof ApiQstashSendRoute
   '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
   '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
@@ -280,6 +294,8 @@ export interface FileRoutesByTo {
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
   '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
   '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
+  '/api/qstash/daily': typeof ApiQstashDailyRoute
+  '/api/qstash/send': typeof ApiQstashSendRoute
   '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
   '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
@@ -316,6 +332,8 @@ export interface FileRoutesById {
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
   '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
   '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
+  '/api/qstash/daily': typeof ApiQstashDailyRoute
+  '/api/qstash/send': typeof ApiQstashSendRoute
   '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
   '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
@@ -353,6 +371,8 @@ export interface FileRouteTypes {
     | '/admin-kppn/policy/history'
     | '/admin-kppn/policy/reminders'
     | '/admin-kppn/policy/workdays'
+    | '/api/qstash/daily'
+    | '/api/qstash/send'
     | '/operator/data/budget-revisions'
     | '/operator/data/contracts-invoices'
     | '/operator/data/output-achievement'
@@ -388,6 +408,8 @@ export interface FileRouteTypes {
     | '/admin-kppn/policy/history'
     | '/admin-kppn/policy/reminders'
     | '/admin-kppn/policy/workdays'
+    | '/api/qstash/daily'
+    | '/api/qstash/send'
     | '/operator/data/budget-revisions'
     | '/operator/data/contracts-invoices'
     | '/operator/data/output-achievement'
@@ -423,6 +445,8 @@ export interface FileRouteTypes {
     | '/admin-kppn/policy/history'
     | '/admin-kppn/policy/reminders'
     | '/admin-kppn/policy/workdays'
+    | '/api/qstash/daily'
+    | '/api/qstash/send'
     | '/operator/data/budget-revisions'
     | '/operator/data/contracts-invoices'
     | '/operator/data/output-achievement'
@@ -441,6 +465,8 @@ export interface RootRouteChildren {
   AccessPendingRoute: typeof AccessPendingRoute
   SelectOrganizationRoute: typeof SelectOrganizationRoute
   SignInRoute: typeof SignInRoute
+  ApiQstashDailyRoute: typeof ApiQstashDailyRoute
+  ApiQstashSendRoute: typeof ApiQstashSendRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -620,6 +646,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminKppnPolicyWorkdaysRouteImport
       parentRoute: typeof AdminKppnRouteRoute
     }
+    '/api/qstash/daily': {
+      id: '/api/qstash/daily'
+      path: '/api/qstash/daily'
+      fullPath: '/api/qstash/daily'
+      preLoaderRoute: typeof ApiQstashDailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/qstash/send': {
+      id: '/api/qstash/send'
+      path: '/api/qstash/send'
+      fullPath: '/api/qstash/send'
+      preLoaderRoute: typeof ApiQstashSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/operator/data/budget-revisions': {
       id: '/operator/data/budget-revisions'
       path: '/data/budget-revisions'
@@ -760,6 +800,8 @@ const rootRouteChildren: RootRouteChildren = {
   AccessPendingRoute: AccessPendingRoute,
   SelectOrganizationRoute: SelectOrganizationRoute,
   SignInRoute: SignInRoute,
+  ApiQstashDailyRoute: ApiQstashDailyRoute,
+  ApiQstashSendRoute: ApiQstashSendRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

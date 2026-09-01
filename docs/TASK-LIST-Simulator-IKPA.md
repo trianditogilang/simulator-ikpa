@@ -611,55 +611,55 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
 
 ## 14. Fase 10 â€” Policy, Reminder, Scheduler, dan Email
 
-- [ ] **F10-01 â€” Implementasikan workday calendar.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-01 â€” Implementasikan workday calendar.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
   **Files:** `packages/policy-reminder/src/workday-calendar.ts`, `packages/policy-reminder/src/workday-calendar.test.ts`  
   **Depends:** F0-03, F0-04  
   **DoD:** Add/subtract/count, weekend, holiday, explicit working day, boundary, dan timezone teruji.
 
-- [ ] **F10-02 â€” Implementasikan rule set resolver.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-02 â€” Implementasikan rule set resolver.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
   **Files:** `packages/policy-reminder/src/rule-set-resolver.ts`, `packages/policy-reminder/src/rule-set-resolver.test.ts`  
   **Depends:** F0-06  
   **DoD:** Year/effective date, overlap rejection, retired fallback, dan no-rule error teruji.
 
-- [ ] **F10-03 â€” Implementasikan deadline calculator.** [Role: Policy & Reminder Agent] [Model: Sol Medium]  
+- [x] **F10-03 â€” Implementasikan deadline calculator.** [Role: Policy & Reminder Agent] [Model: Sol Medium]  
   **Scope:** DSL parser/evaluator dan tests seluruh event 2026  
   **Depends:** F10-01  
   **DoD:** Workday/calendar/event/schedule formula deterministic, bounded, dan tidak mengeksekusi JavaScript bebas.
 
-- [ ] **F10-04 â€” Implementasikan Compliance Guard.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-04 â€” Implementasikan Compliance Guard.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
   **Files:** `packages/policy-reminder/src/compliance-guard.ts`, `packages/policy-reminder/src/compliance-guard.test.ts`  
   **Depends:** F0-05  
   **DoD:** Mandatory, allowed lead, deadline, required recipients, overrides, channel, dan actionable errors teruji.
 
-- [ ] **F10-05 â€” Implementasikan idempotency key dan scheduler.** [Role: Policy & Reminder Agent] [Model: Sol Medium]  
+- [x] **F10-05 â€” Implementasikan idempotency key dan scheduler.** [Role: Policy & Reminder Agent] [Model: Sol Medium]  
   **Scope:** Eligibility, timezone schedule, unique insert, due delivery selection, re-evaluation  
   **Depends:** F10-02â€“F10-04  
   **DoD:** Replay aman, tidak ada duplikat, rule set version tersimpan, dan pending schedule dapat dievaluasi ulang.
 
-- [ ] **F10-06 â€” Buat template email reminder.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-06 â€” Buat template email reminder.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/emails/reminder-email.tsx`, `apps/web/src/emails/reminder-email.test.tsx`  
   **DoD:** Event, satker, deadline/type hari, action, secure link, source/version, dan sanitized custom message tersedia.
 
-- [ ] **F10-07 â€” Buat template digest dan escalation.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-07 â€” Buat template digest dan escalation.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/emails/digest-email.tsx`, `apps/web/src/emails/escalation-email.tsx`  
   **DoD:** Grouping, priority, deadline, required context, text fallback, dan no-sensitive-log rules tersedia.
 
-- [ ] **F10-08 â€” Buat endpoint QStash daily/send.** [Role: Policy & Reminder Agent] [Model: Sol Medium]  
+- [x] **F10-08 â€” Buat endpoint QStash daily/send.** [Role: Policy & Reminder Agent] [Model: Sol Medium]  
   **Scope:** Dua endpoint signed, batch limit, request ID, retry, status transition, Resend call  
   **Depends:** F10-05â€“F10-07  
   **DoD:** Signature invalid ditolak; replay idempotent; error aman dicatat; success/failed status konsisten.
 
-- [ ] **F10-09 â€” Buat mutasi Rule Set dan publish workflow.** [Role: Policy & Reminder Agent] [Model: Sol Medium]  
+- [x] **F10-09 â€” Buat mutasi Rule Set dan publish workflow.** [Role: Policy & Reminder Agent] [Model: Sol Medium]  
   **Scope:** Draft/validate/diff/publish/retire, audit, transaction, schedule re-evaluation  
   **Depends:** F6-02, F10-02, F10-05  
   **DoD:** Published immutable, source/change notes wajib, verification warning, dan snapshot historis tidak berubah.
 
-- [ ] **F10-10 â€” Buat mutasi konfigurasi reminder satker.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-10 â€” Buat mutasi konfigurasi reminder satker.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/server/reminders/config.queries.ts`, `apps/web/src/server/reminders/config.mutations.ts`  
   **Depends:** F10-04  
   **DoD:** Preview server-authoritative, reset default, required recipients, audit, dan invalid policy rejection tersedia.
 
-- [ ] **F10-11 â€” Buat retry delivery Admin.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-11 â€” Buat retry delivery Admin.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/server/reminders/delivery.queries.ts`, `apps/web/src/server/reminders/delivery.mutations.ts`  
   **DoD:** Hanya failed delivery dalam scope, attempt trace, derived idempotency, confirmation data, dan audit tersedia.
 
