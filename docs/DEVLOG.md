@@ -28,6 +28,127 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 [Any additional notes, observations, or reminders]
 ```
 
+### Session 83 - 2026-09-01
+**Time:** Start: 15:58 WIB | End: 16:08 WIB | Duration: 10 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Auth & Access Agent
+- Model: Sol Medium
+**Tasks Completed:**
+- [F8-07] Implementasikan mutasi akses dan proteksi admin terakhir
+**Code Changes:**
+- Files created/modified: `packages/access-control/src/manage-access.ts`, `packages/access-control/src/manage-access.test.ts`, `packages/access-control/src/index.ts`, `apps/web/src/server/access.ts`, `apps/web/src/start.ts`, `apps/web/src/routes/operator/route.tsx`, `apps/web/src/routes/admin-kppn/route.tsx`, `packages/ui/tsconfig.json`, `packages/ui/package.json`
+- Key implementations: Menerapkan fungsionalitas mutasi mapping akses (`grantOperatorAccess`, `grantAdminAccess`, `revokeAccess`, `toggleAccessActive`) yang menjamin aturan single access type (`AccessConflictError`), proteksi pencabutan atau penonaktifan Admin KPPN terakhir dalam satu scope (`LastAdminRevocationError`), dan pencatatan audit trail otomatis ke tabel `audit_logs`. Mengadaptasi server function `createServerFn` untuk isolasi bundling client-server TanStack Start.
+- Verifikasi: `npm run check` (typecheck seluruh workspace, 79/79 unit test lulus, 0 error Biome lint) dan `npm run build` (client & SSR production bundle berhasil 100%).
+**Issues Encountered:**
+- Issue 1: Import protection TanStack Start memblokir import langsung modul `.server.ts` pada router file client.
+  - Solution: Membungkus resolusi akses dengan `createServerFn` pada `src/server/access.ts`.
+- Issue 2: Script `typecheck` pada `@ikpa/ui` belum ada dan type collision React 18/19.
+  - Solution: Menambahkan `tsconfig.json` dan menyelaraskan React 19 types pada `packages/ui/package.json`.
+**Next Session Plan:**
+- Fase 8 resmi selesai 100%. Lanjut ke Fase 9 (Backend Domain Operasional).
+
+### Session 82 - 2026-09-01
+**Time:** Start: 15:56 WIB | End: 15:58 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Auth & Access Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F8-06] Terapkan route guard Admin
+**Code Changes:**
+- Files created/modified: `apps/web/src/routes/admin-kppn/route.tsx`, `apps/web/src/routeTree.gen.ts`
+- Key implementations: Menerapkan layout route `/admin-kppn` dengan hook `beforeLoad` yang memeriksa status otorisasi admin. Hanya pengguna terautentikasi dengan hak akses `admin` aktif yang diizinkan mengakses sub-route `/admin-kppn/*`. Pengguna tanpa otorisasi admin diarahkan ke `/operator/dashboard` atau `/access-pending` tanpa membocorkan struktur data internal admin.
+- Verifikasi: `npm run generate-routes --workspace apps/web` dan `npm run typecheck --workspace apps/web` — lolos 0 error.
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F8-07 (Implementasikan mutasi akses dan proteksi admin terakhir).
+- New tasks: Tidak ada.
+
+### Session 81 - 2026-09-01
+**Time:** Start: 15:54 WIB | End: 15:56 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Auth & Access Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F8-05] Terapkan route guard Operator
+**Code Changes:**
+- Files created/modified: `apps/web/src/routes/operator/route.tsx`, `apps/web/src/server/access.server.ts`, `packages/access-control/src/index.ts`, `apps/web/src/routeTree.gen.ts`
+- Key implementations: Menerapkan layout route `/operator` dengan hook `beforeLoad` yang memverifikasi autentikasi sesi dan otorisasi akses operator. Pengguna yang belum terautentikasi diarahkan ke `/sign-in`, pengguna unmapped diarahkan ke `/access-pending`, admin diarahkan ke `/admin-kppn/dashboard`, dan operator multi-satker tanpa satker aktif diarahkan ke `/select-organization`.
+- Verifikasi: `npm run generate-routes --workspace apps/web` dan `npm run typecheck --workspace apps/web` — lolos dengan 0 error.
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F8-06 (Terapkan route guard Admin).
+- New tasks: Tidak ada.
+
+### Session 80 - 2026-09-01
+**Time:** Start: 15:52 WIB | End: 15:54 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Auth & Access Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F8-04] Implementasikan scope guard
+**Code Changes:**
+- Files created/modified: `packages/access-control/src/scope-guard.ts`, `packages/access-control/src/scope-guard.test.ts`
+- Key implementations: Menerapkan guard otorisasi `assertOperatorOrgScope`, `assertAdminKppnScope`, dan `assertAuthenticated` yang menegakkan isolasi scope organisasi (satker) dan lingkup KPPN pada server boundaries dengan melempar `UnauthorizedError` (401) dan `ForbiddenError` (403) terstruktur.
+- Verifikasi: `npm run test --workspace @simulator-ikpa/access-control` — 23/23 unit test lulus (100%).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F8-05 (Terapkan route guard Operator).
+- New tasks: Tidak ada.
+
+### Session 79 - 2026-09-01
+**Time:** Start: 15:50 WIB | End: 15:52 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Auth & Access Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F8-03] Implementasikan access resolver
+**Code Changes:**
+- Files created/modified: `packages/access-control/src/access-resolver.ts`, `packages/access-control/src/access-resolver.test.ts`
+- Key implementations: Mengembangkan fungsi `resolveUserAccess` sesuai ADR-007. Menangani seluruh status kanonikal: `unauthenticated`, `unmapped`, `operator_single_scope`, `operator_multiple_scopes` (dengan handling `requestedOrgId`), `admin` (dengan resolusi seluruh scope KPPN aktif), dan fail-closed `invalid_conflict` (`ACCESS_MAPPING_CONFLICT`) ketika ditemukan multi jenis akses.
+- Verifikasi: `npm run test --workspace @simulator-ikpa/access-control` — 11/11 unit test lulus (100%).
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F8-04 (Implementasikan scope guard).
+- New tasks: Tidak ada.
+
+### Session 78 - 2026-09-01
+**Time:** Start: 15:48 WIB | End: 15:50 WIB | Duration: 2 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Auth & Access Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F8-02] Implementasikan sinkronisasi user Clerk
+**Code Changes:**
+- Files created/modified: `packages/access-control/src/sync-user.ts`, `packages/access-control/src/sync-user.test.ts`
+- Key implementations: Menerapkan fungsi `syncClerkUser` untuk sinkronisasi identitas Clerk ke tabel `users` database PostgreSQL Neon. Menjamin normalisasi lowercase email, bind pre-provisioned user secara aman, dan melempar `UserSyncConflictError` saat terjadi bentrok kepemilikan email antar akun Clerk untuk mencegah pembajakan akun (account takeover).
+- Verifikasi: `npm run test --workspace @simulator-ikpa/access-control` — 4/4 unit test passed.
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F8-03 (Implementasikan access resolver).
+- New tasks: Tidak ada.
+
+### Session 77 - 2026-09-01
+**Time:** Start: 15:44 WIB | End: 15:48 WIB | Duration: 4 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Auth & Access Agent
+- Model: Luna Max
+**Tasks Completed:**
+- [F8-01] Pasang Clerk provider dan middleware global
+**Code Changes:**
+- Files created/modified: `apps/web/src/start.ts`, `apps/web/src/server/auth-session.ts`, `apps/web/src/router.tsx`, `apps/web/src/routes/__root.tsx`, `apps/web/package.json`, `packages/access-control/package.json`, `packages/access-control/tsconfig.json`
+- Key implementations: Menyiapkan modul `start.ts` dengan `createStart` dan `authMiddleware` untuk mengekstrak identitas session autentikasi pada server context. Mengintegrasikan `RouterContext` ke dalam `router.tsx` dan root route `__root.tsx`. Menginisialisasi workspace `@simulator-ikpa/access-control`.
+- Verifikasi: `npm run typecheck --workspace apps/web` — lolos dengan 0 error.
+**Issues Encountered:**
+- Tidak ada.
+**Next Session Plan:**
+- Tasks to continue: F8-02 (Implementasikan sinkronisasi user Clerk).
+- New tasks: Tidak ada.
+
 ### Session 76 - 2026-09-01
 **Time:** Start: 15:16 WIB | End: 15:23 WIB | Duration: 7 minutes
 - Status: Completed

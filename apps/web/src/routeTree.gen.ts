@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccessPendingRouteImport } from './routes/access-pending'
+import { Route as AdminKppnRouteRouteImport } from './routes/admin-kppn/route'
+import { Route as OperatorRouteRouteImport } from './routes/operator/route'
 import { Route as SelectOrganizationRouteImport } from './routes/select-organization'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as AdminKppnAccessRouteImport } from './routes/admin-kppn/access'
@@ -51,6 +53,16 @@ const AccessPendingRoute = AccessPendingRouteImport.update({
   path: '/access-pending',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminKppnRouteRoute = AdminKppnRouteRouteImport.update({
+  id: '/admin-kppn',
+  path: '/admin-kppn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorRouteRoute = OperatorRouteRouteImport.update({
+  id: '/operator',
+  path: '/operator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SelectOrganizationRoute = SelectOrganizationRouteImport.update({
   id: '/select-organization',
   path: '/select-organization',
@@ -62,154 +74,156 @@ const SignInRoute = SignInRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminKppnAccessRoute = AdminKppnAccessRouteImport.update({
-  id: '/admin-kppn/access',
-  path: '/admin-kppn/access',
-  getParentRoute: () => rootRouteImport,
+  id: '/access',
+  path: '/access',
+  getParentRoute: () => AdminKppnRouteRoute,
 } as any)
 const AdminKppnAuditLogsRoute = AdminKppnAuditLogsRouteImport.update({
-  id: '/admin-kppn/audit-logs',
-  path: '/admin-kppn/audit-logs',
-  getParentRoute: () => rootRouteImport,
+  id: '/audit-logs',
+  path: '/audit-logs',
+  getParentRoute: () => AdminKppnRouteRoute,
 } as any)
 const AdminKppnDashboardRoute = AdminKppnDashboardRouteImport.update({
-  id: '/admin-kppn/dashboard',
-  path: '/admin-kppn/dashboard',
-  getParentRoute: () => rootRouteImport,
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AdminKppnRouteRoute,
 } as any)
 const AdminKppnReportsRoute = AdminKppnReportsRouteImport.update({
-  id: '/admin-kppn/reports',
-  path: '/admin-kppn/reports',
-  getParentRoute: () => rootRouteImport,
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminKppnRouteRoute,
 } as any)
 const OperatorAnalysisRoute = OperatorAnalysisRouteImport.update({
-  id: '/operator/analysis',
-  path: '/operator/analysis',
-  getParentRoute: () => rootRouteImport,
+  id: '/analysis',
+  path: '/analysis',
+  getParentRoute: () => OperatorRouteRoute,
 } as any)
 const OperatorDashboardRoute = OperatorDashboardRouteImport.update({
-  id: '/operator/dashboard',
-  path: '/operator/dashboard',
-  getParentRoute: () => rootRouteImport,
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => OperatorRouteRoute,
 } as any)
 const OperatorGuidesRoute = OperatorGuidesRouteImport.update({
-  id: '/operator/guides',
-  path: '/operator/guides',
-  getParentRoute: () => rootRouteImport,
+  id: '/guides',
+  path: '/guides',
+  getParentRoute: () => OperatorRouteRoute,
 } as any)
 const OperatorHistoryRoute = OperatorHistoryRouteImport.update({
-  id: '/operator/history',
-  path: '/operator/history',
-  getParentRoute: () => rootRouteImport,
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => OperatorRouteRoute,
 } as any)
 const OperatorImportRoute = OperatorImportRouteImport.update({
-  id: '/operator/import',
-  path: '/operator/import',
-  getParentRoute: () => rootRouteImport,
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => OperatorRouteRoute,
 } as any)
 const OperatorRemindersRoute = OperatorRemindersRouteImport.update({
-  id: '/operator/reminders',
-  path: '/operator/reminders',
-  getParentRoute: () => rootRouteImport,
+  id: '/reminders',
+  path: '/reminders',
+  getParentRoute: () => OperatorRouteRoute,
 } as any)
 const OperatorReportsRoute = OperatorReportsRouteImport.update({
-  id: '/operator/reports',
-  path: '/operator/reports',
-  getParentRoute: () => rootRouteImport,
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => OperatorRouteRoute,
 } as any)
 const OperatorSettingsRoute = OperatorSettingsRouteImport.update({
-  id: '/operator/settings',
-  path: '/operator/settings',
-  getParentRoute: () => rootRouteImport,
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => OperatorRouteRoute,
 } as any)
 const OperatorSimulationRoute = OperatorSimulationRouteImport.update({
-  id: '/operator/simulation',
-  path: '/operator/simulation',
-  getParentRoute: () => rootRouteImport,
+  id: '/simulation',
+  path: '/simulation',
+  getParentRoute: () => OperatorRouteRoute,
 } as any)
 const AdminKppnMonitoringRemindersRoute =
   AdminKppnMonitoringRemindersRouteImport.update({
-    id: '/admin-kppn/monitoring/reminders',
-    path: '/admin-kppn/monitoring/reminders',
-    getParentRoute: () => rootRouteImport,
+    id: '/monitoring/reminders',
+    path: '/monitoring/reminders',
+    getParentRoute: () => AdminKppnRouteRoute,
   } as any)
 const AdminKppnOrganizationsIndexRoute =
   AdminKppnOrganizationsIndexRouteImport.update({
-    id: '/admin-kppn/organizations/',
-    path: '/admin-kppn/organizations/',
-    getParentRoute: () => rootRouteImport,
+    id: '/organizations/',
+    path: '/organizations/',
+    getParentRoute: () => AdminKppnRouteRoute,
   } as any)
 const AdminKppnOrganizationsOrgIdRoute =
   AdminKppnOrganizationsOrgIdRouteImport.update({
-    id: '/admin-kppn/organizations/$orgId',
-    path: '/admin-kppn/organizations/$orgId',
-    getParentRoute: () => rootRouteImport,
+    id: '/organizations/$orgId',
+    path: '/organizations/$orgId',
+    getParentRoute: () => AdminKppnRouteRoute,
   } as any)
 const AdminKppnPolicyHistoryRoute = AdminKppnPolicyHistoryRouteImport.update({
-  id: '/admin-kppn/policy/history',
-  path: '/admin-kppn/policy/history',
-  getParentRoute: () => rootRouteImport,
+  id: '/policy/history',
+  path: '/policy/history',
+  getParentRoute: () => AdminKppnRouteRoute,
 } as any)
 const AdminKppnPolicyRemindersRoute =
   AdminKppnPolicyRemindersRouteImport.update({
-    id: '/admin-kppn/policy/reminders',
-    path: '/admin-kppn/policy/reminders',
-    getParentRoute: () => rootRouteImport,
+    id: '/policy/reminders',
+    path: '/policy/reminders',
+    getParentRoute: () => AdminKppnRouteRoute,
   } as any)
 const AdminKppnPolicyWorkdaysRoute = AdminKppnPolicyWorkdaysRouteImport.update({
-  id: '/admin-kppn/policy/workdays',
-  path: '/admin-kppn/policy/workdays',
-  getParentRoute: () => rootRouteImport,
+  id: '/policy/workdays',
+  path: '/policy/workdays',
+  getParentRoute: () => AdminKppnRouteRoute,
 } as any)
 const OperatorDataBudgetRevisionsRoute =
   OperatorDataBudgetRevisionsRouteImport.update({
-    id: '/operator/data/budget-revisions',
-    path: '/operator/data/budget-revisions',
-    getParentRoute: () => rootRouteImport,
+    id: '/data/budget-revisions',
+    path: '/data/budget-revisions',
+    getParentRoute: () => OperatorRouteRoute,
   } as any)
 const OperatorDataContractsInvoicesRoute =
   OperatorDataContractsInvoicesRouteImport.update({
-    id: '/operator/data/contracts-invoices',
-    path: '/operator/data/contracts-invoices',
-    getParentRoute: () => rootRouteImport,
+    id: '/data/contracts-invoices',
+    path: '/data/contracts-invoices',
+    getParentRoute: () => OperatorRouteRoute,
   } as any)
 const OperatorDataOutputAchievementRoute =
   OperatorDataOutputAchievementRouteImport.update({
-    id: '/operator/data/output-achievement',
-    path: '/operator/data/output-achievement',
-    getParentRoute: () => rootRouteImport,
+    id: '/data/output-achievement',
+    path: '/data/output-achievement',
+    getParentRoute: () => OperatorRouteRoute,
   } as any)
 const OperatorDataRpdRealizationRoute =
   OperatorDataRpdRealizationRouteImport.update({
-    id: '/operator/data/rpd-realization',
-    path: '/operator/data/rpd-realization',
-    getParentRoute: () => rootRouteImport,
+    id: '/data/rpd-realization',
+    path: '/data/rpd-realization',
+    getParentRoute: () => OperatorRouteRoute,
   } as any)
 const OperatorDataSpmDispensationRoute =
   OperatorDataSpmDispensationRouteImport.update({
-    id: '/operator/data/spm-dispensation',
-    path: '/operator/data/spm-dispensation',
-    getParentRoute: () => rootRouteImport,
+    id: '/data/spm-dispensation',
+    path: '/data/spm-dispensation',
+    getParentRoute: () => OperatorRouteRoute,
   } as any)
 const OperatorDataUpTupKkpRoute = OperatorDataUpTupKkpRouteImport.update({
-  id: '/operator/data/up-tup-kkp',
-  path: '/operator/data/up-tup-kkp',
-  getParentRoute: () => rootRouteImport,
+  id: '/data/up-tup-kkp',
+  path: '/data/up-tup-kkp',
+  getParentRoute: () => OperatorRouteRoute,
 } as any)
 const AdminKppnPolicyRuleSetsIndexRoute =
   AdminKppnPolicyRuleSetsIndexRouteImport.update({
-    id: '/admin-kppn/policy/rule-sets/',
-    path: '/admin-kppn/policy/rule-sets/',
-    getParentRoute: () => rootRouteImport,
+    id: '/policy/rule-sets/',
+    path: '/policy/rule-sets/',
+    getParentRoute: () => AdminKppnRouteRoute,
   } as any)
 const AdminKppnPolicyRuleSetsRuleSetIdRoute =
   AdminKppnPolicyRuleSetsRuleSetIdRouteImport.update({
-    id: '/admin-kppn/policy/rule-sets/$ruleSetId',
-    path: '/admin-kppn/policy/rule-sets/$ruleSetId',
-    getParentRoute: () => rootRouteImport,
+    id: '/policy/rule-sets/$ruleSetId',
+    path: '/policy/rule-sets/$ruleSetId',
+    getParentRoute: () => AdminKppnRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin-kppn': typeof AdminKppnRouteRouteWithChildren
+  '/operator': typeof OperatorRouteRouteWithChildren
   '/access-pending': typeof AccessPendingRoute
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
@@ -243,6 +257,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin-kppn': typeof AdminKppnRouteRouteWithChildren
+  '/operator': typeof OperatorRouteRouteWithChildren
   '/access-pending': typeof AccessPendingRoute
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
@@ -277,6 +293,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin-kppn': typeof AdminKppnRouteRouteWithChildren
+  '/operator': typeof OperatorRouteRouteWithChildren
   '/access-pending': typeof AccessPendingRoute
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
@@ -312,6 +330,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin-kppn'
+    | '/operator'
     | '/access-pending'
     | '/select-organization'
     | '/sign-in'
@@ -345,6 +365,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin-kppn'
+    | '/operator'
     | '/access-pending'
     | '/select-organization'
     | '/sign-in'
@@ -378,6 +400,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin-kppn'
+    | '/operator'
     | '/access-pending'
     | '/select-organization'
     | '/sign-in'
@@ -412,36 +436,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminKppnRouteRoute: typeof AdminKppnRouteRouteWithChildren
+  OperatorRouteRoute: typeof OperatorRouteRouteWithChildren
   AccessPendingRoute: typeof AccessPendingRoute
   SelectOrganizationRoute: typeof SelectOrganizationRoute
   SignInRoute: typeof SignInRoute
-  AdminKppnAccessRoute: typeof AdminKppnAccessRoute
-  AdminKppnAuditLogsRoute: typeof AdminKppnAuditLogsRoute
-  AdminKppnDashboardRoute: typeof AdminKppnDashboardRoute
-  AdminKppnReportsRoute: typeof AdminKppnReportsRoute
-  OperatorAnalysisRoute: typeof OperatorAnalysisRoute
-  OperatorDashboardRoute: typeof OperatorDashboardRoute
-  OperatorGuidesRoute: typeof OperatorGuidesRoute
-  OperatorHistoryRoute: typeof OperatorHistoryRoute
-  OperatorImportRoute: typeof OperatorImportRoute
-  OperatorRemindersRoute: typeof OperatorRemindersRoute
-  OperatorReportsRoute: typeof OperatorReportsRoute
-  OperatorSettingsRoute: typeof OperatorSettingsRoute
-  OperatorSimulationRoute: typeof OperatorSimulationRoute
-  AdminKppnMonitoringRemindersRoute: typeof AdminKppnMonitoringRemindersRoute
-  AdminKppnOrganizationsOrgIdRoute: typeof AdminKppnOrganizationsOrgIdRoute
-  AdminKppnPolicyHistoryRoute: typeof AdminKppnPolicyHistoryRoute
-  AdminKppnPolicyRemindersRoute: typeof AdminKppnPolicyRemindersRoute
-  AdminKppnPolicyWorkdaysRoute: typeof AdminKppnPolicyWorkdaysRoute
-  OperatorDataBudgetRevisionsRoute: typeof OperatorDataBudgetRevisionsRoute
-  OperatorDataContractsInvoicesRoute: typeof OperatorDataContractsInvoicesRoute
-  OperatorDataOutputAchievementRoute: typeof OperatorDataOutputAchievementRoute
-  OperatorDataRpdRealizationRoute: typeof OperatorDataRpdRealizationRoute
-  OperatorDataSpmDispensationRoute: typeof OperatorDataSpmDispensationRoute
-  OperatorDataUpTupKkpRoute: typeof OperatorDataUpTupKkpRoute
-  AdminKppnOrganizationsIndexRoute: typeof AdminKppnOrganizationsIndexRoute
-  AdminKppnPolicyRuleSetsRuleSetIdRoute: typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
-  AdminKppnPolicyRuleSetsIndexRoute: typeof AdminKppnPolicyRuleSetsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -460,6 +459,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccessPendingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-kppn': {
+      id: '/admin-kppn'
+      path: '/admin-kppn'
+      fullPath: '/admin-kppn'
+      preLoaderRoute: typeof AdminKppnRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator': {
+      id: '/operator'
+      path: '/operator'
+      fullPath: '/operator'
+      preLoaderRoute: typeof OperatorRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/select-organization': {
       id: '/select-organization'
       path: '/select-organization'
@@ -476,205 +489,249 @@ declare module '@tanstack/react-router' {
     }
     '/admin-kppn/access': {
       id: '/admin-kppn/access'
-      path: '/admin-kppn/access'
+      path: '/access'
       fullPath: '/admin-kppn/access'
       preLoaderRoute: typeof AdminKppnAccessRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminKppnRouteRoute
     }
     '/admin-kppn/audit-logs': {
       id: '/admin-kppn/audit-logs'
-      path: '/admin-kppn/audit-logs'
+      path: '/audit-logs'
       fullPath: '/admin-kppn/audit-logs'
       preLoaderRoute: typeof AdminKppnAuditLogsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminKppnRouteRoute
     }
     '/admin-kppn/dashboard': {
       id: '/admin-kppn/dashboard'
-      path: '/admin-kppn/dashboard'
+      path: '/dashboard'
       fullPath: '/admin-kppn/dashboard'
       preLoaderRoute: typeof AdminKppnDashboardRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminKppnRouteRoute
     }
     '/admin-kppn/reports': {
       id: '/admin-kppn/reports'
-      path: '/admin-kppn/reports'
+      path: '/reports'
       fullPath: '/admin-kppn/reports'
       preLoaderRoute: typeof AdminKppnReportsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminKppnRouteRoute
     }
     '/operator/analysis': {
       id: '/operator/analysis'
-      path: '/operator/analysis'
+      path: '/analysis'
       fullPath: '/operator/analysis'
       preLoaderRoute: typeof OperatorAnalysisRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/operator/dashboard': {
       id: '/operator/dashboard'
-      path: '/operator/dashboard'
+      path: '/dashboard'
       fullPath: '/operator/dashboard'
       preLoaderRoute: typeof OperatorDashboardRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/operator/guides': {
       id: '/operator/guides'
-      path: '/operator/guides'
+      path: '/guides'
       fullPath: '/operator/guides'
       preLoaderRoute: typeof OperatorGuidesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/operator/history': {
       id: '/operator/history'
-      path: '/operator/history'
+      path: '/history'
       fullPath: '/operator/history'
       preLoaderRoute: typeof OperatorHistoryRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/operator/import': {
       id: '/operator/import'
-      path: '/operator/import'
+      path: '/import'
       fullPath: '/operator/import'
       preLoaderRoute: typeof OperatorImportRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/operator/reminders': {
       id: '/operator/reminders'
-      path: '/operator/reminders'
+      path: '/reminders'
       fullPath: '/operator/reminders'
       preLoaderRoute: typeof OperatorRemindersRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/operator/reports': {
       id: '/operator/reports'
-      path: '/operator/reports'
+      path: '/reports'
       fullPath: '/operator/reports'
       preLoaderRoute: typeof OperatorReportsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/operator/settings': {
       id: '/operator/settings'
-      path: '/operator/settings'
+      path: '/settings'
       fullPath: '/operator/settings'
       preLoaderRoute: typeof OperatorSettingsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/operator/simulation': {
       id: '/operator/simulation'
-      path: '/operator/simulation'
+      path: '/simulation'
       fullPath: '/operator/simulation'
       preLoaderRoute: typeof OperatorSimulationRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/admin-kppn/monitoring/reminders': {
       id: '/admin-kppn/monitoring/reminders'
-      path: '/admin-kppn/monitoring/reminders'
+      path: '/monitoring/reminders'
       fullPath: '/admin-kppn/monitoring/reminders'
       preLoaderRoute: typeof AdminKppnMonitoringRemindersRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminKppnRouteRoute
     }
     '/admin-kppn/organizations/': {
       id: '/admin-kppn/organizations/'
-      path: '/admin-kppn/organizations'
+      path: '/organizations'
       fullPath: '/admin-kppn/organizations/'
       preLoaderRoute: typeof AdminKppnOrganizationsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminKppnRouteRoute
     }
     '/admin-kppn/organizations/$orgId': {
       id: '/admin-kppn/organizations/$orgId'
-      path: '/admin-kppn/organizations/$orgId'
+      path: '/organizations/$orgId'
       fullPath: '/admin-kppn/organizations/$orgId'
       preLoaderRoute: typeof AdminKppnOrganizationsOrgIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminKppnRouteRoute
     }
     '/admin-kppn/policy/history': {
       id: '/admin-kppn/policy/history'
-      path: '/admin-kppn/policy/history'
+      path: '/policy/history'
       fullPath: '/admin-kppn/policy/history'
       preLoaderRoute: typeof AdminKppnPolicyHistoryRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminKppnRouteRoute
     }
     '/admin-kppn/policy/reminders': {
       id: '/admin-kppn/policy/reminders'
-      path: '/admin-kppn/policy/reminders'
+      path: '/policy/reminders'
       fullPath: '/admin-kppn/policy/reminders'
       preLoaderRoute: typeof AdminKppnPolicyRemindersRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminKppnRouteRoute
     }
     '/admin-kppn/policy/workdays': {
       id: '/admin-kppn/policy/workdays'
-      path: '/admin-kppn/policy/workdays'
+      path: '/policy/workdays'
       fullPath: '/admin-kppn/policy/workdays'
       preLoaderRoute: typeof AdminKppnPolicyWorkdaysRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminKppnRouteRoute
     }
     '/operator/data/budget-revisions': {
       id: '/operator/data/budget-revisions'
-      path: '/operator/data/budget-revisions'
+      path: '/data/budget-revisions'
       fullPath: '/operator/data/budget-revisions'
       preLoaderRoute: typeof OperatorDataBudgetRevisionsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/operator/data/contracts-invoices': {
       id: '/operator/data/contracts-invoices'
-      path: '/operator/data/contracts-invoices'
+      path: '/data/contracts-invoices'
       fullPath: '/operator/data/contracts-invoices'
       preLoaderRoute: typeof OperatorDataContractsInvoicesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/operator/data/output-achievement': {
       id: '/operator/data/output-achievement'
-      path: '/operator/data/output-achievement'
+      path: '/data/output-achievement'
       fullPath: '/operator/data/output-achievement'
       preLoaderRoute: typeof OperatorDataOutputAchievementRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/operator/data/rpd-realization': {
       id: '/operator/data/rpd-realization'
-      path: '/operator/data/rpd-realization'
+      path: '/data/rpd-realization'
       fullPath: '/operator/data/rpd-realization'
       preLoaderRoute: typeof OperatorDataRpdRealizationRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/operator/data/spm-dispensation': {
       id: '/operator/data/spm-dispensation'
-      path: '/operator/data/spm-dispensation'
+      path: '/data/spm-dispensation'
       fullPath: '/operator/data/spm-dispensation'
       preLoaderRoute: typeof OperatorDataSpmDispensationRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/operator/data/up-tup-kkp': {
       id: '/operator/data/up-tup-kkp'
-      path: '/operator/data/up-tup-kkp'
+      path: '/data/up-tup-kkp'
       fullPath: '/operator/data/up-tup-kkp'
       preLoaderRoute: typeof OperatorDataUpTupKkpRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OperatorRouteRoute
     }
     '/admin-kppn/policy/rule-sets/': {
       id: '/admin-kppn/policy/rule-sets/'
-      path: '/admin-kppn/policy/rule-sets'
+      path: '/policy/rule-sets'
       fullPath: '/admin-kppn/policy/rule-sets/'
       preLoaderRoute: typeof AdminKppnPolicyRuleSetsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminKppnRouteRoute
     }
     '/admin-kppn/policy/rule-sets/$ruleSetId': {
       id: '/admin-kppn/policy/rule-sets/$ruleSetId'
-      path: '/admin-kppn/policy/rule-sets/$ruleSetId'
+      path: '/policy/rule-sets/$ruleSetId'
       fullPath: '/admin-kppn/policy/rule-sets/$ruleSetId'
       preLoaderRoute: typeof AdminKppnPolicyRuleSetsRuleSetIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminKppnRouteRoute
     }
   }
 }
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AccessPendingRoute: AccessPendingRoute,
-  SelectOrganizationRoute: SelectOrganizationRoute,
-  SignInRoute: SignInRoute,
+interface AdminKppnRouteRouteChildren {
+  AdminKppnAccessRoute: typeof AdminKppnAccessRoute
+  AdminKppnAuditLogsRoute: typeof AdminKppnAuditLogsRoute
+  AdminKppnDashboardRoute: typeof AdminKppnDashboardRoute
+  AdminKppnReportsRoute: typeof AdminKppnReportsRoute
+  AdminKppnMonitoringRemindersRoute: typeof AdminKppnMonitoringRemindersRoute
+  AdminKppnOrganizationsOrgIdRoute: typeof AdminKppnOrganizationsOrgIdRoute
+  AdminKppnPolicyHistoryRoute: typeof AdminKppnPolicyHistoryRoute
+  AdminKppnPolicyRemindersRoute: typeof AdminKppnPolicyRemindersRoute
+  AdminKppnPolicyWorkdaysRoute: typeof AdminKppnPolicyWorkdaysRoute
+  AdminKppnOrganizationsIndexRoute: typeof AdminKppnOrganizationsIndexRoute
+  AdminKppnPolicyRuleSetsRuleSetIdRoute: typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
+  AdminKppnPolicyRuleSetsIndexRoute: typeof AdminKppnPolicyRuleSetsIndexRoute
+}
+
+const AdminKppnRouteRouteChildren: AdminKppnRouteRouteChildren = {
   AdminKppnAccessRoute: AdminKppnAccessRoute,
   AdminKppnAuditLogsRoute: AdminKppnAuditLogsRoute,
   AdminKppnDashboardRoute: AdminKppnDashboardRoute,
   AdminKppnReportsRoute: AdminKppnReportsRoute,
+  AdminKppnMonitoringRemindersRoute: AdminKppnMonitoringRemindersRoute,
+  AdminKppnOrganizationsOrgIdRoute: AdminKppnOrganizationsOrgIdRoute,
+  AdminKppnPolicyHistoryRoute: AdminKppnPolicyHistoryRoute,
+  AdminKppnPolicyRemindersRoute: AdminKppnPolicyRemindersRoute,
+  AdminKppnPolicyWorkdaysRoute: AdminKppnPolicyWorkdaysRoute,
+  AdminKppnOrganizationsIndexRoute: AdminKppnOrganizationsIndexRoute,
+  AdminKppnPolicyRuleSetsRuleSetIdRoute: AdminKppnPolicyRuleSetsRuleSetIdRoute,
+  AdminKppnPolicyRuleSetsIndexRoute: AdminKppnPolicyRuleSetsIndexRoute,
+}
+
+const AdminKppnRouteRouteWithChildren = AdminKppnRouteRoute._addFileChildren(
+  AdminKppnRouteRouteChildren,
+)
+
+interface OperatorRouteRouteChildren {
+  OperatorAnalysisRoute: typeof OperatorAnalysisRoute
+  OperatorDashboardRoute: typeof OperatorDashboardRoute
+  OperatorGuidesRoute: typeof OperatorGuidesRoute
+  OperatorHistoryRoute: typeof OperatorHistoryRoute
+  OperatorImportRoute: typeof OperatorImportRoute
+  OperatorRemindersRoute: typeof OperatorRemindersRoute
+  OperatorReportsRoute: typeof OperatorReportsRoute
+  OperatorSettingsRoute: typeof OperatorSettingsRoute
+  OperatorSimulationRoute: typeof OperatorSimulationRoute
+  OperatorDataBudgetRevisionsRoute: typeof OperatorDataBudgetRevisionsRoute
+  OperatorDataContractsInvoicesRoute: typeof OperatorDataContractsInvoicesRoute
+  OperatorDataOutputAchievementRoute: typeof OperatorDataOutputAchievementRoute
+  OperatorDataRpdRealizationRoute: typeof OperatorDataRpdRealizationRoute
+  OperatorDataSpmDispensationRoute: typeof OperatorDataSpmDispensationRoute
+  OperatorDataUpTupKkpRoute: typeof OperatorDataUpTupKkpRoute
+}
+
+const OperatorRouteRouteChildren: OperatorRouteRouteChildren = {
   OperatorAnalysisRoute: OperatorAnalysisRoute,
   OperatorDashboardRoute: OperatorDashboardRoute,
   OperatorGuidesRoute: OperatorGuidesRoute,
@@ -684,20 +741,25 @@ const rootRouteChildren: RootRouteChildren = {
   OperatorReportsRoute: OperatorReportsRoute,
   OperatorSettingsRoute: OperatorSettingsRoute,
   OperatorSimulationRoute: OperatorSimulationRoute,
-  AdminKppnMonitoringRemindersRoute: AdminKppnMonitoringRemindersRoute,
-  AdminKppnOrganizationsOrgIdRoute: AdminKppnOrganizationsOrgIdRoute,
-  AdminKppnPolicyHistoryRoute: AdminKppnPolicyHistoryRoute,
-  AdminKppnPolicyRemindersRoute: AdminKppnPolicyRemindersRoute,
-  AdminKppnPolicyWorkdaysRoute: AdminKppnPolicyWorkdaysRoute,
   OperatorDataBudgetRevisionsRoute: OperatorDataBudgetRevisionsRoute,
   OperatorDataContractsInvoicesRoute: OperatorDataContractsInvoicesRoute,
   OperatorDataOutputAchievementRoute: OperatorDataOutputAchievementRoute,
   OperatorDataRpdRealizationRoute: OperatorDataRpdRealizationRoute,
   OperatorDataSpmDispensationRoute: OperatorDataSpmDispensationRoute,
   OperatorDataUpTupKkpRoute: OperatorDataUpTupKkpRoute,
-  AdminKppnOrganizationsIndexRoute: AdminKppnOrganizationsIndexRoute,
-  AdminKppnPolicyRuleSetsRuleSetIdRoute: AdminKppnPolicyRuleSetsRuleSetIdRoute,
-  AdminKppnPolicyRuleSetsIndexRoute: AdminKppnPolicyRuleSetsIndexRoute,
+}
+
+const OperatorRouteRouteWithChildren = OperatorRouteRoute._addFileChildren(
+  OperatorRouteRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  AdminKppnRouteRoute: AdminKppnRouteRouteWithChildren,
+  OperatorRouteRoute: OperatorRouteRouteWithChildren,
+  AccessPendingRoute: AccessPendingRoute,
+  SelectOrganizationRoute: SelectOrganizationRoute,
+  SignInRoute: SignInRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

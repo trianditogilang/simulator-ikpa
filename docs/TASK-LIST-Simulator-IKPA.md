@@ -531,35 +531,35 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
 
 ## 12. Fase 8 â€” Authentication dan Access Control
 
-- [ ] **F8-01 â€” Pasang Clerk provider dan middleware global.** [Role: Auth & Access Agent] [Model: Luna Max]  
+- [x] **F8-01 — Pasang Clerk provider dan middleware global.** [Role: Auth & Access Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/start.ts`, `apps/web/src/routes/__root.tsx`  
   **Depends:** F7-02  
   **DoD:** Clerk middleware aktif untuk request, provider tersedia, route tetap public sampai guard diterapkan.
 
-- [ ] **F8-02 â€” Implementasikan sinkronisasi user Clerk.** [Role: Auth & Access Agent] [Model: Luna Max]  
+- [x] **F8-02 — Implementasikan sinkronisasi user Clerk.** [Role: Auth & Access Agent] [Model: Luna Max]  
   **Files:** `packages/access-control/src/sync-user.ts`, `packages/access-control/src/sync-user.test.ts`  
   **DoD:** Verified identity di-upsert aman dan perubahan email memiliki aturan konflik.
 
-- [ ] **F8-03 â€” Implementasikan access resolver.** [Role: Auth & Access Agent] [Model: Luna Max]  
+- [x] **F8-03 — Implementasikan access resolver.** [Role: Auth & Access Agent] [Model: Luna Max]  
   **Files:** `packages/access-control/src/access-resolver.ts`, `packages/access-control/src/access-resolver.test.ts`  
   **Depends:** F0-09, F7-04  
   **DoD:** Unauthorized, satu/multi operator, admin precedence/switching, inactive mapping, dan structured context teruji.
 
-- [ ] **F8-04 â€” Implementasikan scope guard.** [Role: Auth & Access Agent] [Model: Luna Max]  
+- [x] **F8-04 — Implementasikan scope guard.** [Role: Auth & Access Agent] [Model: Luna Max]  
   **Files:** `packages/access-control/src/scope-guard.ts`, `packages/access-control/src/scope-guard.test.ts`  
   **DoD:** Operator org isolation dan Admin KPPN scope isolation memiliki positive/negative tests.
 
-- [ ] **F8-05 â€” Terapkan route guard Operator.** [Role: Auth & Access Agent] [Model: Luna Max]  
+- [x] **F8-05 — Terapkan route guard Operator.** [Role: Auth & Access Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/operator/route.tsx`, `apps/web/src/routeTree.gen.ts`  
   **Depends:** F8-03  
   **DoD:** `beforeLoad` memverifikasi auth server-side dan redirect tidak membocorkan data.
 
-- [ ] **F8-06 â€” Terapkan route guard Admin.** [Role: Auth & Access Agent] [Model: Luna Max]  
+- [x] **F8-06 — Terapkan route guard Admin.** [Role: Auth & Access Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/admin-kppn/route.tsx`, `apps/web/src/routeTree.gen.ts`  
   **Depends:** F8-03  
   **DoD:** Hanya admin aktif dengan scope valid dapat merender area Admin.
 
-- [ ] **F8-07 â€” Implementasikan mutasi akses dan proteksi admin terakhir.** [Role: Auth & Access Agent] [Model: Sol Medium]  
+- [x] **F8-07 — Implementasikan mutasi akses dan proteksi admin terakhir.** [Role: Auth & Access Agent] [Model: Sol Medium]  
   **Scope:** Transaction, lock/count, CRUD mapping, audit, structured error  
   **Depends:** F7-13, F8-04  
   **DoD:** Tidak mungkin menghasilkan scope tanpa admin aktif; seluruh perubahan atomik dan teraudit.

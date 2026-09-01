@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "5.9.1",
+    "@simulator-ikpa/access-control": "*",
     "@simulator-ikpa/contracts": "*",
     "@simulator-ikpa/db": "*",
     "@simulator-ikpa/ikpa-engine": "*",
