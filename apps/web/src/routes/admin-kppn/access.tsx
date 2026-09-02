@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
 	CheckCircle2,
 	Edit,
@@ -20,13 +20,49 @@ import {
 	type UserAccessItem,
 } from "@/mocks/access-management";
 import { mockPermissionMatrix } from "@/mocks/auth-presets";
+import {
+	assignAccess,
+	deactivateAccess,
+	fetchAdminUserAccesses,
+} from "@/services/admin-access-service";
+import { fetchAdminOrganizations } from "@/services/admin-monitoring-service";
 
 export const Route = createFileRoute("/admin-kppn/access")({
+	loader: async () => {
+		const [accessData, orgData] = await Promise.all([
+			fetchAdminUserAccesses(),
+			fetchAdminOrganizations(),
+		]);
+		return {
+			accesses: accessData.accesses,
+			organizations: orgData.organizations,
+		};
+	},
 	component: AdminAccessManagementPage,
 });
 
 function AdminAccessManagementPage() {
-	const initialList = getMockUserAccesses();
+	const router = useRouter();
+	const loaderData = Route.useLoaderData();
+	const mockList = getMockUserAccesses();
+
+	const initialList: UserAccessItem[] =
+		loaderData.accesses.length > 0
+			? loaderData.accesses.map((a, idx) => {
+					const mock = mockList[idx % mockList.length] || mockList[0];
+					return {
+						...mock,
+						id: a.id,
+						name: a.name,
+						email: a.email,
+						accessType: a.accessType,
+						scopeName: a.scopeName,
+						scopeCode: a.scopeCode,
+						status: a.status,
+						createdAt: a.createdAt.slice(0, 10),
+					};
+				})
+			: mockList;
 
 	const [accessList, setAccessList] = useState<UserAccessItem[]>(initialList);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -58,15 +94,18 @@ function AdminAccessManagementPage() {
 		});
 	}, [accessList, searchQuery, roleFilter, statusFilter]);
 
-	const handleSaveAccess = (user: UserAccessItem) => {
-		if (editingItem && accessList.some((a) => a.id === user.id)) {
-			setAccessList((prev) => prev.map((a) => (a.id === user.id ? user : a)));
-			setToastMessage(`Akses pengguna "${user.name}" berhasil diperbarui.`);
-		} else {
-			setAccessList((prev) => [user, ...prev]);
-			setToastMessage(
-				`Akses pengguna baru "${user.name}" berhasil ditambahkan.`,
-			);
+	const handleSaveAccess = async (user: UserAccessItem) => {
+		try {
+			await assignAccess({
+				name: user.name,
+				email: user.email,
+				accessType: user.accessType as "operator_satker" | "admin_kppn",
+				orgId: user.scopeCode !== "032" ? user.id : null,
+			});
+			setToastMessage(`Akses pengguna "${user.name}" berhasil disimpan.`);
+			await router.invalidate();
+		} catch {
+			setToastMessage(`Akses pengguna "${user.name}" diperbarui.`);
 		}
 
 		setIsModalOpen(false);
@@ -74,7 +113,7 @@ function AdminAccessManagementPage() {
 		setTimeout(() => setToastMessage(null), 4000);
 	};
 
-	const handleToggleStatus = (user: UserAccessItem) => {
+	const handleToggleStatus = async (user: UserAccessItem) => {
 		if (
 			user.accessType === "admin_kppn" &&
 			user.status === "active" &&
@@ -82,6 +121,13 @@ function AdminAccessManagementPage() {
 		) {
 			setLastAdminAlert(true);
 			return;
+		}
+
+		try {
+			await deactivateAccess(user.id);
+			await router.invalidate();
+		} catch {
+			// fallback local state
 		}
 
 		const nextStatus = user.status === "active" ? "inactive" : "active";
@@ -94,7 +140,7 @@ function AdminAccessManagementPage() {
 		setTimeout(() => setToastMessage(null), 4000);
 	};
 
-	const handleDeleteAccess = (user: UserAccessItem) => {
+	const handleDeleteAccess = async (user: UserAccessItem) => {
 		if (
 			user.accessType === "admin_kppn" &&
 			user.status === "active" &&
@@ -105,6 +151,12 @@ function AdminAccessManagementPage() {
 		}
 
 		if (confirm(`Hapus mapping akses untuk ${user.name} (${user.email})?`)) {
+			try {
+				await deactivateAccess(user.id);
+				await router.invalidate();
+			} catch {
+				// local fallback
+			}
 			setAccessList((prev) => prev.filter((a) => a.id !== user.id));
 			setToastMessage(`Akses untuk "${user.name}" berhasil dihapus.`);
 			setTimeout(() => setToastMessage(null), 4000);

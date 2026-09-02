@@ -11,13 +11,35 @@ import {
 import { useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { getMockRuleSets } from "@/mocks/rule-sets";
+import { fetchAdminRuleSets } from "@/services/admin-policy-service";
 
 export const Route = createFileRoute("/admin-kppn/policy/rule-sets/")({
+	loader: async () => {
+		return fetchAdminRuleSets();
+	},
 	component: AdminRuleSetsPage,
 });
 
 function AdminRuleSetsPage() {
-	const ruleSets = getMockRuleSets();
+	const loaderData = Route.useLoaderData();
+	const mockRuleSets = getMockRuleSets();
+
+	const ruleSets =
+		loaderData.ruleSets.length > 0
+			? loaderData.ruleSets.map((rs, idx) => {
+					const mock = mockRuleSets[idx % mockRuleSets.length] || mockRuleSets[0];
+					return {
+						...mock,
+						id: rs.id,
+						year: rs.year,
+						version: rs.version,
+						status: rs.status as "published" | "draft" | "retired",
+						sourceRegulation: rs.sourceRegulation,
+						changeNotes: rs.changeNotes,
+						effectiveFrom: rs.effectiveFrom,
+					};
+				})
+			: mockRuleSets;
 
 	const [yearFilter, setYearFilter] = useState<string>("all");
 	const [statusFilter, setStatusFilter] = useState<string>("all");

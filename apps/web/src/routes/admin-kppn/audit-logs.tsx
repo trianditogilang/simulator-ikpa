@@ -10,13 +10,37 @@ import {
 import { useMemo, useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { type AuditLogItem, getMockAuditLogs } from "@/mocks/audit-logs";
+import { fetchAdminAuditLogs } from "@/services/admin-access-service";
 
 export const Route = createFileRoute("/admin-kppn/audit-logs")({
+	loader: async () => {
+		return fetchAdminAuditLogs();
+	},
 	component: AdminAuditLogsPage,
 });
 
 function AdminAuditLogsPage() {
-	const allLogs = getMockAuditLogs();
+	const loaderData = Route.useLoaderData();
+	const mockLogs = getMockAuditLogs();
+
+	const allLogs: AuditLogItem[] =
+		loaderData.logs.length > 0
+			? loaderData.logs.map((l, idx) => {
+					const mock = mockLogs[idx % mockLogs.length] || mockLogs[0];
+					return {
+						...mock,
+						id: l.id,
+						actorName: l.actorName,
+						actorEmail: l.actorEmail,
+						actorRole: l.actorRole as "admin_kppn" | "operator_satker" | "system",
+						actionName: l.action,
+						entityName: l.entityType,
+						requestId: l.requestId,
+						organizationName: l.organizationName ?? mock.organizationName,
+						timestamp: l.createdAt,
+					};
+				})
+			: mockLogs;
 
 	const [searchQuery, setSearchQuery] = useState("");
 	const [actionFilter, setActionFilter] = useState<string>("all");

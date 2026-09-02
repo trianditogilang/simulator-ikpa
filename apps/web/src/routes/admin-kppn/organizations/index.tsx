@@ -3,13 +3,34 @@ import { ArrowRight, Download, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { getMockAdminOrganizations } from "@/mocks/admin-organizations";
+import { fetchAdminDashboard } from "@/services/admin-monitoring-service";
 
 export const Route = createFileRoute("/admin-kppn/organizations/")({
+	loader: async () => {
+		return fetchAdminDashboard();
+	},
 	component: AdminOrganizationsPage,
 });
 
 function AdminOrganizationsPage() {
-	const allSatkers = getMockAdminOrganizations();
+	const loaderData = Route.useLoaderData();
+	const mockSatkers = getMockAdminOrganizations();
+
+	const allSatkers =
+		loaderData.satkerSummaries.length > 0
+			? loaderData.satkerSummaries.map((s, idx) => {
+					const mock = mockSatkers[idx % mockSatkers.length] || mockSatkers[0];
+					return {
+						...mock,
+						id: s.id,
+						code: s.code,
+						name: s.name,
+						score: s.score,
+						riskLevel: s.status === "danger" ? "high" : s.status === "warning" ? "medium" : "low",
+						primaryRisk: s.mainRisk,
+					};
+				})
+			: mockSatkers;
 
 	const [searchQuery, setSearchQuery] = useState("");
 	const [riskFilter, setRiskFilter] = useState<string>("all");

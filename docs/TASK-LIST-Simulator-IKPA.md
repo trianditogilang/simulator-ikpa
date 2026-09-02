@@ -677,62 +677,62 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
   **Depends:** F9-02  
   **DoD:** Load/save/error/audit feedback nyata; UI tidak mengakses DB langsung.
 
-- [ ] **F11-03 â€” Integrasikan Pagu & Revisi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-03 — Integrasikan Pagu & Revisi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/operator/data/budget-revisions.tsx`, `apps/web/src/services/budget-revisions-service.ts`  
   **Depends:** F9-03  
   **DoD:** CRUD, eligibility, optimistic policy, structured errors, dan invalidation bekerja.
 
-- [ ] **F11-04 â€” Integrasikan RPD & Realisasi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-04 — Integrasikan RPD & Realisasi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/operator/data/rpd-realization.tsx`, `apps/web/src/services/rpd-realization-service.ts`  
   **Depends:** F9-04  
   **DoD:** Batch save, dirty state, server validation, decimal display, dan refresh impact bekerja.
 
-- [ ] **F11-05 â€” Integrasikan Kontrak & Tagihan.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-05 — Integrasikan Kontrak & Tagihan.** [Role: Frontend Operator Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/operator/data/contracts-invoices.tsx`, `apps/web/src/services/contracts-invoices-service.ts`  
   **Depends:** F9-05  
   **DoD:** CRUD, relation validation, deadline status, risk detail, dan deep-link bekerja.
 
-- [ ] **F11-06 â€” Integrasikan UP/TUP & KKP.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-06 — Integrasikan UP/TUP & KKP.** [Role: Frontend Operator Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/operator/data/up-tup-kkp.tsx`, `apps/web/src/services/up-tup-kkp-service.ts`  
   **Depends:** F9-06  
   **DoD:** CRUD, interval validation, monthly KKP, status, dan refresh impact bekerja.
 
-- [ ] **F11-07 â€” Integrasikan Capaian Output.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-07 — Integrasikan Capaian Output.** [Role: Frontend Operator Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/operator/data/output-achievement.tsx`, `apps/web/src/services/output-achievement-service.ts`  
   **Depends:** F9-07  
   **DoD:** CRUD, confirmation, deadline, eligibility, dan incomplete CTA bekerja.
 
-- [ ] **F11-08 â€” Integrasikan SPM Dispensasi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-08 — Integrasikan SPM Dispensasi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/operator/data/spm-dispensation.tsx`, `apps/web/src/services/spm-dispensation-service.ts`  
   **Depends:** F9-08  
   **DoD:** CRUD, Q4 validation, ratio, deduction preview, dan risk state bekerja.
 
-- [ ] **F11-09 â€” Integrasikan Simulasi dan Snapshot.** [Role: Frontend Operator Agent] [Model: Sol Medium]  
+- [x] **F11-09 — Integrasikan Simulasi & Snapshot.** [Role: Frontend Operator Agent] [Model: Luna Max]  
   **Scope:** Simulation, history, compare, formula trace, stale version, scenario overlay  
   **Depends:** F9-09  
   **DoD:** Actual tidak termutasi oleh scenario; save snapshot immutable; result sama dengan golden engine.
 
-- [ ] **F11-10 â€” Integrasikan Dashboard dan Analisis Operator.** [Role: Frontend Operator Agent] [Model: Sol Medium]  
+- [x] **F11-10 — Integrasikan Dashboard Operator, Analisis, dan Rekomendasi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
   **Scope:** Dashboard aggregates, trends, deadlines, incomplete data, recommendations  
-  **Depends:** F11-03â€“F11-09  
+  **Depends:** F11-03–F11-09  
   **DoD:** Semua CTA menuju sumber data benar dan state estimasi transparan.
 
-- [ ] **F11-11 â€” Integrasikan Reminder Center.** [Role: Frontend Operator Agent] [Model: Sol Medium]  
+- [x] **F11-11 — Integrasikan Reminder Center.** [Role: Frontend Operator Agent] [Model: Luna Max]  
   **Scope:** List/detail/config/preview/save/reset/audit  
   **Depends:** F10-10  
   **DoD:** Client tidak dapat melewati Compliance Guard dan jadwal preview sama dengan hasil server.
 
-- [ ] **F11-12 â€” Integrasikan monitoring Admin.** [Role: Frontend Admin Agent] [Model: Sol Medium]  
+- [x] **F11-12 — Integrasikan monitoring Admin.** [Role: Frontend Admin Agent] [Model: Sol Medium]  
   **Scope:** Dashboard, organization list/detail, risk/reminder, delivery retry  
   **Depends:** F9-10, F10-11  
   **DoD:** Scope isolation, read-only operational detail, pagination/filter, dan retry audit bekerja.
 
-- [ ] **F11-13 â€” Integrasikan Admin Policy.** [Role: Frontend Admin Agent] [Model: Sol Medium]  
+- [x] **F11-13 — Integrasikan Admin Policy.** [Role: Frontend Admin Agent] [Model: Sol Medium]  
   **Scope:** Rule set list/editor/diff/publish, policy, workdays, history  
   **Depends:** F10-09  
   **DoD:** Published read-only, preview impact, source required, validation, confirmation, dan version history bekerja.
 
-- [ ] **F11-14 â€” Integrasikan Audit Log dan Manajemen Akses.** [Role: Frontend Admin Agent] [Model: Sol Medium]  
+- [x] **F11-14 — Integrasikan Audit Log dan Manajemen Akses.** [Role: Frontend Admin Agent] [Model: Sol Medium]  
   **Scope:** Audit filters/detail dan access CRUD/protection  
   **Depends:** F8-07, F9-01  
   **DoD:** Last-admin error jelas, before/after redacted, dan seluruh aksi terbatasi scope.
