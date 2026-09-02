@@ -1,10 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { AdminShell } from "@/components/layout/admin-shell";
-import {
-	getMockReminderPolicies,
-	type ReminderPolicyEventItem,
-} from "@/mocks/reminder-policies";
 import {
 	CheckCircle2,
 	Clock,
@@ -15,6 +9,12 @@ import {
 	ShieldCheck,
 	X,
 } from "lucide-react";
+import { useState } from "react";
+import { AdminShell } from "@/components/layout/admin-shell";
+import {
+	getMockReminderPolicies,
+	type ReminderPolicyEventItem,
+} from "@/mocks/reminder-policies";
 
 export const Route = createFileRoute("/admin-kppn/policy/reminders")({
 	component: AdminReminderPoliciesPage,

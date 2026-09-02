@@ -1,9 +1,9 @@
-import type {
-	RpdDeviationInput,
-	IndicatorCalculation,
-	FormulaStep,
-} from "../types";
 import type { RuleSetConfig } from "../rule-set";
+import type {
+	FormulaStep,
+	IndicatorCalculation,
+	RpdDeviationInput,
+} from "../types";
 export function calculateRpdDeviation(
 	input: RpdDeviationInput,
 	config: RuleSetConfig,

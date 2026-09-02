@@ -1,10 +1,10 @@
+import type { RuleSetConfig } from "../rule-set";
 import type {
+	FormulaStep,
 	IndicatorCalculation,
 	OutputAchievementInput,
-	FormulaStep,
 	SubComponent,
 } from "../types";
-import type { RuleSetConfig } from "../rule-set";
 import { DecimalCalc } from "../utils/decimal";
 
 export function calculateOutputAchievement(

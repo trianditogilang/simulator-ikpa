@@ -113,7 +113,7 @@ describe("calculateIkpa orchestrator", () => {
 			rounding: {
 				mode: "half_up" as const,
 				fractionDigits: 1,
-			}
+			},
 		};
 
 		const inputWithOverrides: EngineInput = {

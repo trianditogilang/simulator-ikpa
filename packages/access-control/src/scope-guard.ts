@@ -33,9 +33,9 @@ export interface AdminContext {
 /**
  * Asserts that the request identity has valid authenticated access.
  */
-export function assertAuthenticated(
-	resolution: AccessResolution,
-): { userId: string } {
+export function assertAuthenticated(resolution: AccessResolution): {
+	userId: string;
+} {
 	if (resolution.status === "unauthenticated") {
 		throw new UnauthorizedError();
 	}

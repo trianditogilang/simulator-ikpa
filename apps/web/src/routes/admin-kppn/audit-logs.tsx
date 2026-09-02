@@ -1,7 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
-import { AdminShell } from "@/components/layout/admin-shell";
-import { getMockAuditLogs, type AuditLogItem } from "@/mocks/audit-logs";
 import {
 	ChevronDown,
 	ChevronRight,
@@ -10,6 +7,9 @@ import {
 	ShieldCheck,
 	X,
 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { AdminShell } from "@/components/layout/admin-shell";
+import { type AuditLogItem, getMockAuditLogs } from "@/mocks/audit-logs";
 
 export const Route = createFileRoute("/admin-kppn/audit-logs")({
 	component: AdminAuditLogsPage,

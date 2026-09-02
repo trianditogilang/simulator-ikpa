@@ -1,9 +1,9 @@
 import { auth, clerkClient } from "@clerk/tanstack-react-start/server";
 import { getCookie, getRequest } from "@tanstack/react-start/server";
 import {
+	type AuthSession,
 	createUnauthenticatedAuthSession,
 	getAuthContextFromRequest,
-	type AuthSession,
 } from "./auth-session";
 
 export const ACTIVE_ORGANIZATION_COOKIE = "ikpa_active_org";

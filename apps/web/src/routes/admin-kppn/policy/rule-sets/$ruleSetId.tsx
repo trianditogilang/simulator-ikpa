@@ -1,8 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { AdminShell } from "@/components/layout/admin-shell";
-import { getMockRuleSetById, type RuleSetItem } from "@/mocks/rule-sets";
-import { RuleSetPublishDialog } from "@/components/admin/rule-set-publish-dialog";
 import {
 	AlertTriangle,
 	ArrowLeft,
@@ -13,6 +9,10 @@ import {
 	Scale,
 	Send,
 } from "lucide-react";
+import { useState } from "react";
+import { RuleSetPublishDialog } from "@/components/admin/rule-set-publish-dialog";
+import { AdminShell } from "@/components/layout/admin-shell";
+import { getMockRuleSetById, type RuleSetItem } from "@/mocks/rule-sets";
 
 export const Route = createFileRoute("/admin-kppn/policy/rule-sets/$ruleSetId")(
 	{

@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
 import type { DbClient } from "@simulator-ikpa/db";
 import { users } from "@simulator-ikpa/db/schema";
+import { eq } from "drizzle-orm";
 
 export interface SyncClerkUserInput {
 	clerkUserId: string;

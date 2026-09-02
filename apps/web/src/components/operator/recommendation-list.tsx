@@ -1,7 +1,7 @@
 ﻿import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
-import type { PriorityActionItem } from "@/mocks/operator-dashboard";
 import { formatPointDelta } from "@/lib/format";
+import type { PriorityActionItem } from "@/mocks/operator-dashboard";
 
 export interface RecommendationListProps extends ComponentProps<"div"> {
 	actions: PriorityActionItem[];

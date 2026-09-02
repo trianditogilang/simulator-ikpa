@@ -1,4 +1,5 @@
 import { SignIn as ClerkSignIn } from "@clerk/tanstack-react-start";
+import { Link } from "@tanstack/react-router";
 import {
 	AlertCircle,
 	ArrowLeft,
@@ -11,13 +12,12 @@ import {
 	ShieldCheck,
 	X,
 } from "lucide-react";
-import { useState, type ComponentProps, type FormEvent } from "react";
-import { Link } from "@tanstack/react-router";
+import { type ComponentProps, type FormEvent, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import {
+	type AuthPresetUser,
 	mockAuthPresets,
 	mockPermissionMatrix,
-	type AuthPresetUser,
 } from "@/mocks/auth-presets";
 
 type SignInStatus = "idle" | "loading" | "error" | "reset" | "mfa" | "success";
@@ -42,7 +42,10 @@ function determineDestination(
 	selectedPreset: AuthPresetUser,
 	redirectIntent?: string,
 ): { targetPath: string; roleLabel: string; name: string } {
-	if (isSafeRedirectIntent(redirectIntent) && redirectIntent !== "/access-pending") {
+	if (
+		isSafeRedirectIntent(redirectIntent) &&
+		redirectIntent !== "/access-pending"
+	) {
 		return {
 			targetPath: redirectIntent,
 			roleLabel: "Pengguna",
@@ -593,7 +596,7 @@ function ClerkSignInPanel({
 				<ClerkSignIn
 					routing="hash"
 					forceRedirectUrl={safeRedirectIntent}
-					fallbackRedirectUrl="/operator/dashboard"
+					fallbackRedirectUrl="/sign-in"
 				/>
 			</div>
 		</section>

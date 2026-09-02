@@ -1,11 +1,11 @@
+import type { RuleSetConfig } from "../rule-set";
 import type {
 	AbsorptionInput,
-	IndicatorCalculation,
-	FormulaStep,
 	AccountType,
+	FormulaStep,
+	IndicatorCalculation,
 } from "../types";
-import type { RuleSetConfig } from "../rule-set";
-import { mul, div, round, parseDecimal } from "../utils";
+import { div, mul, parseDecimal, round } from "../utils";
 
 export function calculateAbsorption(
 	input: AbsorptionInput,

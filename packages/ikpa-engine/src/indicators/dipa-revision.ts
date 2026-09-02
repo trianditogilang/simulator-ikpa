@@ -1,9 +1,10 @@
+import type { RuleSetConfig } from "../rule-set";
 import type {
 	DipaRevisionInput,
-	IndicatorCalculation,
 	FormulaStep,
+	IndicatorCalculation,
 } from "../types";
-import type { RuleSetConfig } from "../rule-set";
+
 function getScore(
 	revisions: number,
 	buckets: RuleSetConfig["dipaRevisionBuckets"],

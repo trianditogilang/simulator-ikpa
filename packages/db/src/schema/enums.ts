@@ -24,10 +24,7 @@ export const dayTypeEnum = pgEnum("day_type", [
 	"schedule",
 ]);
 
-export const paymentTypeEnum = pgEnum("payment_type", [
-	"sekaligus",
-	"termin",
-]);
+export const paymentTypeEnum = pgEnum("payment_type", ["sekaligus", "termin"]);
 
 export const upTupTypeEnum = pgEnum("up_tup_type", [
 	"UP",

@@ -1,13 +1,13 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
-import {
-	SimulationModeTabs,
-	type SimulationMode,
-} from "@/components/operator/simulation-mode-tabs";
-import { SimulationContextForm } from "@/components/operator/simulation-context-form";
-import { SimulationResult } from "@/components/operator/simulation-result";
 import { FormulaTrace } from "@/components/operator/formula-trace";
+import { SimulationContextForm } from "@/components/operator/simulation-context-form";
+import {
+	type SimulationMode,
+	SimulationModeTabs,
+} from "@/components/operator/simulation-mode-tabs";
+import { SimulationResult } from "@/components/operator/simulation-result";
 import { getMockOperatorContext } from "@/mocks/operator-context";
 import { getMockOperatorDashboard } from "@/mocks/operator-dashboard";
 

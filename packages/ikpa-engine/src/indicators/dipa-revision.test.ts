@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
-import { calculateDipaRevision } from "./dipa-revision";
 import { default2026RuleSet } from "../rule-set";
 import type { DipaRevisionInput } from "../types";
+import { calculateDipaRevision } from "./dipa-revision";
 
 test("DIPA Revision golden test", () => {
 	const input: DipaRevisionInput = {

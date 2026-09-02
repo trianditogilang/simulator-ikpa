@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
-import { calculateRpdDeviation } from "./rpd-deviation";
 import { default2026RuleSet } from "../rule-set";
 import type { RpdDeviationInput } from "../types";
+import { calculateRpdDeviation } from "./rpd-deviation";
 
 test("RPD Deviation golden test - below 5%", () => {
 	const input: RpdDeviationInput = {

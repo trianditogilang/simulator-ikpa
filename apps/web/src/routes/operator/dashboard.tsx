@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
-import { ScoreCard } from "@/components/operator/score-card";
-import { IndicatorCard } from "@/components/operator/indicator-card";
 import { DeadlinePanel } from "@/components/operator/deadline-panel";
+import { IndicatorCard } from "@/components/operator/indicator-card";
 import { RecommendationList } from "@/components/operator/recommendation-list";
+import { ScoreCard } from "@/components/operator/score-card";
 import { getMockOperatorDashboard } from "@/mocks/operator-dashboard";
 
 export const Route = createFileRoute("/operator/dashboard")({

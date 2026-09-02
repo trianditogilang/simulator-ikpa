@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { getAccessResolutionFn } from "@/server/access";
 import { ActiveContextProvider } from "@/components/layout/active-context";
+import { getAccessResolutionFn } from "@/server/access";
 
 export const Route = createFileRoute("/admin-kppn")({
 	beforeLoad: async ({ location }) => {

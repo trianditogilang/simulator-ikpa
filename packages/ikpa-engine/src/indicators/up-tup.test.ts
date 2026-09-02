@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { calculateUpTup } from "./up-tup";
 import { default2026RuleSet } from "../rule-set";
 import type { UpTupInput } from "../types";
+import { calculateUpTup } from "./up-tup";
 
 describe("calculateUpTup", () => {
 	it("returns incomplete when no transactions exist", () => {

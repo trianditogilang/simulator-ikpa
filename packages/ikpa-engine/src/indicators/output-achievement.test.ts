@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { calculateOutputAchievement } from "./output-achievement";
 import { default2026RuleSet } from "../rule-set";
 import type { OutputAchievementInput } from "../types";
+import { calculateOutputAchievement } from "./output-achievement";
 
 describe("F6-09 Capaian Output", () => {
 	it("returns incomplete when no reports exist", () => {

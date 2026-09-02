@@ -1,10 +1,10 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { OperatorShell } from "@/components/layout/operator-shell";
 import {
-	DomainDataTable,
 	type ColumnDef,
+	DomainDataTable,
 } from "@/components/data/domain-data-table";
+import { OperatorShell } from "@/components/layout/operator-shell";
 import { mockReminders, type ReminderItem } from "@/mocks/reminders";
 
 export const Route = createFileRoute("/operator/reminders")({

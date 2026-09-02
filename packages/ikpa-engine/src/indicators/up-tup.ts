@@ -1,6 +1,6 @@
 import type { FiscalPeriod } from "@simulator-ikpa/contracts";
-import type { FormulaStep, IndicatorCalculation, UpTupInput } from "../types";
 import type { RuleSetConfig } from "../rule-set";
+import type { FormulaStep, IndicatorCalculation, UpTupInput } from "../types";
 
 // Helper to count days between two ISO dates
 function countDays(start: string, end: string): number {

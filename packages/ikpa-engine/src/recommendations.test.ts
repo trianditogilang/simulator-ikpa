@@ -61,16 +61,16 @@ describe("generateRecommendations", () => {
 		];
 
 		const recs = generateRecommendations(indicators, "95", default2026RuleSet);
-		
+
 		expect(recs).toHaveLength(3);
 		expect(recs[0].indicatorKey).toBe("rpd_deviation"); // 1350
 		expect(recs[1].indicatorKey).toBe("budget_absorption"); // 800
 		expect(recs[2].indicatorKey).toBe("dipa_revision"); // 100
-		
+
 		expect(recs[0].priority).toBe(1);
 		expect(recs[1].priority).toBe(2);
 		expect(recs[2].priority).toBe(3);
-		
+
 		expect(recs[0].urgency).toBe("high");
 		expect(recs[1].urgency).toBe("medium");
 		expect(recs[2].urgency).toBe("low");
@@ -82,7 +82,7 @@ describe("generateRecommendations", () => {
 				key: "rpd_deviation", // gap = 10, weight = 10 (modified for test), score = 100
 				label: "Deviasi Halaman III DIPA",
 				weight: "10",
-				score: "90", 
+				score: "90",
 				weightedContribution: "9",
 				status: "complete",
 				formulaTrace: [],
@@ -101,7 +101,7 @@ describe("generateRecommendations", () => {
 		];
 
 		const recs = generateRecommendations(indicators, "95", default2026RuleSet);
-		
+
 		expect(recs).toHaveLength(2);
 		// dipa_revision comes before rpd_deviation alphabetically
 		expect(recs[0].indicatorKey).toBe("dipa_revision");

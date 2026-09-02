@@ -1,15 +1,15 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { OperatorShell } from "@/components/layout/operator-shell";
 import {
-	DomainDataTable,
 	type ColumnDef,
+	DomainDataTable,
 } from "@/components/data/domain-data-table";
+import { OperatorShell } from "@/components/layout/operator-shell";
+import { formatNumber } from "@/lib/format";
 import {
 	mockSimulations,
 	type SimulationHistoryItem,
 } from "@/mocks/simulations";
-import { formatNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/operator/history")({
 	component: OperatorHistoryPage,

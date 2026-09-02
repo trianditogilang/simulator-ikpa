@@ -1,3 +1,5 @@
+import type { OrganizationSummary } from "@simulator-ikpa/contracts";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
 	AlertCircle,
 	Building2,
@@ -6,9 +8,7 @@ import {
 	Search,
 	SearchX,
 } from "lucide-react";
-import { useState, type ComponentProps } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
-import type { OrganizationSummary } from "@simulator-ikpa/contracts";
+import { type ComponentProps, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { setActiveOrganizationFn } from "@/server/access";
 

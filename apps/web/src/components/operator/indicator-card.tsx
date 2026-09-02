@@ -1,7 +1,7 @@
 ﻿import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
-import type { IndicatorScoreItem } from "@/mocks/operator-dashboard";
 import { formatNumber, formatPointDelta } from "@/lib/format";
+import type { IndicatorScoreItem } from "@/mocks/operator-dashboard";
 
 export interface IndicatorCardProps extends ComponentProps<"div"> {
 	indicator: IndicatorScoreItem;

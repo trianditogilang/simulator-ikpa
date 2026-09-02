@@ -1,8 +1,8 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
-import { mockAnalysisList, type AnalysisItem } from "@/mocks/analysis";
 import { formatPointDelta } from "@/lib/format";
+import { type AnalysisItem, mockAnalysisList } from "@/mocks/analysis";
 
 export const Route = createFileRoute("/operator/analysis")({
 	component: OperatorAnalysisPage,

@@ -1,16 +1,16 @@
+import { ContextHeader } from "@ikpa/ui";
 import type {
 	AccessResolution,
 	FiscalPeriod,
 	GlobalContext,
 } from "@simulator-ikpa/contracts";
 import { globalContextSchema } from "@simulator-ikpa/contracts";
-import { ContextHeader } from "@ikpa/ui";
 import {
 	createContext,
+	type ReactNode,
 	useContext,
 	useMemo,
 	useState,
-	type ReactNode,
 } from "react";
 
 const FISCAL_YEAR = 2026;

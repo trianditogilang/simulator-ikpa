@@ -48,7 +48,16 @@ export function LoadingState({
 				<div className="space-y-4 rounded-lg border border-border bg-surface p-4 shadow-card sm:p-6">
 					<div className="h-5 w-1/3 animate-pulse rounded-md bg-surface-muted" />
 					<div className="space-y-3">
-						{["row-1", "row-2", "row-3", "row-4", "row-5", "row-6", "row-7", "row-8"]
+						{[
+							"row-1",
+							"row-2",
+							"row-3",
+							"row-4",
+							"row-5",
+							"row-6",
+							"row-7",
+							"row-8",
+						]
 							.slice(0, rowCount)
 							.map((id) => (
 								<div

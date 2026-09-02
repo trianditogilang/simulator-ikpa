@@ -1,10 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { AdminShell } from "@/components/layout/admin-shell";
-import {
-	getMockWorkdayCalendar,
-	type HolidayOverrideItem,
-} from "@/mocks/workdays";
 import {
 	CalendarDays,
 	CheckCircle2,
@@ -13,6 +7,12 @@ import {
 	Save,
 	Upload,
 } from "lucide-react";
+import { useState } from "react";
+import { AdminShell } from "@/components/layout/admin-shell";
+import {
+	getMockWorkdayCalendar,
+	type HolidayOverrideItem,
+} from "@/mocks/workdays";
 
 export const Route = createFileRoute("/admin-kppn/policy/workdays")({
 	component: AdminWorkdaysPage,

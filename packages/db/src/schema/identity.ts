@@ -22,9 +22,7 @@ export const kppnScopes = pgTable(
 			.defaultNow()
 			.notNull(),
 	},
-	(table) => [
-		uniqueIndex("kppn_scopes_code_idx").on(table.code),
-	],
+	(table) => [uniqueIndex("kppn_scopes_code_idx").on(table.code)],
 );
 
 export const organizations = pgTable(

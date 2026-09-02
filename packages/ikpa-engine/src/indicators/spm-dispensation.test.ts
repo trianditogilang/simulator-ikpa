@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { calculateSpmDispensation } from "./spm-dispensation";
 import { default2026RuleSet } from "../rule-set";
 import type { SpmDispensationInput } from "../types";
+import { calculateSpmDispensation } from "./spm-dispensation";
 
 describe("F6-10 Dispensasi SPM", () => {
 	it("returns 0 deduction with warning if totalSpmQ4 is 0", () => {

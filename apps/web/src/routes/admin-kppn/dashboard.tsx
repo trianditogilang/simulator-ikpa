@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { AdminShell } from "@/components/layout/admin-shell";
-import { RiskOverview } from "@/components/admin/risk-overview";
-import { getMockAdminDashboardData } from "@/mocks/admin-dashboard";
 import { ArrowRight, Building2, Search } from "lucide-react";
+import { useState } from "react";
+import { RiskOverview } from "@/components/admin/risk-overview";
+import { AdminShell } from "@/components/layout/admin-shell";
+import { getMockAdminDashboardData } from "@/mocks/admin-dashboard";
 
 export const Route = createFileRoute("/admin-kppn/dashboard")({
 	component: AdminDashboardPage,

@@ -1,5 +1,5 @@
 import { useClerk } from "@clerk/tanstack-react-start";
-import { useState, type ComponentProps } from "react";
+import { type ComponentProps, useState } from "react";
 import { clearActiveOrganizationFn } from "@/server/access";
 
 export type SignOutActionProps = Omit<

@@ -1,7 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { AdminShell } from "@/components/layout/admin-shell";
-import { getMockRuleSets } from "@/mocks/rule-sets";
 import {
 	ArrowRight,
 	Copy,
@@ -11,6 +8,9 @@ import {
 	Scale,
 	X,
 } from "lucide-react";
+import { useState } from "react";
+import { AdminShell } from "@/components/layout/admin-shell";
+import { getMockRuleSets } from "@/mocks/rule-sets";
 
 export const Route = createFileRoute("/admin-kppn/policy/rule-sets/")({
 	component: AdminRuleSetsPage,

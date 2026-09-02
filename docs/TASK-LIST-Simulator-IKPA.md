@@ -672,7 +672,7 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
   **Depends:** F5-05, F8-01â€“F8-06  
   **DoD:** Seluruh jalur akses nyata menggantikan dummy tanpa mengubah layout yang sudah diterima.
 
-- [ ] **F11-02 â€” Integrasikan Pengaturan Satker.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-02 — Integrasikan Pengaturan Satker.** [Role: Frontend Operator Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/operator/settings.tsx`, `apps/web/src/services/settings-service.ts`  
   **Depends:** F9-02  
   **DoD:** Load/save/error/audit feedback nyata; UI tidak mengakses DB langsung.

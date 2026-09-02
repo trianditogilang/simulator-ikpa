@@ -18,7 +18,9 @@ export const ruleSets = pgTable(
 		id: uuid("id").primaryKey().defaultRandom(),
 		year: integer("year").notNull(),
 		version: text("version").notNull(),
-		effectiveFrom: timestamp("effective_from", { withTimezone: true }).notNull(),
+		effectiveFrom: timestamp("effective_from", {
+			withTimezone: true,
+		}).notNull(),
 		status: ruleSetStatusEnum("status").default("draft").notNull(),
 		sourceRegulation: text("source_regulation").notNull(),
 		changeNotes: text("change_notes"),

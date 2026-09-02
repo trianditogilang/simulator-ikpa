@@ -28,6 +28,24 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 [Any additional notes, observations, or reminders]
 ```
 
+### Session 91 - 2026-09-02
+**Time:** Start: 12:50 WIB | End: 13:10 WIB | Duration: ~20 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Fullstack Integration Agent
+- Model: Luna Max
+**Tasks Completed:**
+- Fitur Onboarding Registrasi Satker Mandiri untuk pengguna baru/unmapped pada `/access-pending`
+- [F11-02] Integrasi Pengaturan Satuan Kerja (`/operator/settings`) dengan backend queries & mutations riil, form update profil Satker, BLU, target IKPA, dan daftar operator riil dari DB
+**Code Changes:**
+- Files created: `apps/web/src/server/domains/settings.server.ts`, `apps/web/src/server/settings.ts`, `apps/web/src/services/settings-service.ts`
+- Files modified: `apps/web/src/components/access/access-pending.tsx`, `apps/web/src/routes/operator/settings.tsx`, `packages/db/src/seed.ts`
+- Verifikasi: `npm run typecheck` — Lulus 100%, `npm test` — 106/106 tests passed, `npm run build --workspace @simulator-ikpa/web` — Lulus 100%, `npm run lint` — 0 errors.
+**Issues Encountered:**
+- Issue: TanStack Start import-protection mendeteksi impor file `*.server.ts` di bundle client via `settings-service.ts`.
+- Solution: Memisahkan server logic ke `domains/settings.server.ts` dan RPC endpoints ke `server/settings.ts`, di mana `settings-service.ts` mengimpor `createServerFn` dari `server/settings.ts`.
+**Next Session Plan:**
+- Lanjutkan ke F11-03 (Panduan Interaktif & Bantuan Operasional) atau F11-04 (Riwayat Simulasi & Audit Log Operator).
+
 ### Session 90 - 2026-09-02
 **Time:** Start: 00:08 WIB | End: 00:42 WIB | Duration: ~34 minutes
 - Status: Completed

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { calculateInvoiceTimeliness } from "./invoice-timeliness";
 import { default2026RuleSet } from "../rule-set";
 import type { InvoiceTimelinessInput } from "../types";
+import { calculateInvoiceTimeliness } from "./invoice-timeliness";
 
 describe("calculateInvoiceTimeliness", () => {
 	it("returns incomplete when no invoices are present", () => {

@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { calculateAbsorption } from "./absorption";
+import { describe, expect, it } from "vitest";
 import { default2026RuleSet } from "../rule-set";
+import { calculateAbsorption } from "./absorption";
 
 describe("calculateAbsorption", () => {
 	it("returns 100 with warning for BLU organizations", () => {

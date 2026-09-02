@@ -1,11 +1,11 @@
 import {
-	type AccessResolution,
-	accessResolutionSchema,
-} from "@simulator-ikpa/contracts";
-import {
 	resolveUserAccess,
 	syncClerkUser,
 } from "@simulator-ikpa/access-control";
+import {
+	type AccessResolution,
+	accessResolutionSchema,
+} from "@simulator-ikpa/contracts";
 import { createDbClient } from "@simulator-ikpa/db";
 import type { AuthSession } from "./auth-session";
 import { getClerkIdentity } from "./auth-session.server";

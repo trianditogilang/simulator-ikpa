@@ -1,10 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
-import { AdminShell } from "@/components/layout/admin-shell";
-import {
-	getMockAdminReminders,
-	type AdminReminderItem,
-} from "@/mocks/admin-reminders";
 import {
 	AlertTriangle,
 	ArrowRight,
@@ -17,6 +11,12 @@ import {
 	Search,
 	X,
 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { AdminShell } from "@/components/layout/admin-shell";
+import {
+	type AdminReminderItem,
+	getMockAdminReminders,
+} from "@/mocks/admin-reminders";
 
 export const Route = createFileRoute("/admin-kppn/monitoring/reminders")({
 	component: AdminMonitoringRemindersPage,

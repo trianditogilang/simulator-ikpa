@@ -1,8 +1,8 @@
-import type { IndicatorCalculation, Recommendation } from "./types";
-import type { RuleSetConfig } from "./rule-set";
-import { DecimalCalc } from "./utils/decimal";
 import type { indicatorKeySchema } from "@simulator-ikpa/contracts";
 import type { z } from "zod";
+import type { RuleSetConfig } from "./rule-set";
+import type { IndicatorCalculation, Recommendation } from "./types";
+import { DecimalCalc } from "./utils/decimal";
 
 type IndicatorKey = z.infer<typeof indicatorKeySchema>;
 
@@ -34,7 +34,8 @@ export function generateRecommendations(
 	};
 
 	const DESCRIPTIONS: Record<string, string> = {
-		dipa_revision: "Hindari revisi DIPA yang terlalu sering untuk menjaga nilai.",
+		dipa_revision:
+			"Hindari revisi DIPA yang terlalu sering untuk menjaga nilai.",
 		rpd_deviation:
 			"Deviasi RPD terlalu tinggi, selaraskan realisasi dengan rencana.",
 		budget_absorption:
@@ -43,15 +44,17 @@ export function generateRecommendations(
 			"Segera selesaikan pendaftaran kontrak untuk menghindari penalti.",
 		invoice_timeliness: "Ajukan SPM tagihan tepat waktu sesuai ketentuan.",
 		up_tup: "Tingkatkan penggunaan dan penyelesaian UP/TUP serta KKP.",
-		output_achievement:
-			"Percepat pelaporan capaian output secara tepat waktu.",
+		output_achievement: "Percepat pelaporan capaian output secara tepat waktu.",
 	};
 
 	for (const ind of indicators) {
 		if (ind.status === "incomplete") continue;
 
 		const score = ind.score || "0";
-		if (DecimalCalc.lt(score, "100") || (ind.warnings && ind.warnings.length > 0)) {
+		if (
+			DecimalCalc.lt(score, "100") ||
+			(ind.warnings && ind.warnings.length > 0)
+		) {
 			const gap = DecimalCalc.sub("100", score);
 			const potentialGain = DecimalCalc.mul(
 				gap,

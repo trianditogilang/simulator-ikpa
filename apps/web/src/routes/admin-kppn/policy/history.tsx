@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { History, Info, Scale } from "lucide-react";
 import { useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { getMockPolicyHistory } from "@/mocks/policy-history";
-import { History, Info, Scale } from "lucide-react";
 
 export const Route = createFileRoute("/admin-kppn/policy/history")({
 	component: AdminPolicyHistoryPage,

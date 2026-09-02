@@ -1,16 +1,16 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { OperatorShell } from "@/components/layout/operator-shell";
 import {
-	DomainDataTable,
 	type ColumnDef,
+	DomainDataTable,
 } from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
-import {
-	mockContractsInvoices,
-	type ContractInvoiceItem,
-} from "@/mocks/contracts-invoices";
+import { OperatorShell } from "@/components/layout/operator-shell";
 import { formatRupiah } from "@/lib/format";
+import {
+	type ContractInvoiceItem,
+	mockContractsInvoices,
+} from "@/mocks/contracts-invoices";
 
 export const Route = createFileRoute("/operator/data/contracts-invoices")({
 	component: ContractsInvoicesPage,

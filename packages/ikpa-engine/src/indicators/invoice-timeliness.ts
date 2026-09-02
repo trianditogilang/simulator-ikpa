@@ -1,5 +1,5 @@
-import type { IndicatorCalculation, InvoiceTimelinessInput } from "../types";
 import type { RuleSetConfig } from "../rule-set";
+import type { IndicatorCalculation, InvoiceTimelinessInput } from "../types";
 
 // A day is a workday if it's NOT in holidays array.
 // Count workdays between two dates exclusive of start date.

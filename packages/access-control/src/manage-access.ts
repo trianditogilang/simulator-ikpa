@@ -1,6 +1,6 @@
-import { and, count, eq } from "drizzle-orm";
 import type { DbClient } from "@simulator-ikpa/db";
 import { auditLogs, userAccesses } from "@simulator-ikpa/db/schema";
+import { and, count, eq } from "drizzle-orm";
 
 export class LastAdminRevocationError extends Error {
 	public readonly statusCode = 400;

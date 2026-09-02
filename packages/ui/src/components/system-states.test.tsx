@@ -1,19 +1,23 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { LoadingState } from "./loading-state";
-import { ErrorState } from "./error-state";
+import { describe, expect, it, vi } from "vitest";
 import { EmptyState } from "./empty-state";
+import { ErrorState } from "./error-state";
 import { IncompleteState } from "./incomplete-state";
+import { LoadingState } from "./loading-state";
 import { PolicyLockAlert } from "./policy-lock-alert";
+import { RuleSetBadge } from "./rule-set-badge";
 import { SimulationDisclaimer } from "./simulation-disclaimer";
 import { StatusBadge } from "./status-badge";
-import { RuleSetBadge } from "./rule-set-badge";
 
 describe("System States Components", () => {
 	it("LoadingState renders skeleton with label", () => {
-		const { container } = render(<LoadingState label="Memuat Data Simulasi" rows={4} />);
+		const { container } = render(
+			<LoadingState label="Memuat Data Simulasi" rows={4} />,
+		);
 		expect(screen.getByText("Memuat Data Simulasi")).toBeDefined();
-		expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0);
+		expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(
+			0,
+		);
 	});
 
 	it("ErrorState renders error description, request ID, and retry button", () => {

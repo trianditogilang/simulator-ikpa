@@ -115,32 +115,29 @@ export const workdaysRelations = relations(workdays, ({ one }) => ({
 	}),
 }));
 
-export const fiscalYearsRelations = relations(
-	fiscalYears,
-	({ one, many }) => ({
-		organization: one(organizations, {
-			fields: [fiscalYears.orgId],
-			references: [organizations.id],
-		}),
-		activeRuleSet: one(ruleSets, {
-			fields: [fiscalYears.activeRuleSetId],
-			references: [ruleSets.id],
-		}),
-		budgets: many(budgets),
-		dipaRevisions: many(dipaRevisions),
-		rpdLines: many(rpdLines),
-		realizations: many(realizations),
-		contracts: many(contracts),
-		spmLs: many(spmLs),
-		upTupTransactions: many(upTupTransactions),
-		kkpUsages: many(kkpUsages),
-		outputReports: many(outputReports),
-		spmQ4: many(spmQ4),
-		simulations: many(simulations),
-		orgReminderConfigs: many(orgReminderConfigs),
-		importJobs: many(importJobs),
+export const fiscalYearsRelations = relations(fiscalYears, ({ one, many }) => ({
+	organization: one(organizations, {
+		fields: [fiscalYears.orgId],
+		references: [organizations.id],
 	}),
-);
+	activeRuleSet: one(ruleSets, {
+		fields: [fiscalYears.activeRuleSetId],
+		references: [ruleSets.id],
+	}),
+	budgets: many(budgets),
+	dipaRevisions: many(dipaRevisions),
+	rpdLines: many(rpdLines),
+	realizations: many(realizations),
+	contracts: many(contracts),
+	spmLs: many(spmLs),
+	upTupTransactions: many(upTupTransactions),
+	kkpUsages: many(kkpUsages),
+	outputReports: many(outputReports),
+	spmQ4: many(spmQ4),
+	simulations: many(simulations),
+	orgReminderConfigs: many(orgReminderConfigs),
+	importJobs: many(importJobs),
+}));
 
 export const budgetsRelations = relations(budgets, ({ one }) => ({
 	fiscalYear: one(fiscalYears, {
@@ -260,25 +257,22 @@ export const spmQ4Relations = relations(spmQ4, ({ one }) => ({
 	}),
 }));
 
-export const simulationsRelations = relations(
-	simulations,
-	({ one, many }) => ({
-		fiscalYear: one(fiscalYears, {
-			fields: [simulations.fiscalYearId],
-			references: [fiscalYears.id],
-		}),
-		parentSnapshot: one(scoreSnapshots, {
-			fields: [simulations.parentSnapshotId],
-			references: [scoreSnapshots.id],
-		}),
-		overrides: many(simulationOverrides),
-		snapshots: many(scoreSnapshots),
-		creator: one(users, {
-			fields: [simulations.createdBy],
-			references: [users.id],
-		}),
+export const simulationsRelations = relations(simulations, ({ one, many }) => ({
+	fiscalYear: one(fiscalYears, {
+		fields: [simulations.fiscalYearId],
+		references: [fiscalYears.id],
 	}),
-);
+	parentSnapshot: one(scoreSnapshots, {
+		fields: [simulations.parentSnapshotId],
+		references: [scoreSnapshots.id],
+	}),
+	overrides: many(simulationOverrides),
+	snapshots: many(scoreSnapshots),
+	creator: one(users, {
+		fields: [simulations.createdBy],
+		references: [users.id],
+	}),
+}));
 
 export const simulationOverridesRelations = relations(
 	simulationOverrides,
@@ -290,23 +284,20 @@ export const simulationOverridesRelations = relations(
 	}),
 );
 
-export const scoreSnapshotsRelations = relations(
-	scoreSnapshots,
-	({ one }) => ({
-		simulation: one(simulations, {
-			fields: [scoreSnapshots.simulationId],
-			references: [simulations.id],
-		}),
-		ruleSet: one(ruleSets, {
-			fields: [scoreSnapshots.ruleSetId],
-			references: [ruleSets.id],
-		}),
-		creator: one(users, {
-			fields: [scoreSnapshots.createdBy],
-			references: [users.id],
-		}),
+export const scoreSnapshotsRelations = relations(scoreSnapshots, ({ one }) => ({
+	simulation: one(simulations, {
+		fields: [scoreSnapshots.simulationId],
+		references: [simulations.id],
 	}),
-);
+	ruleSet: one(ruleSets, {
+		fields: [scoreSnapshots.ruleSetId],
+		references: [ruleSets.id],
+	}),
+	creator: one(users, {
+		fields: [scoreSnapshots.createdBy],
+		references: [users.id],
+	}),
+}));
 
 export const orgReminderConfigsRelations = relations(
 	orgReminderConfigs,

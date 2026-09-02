@@ -1,11 +1,11 @@
-import { describe, expect, it } from "vitest";
 import type { AccessResolution } from "@simulator-ikpa/contracts";
+import { describe, expect, it } from "vitest";
 import {
-	ForbiddenError,
-	UnauthorizedError,
 	assertAdminKppnScope,
 	assertAuthenticated,
 	assertOperatorOrgScope,
+	ForbiddenError,
+	UnauthorizedError,
 } from "./scope-guard";
 
 const mockUserId = "11111111-1111-4111-8111-111111111111";
@@ -17,9 +17,9 @@ const mockScopeId2 = "55555555-5555-4555-8555-555555555555";
 describe("scope-guard", () => {
 	describe("assertAuthenticated", () => {
 		it("throws UnauthorizedError for unauthenticated status", () => {
-			expect(() =>
-				assertAuthenticated({ status: "unauthenticated" }),
-			).toThrow(UnauthorizedError);
+			expect(() => assertAuthenticated({ status: "unauthenticated" })).toThrow(
+				UnauthorizedError,
+			);
 		});
 
 		it("returns userId for valid session", () => {
@@ -34,10 +34,7 @@ describe("scope-guard", () => {
 	describe("assertOperatorOrgScope", () => {
 		it("throws UnauthorizedError when unauthenticated", () => {
 			expect(() =>
-				assertOperatorOrgScope(
-					{ status: "unauthenticated" },
-					mockOrgId1,
-				),
+				assertOperatorOrgScope({ status: "unauthenticated" }, mockOrgId1),
 			).toThrow(UnauthorizedError);
 		});
 
@@ -66,7 +63,9 @@ describe("scope-guard", () => {
 				status: "admin",
 				userId: mockUserId,
 				accessType: "admin_kppn",
-				kppnScopes: [{ id: mockScopeId1, code: "089", name: "KPPN Jakarta II" }],
+				kppnScopes: [
+					{ id: mockScopeId1, code: "089", name: "KPPN Jakarta II" },
+				],
 			};
 			expect(() => assertOperatorOrgScope(adminRes, mockOrgId1)).toThrow(
 				ForbiddenError,
@@ -115,9 +114,9 @@ describe("scope-guard", () => {
 
 	describe("assertAdminKppnScope", () => {
 		it("throws UnauthorizedError when unauthenticated", () => {
-			expect(() =>
-				assertAdminKppnScope({ status: "unauthenticated" }),
-			).toThrow(UnauthorizedError);
+			expect(() => assertAdminKppnScope({ status: "unauthenticated" })).toThrow(
+				UnauthorizedError,
+			);
 		});
 
 		it("throws ForbiddenError when Operator tries to access Admin scope", () => {
@@ -160,7 +159,9 @@ describe("scope-guard", () => {
 				status: "admin",
 				userId: mockUserId,
 				accessType: "admin_kppn",
-				kppnScopes: [{ id: mockScopeId1, code: "089", name: "KPPN Jakarta II" }],
+				kppnScopes: [
+					{ id: mockScopeId1, code: "089", name: "KPPN Jakarta II" },
+				],
 			};
 			const ctx = assertAdminKppnScope(adminRes, mockScopeId1);
 			expect(ctx.userId).toBe(mockUserId);
@@ -171,7 +172,9 @@ describe("scope-guard", () => {
 				status: "admin",
 				userId: mockUserId,
 				accessType: "admin_kppn",
-				kppnScopes: [{ id: mockScopeId1, code: "089", name: "KPPN Jakarta II" }],
+				kppnScopes: [
+					{ id: mockScopeId1, code: "089", name: "KPPN Jakarta II" },
+				],
 			};
 			expect(() => assertAdminKppnScope(adminRes, mockScopeId2)).toThrow(
 				ForbiddenError,

@@ -1,19 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
+import {
+	ArrowLeft,
+	Bell,
+	CheckCircle2,
+	Clock,
+	Download,
+	FileCode,
+	History,
+	Lock,
+	TrendingUp,
+	Users,
+} from "lucide-react";
 import { useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { getMockAdminOrganizationDetail } from "@/mocks/admin-organization-detail";
-import {
-	ArrowLeft,
-	Download,
-	Lock,
-	Clock,
-	CheckCircle2,
-	TrendingUp,
-	History,
-	Bell,
-	FileCode,
-	Users,
-} from "lucide-react";
 
 export const Route = createFileRoute("/admin-kppn/organizations/$orgId")({
 	component: AdminOrganizationDetailPage,

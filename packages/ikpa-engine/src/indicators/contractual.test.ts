@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { calculateContractual } from "./contractual";
+import { describe, expect, it } from "vitest";
 import { default2026RuleSet } from "../rule-set";
+import { calculateContractual } from "./contractual";
 
 describe("calculateContractual", () => {
 	it("returns 100 for all subcomponents if empty contracts", () => {

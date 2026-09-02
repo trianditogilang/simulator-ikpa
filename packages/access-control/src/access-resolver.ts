@@ -1,4 +1,3 @@
-import { and, eq } from "drizzle-orm";
 import {
 	type AccessResolution,
 	accessResolutionSchema,
@@ -10,6 +9,7 @@ import {
 	userAccesses,
 	users,
 } from "@simulator-ikpa/db/schema";
+import { and, eq } from "drizzle-orm";
 
 export interface ResolveAccessInput {
 	clerkUserId: string | null;

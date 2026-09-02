@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import {
 	AccessConflictError,
-	LastAdminRevocationError,
 	grantAdminAccess,
 	grantOperatorAccess,
+	LastAdminRevocationError,
 	revokeAccess,
 	toggleAccessActive,
 } from "./manage-access";

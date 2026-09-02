@@ -1,13 +1,13 @@
-import * as dotenv from "dotenv";
 import { pathToFileURL } from "node:url";
-import { eq } from "drizzle-orm";
 import { default2026RuleSet } from "@simulator-ikpa/ikpa-engine";
+import * as dotenv from "dotenv";
+import { eq } from "drizzle-orm";
 import { createPoolDbClient } from "./client";
 import {
 	fiscalYears,
 	kppnScopes,
-	orgReminderConfigs,
 	organizations,
+	orgReminderConfigs,
 	reminderPolicies,
 	ruleSets,
 	userAccesses,
@@ -97,44 +97,51 @@ export async function seed() {
 	const [operator1] = await db
 		.insert(users)
 		.values({
-			clerkUserId:"user_3IjPcGAEXAkkjSRfROXmfnwcZII",
-			email: "operatorsatker@gmail.com",
+			clerkUserId: "user_3Il6leCEkkMQCuU4c3hIAPXBPlB",
+			email: "officialtgrid@gmail.com",
 			name: "Operator Satker 411782",
 		})
 		.onConflictDoUpdate({
 			target: users.email,
-			set: { name: "Operator Satker 411782", updatedAt: new Date() },
+			set: {
+				clerkUserId: "user_3Il6leCEkkMQCuU4c3hIAPXBPlB",
+				name: "Operator Satker 411782",
+				updatedAt: new Date(),
+			},
 		})
 		.returning();
 
 	// 4. User Accesses
 	console.log("  -> Seeding user accesses...");
-	await db
-		.insert(userAccesses)
-		.values([
-			{
-				userId: admin1.id,
-				accessType: "admin_kppn",
-				kppnScopeId: scope.id,
-				active: true,
-				createdBy: admin1.id,
-			},
-			{
-				userId: admin2.id,
-				accessType: "admin_kppn",
-				kppnScopeId: scope.id,
-				active: true,
-				createdBy: admin1.id,
-			},
-			{
-				userId: operator1.id,
-				accessType: "operator_satker",
-				orgId: org.id,
-				active: true,
-				createdBy: admin1.id,
-			},
-		])
-		.onConflictDoNothing();
+	// Clean up stale duplicate mappings
+	await db.delete(userAccesses);
+
+	await db.insert(userAccesses).values([
+		{
+			userId: admin1.id,
+			accessType: "admin_kppn",
+			kppnScopeId: scope.id,
+			orgId: null,
+			active: true,
+			createdBy: admin1.id,
+		},
+		{
+			userId: admin2.id,
+			accessType: "admin_kppn",
+			kppnScopeId: scope.id,
+			orgId: null,
+			active: true,
+			createdBy: admin1.id,
+		},
+		{
+			userId: operator1.id,
+			accessType: "operator_satker",
+			orgId: org.id,
+			kppnScopeId: null,
+			active: true,
+			createdBy: admin1.id,
+		},
+	]);
 
 	// 5. Rule Set 2026.1
 	console.log("  -> Seeding Rule Set 2026.1...");
@@ -362,7 +369,10 @@ export async function seed() {
 }
 
 // Run if called directly
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+	process.argv[1] &&
+	import.meta.url === pathToFileURL(process.argv[1]).href
+) {
 	seed()
 		.then(() => process.exit(0))
 		.catch((err) => {

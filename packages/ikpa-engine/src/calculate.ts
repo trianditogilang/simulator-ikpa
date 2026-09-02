@@ -1,15 +1,15 @@
-import type { EngineInput, EngineOutput, IndicatorCalculation } from "./types";
-import type { RuleSetConfig } from "./rule-set";
-import { calculateDipaRevision } from "./indicators/dipa-revision";
-import { calculateRpdDeviation } from "./indicators/rpd-deviation";
 import { calculateAbsorption } from "./indicators/absorption";
 import { calculateContractual } from "./indicators/contractual";
+import { calculateDipaRevision } from "./indicators/dipa-revision";
 import { calculateInvoiceTimeliness } from "./indicators/invoice-timeliness";
-import { calculateUpTup } from "./indicators/up-tup";
 import { calculateOutputAchievement } from "./indicators/output-achievement";
+import { calculateRpdDeviation } from "./indicators/rpd-deviation";
 import { calculateSpmDispensation } from "./indicators/spm-dispensation";
-import { DecimalCalc } from "./utils/decimal";
+import { calculateUpTup } from "./indicators/up-tup";
 import { generateRecommendations } from "./recommendations";
+import type { RuleSetConfig } from "./rule-set";
+import type { EngineInput, EngineOutput, IndicatorCalculation } from "./types";
+import { DecimalCalc } from "./utils/decimal";
 
 export function calculateIkpa(
 	input: EngineInput,
@@ -83,7 +83,7 @@ export function calculateIkpa(
 	let totalScore: string | null = null;
 	if (!isIncomplete) {
 		const rawTotal = DecimalCalc.sub(subtotal, deduction);
-		// Note: using roundHalfUp from DecimalCalc for all modes temporarily 
+		// Note: using roundHalfUp from DecimalCalc for all modes temporarily
 		// since DecimalCalc only exposes roundHalfUp currently.
 		totalScore = DecimalCalc.roundHalfUp(
 			rawTotal,

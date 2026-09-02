@@ -1,5 +1,5 @@
-import type { SpmDispensationInput, FormulaStep } from "../types";
 import type { RuleSetConfig } from "../rule-set";
+import type { FormulaStep, SpmDispensationInput } from "../types";
 import { DecimalCalc } from "../utils/decimal";
 
 export function calculateSpmDispensation(

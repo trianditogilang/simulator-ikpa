@@ -1,16 +1,16 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { OperatorShell } from "@/components/layout/operator-shell";
 import {
-	DomainDataTable,
 	type ColumnDef,
+	DomainDataTable,
 } from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
+import { OperatorShell } from "@/components/layout/operator-shell";
+import { formatRupiah } from "@/lib/format";
 import {
 	mockSpmDispensations,
 	type SpmDispensationItem,
 } from "@/mocks/spm-dispensation";
-import { formatRupiah } from "@/lib/format";
 
 export const Route = createFileRoute("/operator/data/spm-dispensation")({
 	component: SpmDispensationPage,
