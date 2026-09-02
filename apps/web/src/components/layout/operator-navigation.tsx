@@ -16,6 +16,7 @@ import type { ComponentProps } from "react";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { SignOutAction } from "@/components/auth/sign-out-action";
+import { useActiveContext } from "./active-context";
 
 type NavigationItem = {
 	label: string;
@@ -154,6 +155,9 @@ export function OperatorNavigation({
 	const moreIsActive = moreItems.some((item) =>
 		isOperatorRouteActive(currentPath, item.href),
 	);
+	const activeCtx = useActiveContext();
+	const satkerName = activeCtx?.context.activeOrganization?.name ?? "Operator Satker";
+	const satkerCode = activeCtx?.context.activeOrganization?.code ?? "";
 
 	return (
 		<div
@@ -212,7 +216,15 @@ export function OperatorNavigation({
 				</nav>
 				<div className="border-t border-border p-4">
 					<p className="text-body-small text-muted-foreground">Akun aktif</p>
-					<p className="mt-1 text-label text-foreground">Operator Satker</p>
+					<p
+						className="mt-1 truncate text-label text-foreground"
+						title={satkerName}
+					>
+						{satkerName}
+					</p>
+					{satkerCode ? (
+						<p className="text-[11px] text-muted-foreground">Kode: {satkerCode}</p>
+					) : null}
 					<SignOutAction className="mt-3 inline-flex min-h-10 items-center text-body-small text-primary underline-offset-4 hover:underline">
 						Keluar
 					</SignOutAction>

@@ -30,17 +30,24 @@ export async function seed() {
 
 	const db = createPoolDbClient(dbUrl);
 
-	// 1. KPPN Scope
+	// 1. KPPN Scope (KPPN-032 Malang – feedback /admin-kppn/access gilangrahmadian24@gmail.com 032)
 	console.log("  -> Seeding KPPN scopes...");
+	// legacy cleanup: remove old bare "032" if exists before inserting prefixed form
+	try {
+		await db.delete(kppnScopes).where(eq(kppnScopes.code, "032"));
+	} catch {}
+	try {
+		await db.delete(kppnScopes).where(eq(kppnScopes.code, "KPPN-089"));
+	} catch {}
 	const [scope] = await db
 		.insert(kppnScopes)
 		.values({
-			code: "KPPN-089",
-			name: "KPPN Jakarta II",
+			code: "KPPN-032",
+			name: "KPPN Malang",
 		})
 		.onConflictDoUpdate({
 			target: kppnScopes.code,
-			set: { name: "KPPN Jakarta II", updatedAt: new Date() },
+			set: { name: "KPPN Malang", updatedAt: new Date() },
 		})
 		.returning();
 
@@ -52,7 +59,7 @@ export async function seed() {
 			kppnScopeId: scope.id,
 			kodeSatker: "411782",
 			name: "Kantor Pelayanan Perbendaharaan Satker Contoh",
-			kppnName: "KPPN Jakarta II",
+			kppnName: "KPPN Malang",
 			isBlu: false,
 			timezone: "Asia/Jakarta",
 		})
@@ -61,6 +68,7 @@ export async function seed() {
 			set: {
 				name: "Kantor Pelayanan Perbendaharaan Satker Contoh",
 				kppnScopeId: scope.id,
+				kppnName: "KPPN Malang",
 				updatedAt: new Date(),
 			},
 		})

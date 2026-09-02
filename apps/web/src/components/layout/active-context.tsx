@@ -9,9 +9,11 @@ import {
 	createContext,
 	type ReactNode,
 	useContext,
+	useEffect,
 	useMemo,
 	useState,
 } from "react";
+import { getHeaderRuleSetFn } from "@/server/active-context";
 
 const FISCAL_YEAR = 2026;
 const FISCAL_YEAR_ID = "55555555-5555-4555-8555-555555555555";
@@ -95,9 +97,42 @@ export function ActiveContextHeader() {
 		return null;
 	}
 
+	// ponytail: header previously hardcoded ruleSet:null → always "belum tersedia" even though 2026.1 exists
+	// fetch live ruleSet per fiscalYear/org; fallback mock keeps header green in dev without DB
+	const [fetchedRuleSet, setFetchedRuleSet] = useState<GlobalContext["ruleSet"]>(
+		value.context.ruleSet,
+	);
+	const [fetchedFiscalYear, setFetchedFiscalYear] = useState(value.context.fiscalYear);
+
+	useEffect(() => {
+		const orgId = value.context.activeOrganization?.id ?? undefined;
+		const year = value.context.fiscalYear.year;
+		getHeaderRuleSetFn({ data: { orgId, year } })
+			.then((res) => {
+				if (res.ruleSet) {
+					setFetchedRuleSet(res.ruleSet as GlobalContext["ruleSet"]);
+				}
+				if (res.fiscalYear) {
+					setFetchedFiscalYear(res.fiscalYear as GlobalContext["fiscalYear"]);
+				}
+			})
+			.catch(() => {
+				// keep fallback null → dialog will explain
+			});
+	}, [value.context.activeOrganization?.id, value.context.fiscalYear.year]);
+
+	const mergedContext = useMemo(
+		() => ({
+			...value.context,
+			ruleSet: fetchedRuleSet ?? value.context.ruleSet,
+			fiscalYear: fetchedFiscalYear ?? value.context.fiscalYear,
+		}),
+		[value.context, fetchedRuleSet, fetchedFiscalYear],
+	);
+
 	return (
 		<ContextHeader
-			context={value.context}
+			context={mergedContext}
 			yearOptions={value.yearOptions}
 			periodOptions={value.periodOptions}
 			onPeriodChange={value.setPeriod}

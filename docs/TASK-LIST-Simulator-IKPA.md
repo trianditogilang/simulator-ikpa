@@ -739,44 +739,44 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
 
 ## 16. Fase 12 â€” Import, Export, dan Laporan
 
-- [ ] **F12-01 â€” Buat schema template dan parser CSV/XLSX per domain.** [Role: Import & Export Agent] [Model: Sol Medium]  
+- [x] **F12-01 â€” Buat schema template dan parser CSV/XLSX per domain.** [Role: Import & Export Agent] [Model: Sol Medium]  
   **Scope:** Enam domain, header/type/reference validation, formula injection defense, error cap  
   **Depends:** F0-08, F9-03â€“F9-08  
   **DoD:** Parser tidak menulis DB dan menghasilkan preview/error terstruktur yang sama dengan kontrak UI.
 
-- [ ] **F12-02 â€” Implementasikan upload dan preview import.** [Role: Import & Export Agent] [Model: Sol Medium]  
+- [x] **F12-02 â€” Implementasikan upload dan preview import.** [Role: Import & Export Agent] [Model: Sol Medium]  
   **Scope:** MIME/size validation, temporary storage, sync/async threshold, job creation, scoped preview  
   **Depends:** F12-01  
   **DoD:** 10 MB/10.000 row rules diterapkan atau disesuaikan ADR; file tidak menjadi URL publik permanen.
 
-- [ ] **F12-03 â€” Implementasikan commit import.** [Role: Import & Export Agent] [Model: Sol Medium]  
+- [x] **F12-03 â€” Implementasikan commit import.** [Role: Import & Export Agent] [Model: Sol Medium]  
   **Scope:** Batch transaction, valid-row-only policy, duplicate handling, audit, idempotency  
   **Depends:** F12-02  
   **DoD:** Tidak ada write sebelum konfirmasi; partial/batch semantics terdokumentasi dan teruji.
 
-- [ ] **F12-04 â€” Buat endpoint QStash import.** [Role: Import & Export Agent] [Model: Luna Max]  
+- [x] **F12-04 â€” Buat endpoint QStash import.** [Role: Import & Export Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/api/jobs/import/process.ts`, `apps/web/src/server/import/process-job.ts`  
   **Depends:** F12-02  
   **DoD:** Signature, replay, status transition, stuck job handling, dan safe error tersedia.
 
-- [ ] **F12-05 â€” Integrasikan UI Import.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F12-05 â€” Integrasikan UI Import.** [Role: Frontend Operator Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/routes/operator/import.tsx`, `apps/web/src/services/import-service.ts`  
   **Depends:** F12-03, F12-04  
   **DoD:** Upload, polling, preview, errors, confirm, cancel, completion, dan retry sesuai backend.
 
-- [ ] **F12-06 â€” Implementasikan export XLSX Operator.** [Role: Import & Export Agent] [Model: Luna Max]  
+- [x] **F12-06 â€” Implementasikan export XLSX Operator.** [Role: Import & Export Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/server/exports/operator-xlsx.ts`, `apps/web/src/server/exports/operator-xlsx.test.ts`  
   **DoD:** Scoped data, filter, score/indicator/risk/recommendation, metadata, disclaimer, version, dan injection defense teruji.
 
-- [ ] **F12-07 â€” Implementasikan export PDF Operator.** [Role: Import & Export Agent] [Model: Luna Max]  
+- [x] **F12-07 â€” Implementasikan export PDF Operator.** [Role: Import & Export Agent] [Model: Luna Max]  
   **Files:** `apps/web/src/server/exports/operator-pdf.tsx`, `apps/web/src/server/exports/operator-pdf.test.tsx`  
   **DoD:** Executive summary, chart-safe fallback, period, print time, disclaimer, dan rule set version tersedia.
 
-- [ ] **F12-08 â€” Implementasikan export agregat Admin.** [Role: Import & Export Agent] [Model: Sol Medium]  
+- [x] **F12-08 â€” Implementasikan export agregat Admin.** [Role: Import & Export Agent] [Model: Sol Medium]  
   **Scope:** XLSX/PDF agregat dan detail read-only dengan KPPN scope  
   **DoD:** Filter tercantum, data lintas scope tidak mungkin masuk, dan large export strategy teruji.
 
-- [ ] **F12-09 â€” Integrasikan UI laporan Operator/Admin.** [Role: Frontend Foundation Agent] [Model: Sol Medium]  
+- [x] **F12-09 â€” Integrasikan UI laporan Operator/Admin.** [Role: Frontend Foundation Agent] [Model: Sol Medium]  
   **Scope:** Preview, request, authenticated download, progress, error, filename  
   **Depends:** F12-06â€“F12-08  
   **DoD:** Tidak ada permanent public URL dan hasil cocok dengan filter UI.

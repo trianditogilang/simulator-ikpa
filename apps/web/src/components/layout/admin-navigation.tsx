@@ -10,6 +10,7 @@ import {
 	MoreHorizontal,
 	TriangleAlert,
 } from "lucide-react";
+import { useUser } from "@clerk/tanstack-react-start";
 import { Dialog } from "radix-ui";
 import type { ComponentProps } from "react";
 import { useState } from "react";
@@ -83,6 +84,17 @@ const mobileItems: readonly NavigationItem[] = [
 
 const moreItems: readonly NavigationItem[] = [...secondaryItems];
 
+function toTitleCaseKppn(value: string): string {
+	return value
+		.split(" ")
+		.map((w) => {
+			const lower = w.toLowerCase();
+			if (lower === "kppn") return "KPPN";
+			return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+		})
+		.join(" ");
+}
+
 export type AdminNavigationProps = Omit<ComponentProps<"div">, "children"> & {
 	currentPath: string;
 };
@@ -148,6 +160,25 @@ export function AdminNavigation({
 	const moreIsActive = moreItems.some((item) =>
 		isAdminRouteActive(currentPath, item.href),
 	);
+	let clerkName: string | null = null;
+	let clerkEmail: string | null = null;
+	try {
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const { user, isLoaded } = useUser();
+		if (isLoaded && user) {
+			clerkName =
+				(user.fullName as string | null) ||
+				(user.firstName as string | null) ||
+				(user.primaryEmailAddress?.emailAddress as string | null) ||
+				null;
+			clerkEmail = (user.primaryEmailAddress?.emailAddress as string | null) ?? null;
+		}
+	} catch {
+		// demo without ClerkProvider
+	}
+	const displayName = clerkName || "Admin KPPN Malang";
+	const displayEmail = clerkEmail || "admin.kppn@kemenkeu.go.id";
+	const displayInitial = displayName.charAt(0).toUpperCase();
 
 	return (
 		<div
@@ -162,11 +193,11 @@ export function AdminNavigation({
 							aria-hidden="true"
 							className="inline-flex size-9 items-center justify-center rounded-md bg-primary text-label text-primary-foreground"
 						>
-							SI
+							{displayInitial}
 						</span>
-						<div>
+						<div className="min-w-0">
 							<p className="text-label text-foreground">Simulator IKPA</p>
-							<p className="text-body-small text-muted-foreground">
+							<p className="truncate text-body-small text-muted-foreground">
 								Admin KPPN
 							</p>
 						</div>
@@ -218,7 +249,15 @@ export function AdminNavigation({
 				</nav>
 				<div className="border-t border-border p-4">
 					<p className="text-body-small text-muted-foreground">Akun aktif</p>
-					<p className="mt-1 text-label text-foreground">Admin KPPN</p>
+					<p
+						className="mt-1 truncate text-label text-foreground"
+						title={displayEmail}
+					>
+						{toTitleCaseKppn(displayName)}
+					</p>
+					<p className="truncate text-[11px] text-muted-foreground" title={displayEmail}>
+						{displayEmail}
+					</p>
 					<SignOutAction className="mt-3 inline-flex min-h-10 items-center text-body-small text-primary underline-offset-4 hover:underline">
 						Keluar
 					</SignOutAction>
@@ -231,10 +270,10 @@ export function AdminNavigation({
 						aria-hidden="true"
 						className="inline-flex size-8 items-center justify-center rounded-md bg-primary text-label text-primary-foreground"
 					>
-						SI
+						{displayInitial}
 					</span>
-					<div>
-						<p className="text-label text-foreground">Admin KPPN</p>
+					<div className="min-w-0">
+						<p className="truncate text-label text-foreground">Admin KPPN</p>
 						<p className="text-body-small text-muted-foreground">
 							Simulator IKPA
 						</p>

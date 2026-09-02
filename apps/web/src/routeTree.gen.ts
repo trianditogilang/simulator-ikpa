@@ -46,6 +46,7 @@ import { Route as OperatorDataSpmDispensationRouteImport } from './routes/operat
 import { Route as OperatorDataUpTupKkpRouteImport } from './routes/operator/data/up-tup-kkp'
 import { Route as AdminKppnPolicyRuleSetsIndexRouteImport } from './routes/admin-kppn/policy/rule-sets/index'
 import { Route as AdminKppnPolicyRuleSetsRuleSetIdRouteImport } from './routes/admin-kppn/policy/rule-sets/$ruleSetId'
+import { Route as ApiJobsImportProcessRouteImport } from './routes/api/jobs/import/process'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -243,6 +244,11 @@ const AdminKppnPolicyRuleSetsRuleSetIdRoute =
     path: '/policy/rule-sets/$ruleSetId',
     getParentRoute: () => AdminKppnRouteRoute,
   } as any)
+const ApiJobsImportProcessRoute = ApiJobsImportProcessRouteImport.update({
+  id: '/api/jobs/import/process',
+  path: '/api/jobs/import/process',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -281,6 +287,7 @@ export interface FileRoutesByFullPath {
   '/operator/data/up-tup-kkp': typeof OperatorDataUpTupKkpRoute
   '/admin-kppn/organizations/': typeof AdminKppnOrganizationsIndexRoute
   '/admin-kppn/policy/rule-sets/$ruleSetId': typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
+  '/api/jobs/import/process': typeof ApiJobsImportProcessRoute
   '/admin-kppn/policy/rule-sets/': typeof AdminKppnPolicyRuleSetsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -320,6 +327,7 @@ export interface FileRoutesByTo {
   '/operator/data/up-tup-kkp': typeof OperatorDataUpTupKkpRoute
   '/admin-kppn/organizations': typeof AdminKppnOrganizationsIndexRoute
   '/admin-kppn/policy/rule-sets/$ruleSetId': typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
+  '/api/jobs/import/process': typeof ApiJobsImportProcessRoute
   '/admin-kppn/policy/rule-sets': typeof AdminKppnPolicyRuleSetsIndexRoute
 }
 export interface FileRoutesById {
@@ -360,6 +368,7 @@ export interface FileRoutesById {
   '/operator/data/up-tup-kkp': typeof OperatorDataUpTupKkpRoute
   '/admin-kppn/organizations/': typeof AdminKppnOrganizationsIndexRoute
   '/admin-kppn/policy/rule-sets/$ruleSetId': typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
+  '/api/jobs/import/process': typeof ApiJobsImportProcessRoute
   '/admin-kppn/policy/rule-sets/': typeof AdminKppnPolicyRuleSetsIndexRoute
 }
 export interface FileRouteTypes {
@@ -401,6 +410,7 @@ export interface FileRouteTypes {
     | '/operator/data/up-tup-kkp'
     | '/admin-kppn/organizations/'
     | '/admin-kppn/policy/rule-sets/$ruleSetId'
+    | '/api/jobs/import/process'
     | '/admin-kppn/policy/rule-sets/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -440,6 +450,7 @@ export interface FileRouteTypes {
     | '/operator/data/up-tup-kkp'
     | '/admin-kppn/organizations'
     | '/admin-kppn/policy/rule-sets/$ruleSetId'
+    | '/api/jobs/import/process'
     | '/admin-kppn/policy/rule-sets'
   id:
     | '__root__'
@@ -479,6 +490,7 @@ export interface FileRouteTypes {
     | '/operator/data/up-tup-kkp'
     | '/admin-kppn/organizations/'
     | '/admin-kppn/policy/rule-sets/$ruleSetId'
+    | '/api/jobs/import/process'
     | '/admin-kppn/policy/rule-sets/'
   fileRoutesById: FileRoutesById
 }
@@ -493,6 +505,7 @@ export interface RootRouteChildren {
   SsoCallbackRoute: typeof SsoCallbackRoute
   ApiQstashDailyRoute: typeof ApiQstashDailyRoute
   ApiQstashSendRoute: typeof ApiQstashSendRoute
+  ApiJobsImportProcessRoute: typeof ApiJobsImportProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -756,6 +769,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminKppnPolicyRuleSetsRuleSetIdRouteImport
       parentRoute: typeof AdminKppnRouteRoute
     }
+    '/api/jobs/import/process': {
+      id: '/api/jobs/import/process'
+      path: '/api/jobs/import/process'
+      fullPath: '/api/jobs/import/process'
+      preLoaderRoute: typeof ApiJobsImportProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -844,6 +864,7 @@ const rootRouteChildren: RootRouteChildren = {
   SsoCallbackRoute: SsoCallbackRoute,
   ApiQstashDailyRoute: ApiQstashDailyRoute,
   ApiQstashSendRoute: ApiQstashSendRoute,
+  ApiJobsImportProcessRoute: ApiJobsImportProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

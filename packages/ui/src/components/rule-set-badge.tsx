@@ -58,11 +58,7 @@ export function RuleSetBadge({
 			{...props}
 		>
 			<Icon aria-hidden="true" className="size-3.5 shrink-0" />
-			<span>
-				Rule Set {year}.{version}
-			</span>
-			<span aria-hidden="true">/</span>
-			<span>{statusLabel}</span>
+			<span>Rule Set {year}.{version}</span>
 		</output>
 	);
 }

@@ -308,14 +308,8 @@ export async function calculateAndPersistSnapshot(
 	const inputHash = hashInput(engineInput);
 	const periodEnd = `${fy.year}-${String(params.period.value).padStart(2, "0")}-01`;
 
-	// ponytail: sequential inserts; wrap in transaction if db supports it
-	const tryTx = (
-		db as unknown as {
-			transaction?: (
-				fn: (tx: DbClient) => Promise<unknown>,
-			) => Promise<unknown>;
-		}
-	).transaction;
+	// ponytail: neon-http driver does not support transactions (throws "No transactions support in neon-http driver");
+	// sequential inserts are sufficient for dashboard read path; use Pool driver only if strict atomicity needed
 	const doPersist = async (tx: DbClient) => {
 		const [simulation] = await tx
 			.insert(simulations)
@@ -356,10 +350,5 @@ export async function calculateAndPersistSnapshot(
 		return { simulation, snapshot, output, inputHash };
 	};
 
-	if (tryTx) {
-		return (await tryTx.call(db, doPersist as never)) as Awaited<
-			ReturnType<typeof doPersist>
-		>;
-	}
 	return doPersist(db as DbClient);
 }

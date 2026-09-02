@@ -67,7 +67,6 @@ function AdminRuleSetsPage() {
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
 							Kelola parameter, bobot indikator, dan formula penilaian IKPA
-							tanpa perlu deploy ulang aplikasi
 						</p>
 					</div>
 
@@ -110,7 +109,7 @@ function AdminRuleSetsPage() {
 							</h2>
 							<p className="text-xs text-muted-foreground">
 								Berlaku efektif sejak: {publishedVersion.effectiveFrom} •
-								Disahkan oleh: {publishedVersion.authorName}
+								Disahkan oleh: Direktorat Jenderal Perbendaharaan Kemenkeu RI
 							</p>
 						</div>
 

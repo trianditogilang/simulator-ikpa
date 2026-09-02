@@ -13,6 +13,7 @@ import {
 	UserCheck,
 	X,
 } from "lucide-react";
+import { useUser } from "@clerk/tanstack-react-start";
 import { useMemo, useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
 import {
@@ -78,6 +79,27 @@ function AdminAccessManagementPage() {
 		(a) => a.accessType === "admin_kppn" && a.status === "active",
 	).length;
 
+	// ponytail: resolve current user email via Clerk, fallback to first admin mock for demo (so header & freeze always work)
+	let currentUserEmail: string | null = null;
+	try {
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const { user, isLoaded } = useUser();
+		if (isLoaded && user?.primaryEmailAddress?.emailAddress) {
+			currentUserEmail = user.primaryEmailAddress.emailAddress.toLowerCase();
+		} else if (isLoaded && user?.emailAddresses?.[0]?.emailAddress) {
+			currentUserEmail = user.emailAddresses[0].emailAddress.toLowerCase();
+		}
+	} catch {
+		// demo without ClerkProvider
+	}
+	if (!currentUserEmail) {
+		// fallback: first active admin in initial mock = “admin.kppn@kemenkeu.go.id” (freeze demo)
+		const demoAdmin = accessList.find(
+			(a) => a.accessType === "admin_kppn" && a.status === "active",
+		);
+		if (demoAdmin) currentUserEmail = demoAdmin.email.toLowerCase();
+	}
+
 	const filteredList = useMemo(() => {
 		return accessList.filter((item) => {
 			const matchQuery =
@@ -93,6 +115,16 @@ function AdminAccessManagementPage() {
 			return matchQuery && matchRole && matchStatus;
 		});
 	}, [accessList, searchQuery, roleFilter, statusFilter]);
+
+	const sortedFilteredList = useMemo(() => {
+		if (!currentUserEmail) return filteredList;
+		const idx = filteredList.findIndex(
+			(u) => u.email.toLowerCase() === currentUserEmail,
+		);
+		if (idx <= 0) return filteredList;
+		const me = filteredList[idx];
+		return [me, ...filteredList.slice(0, idx), ...filteredList.slice(idx + 1)];
+	}, [filteredList, currentUserEmail]);
 
 	const handleSaveAccess = async (user: UserAccessItem) => {
 		try {
@@ -114,6 +146,11 @@ function AdminAccessManagementPage() {
 	};
 
 	const handleToggleStatus = async (user: UserAccessItem) => {
+		if (currentUserEmail && user.email.toLowerCase() === currentUserEmail) {
+			setToastMessage("Tidak dapat menonaktifkan akun Anda sendiri – minta admin lain.");
+			setTimeout(() => setToastMessage(null), 4000);
+			return;
+		}
 		if (
 			user.accessType === "admin_kppn" &&
 			user.status === "active" &&
@@ -141,6 +178,11 @@ function AdminAccessManagementPage() {
 	};
 
 	const handleDeleteAccess = async (user: UserAccessItem) => {
+		if (currentUserEmail && user.email.toLowerCase() === currentUserEmail) {
+			setToastMessage("Tidak dapat menghapus akun Anda sendiri – minta admin lain.");
+			setTimeout(() => setToastMessage(null), 4000);
+			return;
+		}
 		if (
 			user.accessType === "admin_kppn" &&
 			user.status === "active" &&
@@ -292,8 +334,8 @@ function AdminAccessManagementPage() {
 					<div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs text-muted-foreground">
 						<span>
 							Menampilkan{" "}
-							<strong className="text-foreground">{filteredList.length}</strong>{" "}
-							pengguna
+							<strong className="text-foreground">{sortedFilteredList.length}</strong>{" "}
+							pengguna{currentUserEmail ? " • Akun Anda terpin di atas" : ""}
 						</span>
 						{(searchQuery ||
 							roleFilter !== "all" ||
@@ -328,26 +370,35 @@ function AdminAccessManagementPage() {
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-border/60">
-								{filteredList.map((user) => (
-									<tr
-										key={user.id}
-										className="transition-colors hover:bg-surface-muted/30"
-									>
-										<td className="py-3 pl-4 pr-2">
-											<div className="flex items-center gap-1.5">
-												<span className="font-semibold text-foreground">
-													{user.name}
-												</span>
-												{user.verifiedIdentity && (
-													<span title="Identitas Terverifikasi">
-														<UserCheck className="size-3.5 text-primary" />
+								{sortedFilteredList.map((user) => {
+									const isCurrentUser = currentUserEmail
+										? user.email.toLowerCase() === currentUserEmail
+										: false;
+									return (
+										<tr
+											key={user.id}
+											className={`transition-colors hover:bg-surface-muted/30 ${isCurrentUser ? "sticky top-0 z-10 bg-primary/[0.06] backdrop-blur supports-[backdrop-filter]:bg-primary/[0.06] border-b-2 border-primary/20" : ""}`}
+										>
+											<td className="py-3 pl-4 pr-2">
+												<div className="flex flex-wrap items-center gap-1.5">
+													<span className="font-semibold text-foreground">
+														{user.name}
 													</span>
-												)}
-											</div>
-											<p className="text-[11px] text-muted-foreground">
-												Dibuat: {user.createdAt}
-											</p>
-										</td>
+													{isCurrentUser && (
+														<span className="inline-flex items-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">
+															Akun Anda
+														</span>
+													)}
+													{user.verifiedIdentity && (
+														<span title="Identitas Terverifikasi">
+															<UserCheck className="size-3.5 text-primary" />
+														</span>
+													)}
+												</div>
+												<p className="text-[11px] text-muted-foreground">
+													Dibuat: {user.createdAt}
+												</p>
+											</td>
 										<td className="px-3 py-3 text-foreground font-medium">
 											{user.email}
 										</td>
@@ -391,7 +442,13 @@ function AdminAccessManagementPage() {
 														setEditingItem(user);
 														setIsModalOpen(true);
 													}}
-													className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-semibold text-primary transition hover:bg-surface-muted"
+													disabled={isCurrentUser}
+													title={
+														isCurrentUser
+															? "Edit akun sendiri tidak disarankan – hubungi admin lain"
+															: undefined
+													}
+													className={`inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-semibold transition hover:bg-surface-muted ${isCurrentUser ? "cursor-not-allowed opacity-50 text-muted-foreground" : "text-primary"}`}
 												>
 													<Edit className="size-3" />
 													<span>Edit</span>
@@ -400,7 +457,13 @@ function AdminAccessManagementPage() {
 												<button
 													type="button"
 													onClick={() => handleToggleStatus(user)}
-													className="rounded-md border border-border bg-background px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:bg-surface-muted hover:text-foreground"
+													disabled={isCurrentUser}
+													title={
+														isCurrentUser
+															? "Tidak dapat menonaktifkan akun sendiri"
+															: undefined
+													}
+													className={`rounded-md border border-border bg-background px-2 py-1 text-[11px] font-semibold hover:bg-surface-muted hover:text-foreground ${isCurrentUser ? "cursor-not-allowed opacity-50" : "text-muted-foreground"}`}
 												>
 													{user.status === "active"
 														? "Nonaktifkan"
@@ -410,15 +473,21 @@ function AdminAccessManagementPage() {
 												<button
 													type="button"
 													onClick={() => handleDeleteAccess(user)}
-													className="rounded-md p-1 text-muted-foreground hover:bg-danger/10 hover:text-danger"
-													title="Hapus Akses"
+													disabled={isCurrentUser}
+													className={`rounded-md p-1 hover:bg-danger/10 hover:text-danger ${isCurrentUser ? "cursor-not-allowed opacity-40" : "text-muted-foreground"}`}
+													title={
+														isCurrentUser
+															? "Tidak dapat menghapus akun sendiri"
+															: "Hapus Akses"
+													}
 												>
 													<Trash2 className="size-3.5" />
 												</button>
 											</div>
 										</td>
 									</tr>
-								))}
+								);
+								})}
 							</tbody>
 						</table>
 					</div>
