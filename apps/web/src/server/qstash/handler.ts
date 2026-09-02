@@ -41,8 +41,7 @@ export async function handleQStashDaily(
 	const requestId = headers.get("x-request-id") ?? newRequestId();
 	const now = new Date();
 	// select due scheduled
-	// @ts-expect-error drizzle chain typing ponytail: minimal
-	const due = (await (db as never)
+	const due = (await (db as any)
 		.select()
 		.from(notificationDeliveries)
 		.where(eq(notificationDeliveries.status, "scheduled"))
@@ -92,8 +91,7 @@ export async function handleQStashSend(
 	const requestId = headers.get("x-request-id") ?? newRequestId();
 	const batchLimit = opts?.batchLimit ?? 20;
 	const now = new Date();
-	// @ts-expect-error drizzle chain typing ponytail: minimal
-	const rows = (await (db as never)
+	const rows = (await (db as any)
 		.select()
 		.from(notificationDeliveries)
 		.where(eq(notificationDeliveries.status, "scheduled"))

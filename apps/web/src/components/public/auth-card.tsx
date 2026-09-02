@@ -1,10 +1,11 @@
 import {
 	SignIn as ClerkSignIn,
+	SignUp as ClerkSignUp,
 	useAuth,
 	useUser,
 } from "@clerk/tanstack-react-start";
-import { ArrowRight, LogOut } from "lucide-react";
-import type { ComponentProps } from "react";
+import { ArrowRight, LogOut, UserPlus, LogIn } from "lucide-react";
+import { useState, type ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 import { SignOutAction } from "@/components/auth/sign-out-action";
 
@@ -30,6 +31,7 @@ function ClerkAuthCard({
 }) {
 	const { isSignedIn, isLoaded } = useAuth();
 	const { user } = useUser();
+	const [authMode, setAuthMode] = useState<"sign-in" | "sign-up">("sign-in");
 
 	if (isLoaded && isSignedIn) {
 		const displayName =
@@ -89,18 +91,67 @@ function ClerkAuthCard({
 	}
 
 	return (
-		<ClerkSignIn
-			routing="hash"
-			forceRedirectUrl={safeRedirectIntent}
-			fallbackRedirectUrl="/sign-in"
-			appearance={{
-				elements: {
-					rootBox: "mx-auto w-full min-w-0 max-w-full",
-					cardBox: "mx-auto !w-full !min-w-0 !max-w-[400px]",
-					card: "w-full min-w-0 max-w-full border-0 bg-transparent p-0 shadow-none",
-				},
-			}}
-		/>
+		<div className="w-full max-w-[400px] space-y-3">
+			{/* Mode Switcher */}
+			<div className="flex rounded-xl border border-border bg-surface p-1 text-xs font-semibold">
+				<button
+					type="button"
+					onClick={() => setAuthMode("sign-in")}
+					className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 transition ${
+						authMode === "sign-in"
+							? "bg-background text-primary shadow-xs"
+							: "text-muted-foreground hover:text-foreground"
+					}`}
+				>
+					<LogIn className="size-3.5" />
+					<span>Masuk</span>
+				</button>
+				<button
+					type="button"
+					onClick={() => setAuthMode("sign-up")}
+					className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 transition ${
+						authMode === "sign-up"
+							? "bg-background text-primary shadow-xs"
+							: "text-muted-foreground hover:text-foreground"
+					}`}
+				>
+					<UserPlus className="size-3.5" />
+					<span>Daftar Akun Baru</span>
+				</button>
+			</div>
+
+			{authMode === "sign-in" ? (
+				<ClerkSignIn
+					routing="hash"
+					signUpUrl="/sign-up"
+					forceRedirectUrl={safeRedirectIntent}
+					fallbackRedirectUrl="/sign-in"
+					signUpFallbackRedirectUrl="/sign-in"
+					appearance={{
+						elements: {
+							rootBox: "mx-auto w-full min-w-0 max-w-full",
+							cardBox: "mx-auto !w-full !min-w-0 !max-w-[400px]",
+							card: "w-full min-w-0 max-w-full border-0 bg-transparent p-0 shadow-none",
+						},
+					}}
+				/>
+			) : (
+				<ClerkSignUp
+					routing="hash"
+					signInUrl="/sign-in"
+					forceRedirectUrl={safeRedirectIntent}
+					fallbackRedirectUrl="/sign-in"
+					signInFallbackRedirectUrl="/sign-in"
+					appearance={{
+						elements: {
+							rootBox: "mx-auto w-full min-w-0 max-w-full",
+							cardBox: "mx-auto !w-full !min-w-0 !max-w-[400px]",
+							card: "w-full min-w-0 max-w-full border-0 bg-transparent p-0 shadow-none",
+						},
+					}}
+				/>
+			)}
+		</div>
 	);
 }
 

@@ -595,8 +595,10 @@ function ClerkSignInPanel({
 				</div>
 				<ClerkSignIn
 					routing="hash"
+					signUpUrl="/sign-up"
 					forceRedirectUrl={safeRedirectIntent}
 					fallbackRedirectUrl="/sign-in"
+					signUpFallbackRedirectUrl="/sign-in"
 				/>
 			</div>
 		</section>

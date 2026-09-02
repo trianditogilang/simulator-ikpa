@@ -15,6 +15,8 @@ import { Route as AdminKppnRouteRouteImport } from './routes/admin-kppn/route'
 import { Route as OperatorRouteRouteImport } from './routes/operator/route'
 import { Route as SelectOrganizationRouteImport } from './routes/select-organization'
 import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as SignUpRouteImport } from './routes/sign-up'
+import { Route as SsoCallbackRouteImport } from './routes/sso-callback'
 import { Route as AdminKppnAccessRouteImport } from './routes/admin-kppn/access'
 import { Route as AdminKppnAuditLogsRouteImport } from './routes/admin-kppn/audit-logs'
 import { Route as AdminKppnDashboardRouteImport } from './routes/admin-kppn/dashboard'
@@ -73,6 +75,16 @@ const SelectOrganizationRoute = SelectOrganizationRouteImport.update({
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SsoCallbackRoute = SsoCallbackRouteImport.update({
+  id: '/sso-callback',
+  path: '/sso-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminKppnAccessRoute = AdminKppnAccessRouteImport.update({
@@ -239,6 +251,8 @@ export interface FileRoutesByFullPath {
   '/access-pending': typeof AccessPendingRoute
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
+  '/sso-callback': typeof SsoCallbackRoute
   '/admin-kppn/access': typeof AdminKppnAccessRoute
   '/admin-kppn/audit-logs': typeof AdminKppnAuditLogsRoute
   '/admin-kppn/dashboard': typeof AdminKppnDashboardRoute
@@ -276,6 +290,8 @@ export interface FileRoutesByTo {
   '/access-pending': typeof AccessPendingRoute
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
+  '/sso-callback': typeof SsoCallbackRoute
   '/admin-kppn/access': typeof AdminKppnAccessRoute
   '/admin-kppn/audit-logs': typeof AdminKppnAuditLogsRoute
   '/admin-kppn/dashboard': typeof AdminKppnDashboardRoute
@@ -314,6 +330,8 @@ export interface FileRoutesById {
   '/access-pending': typeof AccessPendingRoute
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
+  '/sso-callback': typeof SsoCallbackRoute
   '/admin-kppn/access': typeof AdminKppnAccessRoute
   '/admin-kppn/audit-logs': typeof AdminKppnAuditLogsRoute
   '/admin-kppn/dashboard': typeof AdminKppnDashboardRoute
@@ -353,6 +371,8 @@ export interface FileRouteTypes {
     | '/access-pending'
     | '/select-organization'
     | '/sign-in'
+    | '/sign-up'
+    | '/sso-callback'
     | '/admin-kppn/access'
     | '/admin-kppn/audit-logs'
     | '/admin-kppn/dashboard'
@@ -390,6 +410,8 @@ export interface FileRouteTypes {
     | '/access-pending'
     | '/select-organization'
     | '/sign-in'
+    | '/sign-up'
+    | '/sso-callback'
     | '/admin-kppn/access'
     | '/admin-kppn/audit-logs'
     | '/admin-kppn/dashboard'
@@ -427,6 +449,8 @@ export interface FileRouteTypes {
     | '/access-pending'
     | '/select-organization'
     | '/sign-in'
+    | '/sign-up'
+    | '/sso-callback'
     | '/admin-kppn/access'
     | '/admin-kppn/audit-logs'
     | '/admin-kppn/dashboard'
@@ -465,6 +489,8 @@ export interface RootRouteChildren {
   AccessPendingRoute: typeof AccessPendingRoute
   SelectOrganizationRoute: typeof SelectOrganizationRoute
   SignInRoute: typeof SignInRoute
+  SignUpRoute: typeof SignUpRoute
+  SsoCallbackRoute: typeof SsoCallbackRoute
   ApiQstashDailyRoute: typeof ApiQstashDailyRoute
   ApiQstashSendRoute: typeof ApiQstashSendRoute
 }
@@ -511,6 +537,20 @@ declare module '@tanstack/react-router' {
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sso-callback': {
+      id: '/sso-callback'
+      path: '/sso-callback'
+      fullPath: '/sso-callback'
+      preLoaderRoute: typeof SsoCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-kppn/access': {
@@ -800,6 +840,8 @@ const rootRouteChildren: RootRouteChildren = {
   AccessPendingRoute: AccessPendingRoute,
   SelectOrganizationRoute: SelectOrganizationRoute,
   SignInRoute: SignInRoute,
+  SignUpRoute: SignUpRoute,
+  SsoCallbackRoute: SsoCallbackRoute,
   ApiQstashDailyRoute: ApiQstashDailyRoute,
   ApiQstashSendRoute: ApiQstashSendRoute,
 }
