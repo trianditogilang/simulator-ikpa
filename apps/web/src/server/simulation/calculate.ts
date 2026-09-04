@@ -24,6 +24,20 @@ import type { EngineInput } from "@simulator-ikpa/ikpa-engine";
 import { calculateIkpa, parseRuleSet } from "@simulator-ikpa/ikpa-engine";
 import { and, eq, isNull } from "drizzle-orm";
 
+export interface UpTupAssumptionInput {
+	nilaiUP: string;
+	nilaiRencanaGUP: string;
+	tanggalGUPSebelumnya: string;
+	tanggalRencanaGUP: string;
+	tupTepat?: number;
+	tupTerlambat?: number;
+	ptupTepat?: number;
+	gupNihilCount?: number;
+	setoranTepat?: number;
+	kkpNominal?: string;
+	kkpTanggal?: string;
+}
+
 export interface CalculateParams {
 	orgId: string;
 	fiscalYearId: string;
@@ -31,6 +45,10 @@ export interface CalculateParams {
 	simulationType: "actual" | "forecast" | "scenario";
 	targetScore?: string;
 	overrides?: Record<string, string>;
+	assumptions?: {
+		upTup?: UpTupAssumptionInput | null;
+		dispensasi?: { dispensationCount: number; totalSpmQ4: number } | null;
+	};
 	simulationName?: string;
 	requestId?: string | null;
 }
@@ -223,6 +241,65 @@ export async function calculateAndPersistSnapshot(
 		return { quarter: q, realized, budget };
 	});
 
+	const baseUpTup = upTupRows.map((u) => ({
+		id: u.id,
+		type: (u.type === "UP" || u.type === "TUP" ? u.type : "UP") as
+			| "UP"
+			| "TUP",
+		amount: u.amount as string,
+		date: u.sp2dAt as string,
+		settlementDate: (u.settlementDate as string) ?? null,
+		isSettled: u.isSettled ?? false,
+	}));
+	const baseKkp = kkpRows.map((k) => ({
+		id: k.id,
+		amount: k.amount as string,
+		date:
+			(k.usageDate as string) ??
+			`${fy.year}-${String(k.month).padStart(2, "0")}-15`,
+	}));
+
+	// Asumsi operasional (forecast/scenario saja; actual selalu data tersimpan)
+	const assumptionUpTup = params.assumptions?.upTup;
+	const useAssumptions = params.simulationType !== "actual" && Boolean(assumptionUpTup);
+	if (useAssumptions && assumptionUpTup) {
+		const base = assumptionUpTup.tanggalGUPSebelumnya || `${fy.year}-05-05`;
+		const rencana = assumptionUpTup.tanggalRencanaGUP || base;
+		const addDays = (iso: string, days: number): string => {
+			const d = new Date(`${iso}T00:00:00Z`);
+			if (Number.isNaN(d.getTime())) return iso;
+			return new Date(d.getTime() + days * 86400000).toISOString().slice(0, 10);
+		};
+		const count = (n: unknown): number =>
+			typeof n === "number" && Number.isFinite(n)
+				? Math.min(Math.max(Math.floor(n), 0), 20)
+				: 0;
+		baseUpTup.push({
+			id: "asumsi-gup-1",
+			type: "UP",
+			amount: String(Number(assumptionUpTup.nilaiRencanaGUP) || 0),
+			date: base,
+			settlementDate: rencana,
+			isSettled: true,
+		});
+		for (let i = 0; i < count(assumptionUpTup.tupTepat); i++)
+			baseUpTup.push({ id: `asumsi-tup-${i}`, type: "TUP", amount: "1000000", date: base, settlementDate: addDays(base, 20), isSettled: true });
+		for (let i = 0; i < count(assumptionUpTup.tupTerlambat); i++)
+			baseUpTup.push({ id: `asumsi-tup-lambat-${i}`, type: "TUP", amount: "1000000", date: base, settlementDate: addDays(base, 35), isSettled: true });
+		for (let i = 0; i < count(assumptionUpTup.ptupTepat); i++)
+			baseUpTup.push({ id: `asumsi-ptup-${i}`, type: "TUP", amount: "1000000", date: base, settlementDate: addDays(base, 20), isSettled: true });
+		for (let i = 0; i < count(assumptionUpTup.gupNihilCount); i++)
+			baseUpTup.push({ id: `asumsi-nihil-${i}`, type: "UP", amount: "0", date: base, settlementDate: addDays(base, 10), isSettled: true });
+		for (let i = 0; i < count(assumptionUpTup.setoranTepat); i++)
+			baseUpTup.push({ id: `asumsi-setoran-${i}`, type: "TUP", amount: "1000000", date: base, settlementDate: addDays(base, 20), isSettled: true });
+		const kkpNum = Number(assumptionUpTup.kkpNominal);
+		if (Number.isFinite(kkpNum) && kkpNum > 0)
+			baseKkp.push({ id: "asumsi-kkp-1", amount: String(kkpNum), date: assumptionUpTup.kkpTanggal || base });
+	}
+
+	const assumptionDisp = params.assumptions?.dispensasi;
+	const useDisp = params.simulationType !== "actual" && Boolean(assumptionDisp);
+
 	const engineInput: EngineInput = {
 		ruleSetId: ruleSetRow.id,
 		ruleSetVersion:
@@ -266,23 +343,8 @@ export async function calculateAndPersistSnapshot(
 			workdayCalendar: { holidays, workdays: workdayOverrides },
 		},
 		upTup: {
-			transactions: upTupRows.map((u) => ({
-				id: u.id,
-				type: (u.type === "UP" || u.type === "TUP" ? u.type : "UP") as
-					| "UP"
-					| "TUP",
-				amount: u.amount as string,
-				date: u.sp2dAt as string,
-				settlementDate: (u.settlementDate as string) ?? null,
-				isSettled: u.isSettled ?? false,
-			})),
-			kkpTransactions: kkpRows.map((k) => ({
-				id: k.id,
-				amount: k.amount as string,
-				date:
-					(k.usageDate as string) ??
-					`${fy.year}-${String(k.month).padStart(2, "0")}-15`,
-			})),
+			transactions: baseUpTup,
+			kkpTransactions: baseKkp,
 		},
 		outputAchievement: {
 			reports: outputRows.map((o) => ({
@@ -297,10 +359,15 @@ export async function calculateAndPersistSnapshot(
 					`${fy.year}-${String(o.month).padStart(2, "0")}-05` as string,
 			})),
 		},
-		spmDispensation: {
-			dispensationCount: spmQ4Rows.filter((r) => r.isDispensasi).length,
-			totalSpmQ4: spmQ4Rows.length,
-		},
+		spmDispensation: useDisp && assumptionDisp
+			? {
+					dispensationCount: Math.max(0, Math.floor(assumptionDisp.dispensationCount)),
+					totalSpmQ4: Math.max(0, Math.floor(assumptionDisp.totalSpmQ4)),
+				}
+			: {
+					dispensationCount: spmQ4Rows.filter((r) => r.isDispensasi).length,
+					totalSpmQ4: spmQ4Rows.length,
+				},
 		overrides: params.overrides as never,
 	};
 
@@ -331,6 +398,15 @@ export async function calculateAndPersistSnapshot(
 					patchJson: { value: v },
 				});
 			}
+		}
+
+		if (params.assumptions) {
+			const { simulationOverrides } = await import("@simulator-ikpa/db/schema");
+			await tx.insert(simulationOverrides).values({
+				simulationId: simulation.id,
+				entityType: "assumptions",
+				patchJson: params.assumptions as never,
+			});
 		}
 
 		const [snapshot] = await tx

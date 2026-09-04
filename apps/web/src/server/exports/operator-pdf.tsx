@@ -104,19 +104,22 @@ export const requestOperatorPdfFn = createServerFn({ method: "GET" })
 		const [rs] = await db.select().from(ruleSets).where(eq(ruleSets.id, fy.activeRuleSetId)).limit(1);
 		let indicators: Array<{ label: string; score: string; weight: string }> = [];
 		let totalScore = "0.00";
+		let deduction = "0.00";
 		try {
 			const snap = await calculateAndPersistSnapshot(db, access, { orgId: targetOrgId, fiscalYearId: fy.id, period: { kind: "month", value: periodMonth }, simulationType: "actual" }, { actorId: (access as {userId?:string}).userId ?? targetOrgId });
 			indicators = (snap.output.indicators as unknown as Array<{ label?: string; key: string; score: string | null; weight: string }>).map((i)=>({ label: i.label ?? i.key, score: i.score ?? "0.00", weight: i.weight }));
 			totalScore = snap.output.totalScore ?? "0.00";
+			deduction = snap.output.dispensationDeduction ?? "0.00";
 		} catch {
 			indicators = [{ label: "Revisi DIPA", score: "0.00", weight: "10.00" }];
 		}
+		indicators = [...indicators, { label: "SPM Dispensasi (pengurang)", score: `-${deduction}`, weight: "0.00" }];
 		const buf = await renderPdfBuffer({
 			title: "Laporan Eksekutif Simulasi IKPA Satker",
 			orgName: org?.name ?? "Satker",
 			orgCode: (org as unknown as { kodeSatker?: string })?.kodeSatker ?? targetOrgId.slice(0,8),
 			period: periodLabel,
-			totalScore,
+			totalScore: `${totalScore} (Σ 7 kontribusi − pengurang ${deduction})`,
 			indicators,
 			disclaimer: `Dicetak ${new Date().toLocaleString("id-ID")} WIB • Disclaimer: Bukan sumber nilai IKPA resmi. Rule set ${rs?.version ?? "2026.1"} ${rs?.sourceRegulation ?? "PER-5/PB/2024"} – internal KPPN Malang.`,
 		});

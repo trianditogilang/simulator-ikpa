@@ -23,11 +23,12 @@ async function buildAdminXlsx(args: { db: ReturnType<typeof createDbClient>; kpp
 		const [fy] = await db.select().from(fiscalYears).where(eq(fiscalYears.orgId, org.id)).limit(1);
 		if (!fy || fy.year !== year) continue;
 		// latest snapshot per org
-		const snaps = await db.select({ totalScore: scoreSnapshots.totalScore, createdAt: scoreSnapshots.createdAt }).from(scoreSnapshots)
+		const snaps = await db.select({ totalScore: scoreSnapshots.totalScore, breakdownJson: scoreSnapshots.breakdownJson, createdAt: scoreSnapshots.createdAt }).from(scoreSnapshots)
 			.innerJoin(simulations, eq(scoreSnapshots.simulationId, simulations.id))
 			.where(eq(simulations.fiscalYearId, fy.id)).orderBy(scoreSnapshots.createdAt).limit(1);
 		const score = snaps[0]?.totalScore ?? "-";
-		rows.push({ kode: (org as unknown as { kodeSatker: string }).kodeSatker, nama: org.name, skor: String(score), period: `${args.month ?? 8}/${year}` });
+		const deduction = (snaps[0]?.breakdownJson as unknown as { dispensationDeduction?: string } | null)?.dispensationDeduction ?? "0";
+		rows.push({ kode: (org as unknown as { kodeSatker: string }).kodeSatker, nama: org.name, skor: String(score), pengurang: String(deduction), period: `${args.month ?? 8}/${year}` });
 	}
 
 	let ExcelJS: unknown;
@@ -36,15 +37,15 @@ async function buildAdminXlsx(args: { db: ReturnType<typeof createDbClient>; kpp
 		ExcelJS = await (Function("m", "return import(m)") as (m: string) => Promise<unknown>)("exceljs");
 	} catch { ExcelJS = null; }
 	if (!ExcelJS) {
-		const csv = ["kode,nama,skor,periode", ...rows.map(r=>`${esc(r.kode)},${esc(r.nama)},${esc(r.skor)},${esc(r.period)}`)].join("\n");
+		const csv = ["kode,nama,skor,pengurang,periode", ...rows.map(r=>`${esc(r.kode)},${esc(r.nama)},${esc(r.skor)},${esc(r.pengurang)},${esc(r.period)}`)].join("\n");
 		return new TextEncoder().encode(csv);
 	}
 	const Workbook = (ExcelJS as { Workbook: new()=>{ addWorksheet: (n:string)=>{ addRow: (v:unknown[])=>void; getRow:(n:number)=>{font:unknown}; columns: unknown[]; views: unknown[]}; xlsx:{writeBuffer:()=>Promise<ArrayBuffer>} } }).Workbook;
 	const wb = new Workbook();
 	const ws = wb.addWorksheet("Rekap Nilai");
-	ws.addRow(["Kode Satker","Nama Satker","Total Skor","Periode","Scope KPPN","Disclaimer: Bukan nilai resmi"]);
+	ws.addRow(["Kode Satker","Nama Satker","Total Skor (Σ7−pengurang)","Pengurang Dispensasi","Periode","Scope KPPN"]);
 	try { ws.getRow(1).font = { bold: true }; } catch {}
-	for (const r of rows) ws.addRow([esc(r.kode), esc(r.nama), esc(r.skor), esc(r.period), esc(kppnScopeId), esc("internal")]);
+	for (const r of rows) ws.addRow([esc(r.kode), esc(r.nama), esc(r.skor), esc(r.pengurang), esc(r.period), esc(kppnScopeId)]);
 	ws.columns = [{width:16},{width:32},{width:12},{width:12},{width:16},{width:28}];
 	ws.views = [{ state: "frozen", ySplit: 1 }];
 	const buf = await wb.xlsx.writeBuffer();

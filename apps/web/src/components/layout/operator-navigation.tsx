@@ -9,7 +9,6 @@ import {
 	LayoutDashboard,
 	MoreHorizontal,
 	Settings,
-	Upload,
 } from "lucide-react";
 import { Dialog } from "radix-ui";
 import type { ComponentProps } from "react";
@@ -56,7 +55,7 @@ const inputItems: readonly NavigationItem[] = [
 		href: "/operator/data/spm-dispensation",
 		icon: FileText,
 	},
-	{ label: "Import Data", href: "/operator/import", icon: Upload },
+	// ponytail: menu Import Data dinonaktifkan sementara (hemat storage Neon) — alur diarsipkan di docs/future_plan.md, restore 1 baris ini + tombol onImportClick
 ];
 
 const secondaryItems: readonly NavigationItem[] = [

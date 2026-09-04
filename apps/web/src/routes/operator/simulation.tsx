@@ -2,19 +2,30 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
 	AlertCircle,
 	CheckCircle2,
-	History,
 	Sparkles,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { default2026RuleSet } from "@simulator-ikpa/ikpa-engine";
+import { calculateUpTup } from "@simulator-ikpa/ikpa-engine";
 import { OperatorShell } from "@/components/layout/operator-shell";
-import { FormulaTrace } from "@/components/operator/formula-trace";
 import { SimulationContextForm } from "@/components/operator/simulation-context-form";
 import {
 	type SimulationMode,
 	SimulationModeTabs,
 } from "@/components/operator/simulation-mode-tabs";
 import { SimulationResult } from "@/components/operator/simulation-result";
+import { DispensasiAssumptionPanel } from "@/components/operator/dispensasi-assumption-panel";
+import { UpTupAssumptionPanel } from "@/components/operator/up-tup-assumption-panel";
 import type { IndicatorScoreItem } from "@/mocks/operator-dashboard";
+import { calcDispensasiPreview, DEFAULT_DISPENSASI_ASSUMPTIONS } from "@/lib/simulation/dispensasi-assumptions";
+import {
+	buildUpTupEngineInput,
+	DEFAULT_UP_TUP_ASSUMPTIONS,
+	EMPTY_SIMULATION_ASSUMPTIONS,
+	hasSimulationChanges,
+	TOTAL_IKPA_FORMULA,
+	type SimulationAssumptions,
+} from "@/lib/simulation/up-tup-assumptions";
 import {
 	executeSimulation,
 	fetchSnapshots,
@@ -46,46 +57,96 @@ export const Route = createFileRoute("/operator/simulation")({
 	component: OperatorSimulationPage,
 });
 
-const FORMULA_EXPLANATIONS: Record<
-	string,
-	{ name: string; formula: string; logic: string }
-> = {
-	REVISI_DIPA: {
-		name: "Revisi DIPA",
-		formula: "100 - (Jumlah Revisi per Semester × Pinalti)",
-		logic: "Maksimal 1 kali revisi per semester yang diperhitungkan.",
-	},
-	DEV_HAL_III: {
-		name: "Deviasi Halaman III DIPA",
-		formula: "100 - (|Realisasi - RPD| / RPD) × 100",
-		logic: "Dihitung per jenis belanja (51, 52, 53, 57) dengan toleransi 5%.",
-	},
-	PENYERAPAN: {
-		name: "Penyerapan Anggaran",
-		formula: "(Realisasi Kumulatif / Pagu DIPA) × 100",
-		logic: "Target triwulanan (Q1 20%, Q2 50%, Q3 75%, Q4 95%).",
-	},
-	BELANJA_KONTRAKTUAL: {
-		name: "Belanja Kontraktual",
-		formula: "(Kontrak Tepat Waktu 3 HK / Total Kontrak) × 100",
-		logic: "Penyampaian data kontrak maksimal 3 hari kerja ke KPPN.",
-	},
-	UP_TUP: {
-		name: "Pengelolaan UP dan TUP",
-		formula: "(GUP Tepat Waktu 1 Bulan / Total GUP) × 100",
-		logic: "Revolving minimal 1 kali sebulan dan porsi penggunaan KKP.",
-	},
-	TAGIHAN: {
-		name: "Penyelesaian Tagihan (SPM-LS)",
-		formula: "(SPM-LS Tepat Waktu 17 HK / Total SPM-LS) × 100",
-		logic: "Penerbitan SPM-LS maksimal 17 hari kerja setelah BAST.",
-	},
-	CAPAIAN_OUTPUT: {
-		name: "Capaian Output",
-		formula: "(PCRO × 0.7) + (RVRO × 0.3)",
-		logic: "Pelaporan dan konfirmasi sebelum batas 5 hari kerja awal bulan.",
-	},
+const INDICATOR_NAMES: Record<string, string> = {
+	REVISI_DIPA: "Revisi DIPA",
+	DEV_HAL_III: "Deviasi Halaman III DIPA",
+	PENYERAPAN: "Penyerapan Anggaran",
+	BELANJA_KONTRAKTUAL: "Belanja Kontraktual",
+	UP_TUP: "Pengelolaan UP dan TUP",
+	TAGIHAN: "Penyelesaian Tagihan",
+	CAPAIAN_OUTPUT: "Capaian Output",
+	SPM_DISPENSASI: "SPM Dispensasi",
 };
+
+const ENGINE_KEY_TO_CODE: Record<string, string> = {
+	dipa_revision: "REVISI_DIPA",
+	rpd_deviation: "DEV_HAL_III",
+	budget_absorption: "PENYERAPAN",
+	contractual: "BELANJA_KONTRAKTUAL",
+	invoice_timeliness: "TAGIHAN",
+	up_tup: "UP_TUP",
+	output_achievement: "CAPAIAN_OUTPUT",
+};
+
+function toDisplayList(
+	rawIndicators: any[],
+	deductionRaw: string | number | null | undefined,
+): { list: IndicatorScoreItem[]; deduction: number } {
+	const list: IndicatorScoreItem[] = (rawIndicators ?? []).map((ind: any) => {
+		const rawVal = Number.parseFloat(ind.score ?? ind.rawScore ?? "100") || 0;
+		const weightVal =
+			Number.parseFloat(ind.weight ?? "10") || 0;
+		const weightedVal =
+			Number.parseFloat(
+				ind.weightedScore ?? ind.weightedContribution ?? "0",
+			) || 0;
+		const status =
+			rawVal >= 90
+				? ("complete" as const)
+				: rawVal >= 75
+					? ("warning" as const)
+					: ("danger" as const);
+		const statusLabel =
+			rawVal >= 90
+				? "Optimal"
+				: rawVal >= 75
+					? "Perlu Perhatian"
+					: "Kritis";
+		const codeKey = (
+			ind.code ??
+			ENGINE_KEY_TO_CODE[ind.key] ??
+			ind.key ??
+			"ind"
+		)
+			.toString()
+			.toUpperCase();
+		return {
+			id: ind.key ?? ind.code ?? codeKey,
+			code: codeKey,
+			name: INDICATOR_NAMES[codeKey] ?? ind.name ?? ind.key,
+			weight: weightVal,
+			rawScore: rawVal,
+			weightedScore: weightedVal,
+			status,
+			statusLabel,
+			deltaPoints: 0,
+			summary: ind.isDeduction ? "Pengurang total" : `Bobot ${weightVal}%`,
+		};
+	});
+
+	const deduction = deductionRaw === null || deductionRaw === undefined
+		? 0
+		: Number(deductionRaw) || 0;
+
+	list.push({
+		id: "spm_dispensasi",
+		code: "SPM_DISPENSASI",
+		name: "SPM Dispensasi",
+		weight: 0,
+		rawScore: deduction,
+		weightedScore: -deduction,
+		status: deduction > 0 ? ("warning" as const) : ("complete" as const),
+		statusLabel: deduction > 0 ? "Pengurang" : "Tanpa pengurang",
+		deltaPoints: -deduction,
+		summary:
+			deduction > 0
+				? `Pengurang ${deduction.toFixed(2)} poin dari total`
+				: "Tidak ada SPM dispensasi Q4",
+		isDeduction: true,
+	});
+
+	return { list, deduction };
+}
 
 function OperatorSimulationPage() {
 	const router = useRouter();
@@ -95,158 +156,137 @@ function OperatorSimulationPage() {
 	const [targetScore, setTargetScore] = useState(95.0);
 	const [periodMonth, setPeriodMonth] = useState(8);
 	const [isBlu, setIsBlu] = useState(false);
-	const [selectedIndicator, setSelectedIndicator] = useState<string>("TAGIHAN");
 	const [actionMessage, setActionMessage] = useState<string | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-	// Simulation current data
-	const simOutput = loaderData.simulation.output as any;
-	const totalScoreVal = Number.parseFloat(
-		loaderData.simulation.totalScore || "95.00",
+	const [assumptions, setAssumptions] = useState<SimulationAssumptions>(
+		EMPTY_SIMULATION_ASSUMPTIONS,
 	);
 
-	// Map indicators to UI format
+	const simOutput = (loaderData.simulation as any)?.output ?? loaderData.simulation;
 	const rawIndicators = (simOutput?.indicators ?? []) as any[];
-	const indicatorList: IndicatorScoreItem[] =
-		rawIndicators.length > 0
-			? rawIndicators.map((ind: any) => {
-					const rawVal = Number.parseFloat(ind.score ?? "100") || 0;
-					const weightVal = Number.parseFloat(ind.weight ?? "10") || 0;
-					const weightedVal =
-						Number.parseFloat(ind.weightedScore ?? "10") || 0;
-					const status =
-						rawVal >= 90
-							? ("complete" as const)
-							: rawVal >= 75
-								? ("warning" as const)
-								: ("danger" as const);
-					const statusLabel =
-						rawVal >= 90
-							? "Optimal"
-							: rawVal >= 75
-								? "Perlu Perhatian"
-								: "Kritis";
+	const deductionRaw =
+		(simOutput?.dispensationDeduction ??
+			(simOutput as any)?.deduction ??
+			(loaderData.simulation as any)?.deductions?.[0]?.deduction ??
+			0) as string | number;
 
-					const codeKey = (ind.key || ind.code || "").toUpperCase();
-					return {
-						id: ind.key || ind.code || "ind",
-						code: codeKey,
-						name:
-							FORMULA_EXPLANATIONS[codeKey]?.name ||
-							ind.name ||
-							ind.key,
-						weight: weightVal,
-						rawScore: rawVal,
-						weightedScore: weightedVal,
-						status,
-						statusLabel,
-						deltaPoints: 0,
-						summary:
-							FORMULA_EXPLANATIONS[codeKey]?.logic ||
-							"Penilaian indikator IKPA",
-					};
-				})
-			: [
-					{
-						id: "1",
-						code: "REVISI_DIPA",
-						name: "Revisi DIPA",
-						weight: 10,
-						rawScore: 100,
-						weightedScore: 10,
-						status: "complete" as const,
-						statusLabel: "Optimal",
-						deltaPoints: 0,
-						summary: "Maksimal 1 kali revisi per semester",
-					},
-					{
-						id: "2",
-						code: "DEV_HAL_III",
-						name: "Deviasi Halaman III DIPA",
-						weight: 15,
-						rawScore: 92.5,
-						weightedScore: 13.88,
-						status: "complete" as const,
-						statusLabel: "Optimal",
-						deltaPoints: 0,
-						summary: "Deviasi RPD rata-rata di bawah 5%",
-					},
-					{
-						id: "3",
-						code: "PENYERAPAN",
-						name: "Penyerapan Anggaran",
-						weight: 20,
-						rawScore: 95.0,
-						weightedScore: 19.0,
-						status: "complete" as const,
-						statusLabel: "Optimal",
-						deltaPoints: 0,
-						summary: "Realisasi sesuai target triwulanan",
-					},
-					{
-						id: "4",
-						code: "BELANJA_KONTRAKTUAL",
-						name: "Belanja Kontraktual",
-						weight: 10,
-						rawScore: 90.0,
-						weightedScore: 9.0,
-						status: "complete" as const,
-						statusLabel: "Optimal",
-						deltaPoints: 0,
-						summary: "Kepatuhan pendaftaran kontrak 3 HK",
-					},
-					{
-						id: "5",
-						code: "UP_TUP",
-						name: "Pengelolaan UP dan TUP",
-						weight: 10,
-						rawScore: 98.0,
-						weightedScore: 9.8,
-						status: "complete" as const,
-						statusLabel: "Optimal",
-						deltaPoints: 0,
-						summary: "Revolving GUP tepat waktu & pemanfaatan KKP",
-					},
-					{
-						id: "6",
-						code: "TAGIHAN",
-						name: "Penyelesaian Tagihan",
-						weight: 10,
-						rawScore: 96.0,
-						weightedScore: 9.6,
-						status: "complete" as const,
-						statusLabel: "Optimal",
-						deltaPoints: 0,
-						summary: "Penerbitan SPM-LS sebelum 17 HK",
-					},
-					{
-						id: "7",
-						code: "CAPAIAN_OUTPUT",
-						name: "Capaian Output",
-						weight: 25,
-						rawScore: 94.0,
-						weightedScore: 23.5,
-						status: "complete" as const,
-						statusLabel: "Optimal",
-						deltaPoints: 0,
-						summary: "Progres fisik PCRO dan volume RVRO",
-					},
-				];
+	const actual = useMemo(
+		() => toDisplayList(rawIndicators, deductionRaw),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[JSON.stringify(rawIndicators), String(deductionRaw)],
+	);
+	const actualTotal =
+		Number.parseFloat(
+			(simOutput?.totalScore as string) ??
+				(loaderData.simulation as any)?.totalScore ??
+				"0",
+		) || 0;
+
+	const scenarioUpTup = useMemo(() => {
+		if (!assumptions.upTup) return null;
+		try {
+			const input = buildUpTupEngineInput(assumptions.upTup);
+			const res = calculateUpTup(
+				{
+					transactions: input.transactions as never,
+					kkpTransactions: input.kkpTransactions as never,
+				},
+				{ kind: "month", value: periodMonth } as never,
+				default2026RuleSet,
+			);
+			return res;
+		} catch {
+			return null;
+		}
+	}, [assumptions.upTup, periodMonth]);
+
+	const displayed = useMemo(() => {
+		const isActualMode = mode === "actual";
+		const scenUpTupScore = scenarioUpTup?.score ? Number(scenarioUpTup.score) : null;
+		const scenUpTupContrib = scenarioUpTup?.weightedContribution
+			? Number(scenarioUpTup.weightedContribution)
+			: null;
+		const dispPreview = assumptions.dispensasi
+			? calcDispensasiPreview(assumptions.dispensasi)
+			: null;
+		const useUpTup = !isActualMode && assumptions.upTup && scenUpTupScore !== null && scenUpTupContrib !== null;
+		const useDisp = !isActualMode && assumptions.dispensasi && dispPreview?.isValid;
+		if (!useUpTup && !useDisp) {
+			return {
+				list: actual.list,
+				total: actualTotal,
+				deduction: actual.deduction,
+				isPreview: false,
+			};
+		}
+		const list = actual.list.map((ind) => {
+			if (ind.code === "UP_TUP" && useUpTup && scenUpTupScore !== null && scenUpTupContrib !== null) {
+				return {
+					...ind,
+					rawScore: scenUpTupScore,
+					weightedScore: scenUpTupContrib,
+					status: scenUpTupScore >= 90 ? ("complete" as const) : scenUpTupScore >= 75 ? ("warning" as const) : ("danger" as const),
+					statusLabel: "Skenario",
+					summary: "Hasil asumsi UP/TUP",
+				};
+			}
+			if (ind.code === "SPM_DISPENSASI" && useDisp && dispPreview) {
+				return {
+					...ind,
+					rawScore: dispPreview.deduction,
+					weightedScore: -dispPreview.deduction,
+					status: dispPreview.deduction > 0 ? ("warning" as const) : ("complete" as const),
+					statusLabel: dispPreview.deduction > 0 ? "Pengurang" : "Tanpa pengurang",
+					deltaPoints: -dispPreview.deduction,
+					summary: `Rasio ${dispPreview.ratio.toFixed(3)}‰`,
+					isDeduction: true,
+				};
+			}
+			return ind;
+		});
+		const total = list
+			.filter((i) => !i.isDeduction)
+			.reduce((s, i) => s + i.weightedScore, 0) -
+			(list.find((i) => i.isDeduction)?.rawScore ?? 0);
+		return { list, total, deduction: list.find((i) => i.isDeduction)?.rawScore ?? 0, isPreview: true };
+	}, [mode, assumptions.upTup, assumptions.dispensasi, scenarioUpTup, actual, actualTotal]);
+
+	const hasChanges = hasSimulationChanges(assumptions);
+	const showPreview = displayed.isPreview;
+	const deltaFromActual = showPreview ? displayed.total - actualTotal : 0;
+	const currentGap = displayed.total - targetScore;
 
 	const handleSaveSnapshot = async (scenarioName?: string) => {
 		setActionMessage(null);
 		setErrorMessage(null);
 		try {
+			const isScenarioSave = Boolean(scenarioName);
+			if (isScenarioSave && !hasChanges) {
+				setErrorMessage(
+					"Simpan Skenario membutuhkan perubahan asumsi.",
+				);
+				return;
+			}
 			await executeSimulation({
-				simulationType: mode,
+				simulationType: isScenarioSave ? "scenario" : mode,
 				targetScore: targetScore.toFixed(2),
 				period: { kind: "month", value: periodMonth },
+				assumptions: showPreview
+					? {
+							upTup: assumptions.upTup,
+							dispensasi: assumptions.dispensasi,
+						}
+					: undefined,
 				simulationName:
-					scenarioName ||
-					`Simulasi ${mode.toUpperCase()} Bulan ${periodMonth} - ${new Date().toLocaleTimeString("id-ID")}`,
+					scenarioName ??
+					`Hasil ${mode.toUpperCase()} Bulan ${periodMonth} - ${new Date().toLocaleTimeString("id-ID")}`,
 			});
 
-			setActionMessage("Snapshot hasil simulasi berhasil disimpan permanen ke database.");
+			setActionMessage(
+				isScenarioSave
+					? "Skenario (dengan perubahan asumsi) berhasil disimpan. Data aktual tidak berubah."
+					: "Hasil yang sedang tampil berhasil diarsipkan. Data aktual tidak berubah.",
+			);
 			await router.invalidate();
 			setTimeout(() => setActionMessage(null), 4000);
 		} catch (err: unknown) {
@@ -256,12 +296,9 @@ function OperatorSimulationPage() {
 		}
 	};
 
-	const currentGap = totalScoreVal - targetScore;
-
 	return (
 		<OperatorShell currentPath="/operator/simulation">
 			<div className="space-y-6">
-				{/* Top Controls: Mode Tabs */}
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex items-center gap-3">
 						<div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -272,8 +309,8 @@ function OperatorSimulationPage() {
 								Simulasi &amp; Engine Kalkulasi Nilai IKPA
 							</h1>
 							<p className="text-xs text-muted-foreground sm:text-sm">
-								Lakukan kalkulasi skenario real-time, pantau rumus formula tiap
-								indikator, dan simulasikan proyeksi target nilai satker.
+								Aktual dari data tersimpan · Proyeksi/Skenario dari asumsi
+								operasional · Target hanya pembanding gap.
 							</p>
 						</div>
 					</div>
@@ -282,7 +319,10 @@ function OperatorSimulationPage() {
 					</div>
 				</div>
 
-				{/* Feedback status */}
+				<p className="rounded-xl border border-border bg-surface px-3.5 py-2.5 text-[11px] text-muted-foreground">
+					{TOTAL_IKPA_FORMULA}
+				</p>
+
 				{actionMessage && (
 					<output className="flex items-center gap-2.5 rounded-xl border border-success/30 bg-success/10 p-4 text-xs font-semibold text-success shadow-xs">
 						<CheckCircle2 className="size-4 shrink-0" />
@@ -301,14 +341,13 @@ function OperatorSimulationPage() {
 				)}
 
 				<div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-					{/* Left Panel: Inputs & Parameter Overrides */}
 					<div className="space-y-4 lg:col-span-7">
 						<SimulationContextForm
 							targetScore={targetScore}
 							fiscalYear={2026}
 							periodMonth={periodMonth}
 							isBlu={isBlu}
-							hasUnsavedChanges={mode !== "actual"}
+							hasUnsavedChanges={mode !== "actual" || hasChanges}
 							onTargetChange={setTargetScore}
 							onPeriodChange={setPeriodMonth}
 							onBluChange={setIsBlu}
@@ -319,152 +358,156 @@ function OperatorSimulationPage() {
 								setMode("actual");
 							}}
 						/>
+						<p className="px-1 text-[10px] text-muted-foreground">
+							Target hanya pembanding (gap = tampil − target).
+						</p>
 
-						{/* Indicator Simulation Cards List */}
-						<div className="space-y-3 rounded-2xl border border-border bg-background p-4 shadow-xs sm:p-5">
-							<div className="flex items-center justify-between">
+						{assumptions.upTup ? (
+							<UpTupAssumptionPanel
+								value={assumptions.upTup}
+								actualUpTupContrib={actual.list.find((i) => i.code === "UP_TUP")?.weightedScore ?? null}
+								onChange={(next) =>
+									setAssumptions((s) => ({ ...s, upTup: next }))
+								}
+								onReset={() =>
+									setAssumptions((s) => ({
+										...s,
+										upTup: { ...DEFAULT_UP_TUP_ASSUMPTIONS },
+									}))
+								}
+							/>
+						) : (
+							<div className="space-y-2 rounded-2xl border border-dashed border-border bg-background p-4 text-xs sm:p-5">
 								<h3 className="text-sm font-semibold text-foreground">
-									Rincian 7 Indikator Penilaian IKPA
+									Atur Asumsi UP/TUP
 								</h3>
-								<span className="text-[11px] text-muted-foreground">
-									Klik untuk melihat formula
-								</span>
+								<button
+									type="button"
+									onClick={() =>
+										setAssumptions((s) => ({
+											...s,
+											upTup: { ...DEFAULT_UP_TUP_ASSUMPTIONS },
+										}))
+									}
+									className="rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary-hover"
+								>
+									Aktifkan asumsi UP/TUP
+								</button>
 							</div>
+						)}
+						{assumptions.upTup && (
+							<button
+								type="button"
+								onClick={() =>
+									setAssumptions((s) => ({ ...s, upTup: null }))
+								}
+								className="px-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline"
+							>
+								Nonaktifkan asumsi
+							</button>
+						)}
+
+						{assumptions.dispensasi ? (
+							<DispensasiAssumptionPanel
+								value={assumptions.dispensasi}
+								actualDeduction={actual.deduction}
+								onChange={(next) => setAssumptions((s) => ({ ...s, dispensasi: next }))}
+								onReset={() => setAssumptions((s) => ({ ...s, dispensasi: { ...DEFAULT_DISPENSASI_ASSUMPTIONS } }))}
+							/>
+						) : (
+							<div className="space-y-2 rounded-2xl border border-dashed border-border bg-background p-4 text-xs sm:p-5">
+								<h3 className="text-sm font-semibold text-foreground">
+									Atur Asumsi SPM Dispensasi
+								</h3>
+								<button
+									type="button"
+									onClick={() => setAssumptions((s) => ({ ...s, dispensasi: { ...DEFAULT_DISPENSASI_ASSUMPTIONS } }))}
+									className="rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary-hover"
+								>
+									Aktifkan asumsi dispensasi
+								</button>
+							</div>
+						)}
+						{assumptions.dispensasi && (
+							<button
+								type="button"
+								onClick={() => setAssumptions((s) => ({ ...s, dispensasi: null }))}
+								className="px-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline"
+							>
+								Nonaktifkan asumsi
+							</button>
+						)}
+
+						<div className="space-y-3 rounded-2xl border border-border bg-background p-4 shadow-xs sm:p-5">
+							<h3 className="text-sm font-semibold text-foreground">
+								Rincian 8 Indikator
+								{showPreview && (
+									<span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+										pratinjau {mode}
+									</span>
+								)}
+							</h3>
 
 							<div className="space-y-2 pt-1">
-								{indicatorList.map((ind) => {
-									const isSelected =
-										selectedIndicator.toLowerCase() ===
-										ind.code.toLowerCase();
-									return (
-										<button
-											key={ind.id}
-											type="button"
-											onClick={() => setSelectedIndicator(ind.code)}
-											className={`flex w-full items-center justify-between rounded-xl border p-3 text-left text-xs transition ${
-												isSelected
-													? "border-primary bg-primary/5 ring-1 ring-primary"
-													: "border-border hover:bg-surface-muted"
-											}`}
-										>
-											<div>
-												<span className="font-semibold text-foreground">
-													{ind.name}
-												</span>
-												<p className="text-[11px] text-muted-foreground">
-													{ind.summary}
-												</p>
-											</div>
-											<div className="text-right">
-												<span className="font-bold text-foreground">
-													{ind.weightedScore.toFixed(2)} Poin
-												</span>
-												<span className="block text-[10px] text-muted-foreground">
-													Nilai: {ind.rawScore.toFixed(2)} | Bobot: {ind.weight}%
-												</span>
-											</div>
-										</button>
-									);
-								})}
+								{displayed.list.map((ind) => (
+									<div
+										key={ind.id}
+										className="flex w-full items-center justify-between rounded-xl border border-border p-3 text-left text-xs"
+									>
+										<div>
+											<span className="font-semibold text-foreground">
+												{ind.name}
+												{ind.isDeduction && (
+													<span className="ml-1.5 rounded bg-danger/10 px-1.5 py-0.5 text-[10px] font-semibold text-danger">
+														pengurang
+													</span>
+												)}
+											</span>
+											<p className="text-[11px] text-muted-foreground">
+												{ind.summary}
+											</p>
+										</div>
+										<div className="text-right">
+											<span className="font-bold text-foreground">
+												{`${ind.weightedScore.toFixed(2)} Poin`}
+											</span>
+											<span className="block text-[10px] text-muted-foreground">
+												{ind.isDeduction
+													? `Pengurang: ${ind.rawScore.toFixed(2)}`
+													: `Nilai: ${ind.rawScore.toFixed(2)} | Bobot: ${ind.weight}%`}
+											</span>
+										</div>
+									</div>
+								))}
 							</div>
 						</div>
-
-						{/* Formula Trace Box */}
-						{selectedIndicator && FORMULA_EXPLANATIONS[selectedIndicator.toUpperCase()] && (
-							<FormulaTrace
-								indicatorName={
-									FORMULA_EXPLANATIONS[selectedIndicator.toUpperCase()]
-										?.name || selectedIndicator
-								}
-								formulaFormula={
-									FORMULA_EXPLANATIONS[selectedIndicator.toUpperCase()]
-										?.formula || "Nilai Indikator × Bobot %"
-								}
-								ruleSetVersion="2026.1"
-								inputValues={[
-									{
-										label: "Status Kepatuhan",
-										value: "Sesuai Regulasi PER-5/PB/2024",
-									},
-									{
-										label: "Metode Penilaian",
-										value:
-											FORMULA_EXPLANATIONS[
-												selectedIndicator.toUpperCase()
-											]?.logic || "Standar",
-									},
-									{
-										label: "Bobot Indikator",
-										value: `${
-											indicatorList.find(
-												(i) =>
-													i.code.toUpperCase() ===
-													selectedIndicator.toUpperCase(),
-											)?.weight || 10
-										}%`,
-									},
-								]}
-							/>
-						)}
 					</div>
 
-					{/* Right Panel: Sticky Simulation Results */}
 					<div className="lg:sticky lg:top-6 lg:col-span-5 space-y-4">
 						<SimulationResult
-							totalScore={totalScoreVal}
+							totalScore={displayed.total}
 							targetScore={targetScore}
 							gapScore={currentGap}
-							deltaFromActual={mode !== "actual" ? 1.5 : undefined}
-							indicators={indicatorList}
+							deltaFromActual={showPreview ? deltaFromActual : undefined}
+							indicators={displayed.list}
+							deductionInfo={{
+								deduction: displayed.deduction,
+							}}
+							totalFormulaNote={TOTAL_IKPA_FORMULA}
 							onSaveSnapshot={() => handleSaveSnapshot()}
 							onSaveScenario={() =>
-								handleSaveSnapshot(`Skenario Optimalisasi IKPA - ${new Date().toLocaleDateString("id-ID")}`)
+								handleSaveSnapshot(`Skenario ${mode.toUpperCase()} - ${new Date().toLocaleDateString("id-ID")}`)
+							}
+							saveScenarioDisabled={!hasChanges}
+							saveScenarioHint={
+								hasChanges
+									? "Skenario tersimpan memakai asumsi; aktual tidak berubah."
+									: "Simpan Skenario aktif setelah ada perubahan asumsi."
 							}
 							onCompareClick={() => {
 								window.location.href = "/operator/history";
 							}}
 						/>
-
-						{/* Saved Snapshots Mini-List */}
-						{loaderData.snapshots && loaderData.snapshots.length > 0 && (
-							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-3">
-								<div className="flex items-center justify-between text-xs">
-									<span className="font-semibold text-foreground flex items-center gap-1.5">
-										<History className="size-3.5 text-primary" />
-										<span>Histori Snapshot Tersimpan</span>
-									</span>
-									<span className="text-[11px] text-muted-foreground">
-										{loaderData.snapshots.length} Data
-									</span>
-								</div>
-
-								<div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-									{loaderData.snapshots.slice(0, 5).map((snap) => (
-										<div
-											key={snap.id}
-											className="flex items-center justify-between rounded-lg border border-border/80 bg-surface p-2.5 text-xs"
-										>
-											<div>
-												<p className="font-semibold text-foreground truncate max-w-[180px]">
-													{snap.simulationName}
-												</p>
-												<span className="text-[10px] text-muted-foreground">
-													{new Date(snap.createdAt).toLocaleDateString("id-ID", {
-														day: "numeric",
-														month: "short",
-														hour: "2-digit",
-														minute: "2-digit",
-													})}
-												</span>
-											</div>
-											<span className="font-bold text-primary">
-												{Number.parseFloat(snap.totalScore ?? "0").toFixed(2)}
-											</span>
-										</div>
-									))}
-								</div>
-							</div>
-						)}
 					</div>
 				</div>
 			</div>

@@ -320,9 +320,6 @@ function SpmDispensationPage() {
 						setIsDispensasi(true);
 						setIsDrawerOpen(true);
 					}}
-					onImportClick={() => {
-						window.location.href = "/operator/import";
-					}}
 					totalCount={filteredData.length}
 				/>
 

@@ -447,9 +447,6 @@ function RpdRealizationPage() {
 						setFormAmount("");
 						setIsRpdDrawerOpen(true);
 					}}
-					onImportClick={() => {
-						window.location.href = "/operator/import";
-					}}
 					totalCount={monthlyData.length}
 				/>
 

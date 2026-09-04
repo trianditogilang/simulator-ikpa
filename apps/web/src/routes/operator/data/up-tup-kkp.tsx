@@ -476,9 +476,6 @@ function UpTupKkpPage() {
 						searchValue={search}
 						onSearchChange={setSearch}
 						onAddClick={() => setIsUpTupDrawerOpen(true)}
-						onImportClick={() => {
-							window.location.href = "/operator/import";
-						}}
 						totalCount={filteredUpTup.length}
 					/>
 				) : (
@@ -489,9 +486,6 @@ function UpTupKkpPage() {
 						searchValue=""
 						onSearchChange={() => {}}
 						onAddClick={() => setIsKkpDrawerOpen(true)}
-						onImportClick={() => {
-							window.location.href = "/operator/import";
-						}}
 						totalCount={initialData.kkpList.length}
 					/>
 				)}

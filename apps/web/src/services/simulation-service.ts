@@ -39,6 +39,22 @@ export async function executeSimulation(input: {
 	simulationType?: "actual" | "forecast" | "scenario";
 	targetScore?: string;
 	overrides?: Record<string, string>;
+	assumptions?: {
+		upTup?: {
+			nilaiUP: string;
+			nilaiRencanaGUP: string;
+			tanggalGUPSebelumnya: string;
+			tanggalRencanaGUP: string;
+			tupTepat?: number;
+			tupTerlambat?: number;
+			ptupTepat?: number;
+			gupNihilCount?: number;
+			setoranTepat?: number;
+			kkpNominal?: string;
+			kkpTanggal?: string;
+		} | null;
+		dispensasi?: { dispensationCount: number; totalSpmQ4: number } | null;
+	};
 	simulationName?: string;
 }) {
 	return runSimulationFn({ data: input });
@@ -47,5 +63,7 @@ export async function executeSimulation(input: {
 export async function fetchSnapshots(orgId?: string): Promise<{
 	snapshots: ScoreSnapshotRecord[];
 }> {
-	return listSnapshotsFn({ data: orgId ? { orgId } : undefined });
+	return (await listSnapshotsFn({ data: orgId ? { orgId } : undefined })) as unknown as {
+		snapshots: ScoreSnapshotRecord[];
+	};
 }

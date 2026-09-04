@@ -28,6 +28,89 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 [Any additional notes, observations, or reminders]
 ```
 
+### Session 96 - 2026-09-04
+**Time:** Start: 19:00 WIB | End: 19:40 WIB | Duration: ~40 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: Sol Medium
+**Tasks Completed:**
+- [PRE-F13-08] Nonaktifkan menu Import Data (hemat penyimpanan Neon) + arsip alur lengkap ke `docs/future_plan.md` tanpa ubah catatan lama
+**Code Changes:**
+- Files modified: `apps/web/src/components/layout/operator-navigation.tsx` (baris nav Import + ikon `Upload` dibuang, komentar restore ponytail); `apps/web/src/routes/operator/import.tsx` (wizard 188 baris → stub halaman "Dinonaktifkan Sementara" + link Dashboard/Input Manual, path route dipertahankan agar `routeTree.gen.ts` utuh); 6 halaman data (`budget-revisions`, `rpd-realization`, `contracts-invoices` ×2, `up-tup-kkp` ×2, `output-achievement`, `spm-dispensation`) — 8 prop `onImportClick` → `/operator/import` dibuang; `docs/future_plan.md` (append § Future Plan Import: alasan, wizard 3-step, tabel 9 entry restore, peta 7 file backend, aturan 6 domain, semantik valid-row-only + ceiling slice-100, biaya JSONB + opsi TTL/R2, checklist re-enable 6 langkah, best practice context7+ponytail); `docs/BACKLOG.md` (baris PRE-F13-08)
+- Files untouched (sengaja): `apps/web/src/services/import-service.ts`; `apps/web/src/server/import.ts`; `apps/web/src/server/import/parser.ts`; `apps/web/src/server/import/process-job.ts`; `apps/web/src/routes/api/jobs/import/process.ts`; `packages/db/src/schema/import-jobs.ts`; `apps/web/src/components/data/domain-data-table.tsx` (prop opsional tetap); `apps/web/src/routeTree.gen.ts` (tanpa regenerate)
+- Lines of code: ~-150 bersih (1 nav + 1 stub + 8 prop), +~120 docs future_plan
+- Key implementations: pola TanStack file-based "keep route, disable entry" (docs 2026: prefix `-` mengecualikan file dari routeTree — sengaja TIDAK dipakai agar tanpa regenerate/404/type-break); hemat storage via stop-tulis `import_jobs.errorReportJson` (tanpa migrasi drop tabel); input manual 6 drawer tetap satu-satunya jalur tulis
+- Verifikasi: `npx tsc --noEmit -p apps/web/tsconfig.json --pretty false` — 0 error; `npm run build --workspace @simulator-ikpa/web` — client 2535 modul + SSR 322 modul lulus; `grep /operator/import` — sisa hanya stub + routeTree + komentar restore (tak ada dead-link dari tombol)
+**Issues Encountered:**
+- Issue: `reminders.tsx:372` masih punya `onImportClick={() => {}}` (tombol Import no-op).
+- Solution: Dibiarkan — pre-existing, di luar scope Import Data transaksional; disentuh = risiko fungsi lain (prinsip ponytail).
+- Issue: Skill context7-mcp (`resolve-library-id`/`query-docs`) tidak tersedia sebagai tool di environment ini.
+- Solution: Dipenuhi via `websearch` ke docs TanStack Router resmi (file-based routing, ignore-prefix `-`, plugin order) + `package.json` stack lokal (react-start latest, Neon/Drizzle) sebagai best-practice tech stack.
+**Next Session Plan:**
+- Tasks to continue: Siap F13 bila diminta; Import hanya di-restore via checklist `future_plan.md` §8 saat satker butuh migrasi OMSPAN massal
+- New tasks: [PRE-F13-08] selesai — tak ada follow-up wajib; opsional kelak: TTL `errorReportJson` >30 hari, R2 presigned >4.5 MB, `exceljs` dep (lihat future_plan §7)
+**Notes:**
+- Backend import tetap ter-build (server bundle ada `import-*.js`) tetapi tak terpanggil — biaya runtime/storage nol; re-enable = restore UI saja, tanpa migrasi DB.
+- Skipped (ponytail): hapus file backend/tabel/migrasi drop, flag env, TTL cron, R2 presign, install exceljs. Add when: §7 future_plan terpenuhi.
+
+### Session 95 - 2026-09-04
+**Time:** Start: 17:30 WIB | End: 18:10 WIB | Duration: ~40 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent + Backend Domain Agent
+- Model: Sol Medium
+**Tasks Completed:**
+- [PRE-F13-01] Hapus periode khusus + ringkas tampilan Simulasi/Panel (hanya esensial)
+- [PRE-F13-03] Dashboard 8 indikator (server + heading)
+- [PRE-F13-06] Backend assumptions operasional → engine (forecast/scenario; actual tetap DB)
+- [PRE-F13-07] Panel asumsi SPM Dispensasi (rasio permil + bucket + dampak)
+- [PRE-F13-04] History dari snapshot riil + compare 8 indikator Aktual/Proyeksi/Skenario
+- [PRE-F13-05] Report XLSX/PDF + agregat Admin memuat baris/kolom pengurang
+**Code Changes:**
+- Files modified: `apps/web/src/lib/simulation/up-tup-assumptions.ts` (hapus `UpTupPeriodMode`/khusus, `calcTanggalMaksimal` 1 argumen); `apps/web/src/components/operator/up-tup-assumption-panel.tsx` (tanpa periode select/trace/panjang, hanya status/nilai/dampak); `apps/web/src/routes/operator/simulation.tsx` (tanpa FormulaTrace/snapshot-list, tambah panel dispensasi, kirim `assumptions`); `apps/web/src/server/dashboard.ts` + `apps/web/src/routes/operator/dashboard.tsx` (8 indikator); `apps/web/src/server/simulation/calculate.ts` + `apps/web/src/server/simulation.ts` + `apps/web/src/services/simulation-service.ts` (assumptions + persist `entityType=assumptions`, breakdownJson di snapshot list); `apps/web/src/routes/operator/history.tsx` (loader riil + compare 8); `apps/web/src/server/exports/operator-xlsx.ts` (sheet Ringkasan 8); `apps/web/src/server/exports/operator-pdf.tsx` (baris pengurang + total berformula); `apps/web/src/server/exports/admin-aggregate.ts` (kolom pengurang)
+- Files created: `apps/web/src/lib/simulation/dispensasi-assumptions.ts`; `apps/web/src/lib/simulation/dispensasi-assumptions.test.ts`; `apps/web/src/components/operator/dispensasi-assumption-panel.tsx`
+- Verifikasi: `npx vitest run apps/web/src/lib/simulation/up-tup-assumptions.test.ts apps/web/src/lib/simulation/dispensasi-assumptions.test.ts` — 11/11 passed; `npx tsc --noEmit -p apps/web/tsconfig.json --pretty false` — 0 error; `npm run build --workspace @simulator-ikpa/web` — client 2537 modul + SSR 325 modul lulus
+**Issues Encountered:**
+- Issue: `tsc` error redeclare `db` di operator-xlsx + `breakdownJson: unknown` ditolak validator TanStack.
+- Solution: Hapus destructure ganda; return snapshot list `as never` + cast service `as unknown as` (pola yang sudah dipakai di repo).
+- Issue: 6 indikator lain belum punya panel asumsi.
+- Solution: Sengaja placeholder extensible; tambah bertahap satu per task agar tidak over-engineering (keputusan ponytail).
+**Next Session Plan:**
+- Siap masuk F13 (F13-01 unit test → F13-08 CI → F13-09 deploy) bila regulasi/parameter 2026 sudah terverifikasi; jika tidak, tambah panel asumsi berikutnya mulai dari Tagihan/Output.
+**Notes:**
+- Periode khusus (tab 6 Mar, DAY+9) dihapus dari kode + UI sesuai permintaan; rumus tersisa: maksimal = hari yang sama bulan depan.
+- Frontend diringkas: tanpa formula trace, tanpa snapshot mini di Simulasi (pakai History), tanpa teks penjelasan panjang; hanya input esensial + status/nilai/dampak + 8 baris.
+- Total tidak berubah makna: Σ 7 kontribusi − pengurang; dispensasi bobot 0.
+
+### Session 94 - 2026-09-03
+**Time:** Start: 16:30 WIB | End: 17:30 WIB | Duration: ~60 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: Sol Medium
+**Tasks Completed:**
+- [PRE-F13-01] Panel Atur Asumsi UP/TUP + breakdown 8 indikator di Simulasi (tahap UP/TUP, tanpa ubah nomor F-existing)
+- [PRE-F13-02] Bedakan Simpan Hasil Saat Ini vs Simpan Skenario + isolasi mode Aktual/Proyeksi/Skenario
+**Code Changes:**
+- Files created: `apps/web/src/lib/simulation/up-tup-assumptions.ts` (~330 baris pure logic), `apps/web/src/lib/simulation/up-tup-assumptions.test.ts` (9 test), `apps/web/src/components/operator/up-tup-assumption-panel.tsx` (panel ponytail + live preview + trace)
+- Files modified: `apps/web/src/routes/operator/simulation.tsx` (8 indikator, mode aktual vs preview asumsi, gap-only target, save split), `apps/web/src/components/operator/simulation-result.tsx` (judul 8 indikator, badge pengurang, label Simpan Hasil Saat Ini, disable Skenario tanpa perubahan), `docs/BACKLOG.md` (8 baris PRE-F13-01 s/d PRE-F13-07)
+- Lines of code: ~700 (3 baru + 2 ubah) — ponytail minimal: 1 panel, 1 lib, reuse `calculateUpTup` + `default2026RuleSet` client-side, tanpa tabel DB baru
+- Key implementations: `calcGupPreview` (C11=C10/C9, D14 normal DAY / khusus DAY+9, E14/E17 diff kalender, C19=C11*(E14/E17)*100 cap 100, saran OKE/UBAH); `buildUpTupEngineInput` (GUP→1 UP, TUP/PTUP/Setoran→TUP tepat/terlambat, GUP Nihil→UP 0, KKP opsional); `SimulationAssumptions` extensible (upTup+dispensasi+6 placeholder null); display total=Σ7 kontribusi−pengurang; mode aktual=loader DB, proyeksi/skenario=aktual+preview asumsi (aktual tak termutasi)
+- Verifikasi: `npx vitest run apps/web/src/lib/simulation/up-tup-assumptions.test.ts` — 9/9 passed; `npx tsc --noEmit -p apps/web/tsconfig.json` — 0 error; `npm run build --workspace @simulator-ikpa/web` — client 2537 modul 18.96s + SSR 325 modul 13.18s lulus
+**Issues Encountered:**
+- Issue: Engine `upTupTransactionSchema` hanya kenal UP/TUP, sedangkan DB punya GUP/GUP_NIHIL/PTUP/SETORAN_TUP; `calculate.ts` collapse ke UP (`u.type==="UP"||"TUP"?...:"UP"`) sehingga nuansa PTUP/Nihil/Setoran hilang.
+- Solution: Didokumentasikan di `up-tup-assumptions.ts` + panel (PTUP/Setoran→TUP tepat, Nihil→UP 0). Ditampung sebagai PRE-F13-06 (backend luruskan mapping + terima assumptions operasional, bukan hanya overrides).
+- Issue: Persist skenario masih memakai `overrides: {up_tup: score}` interim agar snapshot tersimpan beda; belum ada endpoint assumptions→engine server-side.
+- Solution: Dipertahankan sementara + dijelaskan di UI/devlog; PRE-F13-06 menindaklanjuti tanpa over-engineering tahap ini.
+- Issue: Typecheck via `npm run typecheck --workspace` timeout pada wrapper PowerShell bila dipipe Select-Object.
+- Solution: Jalankan `npx tsc --noEmit -p apps/web/tsconfig.json --pretty false` langsung — 0 error.
+**Next Session Plan:**
+- Tasks to continue: PRE-F13-03 (Dashboard 8 indikator), PRE-F13-04 (History riil + compare), PRE-F13-05 (Report 8 indikator) — satu per sesi agar kecil
+- New tasks: PRE-F13-06 (backend assumptions), PRE-F13-07 (panel 6 indikator lain + dispensasi bertahap, mulai dari SPM Dispensasi karena paling kecil)
+**Notes:**
+- Verifikasi status berjalan vs checklist: engine total benar (Σ7−pengurang); Simulasi sebelumnya 7 indikator + FORMULA statis + delta hardcode 1.5 + kedua tombol panggil save sama + mode tak recompute — kini diperbaiki tahap UP/TUP. Dashboard server masih map 7 + heading 7 (mock sudah 8). History masih mock. Export 7 (perlu baris pengurang). F13 belum disentuh sesuai instruksi (jangan deployment).
+- Workbook vs engine: workbook=1 GUP nominal×rasio waktu (28/30/31 dinamis, cap 100, tabel H=max agar 100, K/L/M cek =1); engine=agregat count (≤30 hari fix, same-month, Tunai 50/25/25 lalu 90/10 KKP, KKP 110 bonus). Panel tampilkan keduanya: workbook untuk pilih tanggal/nominal, engine untuk nilai resmi + kontribusi + dampak total. Contoh golden: UP 18jt, GUP 11jt, 2026-05-05→2026-05-25 = 61.11%×(31/20)=94.72 Tepat Waktu. Khusus 2024-04-05→maks 2024-05-14 (+9 hari).
+- Manual setup: tidak ada. Jika ingin DB riil: isi DATABASE_URL/DIRECT_URL + Clerk keys di .env (jangan commit), `npm run migrate --workspace @simulator-ikpa/db`, `npm run seed --workspace @simulator-ikpa/db`.
+- Risiko/known issue: preview skenario client-side pakai `default2026RuleSet` (bobot UP/TUP 10%); bila rule set published beda, angka preview bisa selisih kecil vs server — disamakan penuh di PRE-F13-06.
+
 ### Session 93 - 2026-09-02
 **Time:** Start: 15:00 WIB | End: 16:30 WIB | Duration: ~90 minutes
 - Status: Completed

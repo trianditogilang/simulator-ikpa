@@ -475,9 +475,6 @@ function ContractsInvoicesPage() {
 						searchValue={search}
 						onSearchChange={setSearch}
 						onAddClick={() => setIsContractDrawerOpen(true)}
-						onImportClick={() => {
-							window.location.href = "/operator/import";
-						}}
 						totalCount={filteredContracts.length}
 					/>
 				) : (
@@ -494,9 +491,6 @@ function ContractsInvoicesPage() {
 							}
 							setSelectedContractId(initialData.contracts[0]?.id ?? "");
 							setIsSpmDrawerOpen(true);
-						}}
-						onImportClick={() => {
-							window.location.href = "/operator/import";
 						}}
 						totalCount={filteredSpm.length}
 					/>

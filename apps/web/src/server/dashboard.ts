@@ -129,34 +129,49 @@ export const getOperatorDashboardFn = createServerFn({ method: "GET" })
 			dataStatus: "complete" as const,
 			ruleSetVersion: "PER-5/PB/2024",
 			lastUpdated: new Date().toLocaleDateString("id-ID"),
-			indicators: result.output.indicators.map((ind) => {
-				const rawScore = ind.score ? parseFloat(ind.score) : 100;
-				const weight = parseFloat(ind.weight);
-				const weightedScore = (rawScore * weight) / 100;
+			indicators: [
+				...result.output.indicators.map((ind) => {
+					const rawScore = ind.score ? parseFloat(ind.score) : 100;
+					const weight = parseFloat(ind.weight);
+					const weightedScore = (rawScore * weight) / 100;
 
-				return {
-					id: ind.key,
-					code: ind.key.toUpperCase(),
-					name: ind.label || ind.key,
-					weight,
-					rawScore,
-					weightedScore,
-					status:
-						rawScore >= 90
-							? ("complete" as const)
-							: rawScore >= 75
-								? ("warning" as const)
-								: ("danger" as const),
-					statusLabel:
-						rawScore >= 90
-							? "Optimal"
-							: rawScore >= 75
-								? "Perlu Perhatian"
-								: "Kritis",
-					deltaPoints: 0,
-					summary: `Bobot: ${ind.weight}% | Nilai Bobot: ${weightedScore.toFixed(2)} Poin`,
-				};
-			}),
+					return {
+						id: ind.key,
+						code: ind.key.toUpperCase(),
+						name: ind.label || ind.key,
+						weight,
+						rawScore,
+						weightedScore,
+						status:
+							rawScore >= 90
+								? ("complete" as const)
+								: rawScore >= 75
+									? ("warning" as const)
+									: ("danger" as const),
+						statusLabel:
+							rawScore >= 90
+								? "Optimal"
+								: rawScore >= 75
+									? "Perlu Perhatian"
+									: "Kritis",
+						deltaPoints: 0,
+						summary: `Bobot: ${ind.weight}%`,
+					};
+				}),
+				{
+					id: "spm_dispensasi",
+					code: "SPM_DISPENSASI",
+					name: "SPM Dispensasi",
+					weight: 0,
+					rawScore: parseFloat(result.output.dispensationDeduction ?? "0") || 0,
+					weightedScore: -(parseFloat(result.output.dispensationDeduction ?? "0") || 0),
+					status: (parseFloat(result.output.dispensationDeduction ?? "0") || 0) > 0 ? ("warning" as const) : ("complete" as const),
+					statusLabel: (parseFloat(result.output.dispensationDeduction ?? "0") || 0) > 0 ? "Pengurang" : "Tanpa pengurang",
+					deltaPoints: -(parseFloat(result.output.dispensationDeduction ?? "0") || 0),
+					summary: "Pengurang total IKPA",
+					isDeduction: true,
+				},
+			],
 			priorityActions: result.output.recommendations.map((rec, idx) => ({
 				id: `rec-${idx}-${rec.indicatorKey}`,
 				title: rec.title,

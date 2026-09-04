@@ -369,9 +369,6 @@ function BudgetRevisionsPage() {
 						setPaguAfter(totalPagu > 0 ? totalPagu.toString() : "");
 						setIsRevisionDrawerOpen(true);
 					}}
-					onImportClick={() => {
-						window.location.href = "/operator/import";
-					}}
 					totalCount={filteredRevisions.length}
 				/>
 

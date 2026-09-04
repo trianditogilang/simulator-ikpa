@@ -68,15 +68,15 @@ function OperatorDashboardPage() {
 					</div>
 				</div>
 
-				{/* 7 Indicators Grid */}
+				{/* 8 Indicators Grid */}
 				<div>
 					<div className="mb-4 flex items-center justify-between">
 						<div>
 							<h2 className="text-base font-bold text-foreground sm:text-lg">
-								7 Indikator Penilaian Kinerja Anggaran
+								8 Indikator IKPA
 							</h2>
 							<p className="text-xs text-muted-foreground">
-								Berdasarkan formulasi regulasi IKPA PER-5/PB/2024
+								7 berbobot + SPM Dispensasi sebagai pengurang
 							</p>
 						</div>
 						<span className="text-xs font-semibold text-primary">

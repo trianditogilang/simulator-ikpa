@@ -46,8 +46,8 @@ function esc(v: unknown): string {
 	return sanitizeForExport(v);
 }
 
-export async function buildOperatorXlsxBuffer(args: { orgId: string; db: ReturnType<typeof createDbClient>; fiscalYearId: string }): Promise<Uint8Array> {
-	const { db, fiscalYearId } = args;
+export async function buildOperatorXlsxBuffer(args: { orgId: string; db: ReturnType<typeof createDbClient>; fiscalYearId: string; summary?: { total: string; deduction: string; indicators: Array<{ label: string; score: string; weight: string; contrib: string }> } }): Promise<Uint8Array> {
+	const { db, fiscalYearId, summary } = args;
 	const [budgetRows, revisionRows, rpdRows, realRows, contractRows, spmRows, upRows, kkpRows, outputRows, spmQ4Rows] = await Promise.all([
 		db.select().from(budgets).where(and(eq(budgets.fiscalYearId, fiscalYearId), isNull(budgets.deletedAt))),
 		db.select().from(dipaRevisions).where(and(eq(dipaRevisions.fiscalYearId, fiscalYearId), isNull(dipaRevisions.deletedAt))),
@@ -102,6 +102,14 @@ export async function buildOperatorXlsxBuffer(args: { orgId: string; db: ReturnT
 		ws.views = [{ state: "frozen", ySplit: 1 }];
 	};
 
+	if (summary) {
+		addSheet("Ringkasan", ["indikator", "nilai", "bobot", "kontribusi"], [
+			...summary.indicators.map((i) => [i.label, i.score, i.weight, i.contrib]),
+			["SPM Dispensasi (pengurang)", summary.deduction, "0", `-${summary.deduction}`],
+			["TOTAL = Σ 7 kontribusi − pengurang", summary.total, "", ""],
+		]);
+	}
+
 	addSheet("Pagu", ["account_code","amount","effective_at"], budgetRows.map(r=>[r.accountCode, r.amount, r.effectiveAt]));
 	addSheet("Revisi", ["revision_date","revision_code","pagu_before","pagu_after"], revisionRows.map(r=>[r.revisionDate, r.revisionCode, r.paguBefore, r.paguAfter]));
 	addSheet("RPD", ["month","account_code","amount"], rpdRows.map(r=>[r.month, r.accountCode, r.amount]));
@@ -133,17 +141,24 @@ export const requestOperatorXlsxFn = createServerFn({ method: "GET" })
 		}
 		const fy = await getOrInitFiscalYear(db, targetOrgId);
 		if (!fy) throw new Error("Fiscal year tidak ditemukan");
-		// ensure we also include simulated scores – calculate snapshot actual month 8 for disclaimer
-		let calcNote = "2026.1";
+		// hitung snapshot aktual untuk ringkasan 8 indikator
+		let summary: { total: string; deduction: string; indicators: Array<{ label: string; score: string; weight: string; contrib: string }> } | undefined;
 		try {
 			const meta = { actorId: (access as {userId?:string}).userId ?? targetOrgId };
 			const snap = await calculateAndPersistSnapshot(db, access, { orgId: targetOrgId, fiscalYearId: fy.id, period: { kind: "month", value: 8 }, simulationType: "actual" }, meta);
-			calcNote = snap.output.totalScore ?? calcNote;
+			summary = {
+				total: snap.output.totalScore ?? "0.00",
+				deduction: snap.output.dispensationDeduction ?? "0",
+				indicators: (snap.output.indicators as unknown as Array<{ label?: string; key: string; score: string | null; weight: string; weightedContribution?: string | null }>).map((i) => ({
+					label: i.label ?? i.key,
+					score: i.score ?? "0.00",
+					weight: i.weight,
+					contrib: (i as { weightedContribution?: string }).weightedContribution ?? "0.00",
+				})),
+			};
 		} catch {}
-		const buf = await buildOperatorXlsxBuffer({ orgId: targetOrgId, db, fiscalYearId: fy.id });
+		const buf = await buildOperatorXlsxBuffer({ orgId: targetOrgId, db, fiscalYearId: fy.id, summary });
 		const mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 		const filename = `IKPA-Operator-${targetOrgId}-2026-${new Date().toISOString().slice(0,10)}.xlsx`;
-		// add disclaimer via calcNote not needed; included in metadata sheet
-		void calcNote;
 		return { filename, mimeType: mime, contentBase64: Buffer.from(buf).toString("base64") };
 	});

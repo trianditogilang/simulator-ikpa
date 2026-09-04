@@ -66,6 +66,22 @@ export const runSimulationFn = createServerFn({ method: "POST" })
 			simulationType?: "actual" | "forecast" | "scenario";
 			targetScore?: string;
 			overrides?: Record<string, string>;
+			assumptions?: {
+				upTup?: {
+					nilaiUP: string;
+					nilaiRencanaGUP: string;
+					tanggalGUPSebelumnya: string;
+					tanggalRencanaGUP: string;
+					tupTepat?: number;
+					tupTerlambat?: number;
+					ptupTepat?: number;
+					gupNihilCount?: number;
+					setoranTepat?: number;
+					kkpNominal?: string;
+					kkpTanggal?: string;
+				} | null;
+				dispensasi?: { dispensationCount: number; totalSpmQ4: number } | null;
+			};
 			simulationName?: string;
 		}) => data,
 	)
@@ -169,6 +185,7 @@ export const runSimulationFn = createServerFn({ method: "POST" })
 				simulationType: data.simulationType ?? "scenario",
 				targetScore: data.targetScore,
 				overrides: data.overrides,
+				assumptions: data.assumptions,
 				simulationName: data.simulationName,
 			},
 			meta,
@@ -219,6 +236,7 @@ export const listSnapshotsFn = createServerFn({ method: "GET" })
 				simulationType: simulations.type,
 				periodEnd: scoreSnapshots.periodEnd,
 				totalScore: scoreSnapshots.totalScore,
+				breakdownJson: scoreSnapshots.breakdownJson,
 				createdAt: scoreSnapshots.createdAt,
 			})
 			.from(scoreSnapshots)
@@ -235,7 +253,8 @@ export const listSnapshotsFn = createServerFn({ method: "GET" })
 				simulationType: r.simulationType,
 				periodEnd: r.periodEnd,
 				totalScore: r.totalScore,
+				breakdownJson: r.breakdownJson as never,
 				createdAt: r.createdAt.toISOString(),
 			})),
-		};
+		} as never;
 	});

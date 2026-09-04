@@ -376,9 +376,6 @@ function OutputAchievementPage() {
 						setIsConfirmed(false);
 						setIsDrawerOpen(true);
 					}}
-					onImportClick={() => {
-						window.location.href = "/operator/import";
-					}}
 					totalCount={filteredData.length}
 				/>
 
