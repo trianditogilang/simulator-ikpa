@@ -8,7 +8,7 @@ import {
 	Target,
 	Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
 	type ColumnDef,
 	DomainDataTable,
@@ -17,6 +17,7 @@ import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { formatPercent } from "@/lib/format";
+import { buildOutputSummary } from "@/lib/simulation/tagihan-output-reminder";
 import {
 	fetchOutputReports,
 	removeOutputReport,
@@ -98,6 +99,17 @@ function OutputAchievementPage() {
 					0,
 				) / totalRo
 			: 0;
+
+	// Strip reminder 5 hari kerja wajib
+	const outputSummary = useMemo(
+		() =>
+			buildOutputSummary(
+				filteredData,
+				initialData.year,
+				selectedMonth,
+			),
+		[filteredData, initialData.year, selectedMonth],
+	);
 
 	const handleSaveOutput = async () => {
 		setActionMessage(null);
@@ -359,6 +371,50 @@ function OutputAchievementPage() {
 						</p>
 					</div>
 				</div>
+
+				{/* Strip reminder 5 hari kerja wajib + rekomendasi kontekstual */}
+				<section
+					aria-label="Reminder lapor capaian output 5 hari kerja wajib"
+					className="space-y-2 rounded-2xl border border-border bg-background p-4 sm:p-5"
+				>
+					<div className="flex items-center justify-between gap-3">
+						<h2 className="text-sm font-semibold text-foreground">
+							Reminder 5 hari kerja wajib · {MONTH_NAMES[selectedMonth - 1]}
+							{outputSummary.belum + outputSummary.terlambat > 0
+								? ` · ${outputSummary.belum + outputSummary.terlambat} perlu perhatian`
+								: null}
+						</h2>
+						<a
+							href="/operator/reminders"
+							className="shrink-0 text-[11px] font-semibold text-primary underline-offset-4 hover:underline"
+						>
+							Reminder Center
+						</a>
+					</div>
+					<div className="flex flex-wrap gap-2 text-[11px]">
+						<span className="rounded-full bg-surface-muted px-2.5 py-1 font-semibold text-foreground">
+							Tenggat {outputSummary.deadline ?? "—"}
+						</span>
+						<span className="rounded-full bg-success/10 px-2.5 py-1 font-semibold text-success">
+							{outputSummary.tepat} tepat waktu
+						</span>
+						{outputSummary.terlambat > 0 ? (
+							<span className="rounded-full bg-danger/10 px-2.5 py-1 font-semibold text-danger">
+								{outputSummary.terlambat} terlambat
+							</span>
+						) : null}
+						{outputSummary.belum > 0 ? (
+							<span className="rounded-full bg-yellow-100 px-2.5 py-1 font-semibold text-yellow-800">
+								{outputSummary.belum} belum konfirmasi
+							</span>
+						) : null}
+					</div>
+					<p className="text-[11px] text-muted-foreground">{outputSummary.advice}</p>
+					<p className="text-[11px] text-muted-foreground">
+						Hitungan estimasi hari kerja Senin–Jumat (tanpa libur nasional);
+						penilaian resmi memakai kalender kerja KPPN.
+					</p>
+				</section>
 
 				{/* Data Table */}
 				<DomainDataTable

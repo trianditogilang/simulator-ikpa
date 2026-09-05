@@ -807,13 +807,13 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Depends:** CORR-03
   **DoD:** Lib assumptions tidak dihapus. Tab data actual tetap. ?/drawer ada. Selesai 2026-09-05.
 
-- [ ] **CORR-05 — Dashboard merakit 8 baris, 5 rekomendasi, Simpan skenario IKPA.** [Role: Frontend Operator Agent]
+- [x] **CORR-05 — Dashboard merakit 8 baris, 5 rekomendasi, Simpan skenario IKPA.** [Role: Frontend Operator Agent]
   **Depends:** CORR-04
-  **DoD:** Estimasi jika ada indikator kosong. CTA Lihat semua boleh ke /operator/analysis. Bukan menu Skenario gabungan.
+  **DoD:** Estimasi jika ada indikator kosong. CTA Lihat semua boleh ke /operator/analysis. Bukan menu Skenario gabungan. Selesai 2026-09-05.
 
-- [ ] **CORR-06 — Strip reminder + rekomendasi kontekstual di Tagihan dan Output.** [Role: Frontend Operator Agent]
+- [x] **CORR-06 — Strip reminder + rekomendasi kontekstual di Tagihan dan Output.** [Role: Frontend Operator Agent]
   **Depends:** CORR-05
-  **DoD:** H+17 dan 5 hari kerja wajib tampil. Bukan kalkulator opsional.
+  **DoD:** H+17 dan 5 hari kerja wajib tampil. Bukan kalkulator opsional. Selesai 2026-09-05.
 
 - [ ] **CORR-A-00 s.d. CORR-A-05 — Admin monitor 8 indikator (parkir).**
   **Depends:** CORR-01..05 Operator

@@ -50,6 +50,16 @@ async function getOrInitFiscalYear(
 	return fy;
 }
 
+const RECOMMENDATION_ROUTES: Record<string, string> = {
+	dipa_revision: "/operator/data/budget-revisions",
+	rpd_deviation: "/operator/deviasi",
+	budget_absorption: "/operator/penyerapan",
+	contractual: "/operator/data/contracts-invoices",
+	invoice_timeliness: "/operator/data/contracts-invoices",
+	up_tup: "/operator/up-tup",
+	output_achievement: "/operator/data/output-achievement",
+};
+
 export const getOperatorDashboardFn = createServerFn({ method: "GET" })
 	.validator((data?: { orgId?: string; periodMonth?: number }) => data)
 	.handler(async ({ data }) => {
@@ -122,42 +132,52 @@ export const getOperatorDashboardFn = createServerFn({ method: "GET" })
 		const targetVal = 95.0;
 		const totalVal = parseFloat(result.output.totalScore || "94.20");
 
+		const indicatorItems = result.output.indicators.map((ind) => {
+			const estimated = !ind.score;
+			const rawScore = estimated ? 0 : parseFloat(ind.score ?? "0");
+			const weight = parseFloat(ind.weight);
+			const weightedScore = estimated ? 0 : (rawScore * weight) / 100;
+
+			return {
+				id: ind.key,
+				code: ind.key.toUpperCase(),
+				name: ind.label || ind.key,
+				weight,
+				rawScore,
+				weightedScore,
+				status: estimated
+					? ("incomplete" as const)
+					: rawScore >= 90
+						? ("complete" as const)
+						: rawScore >= 75
+							? ("warning" as const)
+							: ("danger" as const),
+				statusLabel: estimated
+					? "Belum ada data"
+					: rawScore >= 90
+						? "Optimal"
+						: rawScore >= 75
+							? "Perlu Perhatian"
+							: "Kritis",
+				deltaPoints: 0,
+				summary: estimated
+					? "Estimasi — belum ada data"
+					: `Bobot: ${ind.weight}%`,
+				isEstimated: estimated,
+			};
+		});
+
 		return {
 			totalScore: totalVal,
 			targetScore: targetVal,
 			gapScore: totalVal - targetVal,
-			dataStatus: "complete" as const,
+			dataStatus: (indicatorItems.some((i) => i.isEstimated)
+				? "estimated"
+				: "complete") as "estimated" | "complete",
 			ruleSetVersion: "PER-5/PB/2024",
 			lastUpdated: new Date().toLocaleDateString("id-ID"),
 			indicators: [
-				...result.output.indicators.map((ind) => {
-					const rawScore = ind.score ? parseFloat(ind.score) : 100;
-					const weight = parseFloat(ind.weight);
-					const weightedScore = (rawScore * weight) / 100;
-
-					return {
-						id: ind.key,
-						code: ind.key.toUpperCase(),
-						name: ind.label || ind.key,
-						weight,
-						rawScore,
-						weightedScore,
-						status:
-							rawScore >= 90
-								? ("complete" as const)
-								: rawScore >= 75
-									? ("warning" as const)
-									: ("danger" as const),
-						statusLabel:
-							rawScore >= 90
-								? "Optimal"
-								: rawScore >= 75
-									? "Perlu Perhatian"
-									: "Kritis",
-						deltaPoints: 0,
-						summary: `Bobot: ${ind.weight}%`,
-					};
-				}),
+				...indicatorItems,
 				{
 					id: "spm_dispensasi",
 					code: "SPM_DISPENSASI",
@@ -187,7 +207,7 @@ export const getOperatorDashboardFn = createServerFn({ method: "GET" })
 				impactPoints: parseFloat(rec.potentialGain || "1.00"),
 				indicatorId: rec.indicatorKey,
 				indicatorName: rec.indicatorKey,
-				route: "/operator/simulation",
+				route: RECOMMENDATION_ROUTES[rec.indicatorKey] ?? "/operator/simulation",
 				domain: rec.indicatorKey,
 			})),
 			nearestDeadline: {

@@ -6,11 +6,15 @@ import type { PriorityActionItem } from "@/mocks/operator-dashboard";
 export interface RecommendationListProps extends ComponentProps<"div"> {
 	actions: PriorityActionItem[];
 	onActionClick?: (route: string) => void;
+	totalCount?: number;
+	onSeeAllClick?: () => void;
 }
 
 export function RecommendationList({
 	actions,
 	onActionClick,
+	totalCount,
+	onSeeAllClick,
 	className,
 	...props
 }: RecommendationListProps) {
@@ -44,9 +48,19 @@ export function RecommendationList({
 				<h3 className="text-sm font-semibold text-foreground">
 					Tindakan Prioritas untuk Satker
 				</h3>
-				<span className="text-xs text-muted-foreground">
-					{actions.length} Rekomendasi
-				</span>
+				{totalCount !== undefined && onSeeAllClick && totalCount > actions.length ? (
+					<button
+						type="button"
+						onClick={onSeeAllClick}
+						className="text-xs font-semibold text-primary underline-offset-4 hover:underline"
+					>
+						Lihat semua ({totalCount})
+					</button>
+				) : (
+					<span className="text-xs text-muted-foreground">
+						{actions.length} Rekomendasi
+					</span>
+				)}
 			</div>
 
 			<div className="space-y-2.5">

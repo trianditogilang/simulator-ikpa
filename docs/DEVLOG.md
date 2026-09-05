@@ -2,6 +2,45 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 111 - 2026-09-05
+**Time:** Start: 19:00 UTC | End: 19:30 UTC | Duration: ~30 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [CORR-06] Strip reminder + rekomendasi kontekstual di Tagihan dan Output
+**Code Changes:**
+- Files created: `apps/web/src/lib/simulation/tagihan-output-reminder.ts` (pure: `countWorkdaysMonFri`, `addWorkdaysMonFri`, `buildSpmReminders`, `tagihanAdvice`, `outputDeadline`, `buildOutputSummary`); `apps/web/src/lib/simulation/tagihan-output-reminder.test.ts` (8 test)
+- Files modified: `apps/web/src/routes/operator/data/contracts-invoices.tsx` (strip H+17 wajib: daftar terlambat top-5 + saran + link Reminder Center); `apps/web/src/routes/operator/data/output-achievement.tsx` (strip 5 HK wajib per bulan: tenggat + badge + saran + link); `docs/TASK-LIST-Simulator-IKPA.md` (CORR-06 checked); `docs/BACKLOG.md` (CORR-06 Completed)
+- Files untouched (sengaja): drawer CRUD + tabel data; engine; backend; Admin; F13
+- Key implementations: strip selalu tampil (kosong pun tampilkan aturan); hitungan hari kerja Senin–Jumat terdokumentasi sebagai estimasi tanpa libur nasional; saran Tagihan menyebut nomor SPM; saran Output ingatkan tenggat lewat
+- Verifikasi: `npx vitest run tagihan-output-reminder.test.ts` — 8/8 passed; `npx tsc --noEmit` — 0 error; `npm run build` — client 2546 modul + SSR 333 modul lulus
+**Issues Encountered:**
+- Issue: `tsc` error reduce tanpa initial value setelah edit.
+- Solution: Kembalikan initial `0`.
+**Next Session Plan:**
+- PRE-F13 CORR-01..06 Operator selesai 100%. Tunggu koreksi ketepatan per indikator dari user; jangan F13/Admin sebelum instruksi
+- New tasks: tak ada
+
+### Session 110 - 2026-09-05
+**Time:** Start: 18:30 UTC | End: 19:00 UTC | Duration: ~30 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [CORR-05] Dashboard merakit 8 baris, 5 rekomendasi, Simpan skenario IKPA
+**Code Changes:**
+- Files modified: `apps/web/src/server/dashboard.ts` (skor null → `isEstimated` + status incomplete + summary Estimasi, `dataStatus` estimated bila ada; rute rekomendasi ke workspace); `apps/web/src/mocks/operator-dashboard.ts` (`isEstimated?`); `apps/web/src/components/operator/score-card.tsx` (tombol Simpan skenario IKPA); `apps/web/src/components/operator/recommendation-list.tsx` (Lihat semua (N) → /operator/analysis); `apps/web/src/components/operator/indicator-card.tsx` (chip "· Estimasi"); `apps/web/src/routes/operator/dashboard.tsx` (INDICATOR_ROUTES ke workspace, top-5, handler simpan scenario + pesan + link Riwayat); `docs/TASK-LIST-Simulator-IKPA.md` (CORR-05 checked); `docs/BACKLOG.md` (CORR-05 Completed, CORR-06 In Progress)
+- Files untouched (sengaja): engine (tanpa rewrite, tanpa ubah deep-link map); `analysis.tsx` (pakai list penuh dari loader yang sama); Admin; F13
+- Key implementations: daftar rekomendasi engine tetap penuh (analysis tak terpotong) — Dashboard potong 5 di client; simpan scenario via `executeSimulation({simulationType: "scenario"})` reuse pola PRE-F13-02; kartu indikator ke `/operator/deviasi|penyerapan|up-tup`
+- Verifikasi: `npx tsc --noEmit` — 0 error; `npm run build` — client 2545 modul + SSR 332 modul lulus
+**Issues Encountered:**
+- Issue: `tsc` null-score parse + `as const` pada ternary.
+- Solution: `parseFloat(ind.score ?? "0")` + cast union eksplisit.
+**Next Session Plan:**
+- Tasks to continue: CORR-06 (Tagihan & Output reminder + rekomendasi kontekstual)
+- New tasks: tak ada
+
 ### Session 109 - 2026-09-05
 **Time:** Start: 18:25 UTC | End: 18:30 UTC | Duration: ~5 minutes
 - Status: Completed

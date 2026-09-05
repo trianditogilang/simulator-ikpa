@@ -11,6 +11,8 @@ export interface ScoreCardProps extends ComponentProps<"div"> {
 	lastUpdated?: string;
 	onSimulateClick?: () => void;
 	onInputClick?: () => void;
+	onSaveScenarioClick?: () => void;
+	isSavingScenario?: boolean;
 }
 
 export function ScoreCard({
@@ -22,6 +24,8 @@ export function ScoreCard({
 	lastUpdated,
 	onSimulateClick,
 	onInputClick,
+	onSaveScenarioClick,
+	isSavingScenario,
 	className,
 	...props
 }: ScoreCardProps) {
@@ -110,6 +114,16 @@ export function ScoreCard({
 					resmi OMSPAN/KPPN.
 				</p>
 				<div className="flex items-center gap-2">
+					{onSaveScenarioClick && (
+						<button
+							type="button"
+							onClick={onSaveScenarioClick}
+							disabled={isSavingScenario}
+							className="rounded-lg border border-primary/40 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/10 disabled:opacity-50"
+						>
+							{isSavingScenario ? "Menyimpan…" : "Simpan skenario IKPA"}
+						</button>
+					)}
 					{onInputClick && (
 						<button
 							type="button"

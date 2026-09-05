@@ -51,6 +51,7 @@ export function IndicatorCard({
 						)}
 					>
 						{indicator.statusLabel}
+						{indicator.isEstimated ? " · Estimasi" : null}
 					</span>
 				</div>
 

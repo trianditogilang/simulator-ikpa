@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { DeadlinePanel } from "@/components/operator/deadline-panel";
 import { IndicatorCard } from "@/components/operator/indicator-card";
 import { RecommendationList } from "@/components/operator/recommendation-list";
 import { ScoreCard } from "@/components/operator/score-card";
 import { fetchOperatorDashboard } from "@/services/dashboard-service";
+import { executeSimulation } from "@/services/simulation-service";
 
 export const Route = createFileRoute("/operator/dashboard")({
 	loader: async ({ context }) => {
@@ -22,17 +24,44 @@ export const Route = createFileRoute("/operator/dashboard")({
 
 const INDICATOR_ROUTES: Record<string, string> = {
 	REVISI_DIPA: "/operator/data/budget-revisions",
-	DEV_HAL_III: "/operator/data/rpd-realization",
-	PENYERAPAN: "/operator/data/rpd-realization",
+	DEV_HAL_III: "/operator/deviasi",
+	PENYERAPAN: "/operator/penyerapan",
 	BELANJA_KONTRAKTUAL: "/operator/data/contracts-invoices",
 	TAGIHAN: "/operator/data/contracts-invoices",
-	UP_TUP: "/operator/data/up-tup-kkp",
+	UP_TUP: "/operator/up-tup",
 	CAPAIAN_OUTPUT: "/operator/data/output-achievement",
 	SPM_DISPENSASI: "/operator/data/spm-dispensation",
 };
 
 function OperatorDashboardPage() {
 	const data = Route.useLoaderData();
+	const [isSaving, setIsSaving] = useState(false);
+	const [saveMessage, setSaveMessage] = useState<string | null>(null);
+	const [saveError, setSaveError] = useState<string | null>(null);
+
+	const topActions = data.priorityActions.slice(0, 5);
+
+	const handleSaveScenario = async () => {
+		setIsSaving(true);
+		setSaveMessage(null);
+		setSaveError(null);
+		try {
+			await executeSimulation({
+				simulationType: "scenario",
+				period: { kind: "month", value: new Date().getMonth() + 1 },
+				simulationName: `Skenario IKPA Dashboard - ${new Date().toLocaleDateString("id-ID")}`,
+			});
+			setSaveMessage(
+				"Skenario IKPA (8 indikator + rekomendasi) berhasil disimpan. Lihat di Riwayat & perbandingan.",
+			);
+		} catch (err: unknown) {
+			setSaveError(
+				err instanceof Error ? err.message : "Gagal menyimpan skenario IKPA.",
+			);
+		} finally {
+			setIsSaving(false);
+		}
+	};
 
 	return (
 		<OperatorShell currentPath="/operator/dashboard">
@@ -55,7 +84,22 @@ function OperatorDashboardPage() {
 							onInputClick={() => {
 								window.location.href = "/operator/data/budget-revisions";
 							}}
+							onSaveScenarioClick={handleSaveScenario}
+							isSavingScenario={isSaving}
 						/>
+						{saveMessage ? (
+							<p className="mt-2 rounded-lg border border-success/30 bg-success/5 px-3 py-2 text-xs text-success">
+								{saveMessage}{" "}
+								<a href="/operator/history" className="font-semibold underline underline-offset-4">
+									Buka Riwayat
+								</a>
+							</p>
+						) : null}
+						{saveError ? (
+							<p className="mt-2 rounded-lg border border-danger/30 bg-danger/5 px-3 py-2 text-xs text-danger">
+								{saveError}
+							</p>
+						) : null}
 					</div>
 
 					<div className="lg:col-span-4">
@@ -101,7 +145,11 @@ function OperatorDashboardPage() {
 
 				{/* Recommendations & Action Plan */}
 				<RecommendationList
-					actions={data.priorityActions}
+					actions={topActions}
+					totalCount={data.priorityActions.length}
+					onSeeAllClick={() => {
+						window.location.href = "/operator/analysis";
+					}}
 					onActionClick={(route) => {
 						window.location.href = route;
 					}}

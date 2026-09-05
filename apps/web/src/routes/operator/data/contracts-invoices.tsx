@@ -10,7 +10,7 @@ import {
 	Receipt,
 	Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
 	type ColumnDef,
 	DomainDataTable,
@@ -19,6 +19,10 @@ import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { formatRupiah } from "@/lib/format";
+import {
+	buildSpmReminders,
+	tagihanAdvice,
+} from "@/lib/simulation/tagihan-output-reminder";
 import {
 	addContract,
 	addSpmLs,
@@ -93,6 +97,15 @@ function ContractsInvoicesPage() {
 		(sum, c) => sum + (Number.parseFloat(c.value) || 0),
 		0,
 	);
+
+	// Strip reminder H+17 wajib (estimasi hari kerja Senin–Jumat)
+	const spmReminders = useMemo(
+		() => buildSpmReminders(initialData.spmLsList),
+		[initialData.spmLsList],
+	);
+	const spmAdvice = useMemo(() => tagihanAdvice(spmReminders), [spmReminders]);
+	const spmLate = spmReminders.filter((r) => r.status === "Terlambat");
+	const spmLateCount = spmLate.length;
 
 	const handleCreateContract = async () => {
 		setActionMessage(null);
@@ -440,6 +453,63 @@ function ContractsInvoicesPage() {
 						</p>
 					</div>
 				</div>
+
+				{/* Strip reminder H+17 wajib + rekomendasi kontekstual */}
+				<section
+					aria-label="Reminder penyelesaian tagihan H+17 wajib"
+					className="space-y-2 rounded-2xl border border-border bg-background p-4 sm:p-5"
+				>
+					<div className="flex items-center justify-between gap-3">
+						<h2 className="text-sm font-semibold text-foreground">
+							Reminder H+17 wajib
+							{spmLateCount > 0 ? ` · ${spmLateCount} terlambat` : null}
+						</h2>
+						<a
+							href="/operator/reminders"
+							className="shrink-0 text-[11px] font-semibold text-primary underline-offset-4 hover:underline"
+						>
+							Reminder Center
+						</a>
+					</div>
+					{spmReminders.length === 0 ? (
+						<p className="text-body-small text-muted-foreground">{spmAdvice}</p>
+					) : (
+						<ul className="space-y-1.5">
+							{spmLate.slice(0, 5).map((r) => (
+								<li
+									key={r.id}
+									className="flex items-start justify-between gap-3 rounded-lg border border-danger/30 bg-danger/[0.03] px-3 py-2 text-body-small"
+								>
+									<div>
+										<p className="font-semibold text-foreground">
+											{r.referenceNumber}
+											{r.isPegawai ? " · Pegawai" : null}
+										</p>
+										<p className="text-muted-foreground">
+											BAST {r.bastDate}
+											{r.receivedDate ? ` · diterima ${r.receivedDate}` : " · belum diterima"} ·{" "}
+											{r.elapsedWorkdays !== null ? `${r.elapsedWorkdays} hari kerja` : "—"}
+										</p>
+									</div>
+									<span className="shrink-0 rounded-full bg-danger/10 px-2.5 py-1 text-[11px] font-semibold text-danger">
+										Terlambat
+									</span>
+								</li>
+							))}
+							{spmLate.length > 5 ? (
+								<li className="px-1 text-[11px] text-muted-foreground">
+									+{spmLate.length - 5} berkas terlambat lainnya — lihat di
+									tabel Tagihan SPM-LS.
+								</li>
+							) : null}
+						</ul>
+					)}
+					<p className="text-[11px] text-muted-foreground">{spmAdvice}</p>
+					<p className="text-[11px] text-muted-foreground">
+						Hitungan estimasi hari kerja Senin–Jumat (tanpa libur nasional);
+						penilaian resmi memakai kalender kerja KPPN.
+					</p>
+				</section>
 
 				{/* Tabs */}
 				<div className="flex items-center gap-2 border-b border-border pb-2">

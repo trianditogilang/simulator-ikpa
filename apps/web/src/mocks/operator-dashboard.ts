@@ -10,6 +10,7 @@
 	deltaPoints: number;
 	summary: string;
 	isDeduction?: boolean;
+	isEstimated?: boolean;
 }
 
 export interface PriorityActionItem {
