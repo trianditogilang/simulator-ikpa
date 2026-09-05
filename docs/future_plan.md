@@ -5,6 +5,48 @@ migrasi ke vps/ dc kemenkeu
 fitur: setting profile pop up, tooltip, darkmode-->
 
 
+<!--notes:
+Review docs/BACKLOG.md, docs/DEVLOG.md, dan docs/PRE-F13-Koreksi-IA-Operator.md dulu.
+Jangan F13, jangan ubah navigation, jangan hapus kode.
+
+Task CORR-00:
+1. Sisipkan seksi Fase PRE-F13 di task list, antara Fase 12 dan Fase 13, sesuai dokumen itu.
+   F13 tetap unchecked, tulis Depends: PRE-F13 CORR-01..05.
+2. APPEND docs/future_plan.md (jangan timpa bagian Import): arsip IA menu Input Data lama + cara restore.
+3. Tambah baris CORR-00 s.d. CORR-06 di BACKLOG.
+4. Append DEVLOG.
+
+Ponytail. Update backlog, devlog, checkbox CORR-00 setelah selesai.
+
+
+
+Saya sudah menyelesaikan CORR-00. Review backlog, devlog, dan seksi PRE-F13 di task list dulu.
+Lanjut CORR-01 sesuai docs/PRE-F13-Koreksi-IA-Operator.md.
+Jangan F13, jangan Admin, jangan hapus route lama.
+Ponytail + context7. Update backlog, devlog, dan checkbox task list setelah DoD lulus.
+
+
+
+Saya sudah menyelesaikan CORR-01. Review docs/BACKLOG.md, docs/DEVLOG.md, dan docs/PRE-F13-Koreksi-IA-Operator.md dulu.
+Lanjut CORR-02 saja. Jangan F13, jangan Admin, jangan hapus route lama.
+
+Workspace Penyerapan Anggaran — bukan klon Excel:
+- Identitas halaman = indikator (skor, gap, target triwulan), bukan grid rumus
+- Actual YTD terkunci; sisa tahun editable (pola sel kuning Sheet1)
+- Skor instan via engine/rule set 2026 (51 20/50/75/95; 52 15/50/70/90; 53 10/40/70/90; 57 25/50/75/95; cap 100)
+- Sheet2 = contoh rumus bersih. Sheet1 nilai TW1 hardcoded 100: abaikan
+- Pagu netto (setelah blokir) boleh dipakai; bukan menu terpisah
+- Akun 57 tetap didukung meski tidak ada di Excel
+- ?/drawer rumus singkat. Actual tidak tertimpa
+
+Ponytail + context7. Update backlog, devlog, dan checkbox task list setelah DoD lulus.
+
+3	CORR-02 Penyerapan	Excel penyerapan
+4	CORR-03 Deviasi	Excel DEV
+5	CORR-04 UP/TUP	Excel GUP + KKP
+-->
+
+
 <!--Kalau *default branch* di GitHub kamu sudah `main`, tetapi setiap kali kamu *push* dari komputer lokal malah masuk ke `master`, berarti **nama cabang aktif di komputer lokal kamu yang masih `master**`.
 
 Hal ini sangat umum terjadi ketika kamu membuat repositori pertama kali di komputer lewat perintah `git init` sebelum menghubungkannya ke GitHub.
@@ -157,4 +199,3 @@ Sekarang cabang di lokal dan GitHub kamu sudah sama-sama menggunakan `main`.-->
 - **TanStack Start ServerFn:** backend import tetap di-bundle server-only; tanpa pemanggil, tidak ada biaya runtime/storage. Tidak perlu feature-flag env baru (ponytail: 1 stub > 1 flag + 1 config + N branch).
 - **Neon Postgres + Drizzle:** hemat storage via "stop nulis" (cabut UI), bukan via migrasi drop tabel. Drop = migrasi + review + risiko re-enable; stop-nulis = 0 migrasi, reversibel 1 commit.
 - **Ponytail ladder yang dipakai:** YAGNI (R2/queue/TTL ditunda) → reuse (`OperatorShell`, `DomainDataTable` prop existing, mutasi domain existing) → stdlib/native (tanpa dep baru) → 1-line-ish diff (1 nav + 1 stub + 8 prop) → `skipped: R2 presigned, TTL cleanup, exceljs dep, penghapusan tabel; add when: upload massal >100 baris / file >4.5 MB / JSONB bengkak`.
-
