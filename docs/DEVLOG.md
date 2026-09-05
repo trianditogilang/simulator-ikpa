@@ -28,6 +28,25 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 [Any additional notes, observations, or reminders]
 ```
 
+### Session 103 - 2026-09-05
+**Time:** Start: 11:30 UTC | End: 11:40 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [COPY] Bahasa Indonesia di `/operator/penyerapan` (3 feedback annotation, tanpa task baru)
+**Code Changes:**
+- Files modified: `apps/web/src/routes/operator/penyerapan.tsx` (copy only, 0 logika)
+- Key implementations: `editable` → `Dapat diedit` (h2) / `dapat disimulasikan` (paragraf); `Actual` → `Aktual` di semua copy (paragraf, kartu Skor/Selisih, section, `Ubah aktual`, title 🔒, dialog, catatan sel kuning); kolom `Actual YTD` → `Realisasi s.d. {bulan}`; `skor instan via engine` → `skor terhitung otomatis`; `sumber angka = engine aplikasi` → `rumus aplikasi`
+- Verifikasi: `tsc --noEmit` 0 error; grep sisa `Actual/YTD/editable` di file 0 (identifier `actual` di simulation.tsx tak tersentuh)
+**Issues Encountered:**
+- None
+**Next Session Plan:**
+- Tasks to continue: CORR-03 (Workspace Deviasi) — hanya setelah prompt eksplisit
+- New tasks: tak ada
+**Notes:**
+- Skipped: penyelarasan copy ID di halaman lain (rpd/simulation). Add when: annotation per halaman masuk.
+
 ### Session 102 - 2026-09-05
 **Time:** Start: 11:00 UTC | End: 11:20 UTC | Duration: ~20 minutes
 - Status: Completed

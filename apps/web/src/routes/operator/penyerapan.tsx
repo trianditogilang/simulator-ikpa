@@ -197,8 +197,8 @@ function PenyerapanPage() {
 							Penyerapan Anggaran
 						</h1>
 						<p className="mt-1 text-body-small text-muted-foreground">
-							Actual s.d. {MONTH_NAMES[currentMonth - 1]} terkunci · rencana
-							sisa tahun editable · skor instan via engine
+							Aktual s.d. {MONTH_NAMES[currentMonth - 1]} terkunci · rencana
+							sisa tahun dapat disimulasikan · skor terhitung otomatis
 						</p>
 					</div>
 					<Dialog.Root open={isHelpOpen} onOpenChange={setIsHelpOpen}>
@@ -228,7 +228,7 @@ function PenyerapanPage() {
 									</Dialog.Close>
 								</div>
 								<Dialog.Description className="mt-1 text-body-small text-muted-foreground">
-									Rule set 2026 · sumber angka = engine aplikasi
+									Rule set 2026 · sumber angka = rumus aplikasi
 								</Dialog.Description>
 								<ul className="mt-3 list-disc space-y-1.5 pl-5 text-body-small text-foreground">
 									<li>Target Rp per akun = Pagu Netto × Target TW ÷ 100</li>
@@ -243,7 +243,7 @@ function PenyerapanPage() {
 										10/40/70/90 · 57: 25/50/75/95
 									</li>
 									<li>
-										Actual = data DB s.d. bulan berjalan, tak tertimpa
+										Aktual = data DB s.d. bulan berjalan, tak tertimpa
 										rencana
 									</li>
 								</ul>
@@ -293,7 +293,7 @@ function PenyerapanPage() {
 						</p>
 					</div>
 					<div className="rounded-xl border border-border bg-background p-4">
-						<p className="text-body-small text-muted-foreground">Skor actual</p>
+						<p className="text-body-small text-muted-foreground">Skor aktual</p>
 						<p className="mt-1 text-2xl font-bold text-foreground">
 							{actualScore.score !== null
 								? formatPercent(actualScore.score)
@@ -313,7 +313,7 @@ function PenyerapanPage() {
 								: "—"}
 						</p>
 						<p className="mt-1 text-[11px] text-muted-foreground">
-							Selisih vs actual
+							Selisih vs aktual
 						</p>
 					</div>
 					<div className="rounded-xl border border-border bg-background p-4">
@@ -330,18 +330,18 @@ function PenyerapanPage() {
 				</div>
 
 				<section
-					aria-label="Actual tahun berjalan terkunci"
+					aria-label="Aktual tahun berjalan terkunci"
 					className="space-y-3 rounded-2xl border border-border bg-background p-4 sm:p-5"
 				>
 					<div className="flex items-center justify-between gap-3">
 						<h2 className="text-sm font-semibold text-foreground">
-							Actual s.d. {MONTH_NAMES[currentMonth - 1]} · terkunci
+							Aktual s.d. {MONTH_NAMES[currentMonth - 1]} · terkunci
 						</h2>
 						<a
 							href="/operator/data/rpd-realization"
 							className="shrink-0 text-[11px] font-semibold text-primary underline-offset-4 hover:underline"
 						>
-							Ubah actual
+							Ubah aktual
 						</a>
 					</div>
 					<div className="overflow-x-auto">
@@ -353,7 +353,7 @@ function PenyerapanPage() {
 										Pagu Netto
 									</th>
 									<th className="px-2 py-1.5 text-right font-semibold">
-										Actual YTD
+										Realisasi s.d. {MONTH_NAMES[currentMonth - 1]}
 									</th>
 									<th className="px-2 py-1.5 text-right font-semibold">
 										Target TW{currentQuarter}
@@ -377,7 +377,7 @@ function PenyerapanPage() {
 												{formatRupiah(r.ytd)}
 												<span
 													aria-label="Terkunci"
-													title="Actual dari database, tak bisa diubah di sini"
+													title="Aktual dari database, tak bisa diubah di sini"
 													className="text-[10px] text-muted-foreground"
 												>
 													🔒
@@ -403,7 +403,7 @@ function PenyerapanPage() {
 				>
 					<div className="flex items-center justify-between gap-3">
 						<h2 className="text-sm font-semibold text-foreground">
-							Rencana sisa tahun · editable
+							Rencana sisa tahun · Dapat diedit
 						</h2>
 						{hasPlan ? (
 							<button
@@ -472,7 +472,7 @@ function PenyerapanPage() {
 					)}
 					<p className="text-[11px] text-muted-foreground">
 						Sel kuning = boleh diubah (pola Excel). Rencana hanya
-						memengaruhi skor di halaman ini, actual di database tak
+						memengaruhi skor di halaman ini, aktual di database tak
 						tertimpa. Pagu:{" "}
 						<a
 							href="/operator/data/budget-revisions"
