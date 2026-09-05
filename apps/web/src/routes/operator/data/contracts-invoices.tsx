@@ -16,6 +16,7 @@ import {
 	DomainDataTable,
 } from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
+import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { formatRupiah } from "@/lib/format";
 import {
@@ -557,15 +558,12 @@ function ContractsInvoicesPage() {
 								>
 									Nilai Kontrak (Rp)
 								</label>
-								<input
+								<FormattedNumberInput
 									id="contract-val"
-									type="number"
 									required
-									min="0"
-									step="1"
-									placeholder="Contoh: 150000000"
+									placeholder="Contoh: 150.000.000"
 									value={contractValue}
-									onChange={(e) => setContractValue(e.target.value)}
+									onChange={setContractValue}
 									disabled={isSubmitting}
 									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 								/>

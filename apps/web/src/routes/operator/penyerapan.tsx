@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { default2026RuleSet } from "@simulator-ikpa/ikpa-engine";
 import { Dialog } from "radix-ui";
 import { useMemo, useState } from "react";
+import { FormattedNumberInput } from "@/components/data/formatted-number-input";
+import { useActiveContext } from "@/components/layout/active-context";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { formatPercent, formatRupiah } from "@/lib/format";
 import {
@@ -74,7 +76,11 @@ function parseAmount(value: string | undefined): number {
 
 function PenyerapanPage() {
 	const { budgetData, rpdData, isBlu } = Route.useLoaderData();
-	const currentMonth = new Date().getMonth() + 1;
+	const activeContext = useActiveContext();
+	const currentMonth =
+		activeContext?.context.period.kind === "month"
+			? activeContext.context.period.value
+			: new Date().getMonth() + 1;
 	const currentQuarter = quarterOfMonth(currentMonth);
 	const [plan, setPlan] = useState<Record<string, string>>({});
 	const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -446,15 +452,12 @@ function PenyerapanPage() {
 															Rencana {ACCOUNT_LABELS[acc]} bulan{" "}
 															{MONTH_NAMES[m - 1]} (Rp)
 														</label>
-														<input
+														<FormattedNumberInput
 															id={`rencana-${key}`}
-															type="number"
-															min="0"
-															step="100000"
 															value={plan[key] ?? ""}
 															placeholder="0"
-															onChange={(e) =>
-																setPlanValue(m, acc, e.target.value)
+															onChange={(raw) =>
+																setPlanValue(m, acc, raw)
 															}
 															className="w-full rounded-lg border border-yellow-300 bg-yellow-50 px-2.5 py-1.5 text-right text-xs text-foreground"
 														/>

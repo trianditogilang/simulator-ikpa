@@ -69,6 +69,7 @@ export function ContextSelector({
 					aria-label="Tahun anggaran"
 					className={selectClassName}
 					disabled={yearSelectDisabled}
+					title={yearOptions.length < 2 ? "Satu-satunya tahun aktif" : undefined}
 					value={String(year)}
 					onChange={(event) => {
 						const nextYear = Number(event.currentTarget.value);

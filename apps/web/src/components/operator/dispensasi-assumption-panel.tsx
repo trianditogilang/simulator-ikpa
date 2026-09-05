@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { formatNumber } from "@/lib/format";
+import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import {
 	calcDispensasiPreview,
 	type DispensasiAssumptions,
@@ -34,12 +35,12 @@ export function DispensasiAssumptionPanel({ value, actualDeduction, onChange, on
 					<label htmlFor="disp-count" className="block text-[11px] font-semibold text-foreground">
 						SPM dispensasi
 					</label>
-					<input
+					<FormattedNumberInput
 						id="disp-count"
-						type="number"
-						min="0"
 						value={value.dispensationCount}
-						onChange={(e) => onChange({ ...value, dispensationCount: Number(e.target.value) || 0 })}
+						onChange={(raw) =>
+							onChange({ ...value, dispensationCount: Number(raw) || 0 })
+						}
 						className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground"
 					/>
 				</div>
@@ -47,12 +48,12 @@ export function DispensasiAssumptionPanel({ value, actualDeduction, onChange, on
 					<label htmlFor="disp-total" className="block text-[11px] font-semibold text-foreground">
 						Total SPM Q4
 					</label>
-					<input
+					<FormattedNumberInput
 						id="disp-total"
-						type="number"
-						min="0"
 						value={value.totalSpmQ4}
-						onChange={(e) => onChange({ ...value, totalSpmQ4: Number(e.target.value) || 0 })}
+						onChange={(raw) =>
+							onChange({ ...value, totalSpmQ4: Number(raw) || 0 })
+						}
 						className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground"
 					/>
 				</div>

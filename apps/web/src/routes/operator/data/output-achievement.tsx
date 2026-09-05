@@ -14,6 +14,7 @@ import {
 	DomainDataTable,
 } from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
+import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { formatPercent } from "@/lib/format";
 import {
@@ -440,15 +441,13 @@ function OutputAchievementPage() {
 								>
 									Realisasi Volume (RVRO)
 								</label>
-								<input
+								<FormattedNumberInput
 									id="out-rvro"
-									type="number"
+									allowDecimal
 									required
-									min="0"
-									step="0.0001"
-									placeholder="Contoh: 25.0000"
+									placeholder="Contoh: 25,0000"
 									value={rvro}
-									onChange={(e) => setRvro(e.target.value)}
+									onChange={setRvro}
 									disabled={isSubmitting}
 									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 								/>
@@ -461,15 +460,13 @@ function OutputAchievementPage() {
 								>
 									Target Volume DIPA
 								</label>
-								<input
+								<FormattedNumberInput
 									id="out-vol-dipa"
-									type="number"
+									allowDecimal
 									required
-									min="1"
-									step="0.0001"
-									placeholder="Contoh: 100.0000"
+									placeholder="Contoh: 100,0000"
 									value={volumeDipa}
-									onChange={(e) => setVolumeDipa(e.target.value)}
+									onChange={setVolumeDipa}
 									disabled={isSubmitting}
 									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 								/>
@@ -484,16 +481,13 @@ function OutputAchievementPage() {
 								>
 									Progres Fisik PCRO (%)
 								</label>
-								<input
+								<FormattedNumberInput
 									id="out-pcro"
-									type="number"
+									allowDecimal
 									required
-									min="0"
-									max="100"
-									step="0.0001"
-									placeholder="Contoh: 25.0000"
+									placeholder="Contoh: 25,0000"
 									value={pcro}
-									onChange={(e) => setPcro(e.target.value)}
+									onChange={setPcro}
 									disabled={isSubmitting}
 									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 								/>
@@ -506,16 +500,13 @@ function OutputAchievementPage() {
 								>
 									Target PCRO (%)
 								</label>
-								<input
+								<FormattedNumberInput
 									id="out-tpcro"
-									type="number"
+									allowDecimal
 									required
-									min="0"
-									max="100"
-									step="0.0001"
-									placeholder="Contoh: 25.0000"
+									placeholder="Contoh: 25,0000"
 									value={tpcro}
-									onChange={(e) => setTpcro(e.target.value)}
+									onChange={setTpcro}
 									disabled={isSubmitting}
 									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 								/>

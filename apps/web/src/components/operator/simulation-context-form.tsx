@@ -1,5 +1,6 @@
 ﻿import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
+import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 
 export interface SimulationContextFormProps extends ComponentProps<"div"> {
 	targetScore: number;
@@ -59,15 +60,12 @@ export function SimulationContextForm({
 					>
 						Target Nilai IKPA
 					</label>
-					<input
+					<FormattedNumberInput
 						id="targetScore"
-						type="number"
-						step="0.1"
-						min="0"
-						max="100"
+						allowDecimal
 						value={targetScore}
-						onChange={(e) =>
-							onTargetChange(Number.parseFloat(e.target.value) || 0)
+						onChange={(raw) =>
+							onTargetChange(Number.parseFloat(raw) || 0)
 						}
 						className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
 					/>

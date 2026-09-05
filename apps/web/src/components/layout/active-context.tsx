@@ -60,6 +60,13 @@ export function ActiveContextProvider({
 	children: ReactNode;
 }) {
 	const [period, setPeriod] = useState(initialFiscalPeriod);
+	useEffect(() => {
+		setPeriod((prev) => {
+			const currentMonth = new Date().getMonth() + 1;
+			if (prev.kind === "month" && prev.value === currentMonth) return prev;
+			return { kind: "month", value: currentMonth };
+		});
+	}, []);
 	const activeOrganization = getActiveOrganization(access);
 	const activeKppnScope = getActiveKppnScope(access);
 	const context = useMemo(

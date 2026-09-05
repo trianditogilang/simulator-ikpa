@@ -13,6 +13,7 @@ import {
 	DomainDataTable,
 } from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
+import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { formatRupiah } from "@/lib/format";
 import {
@@ -427,14 +428,11 @@ function BudgetRevisionsPage() {
 								>
 									Pagu Sebelum (Rp)
 								</label>
-								<input
+								<FormattedNumberInput
 									id="pagu-before"
-									type="number"
 									required
-									min="0"
-									step="1"
 									value={paguBefore}
-									onChange={(e) => setPaguBefore(e.target.value)}
+									onChange={setPaguBefore}
 									disabled={isSubmitting}
 									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 								/>
@@ -447,14 +445,11 @@ function BudgetRevisionsPage() {
 								>
 									Pagu Sesudah (Rp)
 								</label>
-								<input
+								<FormattedNumberInput
 									id="pagu-after"
-									type="number"
 									required
-									min="0"
-									step="1"
 									value={paguAfter}
-									onChange={(e) => setPaguAfter(e.target.value)}
+									onChange={setPaguAfter}
 									disabled={isSubmitting}
 									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 								/>
@@ -524,15 +519,12 @@ function BudgetRevisionsPage() {
 							>
 								Alokasi Pagu (Rp)
 							</label>
-							<input
+							<FormattedNumberInput
 								id="budget-amount"
-								type="number"
 								required
-								min="0"
-								step="1"
-								placeholder="Contoh: 1500000000"
+								placeholder="Contoh: 1.500.000.000"
 								value={budgetAmount}
-								onChange={(e) => setBudgetAmount(e.target.value)}
+								onChange={setBudgetAmount}
 								disabled={isSubmitting}
 								className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 							/>

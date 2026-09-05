@@ -13,6 +13,8 @@ import {
 	DomainDataTable,
 } from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
+import { FormattedNumberInput } from "@/components/data/formatted-number-input";
+import { useActiveContext } from "@/components/layout/active-context";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { formatPercent, formatRupiah } from "@/lib/format";
 import {
@@ -73,9 +75,13 @@ function RpdRealizationPage() {
 	const router = useRouter();
 	const initialData = Route.useLoaderData();
 
-	const [selectedMonth, setSelectedMonth] = useState<number>(
-		new Date().getMonth() + 1,
-	);
+	const activeContext = useActiveContext();
+	const selectedMonth =
+		activeContext?.context.period.kind === "month"
+			? activeContext.context.period.value
+			: new Date().getMonth() + 1;
+	const setSelectedMonth = (month: number) =>
+		activeContext?.setPeriod({ kind: "month", value: month });
 	const [isRpdDrawerOpen, setIsRpdDrawerOpen] = useState(false);
 	const [isRealDrawerOpen, setIsRealDrawerOpen] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -332,7 +338,8 @@ function RpdRealizationPage() {
 					</div>
 
 					{/* Month Selector Pills */}
-					<div className="flex flex-wrap items-center gap-1 rounded-xl border border-border bg-background p-1 text-xs">
+					<div className="flex flex-col items-end gap-1.5">
+						<div className="flex flex-wrap items-center gap-1 rounded-xl border border-border bg-background p-1 text-xs">
 						{MONTH_NAMES.map((name, idx) => {
 							const m = idx + 1;
 							const isSelected = m === selectedMonth;
@@ -351,6 +358,14 @@ function RpdRealizationPage() {
 								</button>
 							);
 						})}
+						</div>
+						<a
+							href="/operator/penyerapan"
+							aria-label="Lihat skor Penyerapan Anggaran dari data RPD dan realisasi ini"
+							className="text-[11px] font-semibold text-primary underline-offset-4 hover:underline"
+						>
+							Lihat skor Penyerapan →
+						</a>
 					</div>
 				</div>
 
@@ -516,15 +531,12 @@ function RpdRealizationPage() {
 							>
 								Nominal RPD Target (Rp)
 							</label>
-							<input
+							<FormattedNumberInput
 								id="rpd-amount"
-								type="number"
 								required
-								min="0"
-								step="1"
-								placeholder="Contoh: 250000000"
+								placeholder="Contoh: 250.000.000"
 								value={formAmount}
-								onChange={(e) => setFormAmount(e.target.value)}
+								onChange={setFormAmount}
 								disabled={isSubmitting}
 								className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 							/>
@@ -598,15 +610,12 @@ function RpdRealizationPage() {
 							>
 								Nominal Realisasi Aktual (Rp)
 							</label>
-							<input
+							<FormattedNumberInput
 								id="real-amount"
-								type="number"
 								required
-								min="0"
-								step="1"
-								placeholder="Contoh: 245000000"
+								placeholder="Contoh: 245.000.000"
 								value={formAmount}
-								onChange={(e) => setFormAmount(e.target.value)}
+								onChange={setFormAmount}
 								disabled={isSubmitting}
 								className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 							/>

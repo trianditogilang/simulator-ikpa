@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { RuleSetPublishDialog } from "@/components/admin/rule-set-publish-dialog";
+import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { getMockRuleSetById, type RuleSetItem } from "@/mocks/rule-sets";
 
@@ -211,15 +212,14 @@ function AdminRuleSetEditorPage() {
 							<span className="text-muted-foreground block mb-1 font-medium">
 								Tahun Anggaran:
 							</span>
-							<input
+							<FormattedNumberInput
 								aria-label="Tahun anggaran rule set"
-								type="number"
 								disabled={isReadOnly}
 								value={ruleSet.year}
-								onChange={(e) =>
+								onChange={(raw) =>
 									setRuleSet((prev) => ({
 										...prev,
-										year: Number.parseInt(e.target.value, 10) || 2026,
+										year: Number.parseInt(raw, 10) || 2026,
 									}))
 								}
 								className="h-9 w-full rounded-lg border border-border bg-background px-3 font-medium text-foreground focus:border-primary focus:outline-none disabled:bg-surface-muted"
@@ -356,17 +356,14 @@ function AdminRuleSetEditorPage() {
 										</div>
 
 										<div className="flex items-center gap-2">
-											<input
+											<FormattedNumberInput
 												aria-label={`Bobot ${ind.label}`}
-												type="number"
-												min={0}
-												max={100}
 												disabled={isReadOnly || ind.key === "spm_dispensation"}
 												value={ind.weight}
-												onChange={(e) =>
+												onChange={(raw) =>
 													handleWeightChange(
 														ind.key,
-														Number.parseInt(e.target.value, 10) || 0,
+														Number.parseInt(raw, 10) || 0,
 													)
 												}
 												className="h-8 w-20 rounded-md border border-border bg-surface px-2 text-center text-sm font-semibold text-foreground focus:border-primary focus:outline-none disabled:bg-surface-muted"
@@ -396,9 +393,8 @@ function AdminRuleSetEditorPage() {
 										nilai.
 									</p>
 									<div className="flex items-center gap-2 pt-1">
-										<input
+										<FormattedNumberInput
 											aria-label="Toleransi Deviasi Hal III DIPA"
-											type="number"
 											disabled={isReadOnly}
 											defaultValue={3}
 											className="h-8 w-20 rounded-md border border-border bg-surface px-2 text-center text-xs font-semibold text-foreground disabled:bg-surface-muted"
@@ -415,9 +411,8 @@ function AdminRuleSetEditorPage() {
 										Maksimal hari kerja sejak penandatanganan BAST/BAPP.
 									</p>
 									<div className="flex items-center gap-2 pt-1">
-										<input
+										<FormattedNumberInput
 											aria-label="Batas waktu SPM-LS kontraktual"
-											type="number"
 											disabled={isReadOnly}
 											defaultValue={17}
 											className="h-8 w-20 rounded-md border border-border bg-surface px-2 text-center text-xs font-semibold text-foreground disabled:bg-surface-muted"
@@ -434,9 +429,8 @@ function AdminRuleSetEditorPage() {
 										Batas waktu pendaftaran data kontrak ke KPPN.
 									</p>
 									<div className="flex items-center gap-2 pt-1">
-										<input
+										<FormattedNumberInput
 											aria-label="Batas pendaftaran kontrak"
-											type="number"
 											disabled={isReadOnly}
 											defaultValue={3}
 											className="h-8 w-20 rounded-md border border-border bg-surface px-2 text-center text-xs font-semibold text-foreground disabled:bg-surface-muted"
@@ -454,9 +448,8 @@ function AdminRuleSetEditorPage() {
 										terhadap UP.
 									</p>
 									<div className="flex items-center gap-2 pt-1">
-										<input
+										<FormattedNumberInput
 											aria-label="Target proporsi transaksi KKP"
-											type="number"
 											disabled={isReadOnly}
 											defaultValue={10}
 											className="h-8 w-20 rounded-md border border-border bg-surface px-2 text-center text-xs font-semibold text-foreground disabled:bg-surface-muted"

@@ -28,6 +28,71 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 [Any additional notes, observations, or reminders]
 ```
 
+### Session 102 - 2026-09-05
+**Time:** Start: 11:00 UTC | End: 11:20 UTC | Duration: ~20 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [PERIOD-01 Fase-1] Dropdown Periode header jadi single source global untuk Penyerapan + RPD (tanpa task baru)
+**Code Changes:**
+- Files modified: `apps/web/src/components/layout/active-context.tsx` (period init Januari + `useEffect` sync ke bulan berjalan on-mount agar SSR aman); `packages/ui/src/components/context-selector.tsx` (select Tahun `title="Satu-satunya tahun aktif"` saat opsi < 2); `apps/web/src/routes/operator/penyerapan.tsx` (`currentMonth` dari `useActiveContext().context.period.value`, fallback bulan sistem); `apps/web/src/routes/operator/data/rpd-realization.tsx` (`selectedMonth` baca konteks, pills panggil `setPeriod` — dua arah dengan dropdown header)
+- Files untouched (sengaja): loader (tetap fetch 12 bulan, filter client), handler save, engine, backend, schema, simulation/dashboard (Fase-2 di CORR-03..05)
+- Key implementations: guard `kind === "month"` + fallback bulan sistem bila provider null; Tahun tetap disabled (opsi `[2026]`); Desember → `planMonths` kosong (skor = actual saja)
+- Verifikasi: `tsc --noEmit` 0 error; `npm run build` client + SSR lulus
+**Issues Encountered:**
+- Issue: Init `useState` langsung bulan berjalan picu hydration mismatch SSR vs client.
+- Solution: Init Januari ( sama dengan SSR) + sync via `useEffect` on-mount.
+**Next Session Plan:**
+- Tasks to continue: CORR-03 (Workspace Deviasi) + PERIOD Fase-2 (simulation/dashboard/deviasi/up-tup ikut global) — hanya setelah prompt eksplisit
+- New tasks: tak ada
+- Manual: ganti Periode header Jan→Sep → tabel actual + skor Penyerapan/RPD ikut berubah; Tahun hover tampil tooltip
+**Notes:**
+- Provider remount (pindah Operator↔Admin) reset periode ke bulan berjalan. Add when: persistensi periode (search param) diputuskan.
+
+### Session 101 - 2026-09-05
+**Time:** Start: 10:00 UTC | End: 10:45 UTC | Duration: ~45 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [FORMAT] Separator ribuan otomatis di semua input angka (tanpa task baru)
+**Code Changes:**
+- Files created: `apps/web/src/components/data/formatted-number-input.tsx` (`FormattedNumberInput` + `formatGroupedInput`/`parseGroupedInput`/`groupThousands`); `apps/web/src/components/data/formatted-number-input.test.ts` (4 test)
+- Files modified (29 input `type="number"` → `FormattedNumberInput`): `operator/data/{rpd-realization,budget-revisions,contracts-invoices,up-tup-kkp,output-achievement}.tsx`; `operator/penyerapan.tsx` (grid rencana kuning); `components/operator/{up-tup-assumption-panel,dispensasi-assumption-panel,simulation-context-form}.tsx`; `operator/settings.tsx`; `admin-kppn/policy/{reminders,rule-sets/$ruleSetId}.tsx`
+- Files untouched (sengaja): engine, backend, loader, handler save, `spm-dispensation.tsx` (tanpa input nominal), input text/date/checkbox
+- Key implementations: `type="text" inputMode="decimal"`, tampil grup titik id-ID live (`250.000.000`, desimal `25,0001`), kursor dijaga per digit, nilai mentah ke state/server tetap string polos (`250000000`/`25.0001`) sehingga validasi Zod tak berubah; `min`/`max`/`step` native gugur (tetap divalidasi server); placeholder contoh diganti format grup
+- Verifikasi: `vitest` 4/4 passed; `tsc --noEmit` 0 error; `npm run build` client + SSR lulus; grep `type="number"` 0 sisa; `biome lint` bersih (1 info escape diperbaiki)
+**Issues Encountered:**
+- Issue: Situs string-state vs number-state vs uncontrolled `defaultValue` campur aduk.
+- Solution: Komponen terima `value: string | number` + `defaultValue`, `onChange(raw: string)` — call-site numerik bungkus `Number(raw) || 0` satu baris.
+**Next Session Plan:**
+- Tasks to continue: CORR-03 (Workspace Deviasi) — hanya setelah prompt eksplisit
+- New tasks: tak ada
+**Notes:**
+- Skipped: migrasi anchor `<a>` internal ke TanStack `Link` org-aware. Add when: pola navigasi global diputuskan.
+
+### Session 100 - 2026-09-05
+**Time:** Start: 09:00 UTC | End: 09:20 UTC | Duration: ~20 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [CORR-02 follow-up] Link persisten RPD → Penyerapan di banner header (tanpa task baru)
+**Code Changes:**
+- Files modified: `apps/web/src/routes/operator/data/rpd-realization.tsx` (wrapper `flex-col items-end` sejajar month pills + anchor `Lihat skor Penyerapan →` ke `/operator/penyerapan` dengan aria-label jelas, style `text-[11px] font-semibold text-primary`)
+- Files untouched (sengaja): `handleSaveRpd`/`handleSaveRealization`, `DomainDataTable`, drawer, loader, engine, nav, backend, route lain
+- Key implementations: anchor `<a>` disamakan pola `penyerapan.tsx:334` + nav (plain `href`) — TanStack `Link` ditolak typecheck karena parent `/operator` `validateSearch` mewajibkan prop `search` `{org}` eksplisit; tanpa duplikat nav Import
+- Verifikasi: `npx tsc --noEmit -p apps/web/tsconfig.json --pretty false` — 0 error; `npm run build --workspace @simulator-ikpa/web` — client 2538 modul + SSR 325 modul lulus; grep nav Import — hanya entri stub existing
+**Issues Encountered:**
+- Issue: `Link to="/operator/penyerapan"` error TS2741/TS2322 (`search` wajib dari `validateSearch` parent).
+- Solution: Pakai `<a href>` sesuai pola repo yang diizinkan instruksi — SPA full-reload diterima sementara, scope tetap 1 file.
+**Next Session Plan:**
+- Tasks to continue: CORR-03 (Workspace Deviasi) — hanya setelah prompt eksplisit
+- New tasks: tak ada (follow-up tanpa centang task baru)
+**Notes:**
+- Skipped: migrasi semua anchor nav ke TanStack `Link` dengan `search` org-aware. Add when: diputuskan pola navigasi global.
+
 ### Session 99 - 2026-09-05
 **Time:** Start: 08:00 UTC | End: 08:35 UTC | Duration: ~35 minutes
 - Status: Completed

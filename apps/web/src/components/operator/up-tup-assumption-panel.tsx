@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { default2026RuleSet } from "@simulator-ikpa/ikpa-engine";
 import { calculateUpTup } from "@simulator-ikpa/ikpa-engine";
 import { formatNumber, formatPercent, formatRupiah } from "@/lib/format";
+import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import {
 	buildUpTupEngineInput,
 	calcGupPreview,
@@ -78,13 +79,10 @@ export function UpTupAssumptionPanel({
 					<label htmlFor="uptup-nilai-up" className="block text-[11px] font-semibold text-foreground">
 						Nilai UP (Rp)
 					</label>
-					<input
+					<FormattedNumberInput
 						id="uptup-nilai-up"
-						type="number"
-						min="1"
-						step="100000"
 						value={value.nilaiUP}
-						onChange={(e) => set({ nilaiUP: e.target.value })}
+						onChange={(raw) => set({ nilaiUP: raw })}
 						className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground"
 					/>
 					<p className="text-[10px] text-muted-foreground">{formatRupiah(num(value.nilaiUP))}</p>
@@ -93,13 +91,10 @@ export function UpTupAssumptionPanel({
 					<label htmlFor="uptup-nilai-gup" className="block text-[11px] font-semibold text-foreground">
 						Nilai Rencana GUP (Rp)
 					</label>
-					<input
+					<FormattedNumberInput
 						id="uptup-nilai-gup"
-						type="number"
-						min="0"
-						step="100000"
 						value={value.nilaiRencanaGUP}
-						onChange={(e) => set({ nilaiRencanaGUP: e.target.value })}
+						onChange={(raw) => set({ nilaiRencanaGUP: raw })}
 						className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground"
 					/>
 					<p className="text-[10px] text-muted-foreground">
@@ -150,13 +145,10 @@ export function UpTupAssumptionPanel({
 							<label htmlFor={id} className="block text-[11px] font-semibold text-foreground">
 								{label}
 							</label>
-							<input
+							<FormattedNumberInput
 								id={id}
-								type="number"
-								min="0"
-								max="20"
 								value={val}
-								onChange={(e) => fn(Number(e.target.value) || 0)}
+								onChange={(raw) => fn(Number(raw) || 0)}
 								className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground"
 							/>
 						</div>
@@ -165,13 +157,10 @@ export function UpTupAssumptionPanel({
 						<label htmlFor="uptup-kkp" className="block text-[11px] font-semibold text-foreground">
 							KKP (Rp)
 						</label>
-						<input
+						<FormattedNumberInput
 							id="uptup-kkp"
-							type="number"
-							min="0"
-							step="100000"
 							value={value.kkpNominal}
-							onChange={(e) => set({ kkpNominal: e.target.value })}
+							onChange={(raw) => set({ kkpNominal: raw })}
 							className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground"
 						/>
 					</div>

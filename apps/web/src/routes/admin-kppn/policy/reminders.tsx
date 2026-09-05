@@ -10,6 +10,7 @@ import {
 	X,
 } from "lucide-react";
 import { useState } from "react";
+import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { AdminShell } from "@/components/layout/admin-shell";
 import {
 	getMockReminderPolicies,
@@ -351,14 +352,13 @@ function AdminReminderPoliciesPage() {
 										<span className="text-muted-foreground block mb-1 font-medium">
 											Min Lead Time (Hari):
 										</span>
-										<input
-											type="number"
+										<FormattedNumberInput
 											value={selectedPolicy.allowedMinLeadDays}
-											onChange={(e) =>
+											onChange={(raw) =>
 												setSelectedPolicy({
 													...selectedPolicy,
 													allowedMinLeadDays:
-														Number.parseInt(e.target.value, 10) || 0,
+														Number.parseInt(raw, 10) || 0,
 												})
 											}
 											className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none"
@@ -369,14 +369,13 @@ function AdminReminderPoliciesPage() {
 										<span className="text-muted-foreground block mb-1 font-medium">
 											Max Lead Time (Hari):
 										</span>
-										<input
-											type="number"
+										<FormattedNumberInput
 											value={selectedPolicy.allowedMaxLeadDays}
-											onChange={(e) =>
+											onChange={(raw) =>
 												setSelectedPolicy({
 													...selectedPolicy,
 													allowedMaxLeadDays:
-														Number.parseInt(e.target.value, 10) || 15,
+														Number.parseInt(raw, 10) || 15,
 												})
 											}
 											className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none"

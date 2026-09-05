@@ -9,6 +9,7 @@ import {
 	UserCheck,
 } from "lucide-react";
 import { type FormEvent, useState } from "react";
+import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import {
 	fetchSatkerSettings,
@@ -207,15 +208,12 @@ function OperatorSettingsPage() {
 								>
 									Target Nilai IKPA (%)
 								</label>
-								<input
+								<FormattedNumberInput
 									id="settingTarget"
-									type="number"
-									step="0.1"
-									min="0"
-									max="100"
+									allowDecimal
 									value={target}
-									onChange={(e) =>
-										setTarget(Number.parseFloat(e.target.value) || 0)
+									onChange={(raw) =>
+										setTarget(Number.parseFloat(raw) || 0)
 									}
 									disabled={isSaving}
 									className="mt-1 min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
