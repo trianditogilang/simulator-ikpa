@@ -310,15 +310,56 @@ export async function calculateAndPersistSnapshot(
 		isBlu: org.isBlu ?? false,
 		targetScore: params.targetScore ?? "95.00",
 		simulationType: params.simulationType,
-		dipaRevision: {
-			semester1Revisions: revisionRows.filter(
-				(r) => new Date(r.revisionDate).getMonth() < 6,
-			).length,
-			semester2Revisions: revisionRows.filter(
-				(r) => new Date(r.revisionDate).getMonth() >= 6,
-			).length,
-			hasBudgetChange: revisionRows.map(() => true),
-		},
+		dipaRevision: (() => {
+			const eligible =
+				(ruleSetConfig.revisionEligibilityCodes as string[]) ?? [];
+			const parseCodes = (c: string): string[] =>
+				String(c ?? "")
+					.split(/[,\s;|/]+/)
+					.map((s) => s.trim())
+					.filter(Boolean);
+			const isAwal = (c: string): boolean => {
+				const u = String(c ?? "").trim().toUpperCase();
+				return u === "DIPA-AWAL" || u.startsWith("DIPA-AWAL");
+			};
+			const wibMonth = (iso: string): { year: number; month: number } | null => {
+				const d = new Date(`${iso}T00:00:00+07:00`);
+				if (Number.isNaN(d.getTime())) return null;
+				const fmt = new Intl.DateTimeFormat("en-CA", {
+					timeZone: "Asia/Jakarta",
+					year: "numeric",
+					month: "2-digit",
+				});
+				const parts = fmt.formatToParts(d);
+				const year = Number(parts.find((p) => p.type === "year")?.value);
+				const month = Number(parts.find((p) => p.type === "month")?.value);
+				return Number.isFinite(year) && Number.isFinite(month)
+					? { year, month }
+					: null;
+			};
+			let s1 = 0;
+			let s2 = 0;
+			const changes: boolean[] = [];
+			for (const r of revisionRows) {
+				const before = Number.parseFloat(r.paguBefore as string) || 0;
+				const after = Number.parseFloat(r.paguAfter as string) || 0;
+				const changed = Math.abs(after - before) > 0.005;
+				changes.push(changed);
+				if (isAwal(r.revisionCode as string)) continue;
+				if (changed) continue;
+				if (!parseCodes(r.revisionCode as string).some((c) => eligible.includes(c)))
+					continue;
+				const parts = wibMonth(r.revisionDate as string);
+				if (!parts || parts.year !== fy.year) continue;
+				if (parts.month <= 6) s1++;
+				else s2++;
+			}
+			return {
+				semester1Revisions: s1,
+				semester2Revisions: s2,
+				hasBudgetChange: changes,
+			};
+		})(),
 		rpdDeviation: {
 			months: rpdMonths as never,
 			budgetByType: budgetByType as never,

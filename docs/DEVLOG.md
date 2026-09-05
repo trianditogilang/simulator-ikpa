@@ -2,6 +2,72 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 114 - 2026-09-06
+**Time:** Start: 03:00 UTC | End: 03:20 UTC | Duration: ~20 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [REV-FIX-3] [RD-08] Edit catatan pengesahan revisi DIPA di halaman `/operator/data/budget-revisions`
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/services/budget-revisions-service.ts`: Export fungsi `editRevision` yang memanggil `updateRevisionFn`.
+  - `apps/web/src/routes/operator/data/budget-revisions.tsx`: Menambahkan tombol edit (`Pencil` icon dari `lucide-react`) pada kolom Aksi di tabel riwayat revisi DIPA berdampingan dengan tombol hapus (`Trash2`), state `editingRevisionId`, handler `handleOpenEditRevision` (prefill date, parsed codes, pagu before/after, notes), `handleOpenCreateRevision`, dynamic drawer title/description ("Ubah Catatan Pengesahan Revisi DIPA" vs "Catat Pengesahan Revisi DIPA"), dan integrasi mutasi edit/create di `handleSaveRevision`.
+  - `packages/ui/src/components/system-states.test.tsx`: Penyesuaian matcher accessible label `RuleSetBadge` pada unit test.
+  - `docs/BACKLOG.md`: Menambahkan task REV-FIX-3 berstatus Completed.
+- Files untouched (sengaja): engine; schema DB; Admin; F13
+- Verifikasi:
+  - `npm run test`: All test suites passed across all packages (`@simulator-ikpa/access-control` 31/31, `@simulator-ikpa/contracts` 1/1, `@simulator-ikpa/ikpa-engine` 39/39, `@simulator-ikpa/policy-reminder` 27/27, `@ikpa/ui` 8/8, `revisi-dipa-workspace` 4/4).
+  - `npm run typecheck`: 0 errors.
+  - `npm run build`: Client dan SSR bundles build sukses.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- RD-11 reminder deep-link -- hanya setelah prompt eksplisit.
+**Notes:**
+- UI/UX sesuai panduan ponytail skill: micro-interactions, responsive touch targets, smooth hover transition, tooltips, accessible labels.
+
+### Session 113 - 2026-09-06
+**Time:** Start: 02:00 UTC | End: 02:30 UTC | Duration: ~30 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [REV-FIX-2] 10 feedback tabel Revisi DIPA (Revisi Ke-, Jenis Revisi, romawi, Objek Perhitungan, multi-select)
+**Code Changes:**
+- Files modified: apps/web/src/lib/simulation/revisi-dipa-workspace.ts (REVISI_JENIS 14 kode + deskripsi, semesterRoman, MAX_REVISI_JENIS=5); apps/web/src/routes/operator/data/budget-revisions.tsx (kolom Revisi Ke- kronologis otomatis; Tanggal Revisi; Jenis Revisi chips; Perubahan Pagu; Semester I/II; Objek Perhitungan; drawer dropdown 14 jenis + custom 3 angka maks 5 join koma; grid pagu sejajar + warning di bawah; subtitle kapital tanpa link rumus; strip ambang dihapus; kartu N objek terhitung); docs/BACKLOG.md (REV-FIX-2 Completed)
+- Files untouched (sengaja): engine; server mapping; schema DB; Admin; F13
+- Verifikasi: vitest revisi-dipa-workspace 4/4 passed; tsc --noEmit 0 error; build client 2547 + SSR 334 lulus
+**Issues Encountered:**
+- None
+**Next Session Plan:**
+- RD-08 edit revisi, RD-11 reminder deep-link -- hanya setelah prompt eksplisit
+**Notes:**
+- Skipped: edit revisi existing, reminder deep-link. Add when: diminta eksplisit.
+
+### Session 112 - 2026-09-06
+**Time:** Start: 01:00 UTC | End: 01:30 UTC | Duration: ~30 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [REV-FIX] Perbaiki menu Revisi DIPA RD-01..05+09+12 (filter 14 kode + pagu tetap, kartu NKRA, badge, preview)
+**Code Changes:**
+- Files created: apps/web/src/lib/simulation/revisi-dipa-workspace.ts (pure: parseRevisionCodes/isDipaAwal/classifyRevision/countObjek/calcRevisiScore/previewRevisi/semesterStatus, semester WIB Asia/Jakarta); apps/web/src/lib/simulation/revisi-dipa-workspace.test.ts (4 test golden XYZ=80)
+- Files modified: apps/web/src/server/simulation/calculate.ts (mapping filter objek + hasBudgetChange riil per baris); apps/web/src/routes/operator/data/budget-revisions.tsx (kartu NKRA S1/S2/tahun/kontribusi + strip ambang + filter S1/S2/objek + kolom Semester/Objek badge + preview drawer + catatan pagu); apps/web/src/server/budget-revisions.ts (fallback revisions kosong + mutasi tanpa-DB throw); apps/web/src/mocks/guides.ts (formula 0-1=110/2=100/>=3=50 + 14 kode); packages/ikpa-engine/src/rule-set.ts (REV-005 dikunci 14 kode); docs/BACKLOG.md (REV-FIX Completed)
+- Files untouched (sengaja): engine calculateDipaRevision (bucket sudah benar); schema DB; Admin; F13
+- Key implementations: satu klasifikasi dipakai UI + server (duplikasi minimal inline di calculate.ts karena lib web tak diimpor server bundle); contoh XYZ S1=1 S2=3 = 80; 0 objek = 110 dijelaskan; DIPA-AWAL tidak dihitung
+- Verifikasi: npx vitest run revisi-dipa-workspace.test.ts -- 4/4 passed; npx tsc --noEmit -- 0 error; npm run build -- client 2547 modul + SSR 334 modul lulus
+**Issues Encountered:**
+- Issue: edit calculate.ts sempat hapus import AccessResolution.
+- Solution: Kembalikan import.
+**Next Session Plan:**
+- RD-06 select multi 14 kode, RD-08 edit revisi + validasi TA, RD-11 reminder deep-link -- hanya setelah prompt eksplisit
+- New tasks: tak ada
+**Notes:**
+- Skipped: RD-06 select multi kode, RD-07 CTA strategi penuh, RD-08 edit revisi, RD-10 ringkasan kuota penuh, RD-11 reminder deep-link. Add when: diminta eksplisit.
+
+
 ### Session 111 - 2026-09-05
 **Time:** Start: 19:00 UTC | End: 19:30 UTC | Duration: ~30 minutes
 - Status: Completed

@@ -3,6 +3,7 @@ import {
 	deleteBudgetFn,
 	deleteRevisionFn,
 	listBudgetsAndRevisionsFn,
+	updateRevisionFn,
 	upsertBudgetFn,
 } from "@/server/budget-revisions";
 
@@ -53,6 +54,18 @@ export async function addRevision(input: {
 	notes?: string;
 }) {
 	return createRevisionFn({ data: input });
+}
+
+export async function editRevision(input: {
+	orgId?: string;
+	revisionId: string;
+	revisionDate: string;
+	revisionCode: string;
+	paguBefore: string;
+	paguAfter: string;
+	notes?: string;
+}) {
+	return updateRevisionFn({ data: input });
 }
 
 export async function removeRevision(revisionId: string, orgId?: string) {

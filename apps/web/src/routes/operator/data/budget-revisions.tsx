@@ -4,10 +4,11 @@ import {
 	Calendar,
 	CheckCircle2,
 	Coins,
+	Pencil,
 	Plus,
 	Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
 	type ColumnDef,
 	DomainDataTable,
@@ -17,7 +18,19 @@ import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { formatRupiah } from "@/lib/format";
 import {
+	calcRevisiScore,
+	countObjek,
+	MAX_REVISI_JENIS,
+	parseRevisionCodes,
+	previewRevisi,
+	REVISI_JENIS,
+	semesterRoman,
+	semesterStatus,
+} from "@/lib/simulation/revisi-dipa-workspace";
+import { default2026RuleSet } from "@simulator-ikpa/ikpa-engine";
+import {
 	addRevision,
+	editRevision,
 	fetchBudgetAndRevisions,
 	removeRevision,
 	saveBudget,
@@ -50,8 +63,13 @@ function BudgetRevisionsPage() {
 	const initialData = Route.useLoaderData();
 
 	const [isRevisionDrawerOpen, setIsRevisionDrawerOpen] = useState(false);
+	const [editingRevisionId, setEditingRevisionId] = useState<string | null>(
+		null,
+	);
 	const [isBudgetDrawerOpen, setIsBudgetDrawerOpen] = useState(false);
 	const [search, setSearch] = useState("");
+	const [semesterFilter, setSemesterFilter] = useState<"all" | "1" | "2">("all");
+	const [onlyObjek, setOnlyObjek] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [actionMessage, setActionMessage] = useState<string | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -60,7 +78,9 @@ function BudgetRevisionsPage() {
 	const [revDate, setRevDate] = useState(
 		new Date().toISOString().slice(0, 10),
 	);
-	const [revCode, setRevCode] = useState("");
+	const [revCodes, setRevCodes] = useState<string[]>([]);
+	const [revJenisSelect, setRevJenisSelect] = useState("");
+	const [revCustom, setRevCustom] = useState("");
 	const [paguBefore, setPaguBefore] = useState("");
 	const [paguAfter, setPaguAfter] = useState("");
 	const [revNotes, setRevNotes] = useState("");
@@ -80,36 +100,153 @@ function BudgetRevisionsPage() {
 		0,
 	);
 
-	const filteredRevisions = initialData.revisions.filter(
-		(item) =>
+	const eligibleCodes = default2026RuleSet.revisionEligibilityCodes;
+	const { s1, s2, classified } = useMemo(
+		() =>
+			countObjek(
+				initialData.revisions.map((r) => ({
+					revisionDate: r.revisionDate,
+					revisionCode: r.revisionCode,
+					paguBefore: r.paguBefore,
+					paguAfter: r.paguAfter,
+				})),
+				eligibleCodes,
+				initialData.year,
+			),
+		[initialData.revisions, initialData.year, eligibleCodes],
+	);
+	const skor = useMemo(() => calcRevisiScore(s1, s2), [s1, s2]);
+	const byId = useMemo(() => {
+		const m = new Map<string, (typeof classified)[number]>();
+		initialData.revisions.forEach((r, i) => m.set(r.id, classified[i]));
+		return m;
+	}, [initialData.revisions, classified]);
+
+	const preview = useMemo(
+		() =>
+			previewRevisi(
+				{
+					revisionDate: revDate,
+					revisionCode: revCodes.join(", "),
+					paguBefore: paguBefore || "0",
+					paguAfter: paguAfter || "0",
+				},
+				eligibleCodes,
+				initialData.year,
+			),
+		[revDate, revCodes, paguBefore, paguAfter, eligibleCodes, initialData.year],
+	);
+	const previewDelta =
+		(Number.parseFloat(paguAfter) || 0) - (Number.parseFloat(paguBefore) || 0);
+
+	const revisiNo = useMemo(() => {
+		const order = [...initialData.revisions].sort((a, b) =>
+			a.revisionDate < b.revisionDate ? -1 : a.revisionDate > b.revisionDate ? 1 : 0,
+		);
+		const m = new Map<string, number>();
+		order.forEach((r, i) => m.set(r.id, i + 1));
+		return m;
+	}, [initialData.revisions]);
+
+	const filteredRevisions = initialData.revisions.filter((item) => {
+		const c = byId.get(item.id);
+		if (semesterFilter !== "all" && String(c?.semester) !== semesterFilter)
+			return false;
+		if (onlyObjek && !c?.isObjek) return false;
+		return (
 			item.revisionCode.toLowerCase().includes(search.toLowerCase()) ||
 			(item.notes &&
-				item.notes.toLowerCase().includes(search.toLowerCase())),
-	);
+				item.notes.toLowerCase().includes(search.toLowerCase()))
+		);
+	});
 
-	const handleCreateRevision = async () => {
+	const handleAddJenis = (code: string) => {
+		const c = code.trim();
+		if (!c) return;
+		if (!/^\d{3}$/.test(c)) {
+			setErrorMessage("Kode jenis revisi harus 3 angka.");
+			return;
+		}
+		setErrorMessage(null);
+		setRevCodes((prev) => {
+			if (prev.includes(c) || prev.length >= MAX_REVISI_JENIS) return prev;
+			return [...prev, c];
+		});
+	};
+
+	const handleOpenCreateRevision = () => {
+		setEditingRevisionId(null);
+		setRevDate(new Date().toISOString().slice(0, 10));
+		setRevCodes([]);
+		setRevJenisSelect("");
+		setRevCustom("");
+		setPaguBefore(totalPagu > 0 ? totalPagu.toString() : "");
+		setPaguAfter(totalPagu > 0 ? totalPagu.toString() : "");
+		setRevNotes("");
+		setErrorMessage(null);
+		setIsRevisionDrawerOpen(true);
+	};
+
+	const handleOpenEditRevision = (item: DipaRevisionRecord) => {
+		setEditingRevisionId(item.id);
+		setRevDate(item.revisionDate);
+		setRevCodes(parseRevisionCodes(item.revisionCode));
+		setRevJenisSelect("");
+		setRevCustom("");
+		setPaguBefore(item.paguBefore);
+		setPaguAfter(item.paguAfter);
+		setRevNotes(item.notes || "");
+		setErrorMessage(null);
+		setIsRevisionDrawerOpen(true);
+	};
+
+	const handleCloseRevisionDrawer = () => {
+		setIsRevisionDrawerOpen(false);
+		setEditingRevisionId(null);
+		setRevCodes([]);
+		setRevJenisSelect("");
+		setRevCustom("");
+		setPaguBefore("");
+		setPaguAfter("");
+		setRevNotes("");
+	};
+
+	const handleSaveRevision = async () => {
 		setActionMessage(null);
 		setErrorMessage(null);
+
+		if (revCodes.length === 0) {
+			setErrorMessage("Pilih minimal 1 jenis revisi.");
+			return;
+		}
 
 		const beforeVal = Number.parseFloat(paguBefore) || 0;
 		const afterVal = Number.parseFloat(paguAfter) || 0;
 
 		setIsSubmitting(true);
 		try {
-			await addRevision({
-				revisionDate: revDate,
-				revisionCode: revCode.trim(),
-				paguBefore: beforeVal.toFixed(2),
-				paguAfter: afterVal.toFixed(2),
-				notes: revNotes.trim() || undefined,
-			});
+			if (editingRevisionId) {
+				await editRevision({
+					revisionId: editingRevisionId,
+					revisionDate: revDate,
+					revisionCode: revCodes.join(", "),
+					paguBefore: beforeVal.toFixed(2),
+					paguAfter: afterVal.toFixed(2),
+					notes: revNotes.trim() || undefined,
+				});
+				setActionMessage("Data revisi DIPA berhasil diperbarui.");
+			} else {
+				await addRevision({
+					revisionDate: revDate,
+					revisionCode: revCodes.join(", "),
+					paguBefore: beforeVal.toFixed(2),
+					paguAfter: afterVal.toFixed(2),
+					notes: revNotes.trim() || undefined,
+				});
+				setActionMessage("Data revisi DIPA berhasil disimpan.");
+			}
 
-			setActionMessage("Data revisi DIPA berhasil disimpan.");
-			setIsRevisionDrawerOpen(false);
-			setRevCode("");
-			setPaguBefore("");
-			setPaguAfter("");
-			setRevNotes("");
+			handleCloseRevisionDrawer();
 			await router.invalidate();
 			setTimeout(() => setActionMessage(null), 4000);
 		} catch (err: unknown) {
@@ -172,8 +309,17 @@ function BudgetRevisionsPage() {
 
 	const columns: ColumnDef<DipaRevisionRecord>[] = [
 		{
+			key: "no",
+			header: "Revisi Ke-",
+			render: (item) => (
+				<span className="text-xs font-semibold text-foreground">
+					{revisiNo.get(item.id) ?? "-"}
+				</span>
+			),
+		},
+		{
 			key: "date",
-			header: "Tanggal Pengesahan",
+			header: "Tanggal Revisi",
 			render: (item) => (
 				<span className="inline-flex items-center gap-1.5 font-medium text-foreground">
 					<Calendar className="size-3.5 text-muted-foreground" />
@@ -183,10 +329,18 @@ function BudgetRevisionsPage() {
 		},
 		{
 			key: "code",
-			header: "Nomor / Kode Revisi",
+			header: "Jenis Revisi",
 			render: (item) => (
-				<span className="font-semibold text-foreground">
-					{item.revisionCode}
+				<span className="flex flex-wrap gap-1">
+					{parseRevisionCodes(item.revisionCode).map((c) => (
+						<span
+							key={c}
+							title={REVISI_JENIS[c] ?? c}
+							className="rounded-md bg-surface px-1.5 py-0.5 text-[11px] font-bold text-foreground"
+						>
+							{c}
+						</span>
+					))}
 				</span>
 			),
 		},
@@ -206,7 +360,7 @@ function BudgetRevisionsPage() {
 		},
 		{
 			key: "delta",
-			header: "Perubahan",
+			header: "Perubahan Pagu",
 			render: (item) => {
 				const delta =
 					Number.parseFloat(item.paguAfter) -
@@ -242,17 +396,69 @@ function BudgetRevisionsPage() {
 			),
 		},
 		{
+			key: "semester",
+			header: "Semester",
+			render: (item) => {
+				const c = byId.get(item.id);
+				return (
+					<span className="text-xs font-semibold text-foreground">
+						{semesterRoman(c?.semester ?? 0)}
+					</span>
+				);
+			},
+		},
+		{
+			key: "objek",
+			header: "Objek Perhitungan",
+			render: (item) => {
+				const c = byId.get(item.id);
+				if (!c) return <span>-</span>;
+				if (c.isObjek)
+					return (
+						<span className="rounded-md bg-success/10 px-2 py-0.5 text-[11px] font-bold text-success">
+							Dihitung
+						</span>
+					);
+				const label =
+					c.reason === "awal"
+						? "Pengesahan awal (dikecualikan)"
+						: c.reason === "pagu-berubah"
+							? "Tidak dihitung — pagu berubah"
+							: "Tidak dihitung — kode di luar 14 jenis";
+				return (
+					<span
+						title={label}
+						className="rounded-md bg-surface px-2 py-0.5 text-[11px] font-semibold text-muted-foreground"
+					>
+						{label}
+					</span>
+				);
+			},
+		},
+		{
 			key: "actions",
 			header: "Aksi",
 			render: (item) => (
-				<button
-					type="button"
-					onClick={() => handleDeleteRevision(item.id)}
-					className="inline-flex items-center gap-1 rounded-lg p-1.5 text-danger hover:bg-danger/10 transition"
-					title="Hapus Revisi"
-				>
-					<Trash2 className="size-3.5" />
-				</button>
+				<div className="flex items-center gap-1">
+					<button
+						type="button"
+						onClick={() => handleOpenEditRevision(item)}
+						className="inline-flex items-center rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary transition"
+						title="Edit Revisi"
+						aria-label={`Edit revisi ${revisiNo.get(item.id) ?? item.id}`}
+					>
+						<Pencil className="size-3.5" />
+					</button>
+					<button
+						type="button"
+						onClick={() => handleDeleteRevision(item.id)}
+						className="inline-flex items-center rounded-lg p-1.5 text-danger hover:bg-danger/10 transition"
+						title="Hapus Revisi"
+						aria-label={`Hapus revisi ${revisiNo.get(item.id) ?? item.id}`}
+					>
+						<Trash2 className="size-3.5" />
+					</button>
+				</div>
 			),
 		},
 	];
@@ -271,8 +477,8 @@ function BudgetRevisionsPage() {
 								Pagu &amp; Histori Revisi DIPA
 							</h1>
 							<p className="text-xs text-muted-foreground">
-								Kelola alokasi pagu DIPA per jenis belanja dan catat histori
-								pengesahan revisi untuk penilaian indikator Revisi DIPA IKPA.
+								Revisi DIPA · Bobot 10% · Dinilai per semester, hanya revisi
+								pagu tetap.
 							</p>
 						</div>
 					</div>
@@ -297,6 +503,27 @@ function BudgetRevisionsPage() {
 						</button>
 					</div>
 				</div>
+
+				{/* Skor langsung */}
+				<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+					{[
+						{ title: "NKRA Semester I", sub: `${s1} objek terhitung · ${semesterStatus(s1)}`, value: skor.nkraS1 },
+						{ title: "NKRA Semester II", sub: `${s2} objek terhitung · ${semesterStatus(s2)}`, value: skor.nkraS2 },
+						{ title: "Nilai tahunan", sub: "(I+II)/2", value: skor.annual },
+						{ title: "Kontribusi ke IKPA", sub: "×10%", value: skor.contribution },
+					].map((k) => (
+						<div key={k.title} className="rounded-2xl border border-border bg-background p-4 shadow-xs">
+							<p className="text-[11px] font-semibold text-foreground">{k.title}</p>
+							<p className="text-[11px] text-muted-foreground">{k.sub}</p>
+							<p className="text-xl font-bold text-foreground">{k.value}</p>
+						</div>
+					))}
+				</div>
+				{s1 === 0 && s2 === 0 && (
+					<p className="text-xs text-muted-foreground">
+						Belum ada revisi objek — nilai 110 maksimal.
+					</p>
+				)}
 
 				{/* Feedback status */}
 				{actionMessage && (
@@ -357,49 +584,143 @@ function BudgetRevisionsPage() {
 						);
 					})}
 				</div>
+				<p className="text-[11px] text-muted-foreground">
+					Mengubah kartu pagu tidak menambah hitungan revisi. Yang dihitung
+					hanya baris pengesahan di tabel.
+				</p>
 
 				{/* DIPA Revisions Data Table */}
+				<div className="flex flex-wrap items-center gap-2 text-xs">
+					<label className="font-semibold text-foreground">
+						Semester{" "}
+						<select
+							value={semesterFilter}
+							onChange={(e) =>
+								setSemesterFilter(e.target.value as "all" | "1" | "2")
+							}
+							className="rounded-lg border border-border bg-background px-2 py-1"
+						>
+							<option value="all">Semua</option>
+							<option value="1">I</option>
+							<option value="2">II</option>
+						</select>
+					</label>
+					<label className="inline-flex items-center gap-1.5 font-semibold text-foreground">
+						<input
+							type="checkbox"
+							checked={onlyObjek}
+							onChange={(e) => setOnlyObjek(e.target.checked)}
+						/>
+						Hanya objek penilaian
+					</label>
+					<span className="text-muted-foreground">
+						Objek I: {s1} · Objek II: {s2}
+					</span>
+				</div>
 				<DomainDataTable
 					title="Daftar Pengesahan &amp; Riwayat Revisi DIPA"
 					data={filteredRevisions}
 					columns={columns}
 					searchValue={search}
 					onSearchChange={setSearch}
-					onAddClick={() => {
-						setPaguBefore(totalPagu > 0 ? totalPagu.toString() : "");
-						setPaguAfter(totalPagu > 0 ? totalPagu.toString() : "");
-						setIsRevisionDrawerOpen(true);
-					}}
+					onAddClick={handleOpenCreateRevision}
 					totalCount={filteredRevisions.length}
 				/>
 
-				{/* Drawer 1: Form Tambah Revisi DIPA */}
+				{/* Drawer 1: Form Tambah/Ubah Revisi DIPA */}
 				<DomainFormDrawer
 					isOpen={isRevisionDrawerOpen}
-					title="Catat Pengesahan Revisi DIPA"
-					description="Masukkan data pengesahan revisi DIPA resmi untuk pencatatan frekuensi revisi per semester."
-					onClose={() => setIsRevisionDrawerOpen(false)}
-					onSubmit={handleCreateRevision}
+					title={
+						editingRevisionId
+							? "Ubah Catatan Pengesahan Revisi DIPA"
+							: "Catat Pengesahan Revisi DIPA"
+					}
+					description={
+						editingRevisionId
+							? "Perbarui rincian data pengesahan revisi DIPA resmi untuk pencatatan frekuensi revisi per semester."
+							: "Masukkan data pengesahan revisi DIPA resmi untuk pencatatan frekuensi revisi per semester."
+					}
+					onClose={handleCloseRevisionDrawer}
+					onSubmit={handleSaveRevision}
 					isSubmitting={isSubmitting}
 				>
 					<div className="space-y-4">
 						<div className="space-y-1.5">
 							<label
-								htmlFor="rev-code"
+								htmlFor="rev-jenis"
 								className="block text-xs font-semibold text-foreground"
 							>
-								Nomor / Kode Revisi DIPA
+								Jenis Revisi (maksimal {MAX_REVISI_JENIS})
 							</label>
-							<input
-								id="rev-code"
-								type="text"
-								required
-								placeholder="Contoh: DIPA-015.08.2.411782/2026 Rev-01"
-								value={revCode}
-								onChange={(e) => setRevCode(e.target.value)}
-								disabled={isSubmitting}
+							{revCodes.length > 0 && (
+								<div className="flex flex-wrap gap-1.5">
+									{revCodes.map((c) => (
+										<span
+											key={c}
+											className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary"
+										>
+											{c}{REVISI_JENIS[c] ? ` — ${REVISI_JENIS[c]}` : ""}
+											<button
+												type="button"
+												disabled={isSubmitting}
+												onClick={() =>
+													setRevCodes((prev) => prev.filter((x) => x !== c))
+												}
+												className="font-bold hover:underline"
+												aria-label={`Hapus jenis ${c}`}
+											>
+												×
+											</button>
+										</span>
+									))}
+								</div>
+							)}
+							<select
+								id="rev-jenis"
+								value={revJenisSelect}
+								onChange={(e) => {
+									const v = e.target.value;
+									setRevJenisSelect("");
+									if (v) handleAddJenis(v);
+								}}
+								disabled={isSubmitting || revCodes.length >= MAX_REVISI_JENIS}
 								className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
-							/>
+							>
+								<option value="">Pilih jenis revisi…</option>
+								{Object.entries(REVISI_JENIS).map(([code, desc]) => (
+									<option key={code} value={code}>
+										{code} — {desc}
+									</option>
+								))}
+							</select>
+							<div className="flex gap-2">
+								<input
+									id="rev-code"
+									type="text"
+									inputMode="numeric"
+									maxLength={3}
+									placeholder="Kode lain (3 angka)"
+									value={revCustom}
+									onChange={(e) => setRevCustom(e.target.value.replace(/\D/g, "").slice(0, 3))}
+									disabled={isSubmitting || revCodes.length >= MAX_REVISI_JENIS}
+									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
+								/>
+								<button
+									type="button"
+									disabled={isSubmitting || revCodes.length >= MAX_REVISI_JENIS}
+									onClick={() => {
+										handleAddJenis(revCustom);
+										setRevCustom("");
+									}}
+									className="min-h-10 shrink-0 rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-surface"
+								>
+									Tambah
+								</button>
+							</div>
+							<p className="text-[11px] text-muted-foreground">
+								14 kode pagu tetap tersedia di daftar; kode lain wajib 3
+								angka. Satu revisi menampung {MAX_REVISI_JENIS} jenis.
+							</p>
 						</div>
 
 						<div className="space-y-1.5">
@@ -407,7 +728,7 @@ function BudgetRevisionsPage() {
 								htmlFor="rev-date"
 								className="block text-xs font-semibold text-foreground"
 							>
-								Tanggal Pengesahan
+								Tanggal Revisi
 							</label>
 							<input
 								id="rev-date"
@@ -455,6 +776,21 @@ function BudgetRevisionsPage() {
 								/>
 							</div>
 						</div>
+						<p className="text-xs text-muted-foreground">
+							Δ pagu: {formatRupiah(previewDelta)}. Jika pagu berubah,
+							revisi otomatis tidak dihitung.
+						</p>
+						<p role="status" className="text-xs font-semibold text-foreground">
+							{preview.reason === "pagu-berubah"
+								? `Revisi ini tidak dihitung karena pagu satker berubah (${formatRupiah(previewDelta)}).`
+								: preview.reason === "awal"
+									? "Pengesahan awal dikecualikan — tidak dihitung."
+									: preview.reason === "kode-luar"
+										? "Revisi ini tidak dihitung — kode di luar 14 jenis."
+										: preview.semester === 0
+											? "Tanggal di luar TA — tidak dihitung semester ini."
+											: `Revisi ini dihitung sebagai objek Semester ${semesterRoman(preview.semester)}.`}
+						</p>
 
 						<div className="space-y-1.5">
 							<label

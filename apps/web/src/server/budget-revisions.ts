@@ -10,6 +10,7 @@ import {
 	createRevision,
 	softDeleteBudget,
 	softDeleteRevision,
+	updateRevision,
 	upsertBudget,
 } from "./domains/budget-revisions.mutations";
 import {
@@ -122,18 +123,9 @@ export const listBudgetsAndRevisionsFn = createServerFn({ method: "GET" })
 						effectiveAt: "2026-01-01",
 					},
 				],
-				revisions: [
-					{
-						id: "r1",
-						revisionDate: "2026-01-02",
-						revisionCode: "DIPA-AWAL",
-						paguBefore: "5500000000.00",
-						paguAfter: "5500000000.00",
-						notes: "DIPA Petikan Awal TA 2026",
-					},
-				],
-			};
-		}
+			revisions: [],
+		};
+	}
 
 		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
 		if (!fy) {
@@ -179,7 +171,7 @@ export const upsertBudgetFn = createServerFn({ method: "POST" })
 
 		const db = getDatabase();
 		if (!db) {
-			return { success: true };
+			throw new Error("Database belum dikonfigurasi.");
 		}
 
 		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
@@ -239,7 +231,7 @@ export const createRevisionFn = createServerFn({ method: "POST" })
 
 		const db = getDatabase();
 		if (!db) {
-			return { success: true };
+			throw new Error("Database belum dikonfigurasi.");
 		}
 
 		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
@@ -253,6 +245,65 @@ export const createRevisionFn = createServerFn({ method: "POST" })
 			targetOrgId,
 			{
 				fiscalYearId: fy.id,
+				revisionDate: data.revisionDate,
+				revisionCode: data.revisionCode,
+				paguBefore: data.paguBefore,
+				paguAfter: data.paguAfter,
+				notes: data.notes,
+			},
+			{
+				actorId:
+					access.status === "operator_single_scope" ||
+					access.status === "operator_multiple_scopes"
+						? access.userId
+						: targetOrgId,
+			},
+		);
+
+		return { success: true, revision: result };
+	});
+
+export const updateRevisionFn = createServerFn({ method: "POST" })
+	.validator(
+		(data: {
+			orgId?: string;
+			revisionId: string;
+			revisionDate: string;
+			revisionCode: string;
+			paguBefore: string;
+			paguAfter: string;
+			notes?: string;
+		}) => data,
+	)
+	.handler(async ({ data }) => {
+		const auth = await getServerAuthSession();
+		const access = await getAccessResolutionForSession(auth, data.orgId);
+
+		const targetOrgId =
+			data.orgId ||
+			(access.status === "operator_single_scope" ||
+			access.status === "operator_multiple_scopes"
+				? access.activeOrganizationId
+				: null);
+
+		if (!targetOrgId) {
+			throw new Error("Satuan Kerja aktif tidak ditemukan.");
+		}
+
+		assertOperatorOrgScope(access, targetOrgId);
+
+		const db = getDatabase();
+		if (!db) {
+			throw new Error("Database belum dikonfigurasi.");
+		}
+
+		const result = await updateRevision(
+			db,
+			access,
+			targetOrgId,
+			data.revisionId,
+			{
+				fiscalYearId: "00000000-0000-0000-0000-000000000000",
 				revisionDate: data.revisionDate,
 				revisionCode: data.revisionCode,
 				paguBefore: data.paguBefore,

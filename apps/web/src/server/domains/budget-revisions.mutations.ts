@@ -180,6 +180,48 @@ export async function createRevision(
 	return created;
 }
 
+export async function updateRevision(
+	db: DbClient,
+	access: AccessResolution,
+	orgId: string,
+	revisionId: string,
+	input: unknown,
+	meta: { actorId: string; requestId?: string | null },
+) {
+	const data = createRevisionSchema.parse(input);
+	const [row] = await db
+		.select()
+		.from(dipaRevisions)
+		.where(eq(dipaRevisions.id, revisionId))
+		.limit(1);
+	if (!row || row.deletedAt) throw new Error("Revisi tidak ditemukan.");
+	await assertFy(db, access, orgId, row.fiscalYearId);
+	const [updated] = await db
+		.update(dipaRevisions)
+		.set({
+			revisionDate: data.revisionDate,
+			revisionCode: data.revisionCode,
+			paguBefore: data.paguBefore,
+			paguAfter: data.paguAfter,
+			notes: data.notes ?? null,
+			updatedAt: new Date(),
+		})
+		.where(eq(dipaRevisions.id, revisionId))
+		.returning();
+	await writeAudit(db, {
+		actorId: meta.actorId,
+		actorAccessType: "operator_satker",
+		entityType: "dipa_revisions",
+		entityId: revisionId,
+		action: "update_revision",
+		beforeJson: row,
+		afterJson: updated,
+		orgId,
+		requestId: meta.requestId ?? null,
+	});
+	return updated;
+}
+
 export async function softDeleteRevision(
 	db: DbClient,
 	access: AccessResolution,

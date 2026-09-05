@@ -222,7 +222,7 @@ export const default2026RuleSet: RuleSetConfig = {
 	},
 	assumptionWarnings: [
 		"REG-004: Mode pembulatan asumsi half_up 2 desimal.",
-		"REV-005: Kode revisi objek memakai daftar sementara.",
+		"REV-005: Kode revisi objek = 14 kode pagu tetap (201, 211, 212, 213, 217, 220, 221, 222, 225, 226, 229, 231, 236, 239); pagu berubah/DIPA-AWAL tidak dihitung.",
 		"DEV-004: Kurva di atas 5% memakai asumsi linear.",
 		"ABS-006: Batas nilai maksimal cap 100 belum diverifikasi eksplisit.",
 		"KON-006: Agregasi final kontrak dini menggunakan rata-rata nilai kontrak eligible.",

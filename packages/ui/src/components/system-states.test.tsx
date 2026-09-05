@@ -104,6 +104,8 @@ describe("System States Components", () => {
 	it("RuleSetBadge renders year, version, and status", () => {
 		render(<RuleSetBadge year={2026} version={1} status="published" />);
 		expect(screen.getByText("Rule Set 2026.1")).toBeDefined();
-		expect(screen.getByText("Published")).toBeDefined();
+		expect(
+			screen.getByLabelText("Rule Set 2026.1, Published"),
+		).toBeDefined();
 	});
 });

@@ -17,7 +17,7 @@ export const mockGuides: GuideItem[] = [
 		summary:
 			"Menilai frekuensi pengesahan revisi DIPA per satker pada setiap semester anggaran.",
 		formula:
-			"Maksimal 1 revisi per semester = Nilai 100. Lebih dari 1 revisi = Nilai 80.",
+			"0–1 revisi objek per semester = 110; 2 = 100; ≥3 = 50. Nilai tahun = (NKRA S1 + NKRA S2) / 2. Hanya revisi pagu tetap dengan 14 kode objek (201, 211, 212, 213, 217, 220, 221, 222, 225, 226, 229, 231, 236, 239); pagu berubah = tidak dihitung; DIPA-AWAL dikecualikan.",
 		tips: "Kumpulkan usulan revisi anggaran agar diajukan sekaligus dalam satu paket per semester.",
 	},
 	{
