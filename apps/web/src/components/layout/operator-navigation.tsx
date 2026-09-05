@@ -43,7 +43,7 @@ const tagihanItem: NavigationItem = {
 
 const upTupItem: NavigationItem = {
 	label: "UP/TUP & KKP",
-	href: "/operator/data/up-tup-kkp",
+	href: "/operator/up-tup",
 	icon: CreditCard,
 };
 
@@ -89,8 +89,8 @@ const indicatorItems: readonly NavigationItem[] = [
 	// ponytail: menu Import Data dinonaktifkan sementara (hemat storage Neon) — alur diarsipkan di docs/future_plan.md, restore 1 baris ini + tombol onImportClick
 ];
 
-// CORR-03: Penyerapan + Deviasi punya workspace sendiri; Tagihan masih berbagi route
-// Kontrak & Tagihan sampai workspace CORR-04 tiba. Route lama
+// CORR-04: Penyerapan + Deviasi + UP/TUP punya workspace sendiri; Tagihan masih
+// berbagi route Kontrak & Tagihan sampai workspace CORR-06 tiba. Route lama
 // (/operator/simulation, /operator/analysis, /operator/data/*) tetap terdaftar
 // tapi tak di-link dari sidebar — analysis dijangkau via "Lihat semua" Dashboard (CORR-05).
 

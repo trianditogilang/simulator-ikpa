@@ -2,6 +2,97 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 109 - 2026-09-05
+**Time:** Start: 18:25 UTC | End: 18:30 UTC | Duration: ~5 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [COPY] Saran GUP sesuai redaksi baru (1 feedback annotation, tanpa task baru)
+**Code Changes:**
+- Files modified: `apps/web/src/lib/simulation/up-tup-assumptions.ts` (saran → "Ubah Tanggal Rencana GUP (SP2D) LEBIH CEPAT atau TAMBAHKAN Nilai Rencana GUP."); `apps/web/src/lib/simulation/up-tup-assumptions.test.ts` (matcher diselaraskan); `docs/BACKLOG.md`; `docs/DEVLOG.md`
+- Verifikasi: `vitest` 19/19 passed
+**Issues Encountered:**
+- None
+**Next Session Plan:**
+- Tasks to continue: CORR-05 (Dashboard) — hanya setelah prompt eksplisit
+- New tasks: tak ada
+
+### Session 108 - 2026-09-05
+**Time:** Start: 16:35 UTC | End: 16:50 UTC | Duration: ~15 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [COPY] Rapikan `/operator/up-tup` (5 feedback annotation, tanpa task baru)
+**Code Changes:**
+- Files modified: `apps/web/src/components/operator/up-tup-assumption-panel.tsx` (highlight baris % aktif + caption "Baris kuning" dihapus; tabel polos zebra); `apps/web/src/routes/operator/up-tup.tsx` (paragraf "Nilai di panel = asumsi saja" dihapus; frasa what-if → "rencana"/"simulasi" di 3 titik; "Isi actual" → "Isi aktual"; import `hasUpTupChanges` dibuang)
+- Verifikasi: `tsc --noEmit` 0 error; `npm run build` client 2545 + SSR 332 lulus
+**Issues Encountered:**
+- Issue: Edit JSX map tinggalkan `);` sisa → TS1005.
+- Solution: Perbaiki penutup map.
+**Next Session Plan:**
+- Tasks to continue: CORR-05 (Dashboard) — hanya setelah prompt eksplisit
+- New tasks: tak ada
+
+### Session 107 - 2026-09-05
+**Time:** Start: 16:20 UTC | End: 16:35 UTC | Duration: ~15 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [CORR-04 fix] Tabel acuan persis gambar + Nilai Kualitas GUP % merah/hijau (feedback annotation, tanpa task baru)
+**Code Changes:**
+- Files modified: `apps/web/src/components/operator/up-tup-assumption-panel.tsx` (tabel dinamis → statis `GUP_ACUAN_TABLE` persis gambar: header navy 2 baris, sel "N hari"/"N%", highlight % aktif; nilai kualitas via `formatPercent` + merah bila <100 (saran UBAH) / hijau bila OKE); `docs/BACKLOG.md`; `docs/DEVLOG.md`
+- Key implementations: angka tabel diambil dari gambar (dump Excel `data_only` dipakai silang: sel 70%/28 = 18 ikut gambar, sel 70%/31-nilai terpotong → 103% konsisten rumus); `maxHariSP2DAgar100` tetap di lib + test (tak dipakai panel lagi)
+- Verifikasi: `tsc --noEmit` 0 error; `npm run build` client 2545 + SSR 332 lulus
+**Issues Encountered:**
+- None
+**Next Session Plan:**
+- Tasks to continue: CORR-05 (Dashboard) — hanya setelah prompt eksplisit
+- New tasks: tak ada
+
+### Session 106 - 2026-09-05
+**Time:** Start: 16:00 UTC | End: 16:20 UTC | Duration: ~20 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [CORR-04 fix] Lengkapi panel UP/TUP ala gambar Excel: Nilai IKPA Kualitas GUP + saran + tabel disebulankan + Catatan (feedback annotation, tanpa task baru)
+**Code Changes:**
+- Files modified: `apps/web/src/components/operator/up-tup-assumption-panel.tsx` (blok readout Kualitas GUP: persentase/maksimal/disebulankan/SP2D/nilai + saran + margin libur; `<details>` tabel acuan 50–100% × 28/30/31 hari via `maxHariSP2DAgar100` + highlight % aktif; box Catatan 1–3 persis Excel); `apps/web/src/lib/simulation/up-tup-assumptions.test.ts` (+2 test); `docs/BACKLOG.md` (CORR-04 fix note); `docs/DEVLOG.md` (entri ini)
+- Key implementations: status Tepat Waktu untuk angka gambar memang benar (25/05 ≤ 05/06) — yang hilang adalah nilai kualitas 8,61% + saran UBAH + tabel + catatan; golden test UP 18jt/GUP 1jt → 8,6111; hitungan hari kalender + waspada libur bersama sebagai teks (tanpa klaim kalender kerja)
+- Verifikasi: `vitest` 19/19 passed (10 asumsi + 9 workspace); `tsc --noEmit` 0 error; `npm run build` client 2545 + SSR 332 lulus
+**Issues Encountered:**
+- None
+**Next Session Plan:**
+- Tasks to continue: CORR-05 (Dashboard) — hanya setelah prompt eksplisit
+- New tasks: tak ada
+**Notes:**
+- Skipped: cek silang tanggal vs tabel hari libur nasional (butuh loader workdays ke workspace). Add when: diminta eksplisit.
+
+### Session 105 - 2026-09-05
+**Time:** Start: 15:20 UTC | End: 16:00 UTC | Duration: ~40 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [CORR-04] Workspace UP/TUP & KKP (reuse panel GUP/KKP; reminder GUP/PTUP wajib)
+**Code Changes:**
+- Files created: `apps/web/src/lib/simulation/up-tup-workspace.ts` (pure: `collapseDbType` mirror server, `mapActualToEngine`, `calcUpTupScore`, `mergeWithAssumptions`, `buildGupReminders`); `apps/web/src/lib/simulation/up-tup-workspace.test.ts` (9 test); `apps/web/src/routes/operator/up-tup.tsx` (workspace `/operator/up-tup`: 4 kartu skor, strip reminder wajib, aktual terkunci, what-if reuse panel, ?/dialog rumus)
+- Files modified: `apps/web/src/components/layout/operator-navigation.tsx` (UP/TUP & KKP → `/operator/up-tup`); `apps/web/src/routeTree.gen.ts` (regenerate via `tsr generate`); `docs/TASK-LIST-Simulator-IKPA.md` (CORR-04 checked); `docs/BACKLOG.md` (CORR-04 Completed)
+- Files untouched (sengaja): `up-tup-assumptions.ts` + `dispensasi-assumptions.ts` + `up-tup-assumption-panel.tsx` (reuse murni); `operator/data/up-tup-kkp.tsx` (tab data actual tetap); `admin-navigation.tsx`; backend; schema DB; engine; F13
+- Key implementations: skor via `calculateUpTup` + `default2026RuleSet` langsung di client (pola CORR-02/03) — actual DB → engine collapse GUP/GUP_NIHIL/PTUP/SETORAN_TUP → UP persis server `calculate.ts`, KKP fallback `${year}-${month}-15`; gabungan = actual + `buildUpTupEngineInput(asumsi)` (asumsi menempel, tak timpa); reminder per GUP/PTUP actual (jatuh tempo = hari sama bulan depan, status Tepat/Terlambat/Menunggu + H−n); target KKP Q 1/5/9/12.5 → 110 dari Excel UP KKP; tanpa klon Excel
+- Verifikasi: `npx vitest run up-tup-workspace.test.ts` — 9/9 passed; `npx tsc --noEmit` — 0 error; `npm run build` — client 2545 modul + SSR 332 modul lulus
+**Issues Encountered:**
+- None
+**Next Session Plan:**
+- Tasks to continue: CORR-05 (Dashboard 8 baris, 5 rekomendasi, Simpan skenario) — hanya setelah prompt eksplisit; jangan F13/Admin/hapus route
+- New tasks: [CORR-04] selesai — tak ada follow-up wajib
+**Notes:**
+- Skipped (ponytail): simpan skenario dari workspace (itu CORR-05 Dashboard), grafik tren, edit KKP custom terpisah (sudah di panel). Add when: CORR-05 / permintaan eksplisit.
+- Excel `referensi/Referensi UP GUP KKP.xlsx` hanya dibaca (Simulasi Setiap GUP + UP KKP), tak diubah; panel existing sudah mereplikasi rumusnya.
+
 ### Session 104 - 2026-09-05
 **Time:** Start: 13:30 UTC | End: 14:00 UTC | Duration: ~30 minutes
 - Status: Completed

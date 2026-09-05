@@ -265,7 +265,7 @@ export function calcGupPreview(a: UpTupAssumptions): GupPreview {
 	const nilaiCapped = isCapped ? 100 : nilaiRaw;
 	const saran = isCapped
 		? "OKE — sudah maksimal 100."
-		: "UBAH Tanggal Rencana GUP (SP2D) LEBIH CEPAT ATAU Nilai Rencana GUP DITAMBAHKAN.";
+		: "Ubah Tanggal Rencana GUP (SP2D) LEBIH CEPAT atau TAMBAHKAN Nilai Rencana GUP.";
 
 	trace.push({
 		step: 4,

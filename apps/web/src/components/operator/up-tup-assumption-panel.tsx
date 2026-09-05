@@ -17,6 +17,25 @@ interface Props {
 	onReset: () => void;
 }
 
+/** Tabel acuan persis gambar Excel "Simulasi Setiap GUP" (statis, bukan hitungan). */
+const GUP_ACUAN_TABLE: Array<{
+	pct: number;
+	hari: [number, number, number];
+	nilai: [number, number, number];
+}> = [
+	{ pct: 50, hari: [14, 15, 15], nilai: [100, 100, 100] },
+	{ pct: 55, hari: [15, 16, 17], nilai: [103, 103, 100] },
+	{ pct: 60, hari: [16, 17, 18], nilai: [105, 106, 103] },
+	{ pct: 65, hari: [18, 19, 20], nilai: [101, 103, 101] },
+	{ pct: 70, hari: [18, 21, 21], nilai: [103, 100, 103] },
+	{ pct: 75, hari: [21, 22, 23], nilai: [100, 102, 101] },
+	{ pct: 80, hari: [22, 24, 24], nilai: [102, 100, 103] },
+	{ pct: 85, hari: [23, 25, 26], nilai: [103, 102, 101] },
+	{ pct: 90, hari: [25, 27, 27], nilai: [101, 100, 103] },
+	{ pct: 95, hari: [26, 28, 29], nilai: [102, 102, 102] },
+	{ pct: 100, hari: [28, 30, 31], nilai: [100, 100, 100] },
+];
+
 function num(v: string): number {
 	const n = Number(v);
 	return Number.isFinite(n) ? n : 0;
@@ -127,6 +146,91 @@ export function UpTupAssumptionPanel({
 				</div>
 			</div>
 
+			<div aria-live="polite" className="rounded-xl border border-border/70 bg-surface p-3 text-xs">
+				<p className="font-semibold text-foreground">Nilai IKPA Kualitas GUP</p>
+				{preview.isValid ? (
+					<>
+						<p className="mt-1 text-foreground">
+							Persentase GUP{" "}
+							<strong>{formatPercent(preview.persentaseGUP * 100)}</strong>
+							{" · "}maks. {preview.tanggalMaksimal} ({preview.hariDisebulankan}{" "}
+							hari disebulankan){" · "}SP2D {preview.hariSP2D} hari
+						</p>
+						<p className={`mt-1 text-lg font-bold ${preview.isCapped ? "text-success" : "text-danger"}`}>
+							{formatPercent(preview.nilaiCapped)}
+							{preview.isCapped ? (
+								<span className="text-[10px] font-semibold text-muted-foreground"> (cap 100)</span>
+							) : null}
+						</p>
+						<p className={preview.isCapped ? "font-semibold text-success" : "font-semibold text-danger"}>
+							{preview.saran}
+						</p>
+						{preview.status === "Tepat Waktu" ? (
+							<p className="mt-1 text-[11px] text-muted-foreground">
+								Margin {preview.hariDisebulankan - preview.hariSP2D} hari
+								kalender — hitungan hari kalender, waspadai libur
+								bersama/cuti nasional di tanggal tersebut.
+							</p>
+						) : null}
+					</>
+				) : (
+					<p className="mt-1 text-danger">{preview.validationMessage}</p>
+				)}
+			</div>
+
+			<details className="rounded-xl border border-border/70 p-3 text-xs">
+				<summary className="cursor-pointer font-semibold text-foreground">
+					Tabel Simulasi GUP dengan 28, 30, dan 31 hari yang disebulankan
+				</summary>
+				<div className="mt-2 overflow-x-auto">
+					<table className="w-full min-w-[520px] border-collapse text-center">
+						<thead>
+							<tr className="bg-[#244061] text-white">
+								<th rowSpan={2} className="border border-[#244061] px-2 py-1 text-left">
+									<span className="block text-[10px] font-normal">Hari yg disebulankan</span>
+									<span className="block font-semibold">% GUP</span>
+								</th>
+								<th colSpan={3} className="border border-[#244061] px-2 py-1 font-semibold">
+									Hari SP2D GUP maksimal (hari ke–)
+								</th>
+								<th colSpan={3} className="border border-[#244061] px-2 py-1 font-semibold">
+									Nilai IKPA maksimal 100
+								</th>
+							</tr>
+							<tr className="bg-[#244061] text-white">
+								{[28, 30, 31, 28, 30, 31].map((d, i) => (
+									<th key={i} className="border border-[#244061] px-2 py-1 font-semibold">
+										{d}
+									</th>
+								))}
+							</tr>
+						</thead>
+						<tbody>
+							{GUP_ACUAN_TABLE.map((row) => (
+								<tr
+									key={row.pct}
+									className="text-foreground odd:bg-surface-muted/60"
+								>
+										<td className="border border-border/60 bg-[#244061] px-2 py-1 text-left font-semibold text-white">
+											{row.pct}%
+										</td>
+										{row.hari.map((h, i) => (
+											<td key={i} className="border border-border/60 px-2 py-1">
+												{h} hari
+											</td>
+										))}
+										{row.nilai.map((n, i) => (
+											<td key={i} className="border border-border/60 px-2 py-1">
+												{n}%
+											</td>
+										))}
+									</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			</details>
+
 			<details className="rounded-xl border border-border/70 p-3 text-xs">
 				<summary className="cursor-pointer font-semibold text-foreground">
 					TUP / PTUP / GUP Nihil / Setoran / KKP (opsional)
@@ -189,6 +293,14 @@ export function UpTupAssumptionPanel({
 					</p>
 					<p className="text-[10px] text-muted-foreground">poin vs aktual</p>
 				</div>
+			</div>
+			<div className="rounded-xl border border-danger/30 bg-danger/5 p-3 text-xs">
+				<p className="font-semibold text-foreground">Catatan :</p>
+				<ol className="mt-1 list-decimal space-y-0.5 pl-5 text-foreground">
+					<li>Jika ingin menggunakan TUP harus sesuai antara permintaan dan pertanggungjawaban, hindari adanya SSBP</li>
+					<li>Perhatikan GUP terakhir, jangan sampai terlambat</li>
+					<li>Hati2 untuk keterlambatan GUP di tanggal jika ada libur bersama</li>
+				</ol>
 			</div>
 		</section>
 	);

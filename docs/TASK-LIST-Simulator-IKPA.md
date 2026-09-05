@@ -803,9 +803,9 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Depends:** CORR-02
   **DoD:** Skor via engine. Desember tidak dihitung. ?/drawer ada. Selesai 2026-09-05.
 
-- [ ] **CORR-04 — Workspace UP/TUP & KKP (reuse panel GUP/KKP; reminder GUP/PTUP wajib).** [Role: Frontend Operator Agent]
+- [x] **CORR-04 — Workspace UP/TUP & KKP (reuse panel GUP/KKP; reminder GUP/PTUP wajib).** [Role: Frontend Operator Agent]
   **Depends:** CORR-03
-  **DoD:** Lib assumptions tidak dihapus. Tab data actual tetap. ?/drawer ada.
+  **DoD:** Lib assumptions tidak dihapus. Tab data actual tetap. ?/drawer ada. Selesai 2026-09-05.
 
 - [ ] **CORR-05 — Dashboard merakit 8 baris, 5 rekomendasi, Simpan skenario IKPA.** [Role: Frontend Operator Agent]
   **Depends:** CORR-04

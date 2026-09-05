@@ -32,6 +32,7 @@ import { Route as OperatorRemindersRouteImport } from './routes/operator/reminde
 import { Route as OperatorReportsRouteImport } from './routes/operator/reports'
 import { Route as OperatorSettingsRouteImport } from './routes/operator/settings'
 import { Route as OperatorSimulationRouteImport } from './routes/operator/simulation'
+import { Route as OperatorUpTupRouteImport } from './routes/operator/up-tup'
 import { Route as AdminKppnMonitoringRemindersRouteImport } from './routes/admin-kppn/monitoring/reminders'
 import { Route as AdminKppnOrganizationsIndexRouteImport } from './routes/admin-kppn/organizations/index'
 import { Route as AdminKppnOrganizationsOrgIdRouteImport } from './routes/admin-kppn/organizations/$orgId'
@@ -165,6 +166,11 @@ const OperatorSimulationRoute = OperatorSimulationRouteImport.update({
   path: '/simulation',
   getParentRoute: () => OperatorRouteRoute,
 } as any)
+const OperatorUpTupRoute = OperatorUpTupRouteImport.update({
+  id: '/up-tup',
+  path: '/up-tup',
+  getParentRoute: () => OperatorRouteRoute,
+} as any)
 const AdminKppnMonitoringRemindersRoute =
   AdminKppnMonitoringRemindersRouteImport.update({
     id: '/monitoring/reminders',
@@ -286,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/operator/reports': typeof OperatorReportsRoute
   '/operator/settings': typeof OperatorSettingsRoute
   '/operator/simulation': typeof OperatorSimulationRoute
+  '/operator/up-tup': typeof OperatorUpTupRoute
   '/admin-kppn/monitoring/reminders': typeof AdminKppnMonitoringRemindersRoute
   '/admin-kppn/organizations/$orgId': typeof AdminKppnOrganizationsOrgIdRoute
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
@@ -328,6 +335,7 @@ export interface FileRoutesByTo {
   '/operator/reports': typeof OperatorReportsRoute
   '/operator/settings': typeof OperatorSettingsRoute
   '/operator/simulation': typeof OperatorSimulationRoute
+  '/operator/up-tup': typeof OperatorUpTupRoute
   '/admin-kppn/monitoring/reminders': typeof AdminKppnMonitoringRemindersRoute
   '/admin-kppn/organizations/$orgId': typeof AdminKppnOrganizationsOrgIdRoute
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
@@ -371,6 +379,7 @@ export interface FileRoutesById {
   '/operator/reports': typeof OperatorReportsRoute
   '/operator/settings': typeof OperatorSettingsRoute
   '/operator/simulation': typeof OperatorSimulationRoute
+  '/operator/up-tup': typeof OperatorUpTupRoute
   '/admin-kppn/monitoring/reminders': typeof AdminKppnMonitoringRemindersRoute
   '/admin-kppn/organizations/$orgId': typeof AdminKppnOrganizationsOrgIdRoute
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
@@ -415,6 +424,7 @@ export interface FileRouteTypes {
     | '/operator/reports'
     | '/operator/settings'
     | '/operator/simulation'
+    | '/operator/up-tup'
     | '/admin-kppn/monitoring/reminders'
     | '/admin-kppn/organizations/$orgId'
     | '/admin-kppn/policy/history'
@@ -457,6 +467,7 @@ export interface FileRouteTypes {
     | '/operator/reports'
     | '/operator/settings'
     | '/operator/simulation'
+    | '/operator/up-tup'
     | '/admin-kppn/monitoring/reminders'
     | '/admin-kppn/organizations/$orgId'
     | '/admin-kppn/policy/history'
@@ -499,6 +510,7 @@ export interface FileRouteTypes {
     | '/operator/reports'
     | '/operator/settings'
     | '/operator/simulation'
+    | '/operator/up-tup'
     | '/admin-kppn/monitoring/reminders'
     | '/admin-kppn/organizations/$orgId'
     | '/admin-kppn/policy/history'
@@ -695,6 +707,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OperatorSimulationRouteImport
       parentRoute: typeof OperatorRouteRoute
     }
+    '/operator/up-tup': {
+      id: '/operator/up-tup'
+      path: '/up-tup'
+      fullPath: '/operator/up-tup'
+      preLoaderRoute: typeof OperatorUpTupRouteImport
+      parentRoute: typeof OperatorRouteRoute
+    }
     '/admin-kppn/monitoring/reminders': {
       id: '/admin-kppn/monitoring/reminders'
       path: '/monitoring/reminders'
@@ -863,6 +882,7 @@ interface OperatorRouteRouteChildren {
   OperatorReportsRoute: typeof OperatorReportsRoute
   OperatorSettingsRoute: typeof OperatorSettingsRoute
   OperatorSimulationRoute: typeof OperatorSimulationRoute
+  OperatorUpTupRoute: typeof OperatorUpTupRoute
   OperatorDataBudgetRevisionsRoute: typeof OperatorDataBudgetRevisionsRoute
   OperatorDataContractsInvoicesRoute: typeof OperatorDataContractsInvoicesRoute
   OperatorDataOutputAchievementRoute: typeof OperatorDataOutputAchievementRoute
@@ -883,6 +903,7 @@ const OperatorRouteRouteChildren: OperatorRouteRouteChildren = {
   OperatorReportsRoute: OperatorReportsRoute,
   OperatorSettingsRoute: OperatorSettingsRoute,
   OperatorSimulationRoute: OperatorSimulationRoute,
+  OperatorUpTupRoute: OperatorUpTupRoute,
   OperatorDataBudgetRevisionsRoute: OperatorDataBudgetRevisionsRoute,
   OperatorDataContractsInvoicesRoute: OperatorDataContractsInvoicesRoute,
   OperatorDataOutputAchievementRoute: OperatorDataOutputAchievementRoute,

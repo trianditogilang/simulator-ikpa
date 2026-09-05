@@ -27,6 +27,22 @@ describe("calcGupPreview golden workbook", () => {
 		expect(p.isCapped).toBe(false);
 		expect(p.formulaTrace.length).toBe(4);
 	});
+	it("kasus gambar: UP 18jt, GUP 1jt, 5 Mei -> 25 Mei = 8.61 Tepat Waktu + saran UBAH", () => {
+		const p = calcGupPreview({
+			...DEFAULT_UP_TUP_ASSUMPTIONS,
+			nilaiRencanaGUP: "1000000",
+		});
+		expect(p.isValid).toBe(true);
+		expect(p.persentaseGUP).toBeCloseTo(1 / 18, 6);
+		expect(p.hariDisebulankan).toBe(31);
+		expect(p.hariSP2D).toBe(20);
+		expect(p.tanggalMaksimal).toBe("2026-06-05");
+		expect(p.status).toBe("Tepat Waktu");
+		expect(p.nilaiRaw).toBeCloseTo(8.6111, 2);
+		expect(p.nilaiCapped).toBeCloseTo(8.6111, 2);
+		expect(p.isCapped).toBe(false);
+		expect(p.saran).toMatch(/TAMBAHKAN Nilai Rencana GUP/);
+	});
 	it("cap 100 bila lebih cepat / nominal besar", () => {
 		const p = calcGupPreview({
 			...DEFAULT_UP_TUP_ASSUMPTIONS,
@@ -54,6 +70,12 @@ describe("calcGupPreview golden workbook", () => {
 describe("maxHariSP2DAgar100", () => {
 	it("50% x 28 hari = 14", () => {
 		expect(maxHariSP2DAgar100(0.5, 28)).toBe(14);
+	});
+	it("tabel acuan: 100% x 28/30/31 = 28/30/31; 55% x 30 = 16", () => {
+		expect(maxHariSP2DAgar100(1, 28)).toBe(28);
+		expect(maxHariSP2DAgar100(1, 30)).toBe(30);
+		expect(maxHariSP2DAgar100(1, 31)).toBe(31);
+		expect(maxHariSP2DAgar100(0.55, 30)).toBe(16);
 	});
 });
 
