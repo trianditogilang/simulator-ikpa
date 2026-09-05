@@ -6,27 +6,6 @@ fitur: setting profile pop up, tooltip, darkmode-->
 
 
 <!--notes:
-Review docs/BACKLOG.md, docs/DEVLOG.md, dan docs/PRE-F13-Koreksi-IA-Operator.md dulu.
-Jangan F13, jangan ubah navigation, jangan hapus kode.
-
-Task CORR-00:
-1. Sisipkan seksi Fase PRE-F13 di task list, antara Fase 12 dan Fase 13, sesuai dokumen itu.
-   F13 tetap unchecked, tulis Depends: PRE-F13 CORR-01..05.
-2. APPEND docs/future_plan.md (jangan timpa bagian Import): arsip IA menu Input Data lama + cara restore.
-3. Tambah baris CORR-00 s.d. CORR-06 di BACKLOG.
-4. Append DEVLOG.
-
-Ponytail. Update backlog, devlog, checkbox CORR-00 setelah selesai.
-
-
-
-Saya sudah menyelesaikan CORR-00. Review backlog, devlog, dan seksi PRE-F13 di task list dulu.
-Lanjut CORR-01 sesuai docs/PRE-F13-Koreksi-IA-Operator.md.
-Jangan F13, jangan Admin, jangan hapus route lama.
-Ponytail + context7. Update backlog, devlog, dan checkbox task list setelah DoD lulus.
-
-
-
 Saya sudah menyelesaikan CORR-01. Review docs/BACKLOG.md, docs/DEVLOG.md, dan docs/PRE-F13-Koreksi-IA-Operator.md dulu.
 Lanjut CORR-02 saja. Jangan F13, jangan Admin, jangan hapus route lama.
 
@@ -38,6 +17,7 @@ Workspace Penyerapan Anggaran — bukan klon Excel:
 - Pagu netto (setelah blokir) boleh dipakai; bukan menu terpisah
 - Akun 57 tetap didukung meski tidak ada di Excel
 - ?/drawer rumus singkat. Actual tidak tertimpa
+
 
 Ponytail + context7. Update backlog, devlog, dan checkbox task list setelah DoD lulus.
 
@@ -199,38 +179,3 @@ Sekarang cabang di lokal dan GitHub kamu sudah sama-sama menggunakan `main`.-->
 - **TanStack Start ServerFn:** backend import tetap di-bundle server-only; tanpa pemanggil, tidak ada biaya runtime/storage. Tidak perlu feature-flag env baru (ponytail: 1 stub > 1 flag + 1 config + N branch).
 - **Neon Postgres + Drizzle:** hemat storage via "stop nulis" (cabut UI), bukan via migrasi drop tabel. Drop = migrasi + review + risiko re-enable; stop-nulis = 0 migrasi, reversibel 1 commit.
 - **Ponytail ladder yang dipakai:** YAGNI (R2/queue/TTL ditunda) → reuse (`OperatorShell`, `DomainDataTable` prop existing, mutasi domain existing) → stdlib/native (tanpa dep baru) → 1-line-ish diff (1 nav + 1 stub + 8 prop) → `skipped: R2 presigned, TTL cleanup, exceljs dep, penghapusan tabel; add when: upload massal >100 baris / file >4.5 MB / JSONB bengkak`.
-
----
-
-## IA Operator domain-centric (pra-koreksi 8 indikator)
-
-Diarsipkan 2026-09-05 (CORR-00) sebelum koreksi sidebar 8 indikator. Backend/route tetap.
-Restore = pasang ulang entry nav + CTA, tanpa drop tabel. Bagian Import di atas tidak diubah.
-
-Yang diarsipkan (sidebar saat arsip, `apps/web/src/components/layout/operator-navigation.tsx`):
-- Primer: Dashboard (`/operator/dashboard`), Simulasi (`/operator/simulation`)
-- Seksi "Input Data" (domain-centric): Pagu & Revisi DIPA, RPD & Realisasi, Kontrak & Tagihan, UP/TUP & KKP, Capaian Output, SPM Dispensasi
-- Sekunder: Skenario & Riwayat (`/operator/history`), Analisis & Rekomendasi (`/operator/analysis`), Reminder Center, Laporan & Ekspor, Panduan IKPA, Pengaturan Satker
-- Mobile: Dashboard, Simulasi, Input (→ budget-revisions), Reminder, dialog Lainnya
-- `/operator/simulation` sebagai satu halaman 8 accordion (mega-page)
-- `/operator/analysis` dan `/operator/guides` sebagai menu inti sidebar
-- Import sudah diarsip terpisah di bagian atas dokumen ini (stub `/operator/import`, nav dicabut PRE-F13-08)
-
-File route yang dipertahankan (jangan dihapus):
-- `apps/web/src/routes/operator/data/*` (6 file domain)
-- `apps/web/src/routes/operator/simulation.tsx`
-- `apps/web/src/routes/operator/analysis.tsx`
-- `apps/web/src/routes/operator/guides.tsx`
-- `apps/web/src/routes/operator/history.tsx`
-- `apps/web/src/routes/operator/import.tsx` (stub nonaktif)
-
-IA target (dikunci, dikerjakan CORR-01..06): sidebar Dashboard IKPA; 8 indikator (Revisi DIPA, Deviasi Halaman III, Penyerapan Anggaran, Belanja Kontraktual, Penyelesaian Tagihan, UP/TUP & KKP, Capaian Output, Dispensasi SPM); Reminder Center; Lainnya = Riwayat & perbandingan, Laporan & ekspor, Panduan IKPA, Pengaturan. Skenario = mode di tiap indikator; gabungan = Dashboard + Simpan skenario IKPA.
-
-Cara restore IA lama:
-1. `git log --oneline -- docs/TASK-LIST-Simulator-IKPA.md` temukan commit pra-CORR-01 sebagai referensi nama menu lama.
-2. Kembalikan entry nav di `apps/web/src/components/layout/operator-navigation.tsx` (seksi Input Data + `secondaryItems` Analisis/Panduan sebagai menu inti) tanpa menghapus entry 8 indikator — kedua struktur bisa koeksistensi via grup nav terpisah.
-3. Route tidak perlu restore (tak pernah dihapus): `apps/web/src/routes/operator/data/*`, `simulation.tsx`, `analysis.tsx`, `guides.tsx`, `history.tsx` tetap terdaftar di `routeTree.gen.ts`.
-4. Verifikasi: `npx tsc --noEmit -p apps/web/tsconfig.json --pretty false` (0 error) → `npm run build --workspace @simulator-ikpa/web` → smoke navigasi tiap menu lama.
-5. Update BACKLOG + DEVLOG seperti biasa. Jangan restore Import via jalur ini (ikuti checklist §8 di atas).
-
-Tech note (context7 + ponytail, CORR-00): skill context7-mcp tak tersedia sebagai tool di environment ini — dipenuhi via websearch ke docs TanStack Router/Start resmi 2026 (file-based routing: `src/routes` → route tree auto-generate; pola "keep route, disable entry": arsip = tulis docs saja, tanpa rename/delete route agar tanpa regenerate/404/type-break). Ponytail: docs-only, 0 baris kode diubah; aturan chat dipindah ke 4 file repo agar diingat lintas sesi.
