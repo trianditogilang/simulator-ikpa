@@ -795,9 +795,9 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Depends:** CORR-00
   **DoD:** Nama menu persis dokumen PRE-F13. Import tidak tampil. Route lama tetap. Admin nav tidak disentuh. Selesai 2026-09-05.
 
-- [ ] **CORR-02 — Workspace Penyerapan (actual YTD terkunci, sisa tahun editable, skor via engine).** [Role: Frontend Operator Agent]
+- [x] **CORR-02 — Workspace Penyerapan (actual YTD terkunci, sisa tahun editable, skor via engine).** [Role: Frontend Operator Agent]
   **Depends:** CORR-01
-  **DoD:** Actual tidak tertimpa. Target dari rule set. ?/drawer rumus singkat ada.
+  **DoD:** Actual tidak tertimpa. Target dari rule set. ?/drawer rumus singkat ada. Selesai 2026-09-05.
 
 - [ ] **CORR-03 — Workspace Deviasi Halaman III (Jan–Nov; pagu dari sumber yang sama dengan Penyerapan).** [Role: Frontend Operator Agent]
   **Depends:** CORR-02

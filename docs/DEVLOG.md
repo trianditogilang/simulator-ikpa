@@ -28,6 +28,33 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 [Any additional notes, observations, or reminders]
 ```
 
+### Session 99 - 2026-09-05
+**Time:** Start: 08:00 UTC | End: 08:35 UTC | Duration: ~35 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [CORR-02] Workspace Penyerapan (actual YTD terkunci, sisa tahun editable, skor via engine)
+**Code Changes:**
+- Files created: `apps/web/src/lib/simulation/penyerapan-workspace.ts` (pure: `quarterOfMonth`, `buildAbsorptionQuarters`, `calcPenyerapanScore`, `accountQuarterScore`, `quarterTarget`); `apps/web/src/lib/simulation/penyerapan-workspace.test.ts` (7 test); `apps/web/src/routes/operator/penyerapan.tsx` (workspace `/operator/penyerapan`: 4 kartu skor, tabel actual terkunci 🔒, grid rencana kuning sisa tahun, ?/dialog rumus, deep-link ubah actual/pagu)
+- Files modified: `apps/web/src/components/layout/operator-navigation.tsx` (Penyerapan → `/operator/penyerapan`, komentar sharing diperbarui); `apps/web/src/routeTree.gen.ts` (regenerate via `tsr generate`, bukan manual)
+- Files untouched (sengaja): seluruh route lama; `admin-navigation.tsx`; backend; schema DB; F13
+- Key implementations: skor via `calculateAbsorption` + `default2026RuleSet` langsung di client (pola up-tup panel) — semantik persis server `calculate.ts` (realisasi = Σ 3 bulan TW, pagu = pagu tahunan penuh, rata-rata 4 TW, cap 100); target 51 20/50/75/95, 52 15/50/70/90, 53 10/40/70/90, 57 25/50/75/95 — Sheet1 TW1 manual 100 diabaikan; actual = DB s.d. bulan berjalan (read-only, plan state terpisah); akun 57 didukung; pagu netto dipakai langsung; BLU → banner 100
+- Verifikasi: `npx vitest run penyerapan-workspace.test.ts` — 7/7 passed; `npx tsc --noEmit` — 0 error; `npm run build` — client 2538 modul + SSR 325 modul lulus; `git status` — routes lama/admin/routeTree-manual bersih
+**Issues Encountered:**
+- Issue: Test golden awal salah hitung (engine merata-rata 4 TW termasuk TW masa depan = 0).
+- Solution: Golden diselaraskan ke semantik engine (Q1=50 + Q2..Q4=0 → 12.5; full-target → 100) — didokumentasikan sebagai perilaku rumus tetap.
+- Issue: Read tool tak bisa baca `.xlsx` biner.
+- Solution: `pip install openpyxl` + dump Sheet1/Sheet2 (nilai + rumus + sel kuning) via `python -c`.
+- Issue: Skill context7-mcp tak tersedia sebagai tool.
+- Solution: Dipenuhi via reuse pola repo (loader route, radix Dialog, engine client-side) + referensi Excel lokal sebagai UX saja.
+**Next Session Plan:**
+- Tasks to continue: CORR-03 (Workspace Deviasi) — hanya setelah prompt eksplisit; jangan F13/Admin/hapus route
+- New tasks: [CORR-02] selesai — tak ada follow-up wajib
+**Notes:**
+- Skipped (ponytail): simpan skenario dari workspace (itu CORR-05 Dashboard), grafik tren, pagu per-TW terpisah. Add when: CORR-05 / permintaan eksplisit.
+- Excel `referensi/Penyerapan.xllsx.xlsx` hanya dibaca, tak diubah; Sheet2 = contoh rumus bersih, Sheet1 = pola sel kuning.
+
 ### Session 98 - 2026-09-05
 **Time:** Start: 07:30 UTC | End: 07:50 UTC | Duration: ~20 minutes
 - Status: Completed

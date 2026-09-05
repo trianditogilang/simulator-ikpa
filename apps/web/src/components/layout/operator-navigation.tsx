@@ -66,7 +66,7 @@ const indicatorItems: readonly NavigationItem[] = [
 	},
 	{
 		label: "Penyerapan Anggaran",
-		href: "/operator/data/rpd-realization",
+		href: "/operator/penyerapan",
 		icon: Wallet,
 	},
 	{
@@ -89,10 +89,10 @@ const indicatorItems: readonly NavigationItem[] = [
 	// ponytail: menu Import Data dinonaktifkan sementara (hemat storage Neon) — alur diarsipkan di docs/future_plan.md, restore 1 baris ini + tombol onImportClick
 ];
 
-// CORR-01: Penyerapan berbagi route RPD & Realisasi dan Tagihan berbagi route
-// Kontrak & Tagihan sampai workspace CORR-02..04 tiba. Route lama
-// (/operator/simulation, /operator/analysis) tetap terdaftar tapi tak di-link
-// dari sidebar — analysis dijangkau via "Lihat semua" Dashboard (CORR-05).
+// CORR-02: Penyerapan punya workspace sendiri; Tagihan masih berbagi route
+// Kontrak & Tagihan sampai workspace CORR-03..04 tiba. Route lama
+// (/operator/simulation, /operator/analysis, /operator/data/*) tetap terdaftar
+// tapi tak di-link dari sidebar — analysis dijangkau via "Lihat semua" Dashboard (CORR-05).
 
 const lainnyaItems: readonly NavigationItem[] = [
 	{ label: "Riwayat & perbandingan", href: "/operator/history", icon: History },

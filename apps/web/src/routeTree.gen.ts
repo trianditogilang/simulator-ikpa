@@ -26,6 +26,7 @@ import { Route as OperatorDashboardRouteImport } from './routes/operator/dashboa
 import { Route as OperatorGuidesRouteImport } from './routes/operator/guides'
 import { Route as OperatorHistoryRouteImport } from './routes/operator/history'
 import { Route as OperatorImportRouteImport } from './routes/operator/import'
+import { Route as OperatorPenyerapanRouteImport } from './routes/operator/penyerapan'
 import { Route as OperatorRemindersRouteImport } from './routes/operator/reminders'
 import { Route as OperatorReportsRouteImport } from './routes/operator/reports'
 import { Route as OperatorSettingsRouteImport } from './routes/operator/settings'
@@ -131,6 +132,11 @@ const OperatorHistoryRoute = OperatorHistoryRouteImport.update({
 const OperatorImportRoute = OperatorImportRouteImport.update({
   id: '/import',
   path: '/import',
+  getParentRoute: () => OperatorRouteRoute,
+} as any)
+const OperatorPenyerapanRoute = OperatorPenyerapanRouteImport.update({
+  id: '/penyerapan',
+  path: '/penyerapan',
   getParentRoute: () => OperatorRouteRoute,
 } as any)
 const OperatorRemindersRoute = OperatorRemindersRouteImport.update({
@@ -268,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/operator/guides': typeof OperatorGuidesRoute
   '/operator/history': typeof OperatorHistoryRoute
   '/operator/import': typeof OperatorImportRoute
+  '/operator/penyerapan': typeof OperatorPenyerapanRoute
   '/operator/reminders': typeof OperatorRemindersRoute
   '/operator/reports': typeof OperatorReportsRoute
   '/operator/settings': typeof OperatorSettingsRoute
@@ -308,6 +315,7 @@ export interface FileRoutesByTo {
   '/operator/guides': typeof OperatorGuidesRoute
   '/operator/history': typeof OperatorHistoryRoute
   '/operator/import': typeof OperatorImportRoute
+  '/operator/penyerapan': typeof OperatorPenyerapanRoute
   '/operator/reminders': typeof OperatorRemindersRoute
   '/operator/reports': typeof OperatorReportsRoute
   '/operator/settings': typeof OperatorSettingsRoute
@@ -349,6 +357,7 @@ export interface FileRoutesById {
   '/operator/guides': typeof OperatorGuidesRoute
   '/operator/history': typeof OperatorHistoryRoute
   '/operator/import': typeof OperatorImportRoute
+  '/operator/penyerapan': typeof OperatorPenyerapanRoute
   '/operator/reminders': typeof OperatorRemindersRoute
   '/operator/reports': typeof OperatorReportsRoute
   '/operator/settings': typeof OperatorSettingsRoute
@@ -391,6 +400,7 @@ export interface FileRouteTypes {
     | '/operator/guides'
     | '/operator/history'
     | '/operator/import'
+    | '/operator/penyerapan'
     | '/operator/reminders'
     | '/operator/reports'
     | '/operator/settings'
@@ -431,6 +441,7 @@ export interface FileRouteTypes {
     | '/operator/guides'
     | '/operator/history'
     | '/operator/import'
+    | '/operator/penyerapan'
     | '/operator/reminders'
     | '/operator/reports'
     | '/operator/settings'
@@ -471,6 +482,7 @@ export interface FileRouteTypes {
     | '/operator/guides'
     | '/operator/history'
     | '/operator/import'
+    | '/operator/penyerapan'
     | '/operator/reminders'
     | '/operator/reports'
     | '/operator/settings'
@@ -627,6 +639,13 @@ declare module '@tanstack/react-router' {
       path: '/import'
       fullPath: '/operator/import'
       preLoaderRoute: typeof OperatorImportRouteImport
+      parentRoute: typeof OperatorRouteRoute
+    }
+    '/operator/penyerapan': {
+      id: '/operator/penyerapan'
+      path: '/penyerapan'
+      fullPath: '/operator/penyerapan'
+      preLoaderRoute: typeof OperatorPenyerapanRouteImport
       parentRoute: typeof OperatorRouteRoute
     }
     '/operator/reminders': {
@@ -819,6 +838,7 @@ interface OperatorRouteRouteChildren {
   OperatorGuidesRoute: typeof OperatorGuidesRoute
   OperatorHistoryRoute: typeof OperatorHistoryRoute
   OperatorImportRoute: typeof OperatorImportRoute
+  OperatorPenyerapanRoute: typeof OperatorPenyerapanRoute
   OperatorRemindersRoute: typeof OperatorRemindersRoute
   OperatorReportsRoute: typeof OperatorReportsRoute
   OperatorSettingsRoute: typeof OperatorSettingsRoute
@@ -837,6 +857,7 @@ const OperatorRouteRouteChildren: OperatorRouteRouteChildren = {
   OperatorGuidesRoute: OperatorGuidesRoute,
   OperatorHistoryRoute: OperatorHistoryRoute,
   OperatorImportRoute: OperatorImportRoute,
+  OperatorPenyerapanRoute: OperatorPenyerapanRoute,
   OperatorRemindersRoute: OperatorRemindersRoute,
   OperatorReportsRoute: OperatorReportsRoute,
   OperatorSettingsRoute: OperatorSettingsRoute,
