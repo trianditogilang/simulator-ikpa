@@ -1,14 +1,20 @@
 import type { LucideIcon } from "lucide-react";
 import {
+	Bell,
 	BookOpen,
-	Calculator,
 	ChartLine,
+	CreditCard,
 	Database,
+	FileSignature,
 	FileText,
 	History,
 	LayoutDashboard,
 	MoreHorizontal,
+	Receipt,
 	Settings,
+	Stamp,
+	Target,
+	Wallet,
 } from "lucide-react";
 import { Dialog } from "radix-ui";
 import type { ComponentProps } from "react";
@@ -23,63 +29,88 @@ type NavigationItem = {
 	icon: LucideIcon;
 };
 
-const primaryItems: readonly NavigationItem[] = [
-	{ label: "Dashboard", href: "/operator/dashboard", icon: LayoutDashboard },
-	{ label: "Simulasi", href: "/operator/simulation", icon: Calculator },
-];
+const dashboardItem: NavigationItem = {
+	label: "Dashboard IKPA",
+	href: "/operator/dashboard",
+	icon: LayoutDashboard,
+};
 
-const inputItems: readonly NavigationItem[] = [
+const tagihanItem: NavigationItem = {
+	label: "Penyelesaian Tagihan",
+	href: "/operator/data/contracts-invoices",
+	icon: Receipt,
+};
+
+const upTupItem: NavigationItem = {
+	label: "UP/TUP & KKP",
+	href: "/operator/data/up-tup-kkp",
+	icon: CreditCard,
+};
+
+const reminderItem: NavigationItem = {
+	label: "Reminder Center",
+	href: "/operator/reminders",
+	icon: Bell,
+};
+
+const indicatorItems: readonly NavigationItem[] = [
 	{
-		label: "Pagu & Revisi DIPA",
+		label: "Revisi DIPA",
 		href: "/operator/data/budget-revisions",
 		icon: FileText,
 	},
 	{
-		label: "RPD & Realisasi",
+		label: "Deviasi Halaman III",
 		href: "/operator/data/rpd-realization",
-		icon: FileText,
-	},
-	{
-		label: "Kontrak & Tagihan",
-		href: "/operator/data/contracts-invoices",
-		icon: FileText,
-	},
-	{ label: "UP/TUP & KKP", href: "/operator/data/up-tup-kkp", icon: FileText },
-	{
-		label: "Capaian Output",
-		href: "/operator/data/output-achievement",
 		icon: ChartLine,
 	},
 	{
-		label: "SPM Dispensasi",
+		label: "Penyerapan Anggaran",
+		href: "/operator/data/rpd-realization",
+		icon: Wallet,
+	},
+	{
+		label: "Belanja Kontraktual",
+		href: "/operator/data/contracts-invoices",
+		icon: FileSignature,
+	},
+	tagihanItem,
+	upTupItem,
+	{
+		label: "Capaian Output",
+		href: "/operator/data/output-achievement",
+		icon: Target,
+	},
+	{
+		label: "Dispensasi SPM",
 		href: "/operator/data/spm-dispensation",
-		icon: FileText,
+		icon: Stamp,
 	},
 	// ponytail: menu Import Data dinonaktifkan sementara (hemat storage Neon) — alur diarsipkan di docs/future_plan.md, restore 1 baris ini + tombol onImportClick
 ];
 
-const secondaryItems: readonly NavigationItem[] = [
-	{ label: "Skenario & Riwayat", href: "/operator/history", icon: History },
-	{
-		label: "Analisis & Rekomendasi",
-		href: "/operator/analysis",
-		icon: ChartLine,
-	},
-	{ label: "Reminder Center", href: "/operator/reminders", icon: Database },
-	{ label: "Laporan & Ekspor", href: "/operator/reports", icon: FileText },
+// CORR-01: Penyerapan berbagi route RPD & Realisasi dan Tagihan berbagi route
+// Kontrak & Tagihan sampai workspace CORR-02..04 tiba. Route lama
+// (/operator/simulation, /operator/analysis) tetap terdaftar tapi tak di-link
+// dari sidebar — analysis dijangkau via "Lihat semua" Dashboard (CORR-05).
+
+const lainnyaItems: readonly NavigationItem[] = [
+	{ label: "Riwayat & perbandingan", href: "/operator/history", icon: History },
+	{ label: "Laporan & ekspor", href: "/operator/reports", icon: FileText },
 	{ label: "Panduan IKPA", href: "/operator/guides", icon: BookOpen },
-	{ label: "Pengaturan Satker", href: "/operator/settings", icon: Settings },
+	{ label: "Pengaturan", href: "/operator/settings", icon: Settings },
 ];
 
 const mobileItems: readonly NavigationItem[] = [
-	primaryItems[0],
-	primaryItems[1],
-	{ label: "Input", href: "/operator/data/budget-revisions", icon: Database },
-	{ label: "Reminder", href: "/operator/reminders", icon: Database },
+	dashboardItem,
+	tagihanItem,
+	upTupItem,
+	reminderItem,
 ];
 
 const moreItems: readonly NavigationItem[] = [
-	...secondaryItems.filter((item) => item.label !== "Reminder Center"),
+	...indicatorItems.filter((item) => !mobileItems.includes(item)),
+	...lainnyaItems,
 	{ label: "Pilih Satker", href: "/select-organization", icon: Database },
 ];
 
@@ -183,34 +214,34 @@ export function OperatorNavigation({
 				</div>
 				<nav aria-label="Navigasi Operator" className="flex-1 space-y-5 p-4">
 					<div className="space-y-1">
-						{primaryItems.map((item) => (
-							<NavigationLink
-								currentPath={currentPath}
-								item={item}
-								key={item.href}
-							/>
-						))}
+						<NavigationLink currentPath={currentPath} item={dashboardItem} />
 					</div>
 					<div className="space-y-2">
-						<SectionLabel>Input Data</SectionLabel>
+						<SectionLabel>Indikator IKPA</SectionLabel>
 						<div className="space-y-1 pl-2">
-							{inputItems.map((item) => (
+							{indicatorItems.map((item) => (
 								<NavigationLink
 									currentPath={currentPath}
 									item={item}
-									key={item.href}
+									key={item.label}
 								/>
 							))}
 						</div>
 					</div>
 					<div className="space-y-1">
-						{secondaryItems.map((item) => (
-							<NavigationLink
-								currentPath={currentPath}
-								item={item}
-								key={item.href}
-							/>
-						))}
+						<NavigationLink currentPath={currentPath} item={reminderItem} />
+					</div>
+					<div className="space-y-2">
+						<SectionLabel>Lainnya</SectionLabel>
+						<div className="space-y-1 pl-2">
+							{lainnyaItems.map((item) => (
+								<NavigationLink
+									currentPath={currentPath}
+									item={item}
+									key={item.label}
+								/>
+							))}
+						</div>
 					</div>
 				</nav>
 				<div className="border-t border-border p-4">
@@ -241,7 +272,7 @@ export function OperatorNavigation({
 								compact
 								currentPath={currentPath}
 								item={item}
-								key={item.href}
+								key={item.label}
 							/>
 						))}
 						<Dialog.Root open={isMoreOpen} onOpenChange={setIsMoreOpen}>
@@ -287,7 +318,7 @@ export function OperatorNavigation({
 											<NavigationLink
 												currentPath={currentPath}
 												item={item}
-												key={item.href}
+												key={item.label}
 											/>
 										))}
 									</nav>

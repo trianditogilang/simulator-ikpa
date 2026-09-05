@@ -781,7 +781,47 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
   **Depends:** F12-06â€“F12-08  
   **DoD:** Tidak ada permanent public URL dan hasil cocok dengan filter UI.
 
-## 17. Fase 13 â€” Quality, Security, Deployment, dan UAT
+## 17. Fase PRE-F13 — Koreksi IA Operator
+
+Jangan mulai F13 sebelum CORR-01 s.d. CORR-05 selesai.
+Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
+
+- [x] **CORR-00 — Arsipkan IA lama ke future_plan dan kunci keputusan di BACKLOG.** [Role: Technical Writer / Product]
+  **Files:** `docs/future_plan.md`, `docs/BACKLOG.md`, `docs/TASK-LIST-Simulator-IKPA.md`
+  **DoD:** Bagian Import tidak tertimpa. Baris CORR-00..06 ada di backlog. Navigation belum diubah. Selesai 2026-09-05.
+
+- [x] **CORR-01 — Ubah navigasi Operator sesuai sidebar 8 indikator + Reminder + Lainnya.** [Role: Frontend Operator Agent]
+  **File:** `apps/web/src/components/layout/operator-navigation.tsx`
+  **Depends:** CORR-00
+  **DoD:** Nama menu persis dokumen PRE-F13. Import tidak tampil. Route lama tetap. Admin nav tidak disentuh. Selesai 2026-09-05.
+
+- [ ] **CORR-02 — Workspace Penyerapan (actual YTD terkunci, sisa tahun editable, skor via engine).** [Role: Frontend Operator Agent]
+  **Depends:** CORR-01
+  **DoD:** Actual tidak tertimpa. Target dari rule set. ?/drawer rumus singkat ada.
+
+- [ ] **CORR-03 — Workspace Deviasi Halaman III (Jan–Nov; pagu dari sumber yang sama dengan Penyerapan).** [Role: Frontend Operator Agent]
+  **Depends:** CORR-02
+  **DoD:** Skor via engine. Desember tidak dihitung. ?/drawer ada.
+
+- [ ] **CORR-04 — Workspace UP/TUP & KKP (reuse panel GUP/KKP; reminder GUP/PTUP wajib).** [Role: Frontend Operator Agent]
+  **Depends:** CORR-03
+  **DoD:** Lib assumptions tidak dihapus. Tab data actual tetap. ?/drawer ada.
+
+- [ ] **CORR-05 — Dashboard merakit 8 baris, 5 rekomendasi, Simpan skenario IKPA.** [Role: Frontend Operator Agent]
+  **Depends:** CORR-04
+  **DoD:** Estimasi jika ada indikator kosong. CTA Lihat semua boleh ke /operator/analysis. Bukan menu Skenario gabungan.
+
+- [ ] **CORR-06 — Strip reminder + rekomendasi kontekstual di Tagihan dan Output.** [Role: Frontend Operator Agent]
+  **Depends:** CORR-05
+  **DoD:** H+17 dan 5 hari kerja wajib tampil. Bukan kalkulator opsional.
+
+- [ ] **CORR-A-00 s.d. CORR-A-05 — Admin monitor 8 indikator (parkir).**
+  **Depends:** CORR-01..05 Operator
+  **DoD:** Read-only. Tidak ada sel kuning. Tidak ada mutasi data operasional.
+
+## 18. Fase 13 — Quality, Security, Deployment, dan UAT
+
+> Depends: PRE-F13 CORR-01..05. Jangan mulai F13 sebelum CORR-01 s.d. CORR-05 selesai; checkbox F13 tetap kosong.
 
 - [ ] **F13-01 â€” Lengkapi unit test seluruh pure modules.** [Role: QA Agent] [Model: Sol Medium]  
   **Scope:** Engine, rule parser, workday, deadline, compliance, scheduler, access, import parser  
@@ -841,7 +881,7 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
   **Depends:** F0-02, F13-13  
   **DoD:** Tidak ada parameter mandatory/score produksi berstatus belum diverifikasi; source dan approver tercatat.
 
-## 18. Urutan Milestone yang Disarankan
+## 19. Urutan Milestone yang Disarankan
 
 | Milestone | Cakupan | Exit criteria |
 |---|---|---|
@@ -853,7 +893,7 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
 | M5 â€” Integrated MVP | Fase 11â€“12 | Mock diganti backend per domain; import/export lengkap |
 | M6 â€” Release Candidate | Fase 13 | Security, performance, E2E, UAT, dan verifikasi regulasi lulus |
 
-## 19. Referensi Dokumentasi Terkini melalui Context7
+## 20. Referensi Dokumentasi Terkini melalui Context7
 
 Task teknis harus memeriksa dokumentasi terkini lagi saat mulai dikerjakan karena package saat ini memakai beberapa dependency `latest`.
 
@@ -864,7 +904,7 @@ Task teknis harus memeriksa dokumentasi terkini lagi saat mulai dikerjakan karen
 - [Drizzle ORM PostgreSQL schema](https://orm.drizzle.team/docs/schemas): schema, enum, table, FK, index, dan inferred types didefinisikan secara type-safe.
 - [Drizzle Kit migrate](https://orm.drizzle.team/docs/drizzle-kit-migrate): migration SQL yang belum diterapkan dijalankan dan dicatat pada migration log; migration generated harus direview dan diuji pada database kosong.
 
-## 20. Definition of Done Global
+## 21. Definition of Done Global
 
 Sebuah fitur baru dianggap selesai hanya bila:
 

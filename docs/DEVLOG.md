@@ -28,6 +28,52 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 [Any additional notes, observations, or reminders]
 ```
 
+### Session 98 - 2026-09-05
+**Time:** Start: 07:30 UTC | End: 07:50 UTC | Duration: ~20 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [CORR-01] Ubah navigasi Operator sesuai sidebar 8 indikator + Reminder + Lainnya
+**Code Changes:**
+- Files modified: `apps/web/src/components/layout/operator-navigation.tsx` (primary/input/secondary arrays → `dashboardItem` + `indicatorItems` 8 + `reminderItem` + `lainnyaItems` 4; grup sidebar "Indikator IKPA" + "Lainnya"; mobile bottom-bar = Dashboard IKPA/Tagihan/UP-TUP/Reminder; dialog Lainnya = sisa indikator + lainnya + Pilih Satker; key map → `item.label` karena 2 href dipakai bersama)
+- Files untouched (sengaja): seluruh route (`simulation.tsx`/`analysis.tsx`/stub `import.tsx` tetap terdaftar di `routeTree.gen.ts` tanpa regenerate); `admin-navigation.tsx`; backend; schema DB
+- Key implementations: reuse pola existing (`NavigationItem`, `navigationLinkClass`, `SectionLabel`, active-match) — 0 pola baru; ikon lucide per indikator (Wallet/FileSignature/Receipt/CreditCard/Target/Stamp/Bell); Penyerapan berbagi route RPD & Realisasi + Tagihan berbagi route Kontrak & Tagihan sampai workspace CORR-02..04 tiba (dicatat di komentar kode); Simulasi/Analisis tak di-link (analysis dijangkau via "Lihat semua" di CORR-05)
+- Verifikasi: `npx tsc --noEmit -p apps/web/tsconfig.json --pretty false` — 0 error; `npm run build --workspace @simulator-ikpa/web` — client 2535 modul + SSR 322 modul lulus; grep label — 14 nama persis dokumen; grep `/operator/import|Simulasi|Input Data` di nav — 0 (Import hanya komentar restore); `git status` — routes/admin-nav/routeTree bersih
+**Issues Encountered:**
+- Issue: 2 pasang menu berbagi 1 href (Deviasi+Penyerapan, Kontraktual+Tagihan) → `key={item.href}` duplikat + dua menu highlight bersamaan.
+- Solution: Key → `item.label` (unik); highlight ganda diterima sementara + dicatat di komentar — dipecah saat workspace CORR-02..04 tiba (prinsip ponytail: scope kecil).
+- Issue: Skill context7-mcp tak tersedia sebagai tool.
+- Solution: Dipenuhi via reuse pola nav existing + verifikasi compiler (`tsc` memvalidasi export ikon lucide) — tanpa dep/endpoint baru.
+**Next Session Plan:**
+- Tasks to continue: CORR-02 (Workspace Penyerapan) — hanya setelah prompt eksplisit; jangan F13/Admin/hapus route
+- New tasks: [CORR-01] selesai — tak ada follow-up wajib
+**Notes:**
+- Skipped (ponytail): workspace Penyerapan/Deviasi/UP-TUP baru, CTA "Lihat semua" Dashboard, ?/drawer rumus. Add when: CORR-02..06 masing-masing.
+
+### Session 97 - 2026-09-05
+**Time:** Start: 07:00 UTC | End: 07:20 UTC | Duration: ~20 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Technical Writer / Product
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [CORR-00] Arsipkan IA lama ke future_plan dan kunci keputusan PRE-F13 di task list + backlog (tanpa ubah navigation/kode, tanpa sentuh F13)
+**Code Changes:**
+- Files modified: `docs/TASK-LIST-Simulator-IKPA.md` (seksi 17 Fase PRE-F13 disisipkan antara Fase 12–13: CORR-00 checked, CORR-01..06 + CORR-A-00..05 unchecked; Fase 13 → §18 + `Depends: PRE-F13 CORR-01..05`; §18–20 renumber → §19–21); `docs/future_plan.md` (append § IA Operator domain-centric + cara restore 5 langkah, bagian Import tak tersentuh); `docs/BACKLOG.md` (7 baris CORR-00 Completed + CORR-01..06 Ready); `docs/DEVLOG.md` (entri ini)
+- Files untouched (sengaja): `apps/web/src/components/layout/operator-navigation.tsx`; seluruh route; seluruh kode (0 baris kode diubah)
+- Key implementations: pola "keep route, disable entry" dipakai lagi di level docs — arsip = tulis docs saja, tanpa rename/delete route agar tanpa regenerate/404/type-break; Session 96 ("siap F13") dinyatakan ditunda sampai CORR-01..05 selesai
+- Verifikasi: `git diff --check` — CHECK-OK; `git diff --name-only` — hanya 3 file docs; `git status` operator-navigation.tsx — bersih (tak diubah); grep `\[x\] \*\*F13` — 0 hasil (F13 tetap unchecked); grep CORR-00..06 + Depends PRE-F13 — hadir
+**Issues Encountered:**
+- Issue: `TASK-LIST` memakai em-dash mojibake (`â€”`) sehingga edit pertama gagal match.
+- Solution: Baca byte literal via grep lalu pakai string literal persis sebagai anchor.
+- Issue: Skill context7-mcp (`resolve-library-id`/`query-docs`) tidak tersedia sebagai tool di environment ini.
+- Solution: Dipenuhi via `websearch` ke docs TanStack Router/Start resmi 2026 (file-based routing `src/routes` → route tree auto-generate) sebagai best-practice tech stack, pola yang sama dipakai Session 96.
+**Next Session Plan:**
+- Tasks to continue: CORR-01 (navigasi Operator 8 indikator + Reminder + Lainnya) — hanya setelah prompt eksplisit; jangan F13/Admin/restore Import
+- New tasks: [CORR-00] selesai — tak ada follow-up wajib
+**Notes:**
+- DoD CORR-00 lulus: bagian Import tak tertimpa, baris CORR-00..06 ada di backlog, navigation belum diubah. Checkbox CORR-00 dicentang; CORR-01..06 + CORR-A-* tetap kosong.
+
 ### Session 96 - 2026-09-04
 **Time:** Start: 19:00 WIB | End: 19:40 WIB | Duration: ~40 minutes
 - Status: Completed
