@@ -799,9 +799,9 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Depends:** CORR-01
   **DoD:** Actual tidak tertimpa. Target dari rule set. ?/drawer rumus singkat ada. Selesai 2026-09-05.
 
-- [ ] **CORR-03 — Workspace Deviasi Halaman III (Jan–Nov; pagu dari sumber yang sama dengan Penyerapan).** [Role: Frontend Operator Agent]
+- [x] **CORR-03 — Workspace Deviasi Halaman III (Jan–Nov; pagu dari sumber yang sama dengan Penyerapan).** [Role: Frontend Operator Agent]
   **Depends:** CORR-02
-  **DoD:** Skor via engine. Desember tidak dihitung. ?/drawer ada.
+  **DoD:** Skor via engine. Desember tidak dihitung. ?/drawer ada. Selesai 2026-09-05.
 
 - [ ] **CORR-04 — Workspace UP/TUP & KKP (reuse panel GUP/KKP; reminder GUP/PTUP wajib).** [Role: Frontend Operator Agent]
   **Depends:** CORR-03

@@ -23,6 +23,7 @@ import { Route as AdminKppnDashboardRouteImport } from './routes/admin-kppn/dash
 import { Route as AdminKppnReportsRouteImport } from './routes/admin-kppn/reports'
 import { Route as OperatorAnalysisRouteImport } from './routes/operator/analysis'
 import { Route as OperatorDashboardRouteImport } from './routes/operator/dashboard'
+import { Route as OperatorDeviasiRouteImport } from './routes/operator/deviasi'
 import { Route as OperatorGuidesRouteImport } from './routes/operator/guides'
 import { Route as OperatorHistoryRouteImport } from './routes/operator/history'
 import { Route as OperatorImportRouteImport } from './routes/operator/import'
@@ -117,6 +118,11 @@ const OperatorAnalysisRoute = OperatorAnalysisRouteImport.update({
 const OperatorDashboardRoute = OperatorDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => OperatorRouteRoute,
+} as any)
+const OperatorDeviasiRoute = OperatorDeviasiRouteImport.update({
+  id: '/deviasi',
+  path: '/deviasi',
   getParentRoute: () => OperatorRouteRoute,
 } as any)
 const OperatorGuidesRoute = OperatorGuidesRouteImport.update({
@@ -271,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/admin-kppn/reports': typeof AdminKppnReportsRoute
   '/operator/analysis': typeof OperatorAnalysisRoute
   '/operator/dashboard': typeof OperatorDashboardRoute
+  '/operator/deviasi': typeof OperatorDeviasiRoute
   '/operator/guides': typeof OperatorGuidesRoute
   '/operator/history': typeof OperatorHistoryRoute
   '/operator/import': typeof OperatorImportRoute
@@ -312,6 +319,7 @@ export interface FileRoutesByTo {
   '/admin-kppn/reports': typeof AdminKppnReportsRoute
   '/operator/analysis': typeof OperatorAnalysisRoute
   '/operator/dashboard': typeof OperatorDashboardRoute
+  '/operator/deviasi': typeof OperatorDeviasiRoute
   '/operator/guides': typeof OperatorGuidesRoute
   '/operator/history': typeof OperatorHistoryRoute
   '/operator/import': typeof OperatorImportRoute
@@ -354,6 +362,7 @@ export interface FileRoutesById {
   '/admin-kppn/reports': typeof AdminKppnReportsRoute
   '/operator/analysis': typeof OperatorAnalysisRoute
   '/operator/dashboard': typeof OperatorDashboardRoute
+  '/operator/deviasi': typeof OperatorDeviasiRoute
   '/operator/guides': typeof OperatorGuidesRoute
   '/operator/history': typeof OperatorHistoryRoute
   '/operator/import': typeof OperatorImportRoute
@@ -397,6 +406,7 @@ export interface FileRouteTypes {
     | '/admin-kppn/reports'
     | '/operator/analysis'
     | '/operator/dashboard'
+    | '/operator/deviasi'
     | '/operator/guides'
     | '/operator/history'
     | '/operator/import'
@@ -438,6 +448,7 @@ export interface FileRouteTypes {
     | '/admin-kppn/reports'
     | '/operator/analysis'
     | '/operator/dashboard'
+    | '/operator/deviasi'
     | '/operator/guides'
     | '/operator/history'
     | '/operator/import'
@@ -479,6 +490,7 @@ export interface FileRouteTypes {
     | '/admin-kppn/reports'
     | '/operator/analysis'
     | '/operator/dashboard'
+    | '/operator/deviasi'
     | '/operator/guides'
     | '/operator/history'
     | '/operator/import'
@@ -618,6 +630,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/operator/dashboard'
       preLoaderRoute: typeof OperatorDashboardRouteImport
+      parentRoute: typeof OperatorRouteRoute
+    }
+    '/operator/deviasi': {
+      id: '/operator/deviasi'
+      path: '/deviasi'
+      fullPath: '/operator/deviasi'
+      preLoaderRoute: typeof OperatorDeviasiRouteImport
       parentRoute: typeof OperatorRouteRoute
     }
     '/operator/guides': {
@@ -835,6 +854,7 @@ const AdminKppnRouteRouteWithChildren = AdminKppnRouteRoute._addFileChildren(
 interface OperatorRouteRouteChildren {
   OperatorAnalysisRoute: typeof OperatorAnalysisRoute
   OperatorDashboardRoute: typeof OperatorDashboardRoute
+  OperatorDeviasiRoute: typeof OperatorDeviasiRoute
   OperatorGuidesRoute: typeof OperatorGuidesRoute
   OperatorHistoryRoute: typeof OperatorHistoryRoute
   OperatorImportRoute: typeof OperatorImportRoute
@@ -854,6 +874,7 @@ interface OperatorRouteRouteChildren {
 const OperatorRouteRouteChildren: OperatorRouteRouteChildren = {
   OperatorAnalysisRoute: OperatorAnalysisRoute,
   OperatorDashboardRoute: OperatorDashboardRoute,
+  OperatorDeviasiRoute: OperatorDeviasiRoute,
   OperatorGuidesRoute: OperatorGuidesRoute,
   OperatorHistoryRoute: OperatorHistoryRoute,
   OperatorImportRoute: OperatorImportRoute,

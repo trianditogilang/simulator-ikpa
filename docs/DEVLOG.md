@@ -2,6 +2,31 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 104 - 2026-09-05
+**Time:** Start: 13:30 UTC | End: 14:00 UTC | Duration: ~30 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: opencode (muse-spark)
+**Tasks Completed:**
+- [CORR-03] Workspace Deviasi Halaman III (Jan–Nov; pagu sama dengan Penyerapan)
+**Code Changes:**
+- Files created: `apps/web/src/lib/simulation/deviasi-workspace.ts` (pure: `buildDeviationInput` 11 bulan, `calcDeviasiScore`, `deviationOf`, `paguWeights`); `apps/web/src/lib/simulation/deviasi-workspace.test.ts` (6 test); `apps/web/src/routes/operator/deviasi.tsx` (workspace `/operator/deviasi`: 4 kartu skor, tabel deviasi aktual terkunci, rencana kuning RPD+Real sisa Jan–Nov, ?/dialog rumus)
+- Files modified: `apps/web/src/components/layout/operator-navigation.tsx` (Deviasi → `/operator/deviasi`); `apps/web/src/routeTree.gen.ts` (regenerate via `tsr generate`); `docs/TASK-LIST-Simulator-IKPA.md` (CORR-03 checked); `docs/BACKLOG.md` (CORR-03 Completed)
+- Files untouched (sengaja): seluruh route lama (`rpd-realization.tsx` tetap terdaftar sebagai Ubah aktual); `admin-navigation.tsx`; backend; schema DB; engine; F13
+- Key implementations: skor via `calculateRpdDeviation` + `default2026RuleSet` langsung di client (pola CORR-02) — semantik persis server `calculate.ts` (11 bulan selalu, budgetByType = Pagu Netto, bobot 15%, ambang ≤5 → 100); actual = RPD+Realisasi DB s.d. bulan berjalan (read-only, plan state terpisah RPD/Real); Desember tak dibangun (engine skip >11); tanpa klon Excel (proporsi #REF! diganti pagu Netto, 57 ikut)
+- Verifikasi: `npx vitest run deviasi-workspace.test.ts` — 6/6 passed; `npx tsc --noEmit` — 0 error; `npm run build` — client 2542 modul + SSR 329 modul lulus
+**Issues Encountered:**
+- Issue: Test argumen pagu/rpd tertukar (`expected 90 vs 100`).
+- Solution: Urutan `buildDeviationInput(pagu, rpd, actual, ...)` diperbaiki di test.
+- Issue: `npx vitest --reporter=basic` + pipe `tail` gagal di PowerShell.
+- Solution: Jalankan vitest tanpa reporter custom, tanpa pipe.
+**Next Session Plan:**
+- Tasks to continue: CORR-04 (Workspace UP/TUP & KKP) — hanya setelah prompt eksplisit; jangan F13/Admin/hapus route
+- New tasks: [CORR-03] selesai — tak ada follow-up wajib
+**Notes:**
+- Skipped (ponytail): simpan skenario dari workspace (itu CORR-05 Dashboard), grafik tren, breakdown per-akun tertimbang live di rencana. Add when: CORR-05 / permintaan eksplisit.
+- Excel `referensi/Deviasi.xlsx` hanya dibaca (sheet DEV, Des = copy Nov), tak diubah; rumus #REF! proporsi tak dipakai.
+
 ## Template Entri
 
 ```markdown

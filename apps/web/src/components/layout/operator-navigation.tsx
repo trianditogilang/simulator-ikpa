@@ -61,7 +61,7 @@ const indicatorItems: readonly NavigationItem[] = [
 	},
 	{
 		label: "Deviasi Halaman III",
-		href: "/operator/data/rpd-realization",
+		href: "/operator/deviasi",
 		icon: ChartLine,
 	},
 	{
@@ -89,8 +89,8 @@ const indicatorItems: readonly NavigationItem[] = [
 	// ponytail: menu Import Data dinonaktifkan sementara (hemat storage Neon) — alur diarsipkan di docs/future_plan.md, restore 1 baris ini + tombol onImportClick
 ];
 
-// CORR-02: Penyerapan punya workspace sendiri; Tagihan masih berbagi route
-// Kontrak & Tagihan sampai workspace CORR-03..04 tiba. Route lama
+// CORR-03: Penyerapan + Deviasi punya workspace sendiri; Tagihan masih berbagi route
+// Kontrak & Tagihan sampai workspace CORR-04 tiba. Route lama
 // (/operator/simulation, /operator/analysis, /operator/data/*) tetap terdaftar
 // tapi tak di-link dari sidebar — analysis dijangkau via "Lihat semua" Dashboard (CORR-05).
 
