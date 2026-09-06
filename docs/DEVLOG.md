@@ -2,6 +2,66 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 120 - 2026-09-06
+**Time:** Start: 12:03 UTC | End: 12:08 UTC | Duration: ~5 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [NAV-RESP-01] Perbaikan Responsivitas Mobile Dialog Menu "Lainnya" (`operator-navigation` & `admin-navigation`) dengan Bottom-Sheet Scrollable `max-h-[85dvh]` & Header/Footer Sticky
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/layout/operator-navigation.tsx`:
+    - Mengonfigurasi `Dialog.Content` menu "Lainnya" pada mobile mode dengan `flex flex-col max-h-[85dvh]` dan backdrop blur `bg-foreground/40 backdrop-blur-xs`.
+    - Menambahkan drag handle visual indicator di bagian atas dialog bottom-sheet.
+    - Menjadikan header dialog (judul & tombol Tutup) dan footer (tombol Keluar dari Sesi Operator) tetap terkunci (`shrink-0`) di atas dan bawah.
+    - Menjadikan daftar tautan navigasi scrollable secara vertikal (`flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3 space-y-1`) sehingga seluruh 11 item menu dapat digulir dengan mulus pada viewport pendek (misalnya 828×637).
+    - Menambahkan trigger auto-close `onClick={() => setIsMoreOpen(false)}` saat salah satu menu diklik agar sheet otomatis tertutup saat berpindah halaman.
+  - `apps/web/src/components/layout/admin-navigation.tsx`:
+    - Menerapkan perbaikan layout bottom-sheet responsive serupa pada dialog menu mobile admin.
+  - `docs/BACKLOG.md`: Menambahkan task NAV-RESP-01 (Completed).
+- Files untouched (sengaja): core ikpa engine; schema DB; Admin routes; F13.
+- Verifikasi:
+  - `npx vitest run`: 76/76 unit tests di `apps/web` lulus 100%.
+  - `npm test`: Seluruh unit test suite monorepo lulus 100% (108/108 tests).
+  - `npm run typecheck`: 0 errors di seluruh 7 package/workspace monorepo.
+  - `npm run build`: Production client & SSR bundle build 100% sukses (6.36s).
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback/iterasi berikutnya dari user.
+
+### Session 119 - 2026-09-06
+**Time:** Start: 11:35 UTC | End: 11:55 UTC | Duration: ~20 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [DEV-FIX-2] Unifikasi Menu Deviasi Halaman III DIPA: Halaman Data & Perhitungan Riil sebagai Tampilan Utama Default di `/operator/deviasi` dengan Proporsi Pagu Terkini, What-If Simulasi sebagai Opsi Tab, dan Auto-Redirect `/operator/data/rpd-realization`
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/deviasi.tsx`:
+    - Menyatukan halaman Data & Perhitungan Riil dan Simulasi What-If ke dalam satu hub terpadu dengan segmented control tab switch (`?tab=data` vs `?tab=simulation`).
+    - Menjadikan **Tab 1 ("Data & Perhitungan")** sebagai tampilan utama default saat menu Deviasi Halaman III DIPA diklik dari navigasi sidebar ataupun saat mengakses `/operator/deviasi`.
+    - Menampilkan banner **Pagu Terkini & Bobot Proporsi Belanja (51, 52, 53, 57)** dengan perhitungan proporsi pagu berbasis nilai pagu belanja aktif terkini ($W_i = \text{Pagu}_i / \text{Total Pagu Terkini}$) yang sinkron dengan pagu awal dan pengesahan revisi DIPA.
+    - Tab 1 menyediakan: (1) Selector pills bulan Januari–Desember dengan catatan pengecualian Desember, (2) 5 kartu nilai IKPA, deviasi rata-rata dinamis $n$ bulan, deviasi bulan terpilih, sisa toleransi 5%, dan kontribusi 15%, (3) Pengingat batas waktu revisi RPD triwulanan H+10 hari kerja PER-5/PB/2024, (4) Tabel data 4 jenis belanja dengan tombol Ubah yang membuka drawer drawer input RPD dan Realisasi beserta live preview dampak ke deviasi dan skor IKPA, (5) Jejak step-by-step trace lengkap Jan–Nov, dan (6) Proyeksi target bulan depan & strategi satker.
+    - Menjadikan **Tab 2 ("Simulasi What-If")** sebagai ruang simulasi interaktif di mana data aktual s.d. bulan berjalan terkunci 🔒 dan bulan masa depan berwarna kuning dapat diedit secara live dengan kartu perbandingan dampak delta serta tombol simpan skenario snapshot IKPA.
+  - `apps/web/src/routes/operator/data/rpd-realization.tsx`:
+    - Mengonfigurasi `beforeLoad` route agar otomatis melakukan `redirect({ to: "/operator/deviasi", search: { tab: "data", org } })` sehingga semua deep link, bookmark, dan navigasi lama langsung terhubung ke hub utama Deviasi Halaman III DIPA yang baru.
+  - `docs/BACKLOG.md`: Menambahkan task DEV-FIX-2 (Completed).
+- Files untouched (sengaja): core ikpa engine; schema DB; Admin; F13.
+- Verifikasi:
+  - `npx vitest run`: 76/76 unit tests di `apps/web` lulus 100%.
+  - `npm test`: Seluruh unit test suite monorepo lulus 100% (108/108 tests).
+  - `npm run typecheck`: 0 errors di seluruh 7 package/workspace monorepo.
+  - `npm run build`: Production build client dan SSR bundle 100% sukses (built in 7.34s).
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback/iterasi berikutnya dari user.
+**Notes:**
+- Mengikuti panduan styling dan UX dari `ponytail` & `context7`: transisi tab mulus terikat URL state, visual hierarchy jelas dengan badge status kepatuhan, drawer live preview responsif, dan akurasi formula PER-5/PB/2024.
+
 ### Session 118 - 2026-09-06
 **Time:** Start: 11:12 UTC | End: 11:15 UTC | Duration: ~5 minutes
 - Status: Completed

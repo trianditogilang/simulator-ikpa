@@ -124,10 +124,12 @@ function NavigationLink({
 	item,
 	currentPath,
 	compact = false,
+	onClick,
 }: {
 	item: NavigationItem;
 	currentPath: string;
 	compact?: boolean;
+	onClick?: () => void;
 }) {
 	const Icon = item.icon;
 	const active = isAdminRouteActive(currentPath, item.href);
@@ -138,6 +140,7 @@ function NavigationLink({
 			className={navigationLinkClass(active, compact)}
 			data-active={active ? "true" : undefined}
 			href={item.href}
+			onClick={onClick}
 		>
 			<Icon aria-hidden="true" className="size-4 shrink-0" />
 			<span className={compact ? "max-w-full truncate" : "truncate"}>
@@ -309,38 +312,42 @@ export function AdminNavigation({
 								</button>
 							</Dialog.Trigger>
 							<Dialog.Portal>
-								<Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40" />
-								<Dialog.Content className="fixed inset-x-0 bottom-0 z-50 rounded-t-xl border border-border bg-background p-5 shadow-lg outline-none sm:mx-auto sm:max-w-lg">
-									<div className="flex items-center justify-between gap-4">
-										<Dialog.Title className="text-h3">
-											Menu Admin KPPN
-										</Dialog.Title>
+								<Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-xs" />
+								<Dialog.Content className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] flex-col rounded-t-2xl border border-border bg-background shadow-2xl outline-none sm:mx-auto sm:max-w-lg">
+									<div className="mx-auto mt-2.5 h-1.5 w-12 shrink-0 rounded-full bg-border" aria-hidden="true" />
+									<div className="flex shrink-0 items-center justify-between gap-4 border-b border-border/60 px-5 pb-3 pt-2">
+										<div>
+											<Dialog.Title className="text-sm font-bold text-foreground sm:text-base">
+												Menu Admin KPPN
+											</Dialog.Title>
+											<Dialog.Description className="text-xs text-muted-foreground">
+												Pilih menu administrasi KPPN lainnya.
+											</Dialog.Description>
+										</div>
 										<Dialog.Close asChild>
 											<button
-												className="min-h-10 rounded-md px-3 py-2 text-label text-muted-foreground hover:bg-surface-muted hover:text-foreground"
+												className="rounded-lg border border-border bg-surface-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-surface hover:text-foreground transition"
 												type="button"
 											>
 												Tutup
 											</button>
 										</Dialog.Close>
 									</div>
-									<Dialog.Description className="mt-1 text-body-small text-muted-foreground">
-										Pilih menu administrasi KPPN lainnya.
-									</Dialog.Description>
 									<nav
 										aria-label="Menu lainnya Admin KPPN"
-										className="mt-4 grid gap-1"
+										className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-3 space-y-1"
 									>
 										{moreItems.map((item) => (
 											<NavigationLink
 												currentPath={currentPath}
 												item={item}
 												key={item.href}
+												onClick={() => setIsMoreOpen(false)}
 											/>
 										))}
 									</nav>
-									<div className="mt-4 border-t border-border pt-3">
-										<SignOutAction className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-border bg-surface-muted px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface">
+									<div className="shrink-0 border-t border-border bg-background p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+										<SignOutAction className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-border bg-surface-muted px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface transition">
 											Keluar dari Sesi Admin
 										</SignOutAction>
 									</div>

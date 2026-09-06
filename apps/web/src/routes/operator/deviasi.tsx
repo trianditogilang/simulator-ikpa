@@ -1,21 +1,32 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
 	AlertCircle,
 	AlertTriangle,
+	Calendar,
 	CheckCircle2,
 	ChevronDown,
 	ChevronUp,
+	Coins,
+	FlaskConical,
 	HelpCircle,
 	Info,
+	Layers,
 	Lock,
 	Percent,
 	Save,
 	ShieldCheck,
+	SlidersHorizontal,
+	Sparkles,
 	Target,
 	TrendingUp,
 } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { useMemo, useState } from "react";
+import {
+	type ColumnDef,
+	DomainDataTable,
+} from "@/components/data/domain-data-table";
+import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { useActiveContext } from "@/components/layout/active-context";
 import { OperatorShell } from "@/components/layout/operator-shell";
@@ -24,19 +35,32 @@ import {
 	DEVIASI_ACCOUNTS,
 	buildDeviationInput,
 	calcDeviasiScore,
+	calcMonthDeviation,
 	calcNextMonthTarget,
 	calculateHistoricalTrail,
 	deviationOf,
+	getQuarterlyRpdReminders,
 	paguWeights,
 	type DeviasiAccount,
 	type MonthlyAmounts,
 	type PaguMap,
 } from "@/lib/simulation/deviasi-workspace";
 import { fetchBudgetAndRevisions } from "@/services/budget-revisions-service";
-import { fetchRpdAndRealizations } from "@/services/rpd-realization-service";
+import {
+	fetchRpdAndRealizations,
+	saveRealization,
+	saveRpdLine,
+} from "@/services/rpd-realization-service";
 import { executeSimulation } from "@/services/simulation-service";
 
 export const Route = createFileRoute("/operator/deviasi")({
+	validateSearch: (search: Record<string, unknown>) => ({
+		tab:
+			search.tab === "simulation"
+				? ("simulation" as const)
+				: ("data" as const),
+		org: typeof search.org === "string" ? search.org : undefined,
+	}),
 	loader: async ({ context }) => {
 		const activeOrgId =
 			context.auth?.isAuthenticated &&
@@ -73,11 +97,25 @@ const ACCOUNT_LABELS: Record<DeviasiAccount, string> = {
 	"51": "Belanja Pegawai (51)",
 	"52": "Belanja Barang (52)",
 	"53": "Belanja Modal (53)",
-	"57": "Bansos (57)",
+	"57": "Belanja Bansos (57)",
 };
 
-function parseAmount(value: string | undefined): number {
-	const n = Number(value);
+interface MonthlyAccountSummary {
+	id: string;
+	accountCode: DeviasiAccount;
+	accountName: string;
+	month: number;
+	rpdAmount: number;
+	realizationAmount: number;
+	deviationPercent: number;
+	weightPercent: number;
+	weightedDevPercent: number;
+	absorptionPercent: number;
+	status: "safe" | "warning" | "danger";
+}
+
+function parseNumber(val: string | undefined): number {
+	const n = Number(val);
 	return Number.isFinite(n) ? n : 0;
 }
 
@@ -90,45 +128,180 @@ function toMonthly(
 		if (!DEVIASI_ACCOUNTS.includes(code)) continue;
 		if (r.month < 1 || r.month > 12) continue;
 		const slot = map[r.month] ?? {};
-		if (slot[code] === undefined) slot[code] = parseAmount(r.amount);
+		if (slot[code] === undefined) slot[code] = parseNumber(r.amount);
 		map[r.month] = slot;
 	}
 	return map;
 }
 
 function DeviasiPage() {
+	const router = useRouter();
+	const { tab } = Route.useSearch();
+	const navigate = Route.useNavigate();
 	const { budgetData, rpdData } = Route.useLoaderData();
+
+	const activeTab = tab ?? "data";
+	const setActiveTab = (newTab: "data" | "simulation") => {
+		navigate({
+			search: (prev) => ({
+				tab: newTab,
+				org: prev.org,
+			}),
+		});
+	};
+
 	const activeContext = useActiveContext();
-	const currentMonth =
+	const selectedMonth =
 		activeContext?.context.period.kind === "month"
 			? activeContext.context.period.value
 			: new Date().getMonth() + 1;
+	const setSelectedMonth = (month: number) =>
+		activeContext?.setPeriod({ kind: "month", value: month });
+
+	const [actionMessage, setActionMessage] = useState<string | null>(null);
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const [isHelpOpen, setIsHelpOpen] = useState(false);
+	const [isTraceOpen, setIsTraceOpen] = useState(false);
+	const [isRpdDrawerOpen, setIsRpdDrawerOpen] = useState(false);
+	const [isRealDrawerOpen, setIsRealDrawerOpen] = useState(false);
+
+	const [formAccount, setFormAccount] = useState<DeviasiAccount>("51");
+	const [formMonth, setFormMonth] = useState<number>(selectedMonth);
+	const [formAmount, setFormAmount] = useState<string>("");
 
 	const [planRpd, setPlanRpd] = useState<Record<string, string>>({});
 	const [planReal, setPlanReal] = useState<Record<string, string>>({});
-	const [isHelpOpen, setIsHelpOpen] = useState(false);
-	const [isTraceOpen, setIsTraceOpen] = useState(false);
-	const [isSaving, setIsSaving] = useState(false);
-	const [saveMessage, setSaveMessage] = useState<string | null>(null);
-	const [saveError, setSaveError] = useState<string | null>(null);
+	const [isSavingScenario, setIsSavingScenario] = useState(false);
+	const [scenarioMessage, setScenarioMessage] = useState<string | null>(null);
+	const [scenarioError, setScenarioError] = useState<string | null>(null);
 
 	const pagu: PaguMap = useMemo(() => {
 		const map: PaguMap = {};
 		for (const b of budgetData.budgets) {
 			const code = b.accountCode as DeviasiAccount;
-			if (DEVIASI_ACCOUNTS.includes(code)) map[code] = parseAmount(b.amount);
+			if (DEVIASI_ACCOUNTS.includes(code)) {
+				map[code] = parseNumber(b.amount);
+			}
 		}
 		return map;
 	}, [budgetData]);
 
-	const rpd: MonthlyAmounts = useMemo(
+	const weights = useMemo(() => paguWeights(pagu), [pagu]);
+	const totalPaguTerkini = useMemo(() => {
+		return DEVIASI_ACCOUNTS.reduce((sum, acc) => sum + (pagu[acc] ?? 0), 0);
+	}, [pagu]);
+	const hasPagu = totalPaguTerkini > 0;
+
+	const rpdMap: MonthlyAmounts = useMemo(
 		() => toMonthly(rpdData.rpdLines),
 		[rpdData],
 	);
-	const actual: MonthlyAmounts = useMemo(
+	const realMap: MonthlyAmounts = useMemo(
 		() => toMonthly(rpdData.realizations),
 		[rpdData],
 	);
+
+	const evalMonth = Math.min(Math.max(selectedMonth, 1), 11);
+
+	const actualScoreObj = useMemo(
+		() =>
+			calcDeviasiScore(
+				buildDeviationInput(pagu, rpdMap, realMap, {}, {}, evalMonth),
+			),
+		[pagu, rpdMap, realMap, evalMonth],
+	);
+
+	const monthDevDetail = useMemo(
+		() =>
+			calcMonthDeviation(
+				rpdMap[selectedMonth] ?? {},
+				realMap[selectedMonth] ?? {},
+				pagu,
+			),
+		[rpdMap, realMap, pagu, selectedMonth],
+	);
+
+	const monthlyData: MonthlyAccountSummary[] = useMemo(() => {
+		return DEVIASI_ACCOUNTS.map((code) => {
+			const rpdVal = rpdMap[selectedMonth]?.[code] ?? 0;
+			const realVal = realMap[selectedMonth]?.[code] ?? 0;
+			const devPercent = deviationOf(rpdVal, realVal);
+			const weightPercent = (weights[code] ?? 0) * 100;
+			const weightedDevPercent = devPercent * (weights[code] ?? 0);
+			const absPercent = rpdVal > 0 ? (realVal / rpdVal) * 100 : 0;
+
+			let status: "safe" | "warning" | "danger" = "safe";
+			if (devPercent > 10) status = "danger";
+			else if (devPercent > 5) status = "warning";
+
+			return {
+				id: `${code}-${selectedMonth}`,
+				accountCode: code,
+				accountName: ACCOUNT_LABELS[code],
+				month: selectedMonth,
+				rpdAmount: rpdVal,
+				realizationAmount: realVal,
+				deviationPercent: devPercent,
+				weightPercent,
+				weightedDevPercent,
+				absorptionPercent: absPercent,
+				status,
+			};
+		});
+	}, [rpdMap, realMap, selectedMonth, weights]);
+
+	const historicalTrail = useMemo(
+		() => calculateHistoricalTrail(pagu, rpdMap, realMap, evalMonth),
+		[pagu, rpdMap, realMap, evalMonth],
+	);
+
+	const totalPlannedTrail = useMemo(() => {
+		return historicalTrail.reduce(
+			(sum, row) =>
+				sum +
+				(row.rpd["51"] ?? 0) +
+				(row.rpd["52"] ?? 0) +
+				(row.rpd["53"] ?? 0) +
+				(row.rpd["57"] ?? 0),
+			0,
+		);
+	}, [historicalTrail]);
+
+	const totalRealizedTrail = useMemo(() => {
+		return historicalTrail.reduce(
+			(sum, row) =>
+				sum +
+				(row.realized["51"] ?? 0) +
+				(row.realized["52"] ?? 0) +
+				(row.realized["53"] ?? 0) +
+				(row.realized["57"] ?? 0),
+			0,
+		);
+	}, [historicalTrail]);
+
+	const targetAnalysis = useMemo(
+		() =>
+			calcNextMonthTarget(
+				actualScoreObj.avgDeviation ?? 0,
+				actualScoreObj.monthsCount,
+				evalMonth < 11 ? evalMonth + 1 : 11,
+			),
+		[actualScoreObj, evalMonth],
+	);
+
+	const quarterlyReminders = useMemo(
+		() => getQuarterlyRpdReminders(selectedMonth),
+		[selectedMonth],
+	);
+
+	const activeQuarterReminder = useMemo(() => {
+		return (
+			quarterlyReminders.find((q) => q.isCurrentQuarter) ??
+			quarterlyReminders[0]
+		);
+	}, [quarterlyReminders]);
 
 	const planRpdAmounts: MonthlyAmounts = useMemo(() => {
 		const map: MonthlyAmounts = {};
@@ -137,7 +310,6 @@ function DeviasiPage() {
 			const month = Number(key.slice(0, sep));
 			const code = key.slice(sep + 1) as DeviasiAccount;
 			if (!DEVIASI_ACCOUNTS.includes(code)) continue;
-			if (!Number.isInteger(month) || month < 1 || month > 11) continue;
 			const raw = Number(planRpd[key]);
 			const slot = map[month] ?? {};
 			slot[code] = Number.isFinite(raw) && raw > 0 ? raw : 0;
@@ -153,7 +325,6 @@ function DeviasiPage() {
 			const month = Number(key.slice(0, sep));
 			const code = key.slice(sep + 1) as DeviasiAccount;
 			if (!DEVIASI_ACCOUNTS.includes(code)) continue;
-			if (!Number.isInteger(month) || month < 1 || month > 11) continue;
 			const raw = Number(planReal[key]);
 			const slot = map[month] ?? {};
 			slot[code] = Number.isFinite(raw) && raw > 0 ? raw : 0;
@@ -162,90 +333,40 @@ function DeviasiPage() {
 		return map;
 	}, [planReal]);
 
-	const evalActualMonth = Math.min(Math.max(currentMonth, 1), 11);
-
-	const planMonths = useMemo(() => {
+	const simMonths = useMemo(() => {
 		const months: number[] = [];
-		for (let m = currentMonth + 1; m <= 11; m++) months.push(m);
+		for (let m = evalMonth + 1; m <= 11; m++) months.push(m);
 		return months;
-	}, [currentMonth]);
+	}, [evalMonth]);
 
 	const actualMonths = useMemo(() => {
 		const months: number[] = [];
-		for (let m = 1; m <= evalActualMonth; m++) months.push(m);
+		for (let m = 1; m <= evalMonth; m++) months.push(m);
 		return months;
-	}, [evalActualMonth]);
+	}, [evalMonth]);
 
-	// Score with plan included (divisor n based on plan extent, max 11)
-	const score = useMemo(
+	const simScore = useMemo(
 		() =>
 			calcDeviasiScore(
 				buildDeviationInput(
 					pagu,
-					rpd,
-					actual,
+					rpdMap,
+					realMap,
 					planRpdAmounts,
 					planRealAmounts,
-					evalActualMonth,
+					evalMonth,
 				),
 			),
-		[pagu, rpd, actual, planRpdAmounts, planRealAmounts, evalActualMonth],
+		[pagu, rpdMap, realMap, planRpdAmounts, planRealAmounts, evalMonth],
 	);
 
-	// Actual score only (divisor n = current month)
-	const actualScore = useMemo(
-		() =>
-			calcDeviasiScore(
-				buildDeviationInput(pagu, rpd, actual, {}, {}, evalActualMonth),
-			),
-		[pagu, rpd, actual, evalActualMonth],
-	);
-
-	const planDelta =
-		score.score !== null && actualScore.score !== null
-			? score.score - actualScore.score
+	const simDelta =
+		simScore.score !== null && actualScoreObj.score !== null
+			? simScore.score - actualScoreObj.score
 			: null;
 
-	const weights = useMemo(() => paguWeights(pagu), [pagu]);
-	const hasPagu = DEVIASI_ACCOUNTS.some((a) => (pagu[a] ?? 0) > 0);
-	const hasPlan = Object.keys(planRpd).length + Object.keys(planReal).length > 0;
-
-	// Month rows for actual table
-	const monthRows = useMemo(() => {
-		return actualMonths.map((m) => {
-			let weighted = 0;
-			const perAcc = DEVIASI_ACCOUNTS.map((acc) => {
-				const planned = rpd[m]?.[acc] ?? 0;
-				const realized = actual[m]?.[acc] ?? 0;
-				const dev = deviationOf(planned, realized);
-				weighted += dev * (weights[acc] ?? 0);
-				return { acc, planned, realized, dev };
-			});
-			return { month: m, perAcc, weighted };
-		});
-	}, [actualMonths, rpd, actual, weights]);
-
-	// Historical trace up to simulation scope
-	const trail = useMemo(() => {
-		const mergedRpd: MonthlyAmounts = JSON.parse(JSON.stringify(rpd));
-		const mergedReal: MonthlyAmounts = JSON.parse(JSON.stringify(actual));
-		for (let m = evalActualMonth + 1; m <= score.monthsCount; m++) {
-			mergedRpd[m] = planRpdAmounts[m] ?? {};
-			mergedReal[m] = planRealAmounts[m] ?? {};
-		}
-		return calculateHistoricalTrail(pagu, mergedRpd, mergedReal, score.monthsCount);
-	}, [pagu, rpd, actual, planRpdAmounts, planRealAmounts, evalActualMonth, score.monthsCount]);
-
-	// Target projection
-	const targetAnalysis = useMemo(
-		() =>
-			calcNextMonthTarget(
-				actualScore.avgDeviation ?? 0,
-				actualScore.monthsCount,
-				evalActualMonth < 11 ? evalActualMonth + 1 : 11,
-			),
-		[actualScore, evalActualMonth],
-	);
+	const hasPlan =
+		Object.keys(planRpd).length + Object.keys(planReal).length > 0;
 
 	const setRpdValue = (month: number, acc: DeviasiAccount, raw: string) => {
 		const key = `${month}:${acc}`;
@@ -268,591 +389,1258 @@ function DeviasiPage() {
 	};
 
 	const handleSaveScenario = async () => {
-		setIsSaving(true);
-		setSaveMessage(null);
-		setSaveError(null);
+		setIsSavingScenario(true);
+		setScenarioMessage(null);
+		setScenarioError(null);
 
 		try {
-			const scoreValue = score.score !== null ? score.score.toFixed(2) : "100.00";
+			const scoreValue =
+				simScore.score !== null ? simScore.score.toFixed(2) : "100.00";
 			await executeSimulation({
-				period: { kind: "month", value: evalActualMonth },
+				period: { kind: "month", value: evalMonth },
 				simulationType: "scenario",
-				simulationName: `Skenario Deviasi Hal III s.d. ${MONTH_NAMES[evalActualMonth - 1]} (${scoreValue})`,
+				simulationName: `Skenario Deviasi Hal III s.d. ${MONTH_NAMES[evalMonth - 1]} (${scoreValue})`,
 				overrides: {
 					rpd_deviation: scoreValue,
 				},
 			});
 
-			setSaveMessage(
+			setScenarioMessage(
 				`Skenario simulasi Deviasi Hal III berhasil disimpan ke Riwayat Snapshot IKPA (Nilai ${scoreValue}).`,
 			);
-			setTimeout(() => setSaveMessage(null), 5000);
+			setTimeout(() => setScenarioMessage(null), 5000);
 		} catch (err: unknown) {
-			setSaveError(
-				err instanceof Error ? err.message : "Gagal menyimpan skenario simulasi.",
+			setScenarioError(
+				err instanceof Error
+					? err.message
+					: "Gagal menyimpan skenario simulasi.",
 			);
 		} finally {
-			setIsSaving(false);
+			setIsSavingScenario(false);
 		}
 	};
+
+	const handleSaveRpd = async () => {
+		setActionMessage(null);
+		setErrorMessage(null);
+		const val = Number.parseFloat(formAmount);
+
+		if (Number.isNaN(val) || val < 0) {
+			setErrorMessage(
+				"Nominal RPD harus berupa angka positif atau nol (tidak boleh negatif).",
+			);
+			return;
+		}
+
+		setIsSubmitting(true);
+		try {
+			await saveRpdLine({
+				month: formMonth,
+				accountCode: formAccount,
+				amount: val.toFixed(2),
+			});
+			setActionMessage(
+				`Target RPD ${ACCOUNT_LABELS[formAccount]} bulan ${MONTH_NAMES[formMonth - 1]} berhasil diperbarui.`,
+			);
+			setIsRpdDrawerOpen(false);
+			setFormAmount("");
+			await router.invalidate();
+			setTimeout(() => setActionMessage(null), 4000);
+		} catch (err: unknown) {
+			setErrorMessage(
+				err instanceof Error ? err.message : "Gagal menyimpan target RPD.",
+			);
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
+	const handleSaveRealization = async () => {
+		setActionMessage(null);
+		setErrorMessage(null);
+		const val = Number.parseFloat(formAmount);
+
+		if (Number.isNaN(val) || val < 0) {
+			setErrorMessage(
+				"Nominal Realisasi harus berupa angka positif atau nol (tidak boleh negatif).",
+			);
+			return;
+		}
+
+		setIsSubmitting(true);
+		try {
+			await saveRealization({
+				month: formMonth,
+				accountCode: formAccount,
+				amount: val.toFixed(2),
+			});
+			setActionMessage(
+				`Realisasi ${ACCOUNT_LABELS[formAccount]} bulan ${MONTH_NAMES[formMonth - 1]} berhasil diperbarui.`,
+			);
+			setIsRealDrawerOpen(false);
+			setFormAmount("");
+			await router.invalidate();
+			setTimeout(() => setActionMessage(null), 4000);
+		} catch (err: unknown) {
+			setErrorMessage(
+				err instanceof Error ? err.message : "Gagal menyimpan realisasi.",
+			);
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
+	const drawerPreview = useMemo(() => {
+		const rawNum = Number(formAmount);
+		const isNegative = Number.isFinite(rawNum) && rawNum < 0;
+		const isValidNum = Number.isFinite(rawNum) && !isNegative;
+		const newAmount = isValidNum ? rawNum : 0;
+
+		const isRpd = isRpdDrawerOpen;
+		const simRpd: MonthlyAmounts = JSON.parse(JSON.stringify(rpdMap));
+		const simReal: MonthlyAmounts = JSON.parse(JSON.stringify(realMap));
+
+		const m = Math.min(Math.max(formMonth, 1), 11);
+		if (isRpd) {
+			const s = simRpd[m] ?? {};
+			s[formAccount] = newAmount;
+			simRpd[m] = s;
+		} else {
+			const s = simReal[m] ?? {};
+			s[formAccount] = newAmount;
+			simReal[m] = s;
+		}
+
+		const planned = simRpd[m]?.[formAccount] ?? 0;
+		const realized = simReal[m]?.[formAccount] ?? 0;
+		const accDev = deviationOf(planned, realized);
+		const accWeighted = accDev * (weights[formAccount] ?? 0);
+
+		const monthDetail = calcMonthDeviation(
+			simRpd[m] ?? {},
+			simReal[m] ?? {},
+			pagu,
+		);
+		const newScoreObj = calcDeviasiScore(
+			buildDeviationInput(pagu, simRpd, simReal, {}, {}, m),
+		);
+
+		return {
+			isNegative,
+			isValid: isValidNum,
+			accDev,
+			accWeighted,
+			monthWeightedDev: monthDetail.monthWeightedDeviation,
+			newScore: newScoreObj.score,
+			newContribution: newScoreObj.contribution,
+			newAvg: newScoreObj.avgDeviation,
+			monthsCount: newScoreObj.monthsCount,
+		};
+	}, [
+		isRpdDrawerOpen,
+		formAmount,
+		formMonth,
+		formAccount,
+		rpdMap,
+		realMap,
+		weights,
+		pagu,
+	]);
+
+	const columns: ColumnDef<MonthlyAccountSummary>[] = [
+		{
+			key: "account",
+			header: "Jenis Belanja",
+			render: (item) => (
+				<div>
+					<span className="font-semibold text-foreground">
+						Akun {item.accountCode}
+					</span>
+					<p className="text-[11px] text-muted-foreground">
+						{item.accountName}
+					</p>
+				</div>
+			),
+		},
+		{
+			key: "rpd",
+			header: "Target RPD (Hal III DIPA)",
+			render: (item) => (
+				<div className="flex items-center justify-between gap-2">
+					<span className="font-medium text-foreground">
+						{formatRupiah(item.rpdAmount)}
+					</span>
+					<button
+						type="button"
+						onClick={() => {
+							setFormAccount(item.accountCode);
+							setFormMonth(selectedMonth);
+							setFormAmount(
+								item.rpdAmount > 0 ? item.rpdAmount.toString() : "",
+							);
+							setIsRpdDrawerOpen(true);
+						}}
+						className="text-[11px] font-semibold text-primary hover:underline"
+					>
+						Ubah
+					</button>
+				</div>
+			),
+		},
+		{
+			key: "realization",
+			header: "Realisasi SP2D",
+			render: (item) => (
+				<div className="flex items-center justify-between gap-2">
+					<span className="font-semibold text-foreground">
+						{formatRupiah(item.realizationAmount)}
+					</span>
+					<button
+						type="button"
+						onClick={() => {
+							setFormAccount(item.accountCode);
+							setFormMonth(selectedMonth);
+							setFormAmount(
+								item.realizationAmount > 0
+									? item.realizationAmount.toString()
+									: "",
+							);
+							setIsRealDrawerOpen(true);
+						}}
+						className="text-[11px] font-semibold text-primary hover:underline"
+					>
+						Ubah
+					</button>
+				</div>
+			),
+		},
+		{
+			key: "deviation",
+			header: "Deviasi Akun (%)",
+			render: (item) => (
+				<span
+					className={`font-semibold ${
+						item.status === "danger"
+							? "text-danger"
+							: item.status === "warning"
+								? "text-warning"
+								: "text-success"
+					}`}
+				>
+					{formatPercent(item.deviationPercent)}
+				</span>
+			),
+		},
+		{
+			key: "weight",
+			header: "Bobot Pagu Terkini (%)",
+			render: (item) => (
+				<span
+					title={`Pagu Akun ${item.accountCode}: ${formatRupiah(pagu[item.accountCode] ?? 0)} / Total Pagu: ${formatRupiah(totalPaguTerkini)}`}
+					className="text-xs font-medium text-muted-foreground"
+				>
+					{formatPercent(item.weightPercent)}
+				</span>
+			),
+		},
+		{
+			key: "weightedDev",
+			header: "Deviasi Tertimbang (%)",
+			render: (item) => (
+				<span
+					title={`${formatPercent(item.deviationPercent)} × ${formatPercent(item.weightPercent)}`}
+					className="font-bold text-foreground"
+				>
+					{formatPercent(item.weightedDevPercent)}
+				</span>
+			),
+		},
+		{
+			key: "status",
+			header: "Status Kepatuhan",
+			render: (item) => {
+				const badgeStyle =
+					item.status === "safe"
+						? "bg-success/10 text-success border border-success/20"
+						: item.status === "warning"
+							? "bg-warning/10 text-warning border border-warning/20"
+							: "bg-danger/10 text-danger border border-danger/20";
+
+				const label =
+					item.status === "safe"
+						? "Aman (nilai 100 jika avg ≤5%)"
+						: item.status === "warning"
+							? "Perhatian (>5% s.d. 10%)"
+							: "Menggerus nilai (>10%)";
+
+				return (
+					<span
+						className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold ${badgeStyle}`}
+					>
+						{label}
+					</span>
+				);
+			},
+		},
+	];
 
 	return (
 		<OperatorShell currentPath="/operator/deviasi">
 			<div className="space-y-6">
-				{/* Header with non-technical copy & Help dialog */}
-				<div className="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-border bg-surface p-5 shadow-xs">
-					<div className="flex items-start gap-3 max-w-3xl">
-						<div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-							<TrendingUp className="size-5" />
-						</div>
-						<div className="space-y-1">
-							<div className="flex items-center gap-2">
-								<h1 className="text-xl font-bold text-foreground">
-									Workspace Simulasi Deviasi Halaman III DIPA
-								</h1>
-								<span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
-									Bobot 15%
-								</span>
+				<div className="rounded-2xl border border-border bg-surface p-5 shadow-xs space-y-4">
+					<div className="flex flex-wrap items-start justify-between gap-4">
+						<div className="flex items-start gap-3.5 max-w-3xl">
+							<div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-xs">
+								<TrendingUp className="size-5" />
 							</div>
-							<p className="text-xs text-muted-foreground leading-relaxed">
-								Aktual s.d. <strong className="text-foreground">{MONTH_NAMES[evalActualMonth - 1]} terkunci 🔒</strong> · Rencana sisa tahun (Jan–Nov) dapat disimulasikan di sel kuning · Nilai IKPA terhitung otomatis berdasarkan proporsi pagu dan pembagi n bulan berjalan.
-							</p>
+							<div className="space-y-1">
+								<div className="flex items-center gap-2">
+									<h1 className="text-lg font-bold text-foreground sm:text-xl">
+										Deviasi Halaman III DIPA
+									</h1>
+									<span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+										Bobot 15% · Aturan 2026
+									</span>
+								</div>
+								<p className="text-xs text-muted-foreground leading-relaxed">
+									Menilai kesesuaian realisasi bulanan terhadap RPD Halaman III DIPA per jenis belanja (51, 52, 53, 57) dengan penimbang proporsi <strong className="text-foreground">pagu belanja aktif terkini</strong>. Periode evaluasi <strong className="text-foreground">Januari–November</strong> (Desember dikecualikan).
+								</p>
+							</div>
+						</div>
+
+						<div className="flex items-center gap-2">
+							<div className="inline-flex rounded-xl border border-border bg-background p-1 shadow-2xs">
+								<button
+									type="button"
+									onClick={() => setActiveTab("data")}
+									className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+										activeTab === "data"
+											? "bg-primary text-primary-foreground shadow-xs"
+											: "text-muted-foreground hover:text-foreground hover:bg-surface-muted"
+									}`}
+								>
+									<Layers className="size-3.5" />
+									<span>Data &amp; Perhitungan</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => setActiveTab("simulation")}
+									className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+										activeTab === "simulation"
+											? "bg-primary text-primary-foreground shadow-xs"
+											: "text-muted-foreground hover:text-foreground hover:bg-surface-muted"
+									}`}
+								>
+									<FlaskConical className="size-3.5" />
+									<span>Simulasi What-If</span>
+								</button>
+							</div>
+
+							<Dialog.Root open={isHelpOpen} onOpenChange={setIsHelpOpen}>
+								<Dialog.Trigger asChild>
+									<button
+										type="button"
+										aria-label="Lihat rumus singkat Deviasi Halaman III"
+										className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-sm font-bold text-muted-foreground hover:bg-surface-muted hover:text-foreground transition shadow-2xs"
+									>
+										<HelpCircle className="size-4" />
+									</button>
+								</Dialog.Trigger>
+								<Dialog.Portal>
+									<Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-xs" />
+									<Dialog.Content className="fixed inset-x-4 top-[10%] z-50 mx-auto max-w-lg rounded-2xl border border-border bg-background p-6 shadow-xl outline-none space-y-4">
+										<div className="flex items-center justify-between gap-4">
+											<Dialog.Title className="text-base font-bold text-foreground">
+												Rumus &amp; Ketentuan Deviasi Halaman III (2026)
+											</Dialog.Title>
+											<Dialog.Close asChild>
+												<button
+													type="button"
+													className="rounded-lg p-1 text-muted-foreground hover:bg-surface-muted hover:text-foreground"
+												>
+													✕
+												</button>
+											</Dialog.Close>
+										</div>
+										<Dialog.Description className="text-xs text-muted-foreground">
+											Sesuai PER-5/PB/2024 dan regulasi penilaian IKPA 2026:
+										</Dialog.Description>
+
+										<ul className="list-disc space-y-2 pl-5 text-xs text-foreground">
+											<li>
+												<strong>Deviasi Akun:</strong> min(100, |Realisasi − RPD| ÷ RPD × 100). Cap maksimal 100% per akun.
+											</li>
+											<li>
+												<strong>Kasus Khusus:</strong> RPD=0 dan Realisasi=0 → <strong>0%</strong>; RPD=0 dan Realisasi&gt;0 → <strong>100%</strong> (belanja tanpa rencana).
+											</li>
+											<li>
+												<strong>Deviasi Tertimbang:</strong> Deviasi Akun × (Pagu Terkini Akun ÷ Total Pagu Terkini 51+52+53+57).
+											</li>
+											<li>
+												<strong>Rata-rata Kumulatif:</strong> Jumlah Deviasi Bulanan dibagi <strong>n bulan berjalan</strong> (Jan s.d. bulan berjalan, maks 11).
+											</li>
+											<li>
+												<strong>Kriteria Nilai:</strong> Rata-rata 0–5% = <strong>100</strong>; Rata-rata &gt;5% = <strong>100 − rata-rata</strong> (contoh 6% → 94).
+											</li>
+											<li>
+												<strong>Pengecualian Desember:</strong> RPD &amp; Realisasi Desember tidak diperhitungkan dalam nilai Deviasi Halaman III.
+											</li>
+										</ul>
+									</Dialog.Content>
+								</Dialog.Portal>
+							</Dialog.Root>
 						</div>
 					</div>
 
-					<div className="flex items-center gap-2">
-						<a
-							href="/operator/data/rpd-realization"
-							className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-surface-muted transition"
-						>
-							Input Data RPD &amp; Realisasi →
-						</a>
-
-						<Dialog.Root open={isHelpOpen} onOpenChange={setIsHelpOpen}>
-							<Dialog.Trigger asChild>
-								<button
-									type="button"
-									aria-label="Lihat rumus singkat Deviasi Halaman III"
-									className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-sm font-bold text-muted-foreground hover:bg-surface-muted hover:text-foreground transition"
-								>
-									?
-								</button>
-							</Dialog.Trigger>
-							<Dialog.Portal>
-								<Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-xs" />
-								<Dialog.Content className="fixed inset-x-4 top-[10%] z-50 mx-auto max-w-lg rounded-2xl border border-border bg-background p-6 shadow-xl outline-none space-y-4">
-									<div className="flex items-center justify-between gap-4">
-										<Dialog.Title className="text-base font-bold text-foreground">
-											Rumus &amp; Ketentuan Deviasi Halaman III (2026)
-										</Dialog.Title>
-										<Dialog.Close asChild>
-											<button
-												type="button"
-												className="rounded-lg p-1 text-muted-foreground hover:bg-surface-muted hover:text-foreground"
-											>
-												✕
-											</button>
-										</Dialog.Close>
-									</div>
-									<Dialog.Description className="text-xs text-muted-foreground">
-										Sesuai PER-5/PB/2024 dan aturan penilaian IKPA 2026:
-									</Dialog.Description>
-
-									<ul className="list-disc space-y-2 pl-5 text-xs text-foreground">
-										<li>
-											<strong>Deviasi Akun:</strong> min(100, |Realisasi − RPD| ÷ RPD × 100). Cap maksimal 100% per akun.
-										</li>
-										<li>
-											<strong>Kasus Khusus:</strong> RPD=0 dan Realisasi=0 → <strong>0%</strong>; RPD=0 dan Realisasi&gt;0 → <strong>100%</strong> (belanja tanpa rencana).
-										</li>
-										<li>
-											<strong>Deviasi Tertimbang:</strong> Deviasi Akun × (Pagu Akun ÷ Total Pagu 51+52+53+57).
-										</li>
-										<li>
-											<strong>Rata-rata Kumulatif:</strong> Jumlah Deviasi Bulanan dibagi <strong>n bulan berjalan</strong> (Jan s.d. bulan berjalan, maks 11).
-										</li>
-										<li>
-											<strong>Kriteria Nilai:</strong> Rata-rata 0–5% = <strong>100</strong>; Rata-rata &gt;5% = <strong>100 − rata-rata</strong> (contoh 6% → 94).
-										</li>
-										<li>
-											<strong>Periode:</strong> Januari–November. Desember tidak masuk skor Deviasi.
-										</li>
-									</ul>
-								</Dialog.Content>
-							</Dialog.Portal>
-						</Dialog.Root>
+					<div className="grid grid-cols-1 gap-2 border-t border-border/60 pt-3 sm:grid-cols-3">
+						<div className="flex items-start gap-2 text-xs text-muted-foreground">
+							<span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+								1
+							</span>
+							<span>
+								Pagu dihitung dari <strong>pagu aktif terkini</strong> (Pagu Awal / Revisi DIPA).
+							</span>
+						</div>
+						<div className="flex items-start gap-2 text-xs text-muted-foreground">
+							<span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+								2
+							</span>
+							<span>
+								Isi <strong>RPD</strong> dan <strong>realisasi</strong> bulanan untuk memantau deviasi.
+							</span>
+						</div>
+						<div className="flex items-start gap-2 text-xs text-muted-foreground">
+							<span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+								3
+							</span>
+							<span>
+								Gunakan <strong>Simulasi What-If</strong> untuk memproyeksikan target sisa tahun.
+							</span>
+						</div>
 					</div>
 				</div>
 
-				{/* Pagu 0 Warning */}
 				{!hasPagu && (
 					<div className="flex items-center justify-between gap-3 rounded-xl border border-warning/30 bg-warning/10 p-4 text-xs font-medium text-warning shadow-xs">
 						<div className="flex items-center gap-2.5">
 							<AlertTriangle className="size-4 shrink-0" />
 							<p>
-								<strong>Pagu jenis belanja belum diisi.</strong> Bobot proporsi pagu (51, 52, 53, 57) belum bisa dihitung.
+								<strong>Pagu belanja belum dikonfigurasi.</strong> Proporsi bobot penimbang deviasi tidak dapat dihitung.
 							</p>
 						</div>
 						<a
 							href="/operator/data/budget-revisions"
 							className="shrink-0 font-bold underline underline-offset-2 hover:text-foreground"
 						>
-							Isi Pagu DIPA Sekarang →
+							Atur Pagu Awal DIPA Sekarang →
 						</a>
 					</div>
 				)}
 
-				{/* Save Scenario Feedback */}
-				{saveMessage && (
-					<output className="flex items-center justify-between gap-2.5 rounded-xl border border-success/30 bg-success/10 p-4 text-xs font-semibold text-success shadow-xs">
+				<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-3">
+					<div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/70 pb-2.5">
 						<div className="flex items-center gap-2">
-							<CheckCircle2 className="size-4 shrink-0" />
-							<p>{saveMessage}</p>
+							<Coins className="size-4 text-primary" />
+							<h2 className="text-xs font-bold text-foreground sm:text-sm">
+								Pagu Belanja Aktif Terkini &amp; Bobot Proporsi Penimbang
+							</h2>
 						</div>
 						<a
-							href="/operator/history"
-							className="underline underline-offset-2 hover:text-foreground"
+							href="/operator/data/budget-revisions"
+							className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
 						>
-							Buka Riwayat Snapshot →
+							<SlidersHorizontal className="size-3" />
+							<span>Kelola Pagu / Revisi DIPA →</span>
 						</a>
+					</div>
+
+					<div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+						<div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-1">
+							<span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">
+								Total Pagu Terkini
+							</span>
+							<p className="text-sm font-bold text-primary sm:text-base">
+								{formatRupiah(totalPaguTerkini)}
+							</p>
+							<span className="text-[10px] font-medium text-primary block">
+								100% Total Belanja
+							</span>
+						</div>
+
+						{DEVIASI_ACCOUNTS.map((acc) => {
+							const amount = pagu[acc] ?? 0;
+							const weightPct = (weights[acc] ?? 0) * 100;
+							return (
+								<div
+									key={acc}
+									className="rounded-xl border border-border bg-surface/50 p-3 space-y-1"
+								>
+									<div className="flex items-center justify-between">
+										<span className="text-[10px] font-bold text-foreground">
+											Akun {acc}
+										</span>
+										<span className="rounded-md bg-surface px-1.5 py-0.5 text-[10px] font-bold text-foreground">
+											{formatPercent(weightPct)}
+										</span>
+									</div>
+									<p className="text-xs font-semibold text-foreground truncate">
+										{formatRupiah(amount)}
+									</p>
+									<span className="text-[10px] text-muted-foreground block truncate">
+										{ACCOUNT_LABELS[acc]}
+									</span>
+								</div>
+							);
+						})}
+					</div>
+				</div>
+
+				{actionMessage && (
+					<output className="flex items-center gap-2.5 rounded-xl border border-success/30 bg-success/10 p-4 text-xs font-semibold text-success shadow-xs">
+						<CheckCircle2 className="size-4 shrink-0" />
+						<p>{actionMessage}</p>
 					</output>
 				)}
 
-				{saveError && (
+				{errorMessage && (
 					<div
 						role="alert"
 						className="flex items-center gap-2.5 rounded-xl border border-danger/30 bg-danger/10 p-4 text-xs font-semibold text-danger shadow-xs"
 					>
 						<AlertCircle className="size-4 shrink-0" />
-						<p>{saveError}</p>
+						<p>{errorMessage}</p>
 					</div>
 				)}
 
-				{/* 4 Score Cards (Simulasi vs Aktual vs Dampak vs Rata-rata) */}
-				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-					{/* Card 1: Skor Simulasi */}
-					<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
-						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">Skor Simulasi</span>
-							<ShieldCheck className="size-4 text-primary" />
-						</div>
-						<p className="text-2xl font-bold text-foreground">
-							{score.score !== null ? formatPercent(score.score) : "—"}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Kontribusi{" "}
-							{score.contribution !== null
-								? formatPercent(score.contribution)
-								: "—"}{" "}
-							· n = {score.monthsCount} bulan
-						</p>
-					</div>
+				{/* ========================================================================= */}
+				{/* TAB 1: DATA & PERHITUNGAN RIIL DEVIASI HALAMAN III (DEFAULT VIEW)         */}
+				{/* ========================================================================= */}
+				{activeTab === "data" && (
+					<div className="space-y-6">
+						{/* Month Selector Pills */}
+						<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-background p-3 shadow-xs">
+							<div className="flex items-center gap-2">
+								<Calendar className="size-4 text-muted-foreground ml-1" />
+								<span className="text-xs font-semibold text-foreground">
+									Pilih Bulan Evaluasi:
+								</span>
+							</div>
 
-					{/* Card 2: Skor Aktual Terkunci */}
-					<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
-						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">Skor Aktual DB</span>
-							<Lock className="size-4 text-muted-foreground" />
-						</div>
-						<p className="text-2xl font-bold text-foreground">
-							{actualScore.score !== null
-								? formatPercent(actualScore.score)
-								: "—"}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Terkunci s.d. {MONTH_NAMES[evalActualMonth - 1]} · n = {actualScore.monthsCount}
-						</p>
-					</div>
+							<div className="flex flex-wrap gap-1">
+								{MONTH_NAMES.map((name, idx) => {
+									const m = idx + 1;
+									const isSelected = selectedMonth === m;
+									const isDecember = m === 12;
 
-					{/* Card 3: Dampak Rencana */}
-					<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
-						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">Dampak Rencana</span>
-							<Target className="size-4 text-primary" />
-						</div>
-						<p
-							className={`text-2xl font-bold ${
-								planDelta !== null && planDelta > 0
-									? "text-success"
-									: planDelta !== null && planDelta < 0
-										? "text-danger"
-										: "text-foreground"
-							}`}
-						>
-							{planDelta !== null
-								? `${planDelta >= 0 ? "+" : ""}${formatPercent(planDelta)}`
-								: "—"}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							{planDelta !== null && planDelta > 0
-								? "Meningkatkan nilai"
-								: planDelta !== null && planDelta < 0
-									? "Menurunkan nilai"
-									: "Belum ada rencana baru"}
-						</p>
-					</div>
-
-					{/* Card 4: Rata-rata Deviasi */}
-					<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
-						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">Rata-rata Deviasi</span>
-							<Percent className="size-4 text-primary" />
-						</div>
-						<p
-							className={`text-2xl font-bold ${
-								score.avgDeviation !== null && score.avgDeviation > 10
-									? "text-danger"
-									: score.avgDeviation !== null && score.avgDeviation > 5
-										? "text-warning"
-										: "text-foreground"
-							}`}
-						>
-							{score.avgDeviation !== null
-								? formatPercent(score.avgDeviation)
-								: "—"}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Ambang batas ≤ 5.00%
-						</p>
-					</div>
-				</div>
-
-				{/* Action Strip: Save Simulation Scenario (DH-12) */}
-				<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 shadow-xs">
-					<div className="flex items-center gap-2.5">
-						<Info className="size-4 text-primary shrink-0" />
-						<p className="text-xs text-foreground">
-							Rencana sel kuning hanya aktif di simulasi ini dan <strong>tidak tersimpan ke Dashboard</strong> sampai Anda menekan <strong>Simpan Skenario</strong>.
-						</p>
-					</div>
-
-					<button
-						type="button"
-						onClick={handleSaveScenario}
-						disabled={isSaving}
-						className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition disabled:opacity-50"
-					>
-						<Save className="size-4" />
-						<span>{isSaving ? "Menyimpan..." : "Simpan Skenario IKPA"}</span>
-					</button>
-				</div>
-
-				{/* Table 1: Aktual Tahun Berjalan Terkunci */}
-				<section
-					aria-label="Aktual tahun berjalan terkunci"
-					className="space-y-3 rounded-2xl border border-border bg-background p-5 shadow-xs"
-				>
-					<div className="flex items-center justify-between gap-3">
-						<div className="flex items-center gap-2">
-							<Lock className="size-4 text-muted-foreground" />
-							<h2 className="text-sm font-bold text-foreground">
-								Aktual s.d. {MONTH_NAMES[evalActualMonth - 1]} (Terkunci dari Database)
-							</h2>
-						</div>
-						<a
-							href="/operator/data/rpd-realization"
-							className="shrink-0 text-xs font-semibold text-primary underline-offset-4 hover:underline"
-						>
-							Ubah Data Aktual di Tabel RPD →
-						</a>
-					</div>
-
-					<div className="overflow-x-auto">
-						<table className="w-full min-w-[640px] text-left text-xs">
-							<thead>
-								<tr className="border-b border-border text-muted-foreground font-semibold">
-									<th className="px-2 py-2">Bulan</th>
-									{DEVIASI_ACCOUNTS.map((acc) => (
-										<th
-											key={acc}
-											className="px-2 py-2 text-right font-semibold"
+									return (
+										<button
+											key={name}
+											type="button"
+											onClick={() => setSelectedMonth(m)}
+											className={`relative inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+												isSelected
+													? "bg-primary text-primary-foreground shadow-xs"
+													: "border border-border bg-surface text-muted-foreground hover:bg-surface-muted hover:text-foreground"
+											}`}
 										>
-											Dev {acc} ({ACCOUNT_LABELS[acc].split(" ")[1]})
-										</th>
-									))}
-									<th className="px-2 py-2 text-right font-semibold">
-										Deviasi Tertimbang
-									</th>
-								</tr>
-							</thead>
-							<tbody>
-								{monthRows.map((row) => (
-									<tr key={row.month} className="border-b border-border/60">
-										<td className="px-2 py-2 font-bold text-foreground">
-											{MONTH_NAMES[row.month - 1]}
-										</td>
-										{row.perAcc.map((c) => (
-											<td
-												key={c.acc}
-												className="px-2 py-2 text-right text-foreground"
-												title={`${ACCOUNT_LABELS[c.acc]} · RPD ${formatRupiah(c.planned)} · Realisasi ${formatRupiah(c.realized)}`}
-											>
-												{formatPercent(c.dev)}{" "}
+											<span>{name.slice(0, 3)}</span>
+											{isDecember && (
 												<span
-													aria-label="Terkunci"
-													title="Aktual dari database"
-													className="text-[10px] text-muted-foreground"
+													title="Desember dikecualikan dari penilaian Deviasi Hal III"
+													className="text-[9px] opacity-75"
 												>
-													🔒
+													*
 												</span>
-											</td>
-										))}
-										<td className="px-2 py-2 text-right font-bold text-foreground">
-											{formatPercent(row.weighted)}
-										</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
+											)}
+										</button>
+									);
+								})}
+							</div>
+						</div>
+
+						{/* Layout 2 Zona: Zona A (Tabel & Input Data) + Zona B (5 Sticky Score Cards) */}
+						<div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+							{/* ZONA A: Data Bulanan & Aksi Cepat (7 cols on lg) */}
+							<div className="space-y-4 lg:col-span-7">
+								{/* Card Ringkasan Bulan Terpilih */}
+								<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-3">
+									<div className="flex items-center justify-between">
+										<h2 className="text-sm font-bold text-foreground">
+											Data RPD vs Realisasi Bulan {MONTH_NAMES[selectedMonth - 1]}
+										</h2>
+										{selectedMonth === 12 && (
+											<span className="rounded-md bg-warning/10 px-2 py-0.5 text-[10px] font-bold text-warning">
+												Desember Dikecualikan dari Penilaian
+											</span>
+										)}
+									</div>
+
+									<div className="grid grid-cols-3 gap-2 text-xs">
+										<div className="rounded-lg bg-surface p-2.5 space-y-0.5">
+											<span className="text-[10px] text-muted-foreground block">
+												Total RPD Bulan Ini
+											</span>
+											<span className="font-bold text-foreground block truncate">
+												{formatRupiah(monthDevDetail.totalRpd)}
+											</span>
+										</div>
+										<div className="rounded-lg bg-surface p-2.5 space-y-0.5">
+											<span className="text-[10px] text-muted-foreground block">
+												Total Realisasi Bulan Ini
+											</span>
+											<span className="font-bold text-foreground block truncate">
+												{formatRupiah(monthDevDetail.totalReal)}
+											</span>
+										</div>
+										<div className="rounded-lg bg-surface p-2.5 space-y-0.5">
+											<span className="text-[10px] text-muted-foreground block">
+												Deviasi Tertimbang
+											</span>
+											<span
+												className={`font-extrabold block truncate ${
+													monthDevDetail.monthWeightedDeviation > 10
+														? "text-danger"
+														: monthDevDetail.monthWeightedDeviation > 5
+															? "text-warning"
+															: "text-success"
+												}`}
+											>
+												{formatPercent(monthDevDetail.monthWeightedDeviation)}
+											</span>
+										</div>
+									</div>
+								</div>
+
+								{/* Tabel 4 Akun Bulan Terpilih */}
+								<DomainDataTable
+									title={`Rincian 4 Jenis Belanja — ${MONTH_NAMES[selectedMonth - 1]}`}
+									data={monthlyData}
+									columns={columns}
+									totalCount={monthlyData.length}
+								/>
+
+								{/* Strip Pengingat H+10 Revisi RPD Triwulanan */}
+								<div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 shadow-xs space-y-2 text-xs">
+									<div className="flex items-center justify-between">
+										<p className="font-bold text-foreground flex items-center gap-1.5">
+											<Sparkles className="size-4 text-primary" />
+											<span>
+												Jadwal Pengajuan Revisi RPD Halaman III {activeQuarterReminder.label}
+											</span>
+										</p>
+										<span className="text-[11px] font-semibold text-primary">
+											Batas: {activeQuarterReminder.deadlineNotice}
+										</span>
+									</div>
+									<p className="text-muted-foreground leading-relaxed">
+										{activeQuarterReminder.recommendedAction}
+									</p>
+								</div>
+							</div>
+
+							{/* ZONA B: 5 Sticky Score Cards (5 cols on lg) */}
+							<div className="space-y-4 lg:col-span-5 lg:sticky lg:top-6">
+								<div className="rounded-2xl border border-border bg-surface p-5 shadow-xs space-y-4">
+									<div className="flex items-center justify-between border-b border-border/80 pb-3">
+										<h2 className="text-sm font-bold text-foreground">
+											Status Penilaian Deviasi Hal III
+										</h2>
+										<span className="text-[11px] font-semibold text-muted-foreground">
+											Evaluasi s.d. {MONTH_NAMES[evalMonth - 1]}
+										</span>
+									</div>
+
+									{/* 5 Cards */}
+									<div className="space-y-3">
+										{/* Card 1: Nilai IKPA Deviasi */}
+										<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+											<div className="flex items-center justify-between text-muted-foreground">
+												<span className="text-xs font-semibold">
+													Nilai IKPA Deviasi Hal III
+												</span>
+												<ShieldCheck className="size-4 text-primary" />
+											</div>
+											<p className="text-3xl font-extrabold text-primary">
+												{actualScoreObj.score !== null
+													? formatPercent(actualScoreObj.score)
+													: "—"}
+											</p>
+											<p className="text-[11px] text-muted-foreground">
+												{actualScoreObj.avgDeviation !== null &&
+												actualScoreObj.avgDeviation <= 5
+													? "Maksimal (Rata-rata ≤ 5%)"
+													: "100 − Rata-rata Deviasi"}
+											</p>
+										</div>
+
+										{/* Card 2: Rata-rata Deviasi Kumulatif */}
+										<div className="rounded-xl border border-border bg-background p-3.5 shadow-xs space-y-1">
+											<span className="text-[11px] font-semibold text-muted-foreground block">
+												Rata-rata Deviasi Kumulatif (Jan s.d. {MONTH_NAMES[evalMonth - 1]})
+											</span>
+											<p
+												className={`text-xl font-bold ${
+													actualScoreObj.avgDeviation !== null &&
+													actualScoreObj.avgDeviation > 5
+														? "text-warning"
+														: "text-foreground"
+												}`}
+											>
+												{actualScoreObj.avgDeviation !== null
+													? formatPercent(actualScoreObj.avgDeviation)
+													: "—"}
+											</p>
+											<p className="text-[10px] text-muted-foreground">
+												Ambang batas toleransi: <strong>≤ 5.00%</strong>
+											</p>
+										</div>
+
+										{/* Card 3: Pembagi n Bulan Berjalan */}
+										<div className="rounded-xl border border-border bg-background p-3.5 shadow-xs space-y-1">
+											<span className="text-[11px] font-semibold text-muted-foreground block">
+												Pembagi Bulan Berjalan (n)
+											</span>
+											<p className="text-xl font-bold text-foreground">
+												n = {actualScoreObj.monthsCount} Bulan
+											</p>
+											<p className="text-[10px] text-muted-foreground">
+												Januari s.d. {MONTH_NAMES[evalMonth - 1]} (Desember tidak dihitung)
+											</p>
+										</div>
+
+										{/* Card 4: Total RPD vs Realisasi Kumulatif */}
+										<div className="rounded-xl border border-border bg-background p-3.5 shadow-xs space-y-1">
+											<span className="text-[11px] font-semibold text-muted-foreground block">
+												Total RPD &amp; Realisasi s.d. {MONTH_NAMES[evalMonth - 1]}
+											</span>
+											<div className="flex items-center justify-between text-xs font-semibold text-foreground pt-0.5">
+												<span>RPD: {formatRupiah(totalPlannedTrail)}</span>
+												<span>Real: {formatRupiah(totalRealizedTrail)}</span>
+											</div>
+										</div>
+
+										{/* Card 5: Kontribusi Nilai Akhir IKPA */}
+										<div className="rounded-xl border border-success/20 bg-success/5 p-3.5 shadow-xs space-y-1">
+											<span className="text-[11px] font-semibold text-muted-foreground block">
+												Kontribusi ke Nilai Akhir IKPA (Bobot 15%)
+											</span>
+											<p className="text-xl font-extrabold text-success">
+												{actualScoreObj.contribution !== null
+													? `${actualScoreObj.contribution.toFixed(2)} pts`
+													: "—"}
+											</p>
+											<p className="text-[10px] text-muted-foreground">
+												Maksimal kontribusi: 15.00 poin
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						{/* Accordion: Cara Angka Ini Dihitung (Step-by-Step Trace) */}
+						<div className="rounded-2xl border border-border bg-surface p-4 shadow-xs space-y-3">
+							<button
+								type="button"
+								onClick={() => setIsTraceOpen(!isTraceOpen)}
+								className="flex w-full items-center justify-between text-left"
+							>
+								<div className="flex items-center gap-2">
+									<Info className="size-4 text-primary" />
+									<h2 className="text-xs font-bold text-foreground sm:text-sm">
+										Cara Angka Ini Dihitung (Step-by-Step Trace s.d. {MONTH_NAMES[evalMonth - 1]})
+									</h2>
+								</div>
+								{isTraceOpen ? (
+									<ChevronUp className="size-4 text-muted-foreground" />
+								) : (
+									<ChevronDown className="size-4 text-muted-foreground" />
+								)}
+							</button>
+
+							{isTraceOpen && (
+								<div className="border-t border-border/80 pt-3 space-y-3 text-xs">
+									<div className="overflow-x-auto rounded-xl border border-border bg-background">
+										<table className="w-full text-left text-xs">
+											<thead className="border-b border-border bg-surface/70 font-semibold text-muted-foreground">
+												<tr>
+													<th className="p-2.5">Bulan</th>
+													<th className="p-2.5">Deviasi Tertimbang</th>
+													<th className="p-2.5">RPD Total</th>
+													<th className="p-2.5">Realisasi Total</th>
+													<th className="p-2.5 text-right">Rata-rata Kumulatif</th>
+													<th className="p-2.5 text-right">Skor Kumulatif</th>
+												</tr>
+											</thead>
+											<tbody className="divide-y divide-border">
+												{historicalTrail.map((m) => {
+													const rpdTot =
+														(m.rpd["51"] ?? 0) +
+														(m.rpd["52"] ?? 0) +
+														(m.rpd["53"] ?? 0) +
+														(m.rpd["57"] ?? 0);
+													const realTot =
+														(m.realized["51"] ?? 0) +
+														(m.realized["52"] ?? 0) +
+														(m.realized["53"] ?? 0) +
+														(m.realized["57"] ?? 0);
+													return (
+														<tr key={m.month}>
+															<td className="p-2.5 font-medium text-foreground">
+																{MONTH_NAMES[m.month - 1]}
+															</td>
+															<td className="p-2.5 font-bold text-foreground">
+																{formatPercent(m.monthWeightedDev)}
+															</td>
+															<td className="p-2.5 text-muted-foreground">
+																{formatRupiah(rpdTot)}
+															</td>
+															<td className="p-2.5 text-muted-foreground">
+																{formatRupiah(realTot)}
+															</td>
+															<td className="p-2.5 text-right font-semibold text-foreground">
+																{formatPercent(m.cumulativeAvg)}
+															</td>
+															<td className="p-2.5 text-right font-bold text-primary">
+																{m.cumulativeScore.toFixed(2)}
+															</td>
+														</tr>
+													);
+												})}
+											</tbody>
+										</table>
+									</div>
+
+									<div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-1 text-xs">
+										<p className="font-semibold text-foreground">
+											Formula Kumulatif:
+										</p>
+										<p className="text-muted-foreground">
+											Rata-rata = (Jumlah Deviasi Tertimbang 1 s.d. {evalMonth}) ÷ {actualScoreObj.monthsCount} = <strong>{actualScoreObj.avgDeviation !== null ? formatPercent(actualScoreObj.avgDeviation) : "—"}</strong>
+										</p>
+										<p className="text-muted-foreground">
+											Nilai Akhir = {actualScoreObj.avgDeviation !== null && actualScoreObj.avgDeviation <= 5 ? "100.00 (Rata-rata ≤ 5%)" : `100 − ${actualScoreObj.avgDeviation?.toFixed(2)} = ${actualScoreObj.score?.toFixed(2)}`}
+										</p>
+									</div>
+								</div>
+							)}
+						</div>
+
+						{/* Panel Strategi & Proyeksi Target Bulan Berikutnya */}
+						<div className="rounded-2xl border border-border bg-background p-5 shadow-xs space-y-3">
+							<div className="flex items-center gap-2">
+								<Target className="size-4 text-primary" />
+								<h2 className="text-xs font-bold text-foreground sm:text-sm">
+									Proyeksi Target Deviasi Bulan Berikutnya ({MONTH_NAMES[evalMonth < 11 ? evalMonth : 10]})
+								</h2>
+							</div>
+
+							<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 text-xs">
+								<div className="rounded-xl border border-border bg-surface p-3.5 space-y-1">
+									<span className="text-[11px] font-semibold text-muted-foreground block">
+										Batas Maksimal Deviasi Bulan Depan agar Nilai Tetap 100
+									</span>
+									<p className="text-lg font-bold text-success">
+										{targetAnalysis.isReachable
+											? formatPercent(Math.max(0, targetAnalysis.targetPerMonth))
+											: "Batas terlampaui"}
+									</p>
+									<p className="text-[10px] text-muted-foreground">
+										{targetAnalysis.isReachable
+											? `Agar rata-rata kumulatif tetap ≤ 5.00% pada bulan ${MONTH_NAMES[evalMonth < 11 ? evalMonth : 10]}.`
+											: `Proyeksi skor tertinggi yang dapat dicapai: ${targetAnalysis.bestPossibleScore.toFixed(2)}.`}
+									</p>
+								</div>
+
+								<div className="rounded-xl border border-border bg-surface p-3.5 space-y-1">
+									<span className="text-[11px] font-semibold text-muted-foreground block">
+										Rekomendasi Tindakan Operator
+									</span>
+									<p className="text-xs font-medium text-foreground leading-relaxed">
+										{targetAnalysis.message}
+									</p>
+								</div>
+							</div>
+						</div>
 					</div>
+				)}
 
-					<p className="text-[11px] text-muted-foreground">
-						Deviasi per akun = |Realisasi − RPD| ÷ RPD (cap 100%). Arahkan kursor untuk melihat nominal detail. Proporsi pagu:{" "}
-						{DEVIASI_ACCOUNTS.map(
-							(a) => `${a} (${formatPercent((weights[a] ?? 0) * 100)})`,
-						).join(" · ")}
-					</p>
-				</section>
-
-				{/* Table 2: Rencana Sisa Tahun Editable (Jan–Nov) */}
-				<section
-					aria-label="Rencana sisa tahun"
-					className="space-y-4 rounded-2xl border border-border bg-background p-5 shadow-xs"
-				>
-					<div className="flex items-center justify-between gap-3">
-						<div>
-							<h2 className="text-sm font-bold text-foreground">
-								Rencana Sisa Tahun (Jan–Nov) · Simulasi Mandiri
-							</h2>
-							<p className="text-xs text-muted-foreground">
-								Masukkan rencana target RPD dan estimasi realisasi untuk bulan-bulan mendatang.
+				{/* ========================================================================= */}
+				{/* TAB 2: SIMULASI & SKENARIO WHAT-IF (OPSI TAMBAHAN)                        */}
+				{/* ========================================================================= */}
+				{activeTab === "simulation" && (
+					<div className="space-y-6">
+						{/* Simulation Banner */}
+						<div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 shadow-xs space-y-2">
+							<div className="flex flex-wrap items-center justify-between gap-3">
+								<div className="flex items-center gap-2">
+									<FlaskConical className="size-4 text-primary" />
+									<h2 className="text-sm font-bold text-foreground">
+										Workspace Simulasi Rencana Penarikan Sisa Tahun
+									</h2>
+								</div>
+								<span className="text-xs text-muted-foreground">
+									Aktual s.d. <strong>{MONTH_NAMES[evalMonth - 1]}</strong> terkunci 🔒
+								</span>
+							</div>
+							<p className="text-xs text-muted-foreground leading-relaxed">
+								Masukkan rencana target RPD dan estimasi realisasi untuk bulan-bulan mendatang pada sel kuning di bawah. Sistem akan seketika menghitung dampak perubahan terhadap nilai akhir IKPA Deviasi Halaman III.
 							</p>
 						</div>
 
-						{hasPlan && (
+						{/* Save Scenario Feedback */}
+						{scenarioMessage && (
+							<output className="flex items-center justify-between gap-2.5 rounded-xl border border-success/30 bg-success/10 p-4 text-xs font-semibold text-success shadow-xs">
+								<div className="flex items-center gap-2">
+									<CheckCircle2 className="size-4 shrink-0" />
+									<p>{scenarioMessage}</p>
+								</div>
+								<a
+									href="/operator/history"
+									className="underline underline-offset-2 hover:text-foreground font-bold"
+								>
+									Buka Riwayat Snapshot →
+								</a>
+							</output>
+						)}
+
+						{scenarioError && (
+							<div
+								role="alert"
+								className="flex items-center gap-2.5 rounded-xl border border-danger/30 bg-danger/10 p-4 text-xs font-semibold text-danger shadow-xs"
+							>
+								<AlertCircle className="size-4 shrink-0" />
+								<p>{scenarioError}</p>
+							</div>
+						)}
+
+						{/* 4 Score Cards (Simulasi vs Aktual vs Dampak vs Rata-rata) */}
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+							{/* Card 1: Skor Simulasi */}
+							<div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 shadow-xs space-y-1">
+								<div className="flex items-center justify-between text-muted-foreground">
+									<span className="text-xs font-semibold text-foreground">
+										Skor Simulasi
+									</span>
+									<ShieldCheck className="size-4 text-primary" />
+								</div>
+								<p className="text-2xl font-extrabold text-primary">
+									{simScore.score !== null ? formatPercent(simScore.score) : "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									Kontribusi{" "}
+									{simScore.contribution !== null
+										? formatPercent(simScore.contribution)
+										: "—"}{" "}
+									· n = {simScore.monthsCount} bulan
+								</p>
+							</div>
+
+							{/* Card 2: Aktual Terkunci */}
+							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
+								<div className="flex items-center justify-between text-muted-foreground">
+									<span className="text-xs font-semibold">Aktual Terkunci</span>
+									<Lock className="size-4 text-muted-foreground" />
+								</div>
+								<p className="text-2xl font-bold text-foreground">
+									{actualScoreObj.score !== null
+										? formatPercent(actualScoreObj.score)
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									s.d. {MONTH_NAMES[evalMonth - 1]} · n = {actualScoreObj.monthsCount} bulan
+								</p>
+							</div>
+
+							{/* Card 3: Dampak Skenario (Delta) */}
+							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
+								<div className="flex items-center justify-between text-muted-foreground">
+									<span className="text-xs font-semibold">Dampak Rencana (Δ)</span>
+									<Target className="size-4 text-muted-foreground" />
+								</div>
+								<p
+									className={`text-2xl font-bold ${
+										simDelta === null || simDelta === 0
+											? "text-muted-foreground"
+											: simDelta > 0
+												? "text-success"
+												: "text-danger"
+									}`}
+								>
+									{simDelta !== null
+										? `${simDelta > 0 ? "+" : ""}${formatPercent(simDelta)}`
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									{simDelta !== null && simDelta > 0
+										? "Meningkatkan nilai akhir"
+										: simDelta !== null && simDelta < 0
+											? "Menurunkan nilai akhir"
+											: "Belum ada perubahan simulasi"}
+								</p>
+							</div>
+
+							{/* Card 4: Rata-rata Deviasi Simulasi */}
+							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
+								<div className="flex items-center justify-between text-muted-foreground">
+									<span className="text-xs font-semibold">Rata-rata Deviasi</span>
+									<Percent className="size-4 text-muted-foreground" />
+								</div>
+								<p className="text-2xl font-bold text-foreground">
+									{simScore.avgDeviation !== null
+										? formatPercent(simScore.avgDeviation)
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									Target ambang batas: <strong>≤ 5.00%</strong>
+								</p>
+							</div>
+						</div>
+
+						{/* Simulation Action Strip */}
+						<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface p-4 shadow-xs">
+							<div className="flex items-center gap-2">
+								<Sparkles className="size-4 text-primary" />
+								<span className="text-xs font-semibold text-foreground">
+									Simpan Skenario Simulasi ke Riwayat Snapshot
+								</span>
+							</div>
+
 							<button
 								type="button"
-								onClick={() => {
-									setPlanRpd({});
-									setPlanReal({});
-								}}
-								className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-surface-muted hover:text-foreground transition"
+								disabled={isSavingScenario || !hasPlan}
+								onClick={handleSaveScenario}
+								className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
 							>
-								Reset Rencana
+								<Save className="size-3.5" />
+								<span>
+									{isSavingScenario ? "Menyimpan Skenario..." : "Simpan Skenario IKPA"}
+								</span>
 							</button>
-						)}
-					</div>
-
-					{planMonths.length === 0 ? (
-						<p className="rounded-xl border border-border bg-surface p-4 text-xs text-muted-foreground">
-							Sudah bulan November/Desember — seluruh periode penilaian (Jan–Nov) telah memiliki data aktual.
-						</p>
-					) : (
-						<div className="space-y-4">
-							{planMonths.map((m) => (
-								<div key={m} className="rounded-xl border border-border bg-surface/40 p-4 space-y-3">
-									<div className="flex items-center justify-between">
-										<span className="text-xs font-bold text-foreground">
-											Bulan {MONTH_NAMES[m - 1]} 2026
-										</span>
-										<span className="text-[11px] text-muted-foreground">
-											Simulasi sisa tahun
-										</span>
-									</div>
-
-									<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-										{DEVIASI_ACCOUNTS.map((acc) => (
-											<div key={acc} className="space-y-1.5 rounded-lg border border-yellow-200 bg-yellow-50/50 p-2.5">
-												<div className="flex items-center justify-between text-[11px] font-bold text-foreground">
-													<span>Akun {acc}</span>
-													<span className="text-[10px] text-muted-foreground">
-														Bobot {formatPercent((weights[acc] ?? 0) * 100)}
-													</span>
-												</div>
-
-												<div className="space-y-1">
-													<label
-														htmlFor={`rpd-${m}-${acc}`}
-														className="text-[10px] font-semibold text-muted-foreground"
-													>
-														Rencana RPD
-													</label>
-													<FormattedNumberInput
-														id={`rpd-${m}-${acc}`}
-														value={planRpd[`${m}:${acc}`] ?? ""}
-														placeholder="Target RPD"
-														onChange={(raw) => setRpdValue(m, acc, raw)}
-														className="w-full rounded-md border border-yellow-300 bg-white px-2 py-1 text-right text-xs text-foreground focus:border-primary focus:outline-none"
-													/>
-												</div>
-
-												<div className="space-y-1">
-													<label
-														htmlFor={`real-${m}-${acc}`}
-														className="text-[10px] font-semibold text-muted-foreground"
-													>
-														Rencana Realisasi
-													</label>
-													<FormattedNumberInput
-														id={`real-${m}-${acc}`}
-														value={planReal[`${m}:${acc}`] ?? ""}
-														placeholder="Realisasi"
-														onChange={(raw) => setRealValue(m, acc, raw)}
-														className="w-full rounded-md border border-yellow-300 bg-white px-2 py-1 text-right text-xs text-foreground focus:border-primary focus:outline-none"
-													/>
-												</div>
-											</div>
-										))}
-									</div>
-								</div>
-							))}
 						</div>
-					)}
-				</section>
 
-				{/* Accordion / Trail "Cara Angka Ini Dihitung" (DH-08) */}
-				<div className="rounded-2xl border border-border bg-background shadow-xs overflow-hidden">
-					<button
-						type="button"
-						onClick={() => setIsTraceOpen(!isTraceOpen)}
-						className="flex w-full items-center justify-between p-4 text-left transition hover:bg-surface-muted"
-					>
-						<div className="flex items-center gap-2">
-							<HelpCircle className="size-4 text-primary" />
-							<span className="text-xs font-bold text-foreground uppercase tracking-wide">
-								Cara Angka Ini Dihitung (Jejak Simulasi Kumulatif Jan–{MONTH_NAMES[score.monthsCount - 1]})
-							</span>
-						</div>
-						<div className="flex items-center gap-2 text-xs text-muted-foreground">
-							<span>{isTraceOpen ? "Sembunyikan" : "Tampilkan Rincian"}</span>
-							{isTraceOpen ? (
-								<ChevronUp className="size-4" />
-							) : (
-								<ChevronDown className="size-4" />
-							)}
-						</div>
-					</button>
+						{/* Simulation What-If Table for Future Months */}
+						<div className="rounded-2xl border border-border bg-background p-5 shadow-xs space-y-4">
+							<div>
+								<h3 className="text-sm font-bold text-foreground">
+									Tabel Rencana RPD &amp; Realisasi Sisa Tahun (Sel Kuning = Simulasi)
+								</h3>
+								<p className="text-xs text-muted-foreground">
+									Bulan Januari s.d. {MONTH_NAMES[evalMonth - 1]} terkunci sesuai data aktual. Bulan mendatang dapat diubah bebas untuk what-if analysis.
+								</p>
+							</div>
 
-					{isTraceOpen && (
-						<div className="border-t border-border p-4 space-y-4">
 							<div className="overflow-x-auto">
-								<table className="w-full min-w-[720px] text-left text-xs">
+								<table className="w-full text-left text-xs border-collapse">
 									<thead>
-										<tr className="border-b border-border text-muted-foreground font-semibold">
-											<th className="px-2 py-2">Bulan</th>
-											<th className="px-2 py-2 text-right">RPD (51+52+53+57)</th>
-											<th className="px-2 py-2 text-right">Realisasi</th>
-											<th className="px-2 py-2 text-right">Deviasi Bulan</th>
-											<th className="px-2 py-2 text-right">Objek (n)</th>
-											<th className="px-2 py-2 text-right">Rata-rata Kumulatif</th>
-											<th className="px-2 py-2 text-right">Nilai IKPA</th>
-											<th className="px-2 py-2 text-center">Tipe</th>
+										<tr className="border-b border-border bg-surface/70 font-semibold text-muted-foreground">
+											<th className="p-3">Bulan</th>
+											{DEVIASI_ACCOUNTS.map((acc) => (
+												<th key={acc} className="p-3 text-center">
+													{ACCOUNT_LABELS[acc]}
+												</th>
+											))}
+											<th className="p-3 text-right">Deviasi Tertimbang</th>
 										</tr>
 									</thead>
-									<tbody>
-										{trail.map((row) => (
-											<tr key={row.month} className="border-b border-border/60">
-												<td className="px-2 py-2 font-bold text-foreground">
-													{MONTH_NAMES[row.month - 1]}
-												</td>
-												<td className="px-2 py-2 text-right font-medium text-foreground">
-													{formatRupiah(
-														(row.rpd["51"] ?? 0) +
-															(row.rpd["52"] ?? 0) +
-															(row.rpd["53"] ?? 0) +
-															(row.rpd["57"] ?? 0),
-													)}
-												</td>
-												<td className="px-2 py-2 text-right font-medium text-foreground">
-													{formatRupiah(
-														(row.realized["51"] ?? 0) +
-															(row.realized["52"] ?? 0) +
-															(row.realized["53"] ?? 0) +
-															(row.realized["57"] ?? 0),
-													)}
-												</td>
-												<td className="px-2 py-2 text-right font-semibold text-foreground">
-													{formatPercent(row.monthWeightedDev)}
-												</td>
-												<td className="px-2 py-2 text-right text-muted-foreground font-semibold">
-													n = {row.month}
-												</td>
-												<td className="px-2 py-2 text-right font-bold text-foreground">
-													{formatPercent(row.cumulativeAvg)}
-												</td>
-												<td className="px-2 py-2 text-right font-bold text-primary">
-													{row.cumulativeScore.toFixed(2)}
-												</td>
-												<td className="px-2 py-2 text-center">
-													<span
-														className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold ${
-															row.month <= evalActualMonth
-																? "bg-muted text-foreground"
-																: "bg-yellow-100 text-yellow-800"
-														}`}
-													>
-														{row.month <= evalActualMonth ? "Aktual 🔒" : "Rencana ✏️"}
-													</span>
-												</td>
-											</tr>
-										))}
+									<tbody className="divide-y divide-border">
+										{/* 1. Actual Months Locked */}
+										{actualMonths.map((m) => {
+											const monthDev = calcMonthDeviation(
+												rpdMap[m] ?? {},
+												realMap[m] ?? {},
+												pagu,
+											);
+											return (
+												<tr key={m} className="bg-surface/20">
+													<td className="p-3 font-semibold text-foreground whitespace-nowrap">
+														<div className="flex items-center gap-1.5">
+															<Lock className="size-3 text-muted-foreground" />
+															<span>{MONTH_NAMES[m - 1]}</span>
+														</div>
+													</td>
+													{DEVIASI_ACCOUNTS.map((acc) => {
+														const rpdVal = rpdMap[m]?.[acc] ?? 0;
+														const realVal = realMap[m]?.[acc] ?? 0;
+														return (
+															<td key={acc} className="p-2.5 text-center">
+																<div className="text-[11px] text-muted-foreground space-y-0.5">
+																	<div>RPD: {formatRupiah(rpdVal)}</div>
+																	<div>Real: {formatRupiah(realVal)}</div>
+																</div>
+															</td>
+														);
+													})}
+													<td className="p-3 text-right font-bold text-foreground">
+														{formatPercent(monthDev.monthWeightedDeviation)}
+													</td>
+												</tr>
+											);
+										})}
+
+										{/* 2. Simulation Future Months */}
+										{simMonths.map((m) => {
+											const mergedRpd = {
+												...(rpdMap[m] ?? {}),
+												...(planRpdAmounts[m] ?? {}),
+											};
+											const mergedReal = {
+												...(realMap[m] ?? {}),
+												...(planRealAmounts[m] ?? {}),
+											};
+											const monthDev = calcMonthDeviation(
+												mergedRpd,
+												mergedReal,
+												pagu,
+											);
+
+											return (
+												<tr key={m} className="bg-warning/5">
+													<td className="p-3 font-semibold text-foreground whitespace-nowrap">
+														<div className="flex items-center gap-1.5">
+															<Sparkles className="size-3 text-warning" />
+															<span>{MONTH_NAMES[m - 1]} (Rencana)</span>
+														</div>
+													</td>
+													{DEVIASI_ACCOUNTS.map((acc) => {
+														const currentRpd = planRpd[`${m}:${acc}`] ?? "";
+														const currentReal = planReal[`${m}:${acc}`] ?? "";
+
+														return (
+															<td key={acc} className="p-2.5">
+																<div className="space-y-1.5 min-w-[130px]">
+																	<FormattedNumberInput
+																		placeholder="RPD (Rp)"
+																		value={currentRpd}
+																		onChange={(val) => setRpdValue(m, acc, val)}
+																		className="min-h-8 w-full rounded-lg border border-warning/40 bg-warning/10 px-2 text-[11px] text-foreground focus:border-primary focus:outline-none"
+																	/>
+																	<FormattedNumberInput
+																		placeholder="Realisasi (Rp)"
+																		value={currentReal}
+																		onChange={(val) => setRealValue(m, acc, val)}
+																		className="min-h-8 w-full rounded-lg border border-warning/40 bg-warning/10 px-2 text-[11px] text-foreground focus:border-primary focus:outline-none"
+																	/>
+																</div>
+															</td>
+														);
+													})}
+													<td className="p-3 text-right font-extrabold text-foreground">
+														{formatPercent(monthDev.monthWeightedDeviation)}
+													</td>
+												</tr>
+											);
+										})}
 									</tbody>
 								</table>
 							</div>
 						</div>
-					)}
-				</div>
-
-				{/* Panel Strategi Satker & Target Bulan Depan (DH-11) */}
-				<div className="rounded-2xl border border-border bg-background p-5 shadow-xs space-y-4">
-					<div className="flex items-center gap-2">
-						<Target className="size-5 text-primary" />
-						<h2 className="text-sm font-bold text-foreground uppercase tracking-wide">
-							Strategi Kendali Deviasi &amp; Proyeksi Target
-						</h2>
 					</div>
+				)}
 
-					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-						<div className="space-y-2.5 text-xs text-muted-foreground">
-							<div className="flex items-start gap-2">
-								<span className="font-bold text-primary">1.</span>
-								<p>
-									<strong>Sinkronisasi RPD vs Kalender Kerja:</strong> Pastikan jadwal penarikan dana bulanan merefleksikan tanggal riil penyelesaian termin dan pengajuan SPM.
-								</p>
-							</div>
-							<div className="flex items-start gap-2">
-								<span className="font-bold text-primary">2.</span>
-								<p>
-									<strong>Koreksi Triwulanan:</strong> Manfaatkan periode pemutakhiran triwulan (Feb/Apr/Jul/Okt) sebelum batas kunci DIPA berakhir.
-								</p>
-							</div>
-							<div className="flex items-start gap-2">
-								<span className="font-bold text-primary">3.</span>
-								<p>
-									<strong>Komposisi Pagu Terbesar:</strong> Akun dengan bobot pagu terbesar (misal Belanja Barang / Modal) paling sensitif terhadap nilai deviasi tertimbang.
-								</p>
-							</div>
+				{/* Drawer RPD Line */}
+				<DomainFormDrawer
+					isOpen={isRpdDrawerOpen}
+					title={`Ubah Target RPD — ${ACCOUNT_LABELS[formAccount]} (${MONTH_NAMES[formMonth - 1]})`}
+					description="Rencana Penarikan Dana (RPD) pada Halaman III DIPA."
+					onClose={() => setIsRpdDrawerOpen(false)}
+					onSubmit={handleSaveRpd}
+					isSubmitting={isSubmitting}
+				>
+					<div className="space-y-4">
+						<div className="space-y-1.5">
+							<label
+								htmlFor="rpd-amount"
+								className="block text-xs font-semibold text-foreground"
+							>
+								Nominal Target RPD (Rp)
+							</label>
+							<FormattedNumberInput
+								id="rpd-amount"
+								required
+								placeholder="0"
+								value={formAmount}
+								onChange={setFormAmount}
+								disabled={isSubmitting}
+								className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
+							/>
 						</div>
 
-						<div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2.5">
-							<div className="flex items-center justify-between">
-								<span className="text-xs font-bold text-foreground">
-									Target Proyeksi Pemulihan Nilai 100
-								</span>
-								<span className="text-[11px] font-semibold text-primary">
-									n = {targetAnalysis.targetMonth}
-								</span>
-							</div>
-							<p className="text-xs text-foreground leading-relaxed">
-								{targetAnalysis.message}
+						{/* Live Impact Preview */}
+						<div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 space-y-2 text-xs">
+							<p className="font-semibold text-foreground flex items-center gap-1.5">
+								<Info className="size-3.5 text-primary" />
+								<span>Live Preview Dampak Deviasi</span>
 							</p>
-							<div className="border-t border-primary/10 pt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-								<span>Rata-rata aktual: <strong>{formatPercent(actualScore.avgDeviation ?? 0)}</strong></span>
-								<span>Skor aktual: <strong>{actualScore.score?.toFixed(2) ?? "100.00"}</strong></span>
+							<div className="grid grid-cols-2 gap-2 text-[11px]">
+								<div>
+									<span className="text-muted-foreground block">Deviasi Akun:</span>
+									<span className="font-bold text-foreground">
+										{formatPercent(drawerPreview.accDev)}
+									</span>
+								</div>
+								<div>
+									<span className="text-muted-foreground block">Deviasi Tertimbang Bulan Ini:</span>
+									<span className="font-bold text-foreground">
+										{formatPercent(drawerPreview.monthWeightedDev)}
+									</span>
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
+				</DomainFormDrawer>
+
+				{/* Drawer Realisasi Line */}
+				<DomainFormDrawer
+					isOpen={isRealDrawerOpen}
+					title={`Ubah Realisasi SP2D — ${ACCOUNT_LABELS[formAccount]} (${MONTH_NAMES[formMonth - 1]})`}
+					description="Realisasi belanja yang telah diterbitkan SP2D."
+					onClose={() => setIsRealDrawerOpen(false)}
+					onSubmit={handleSaveRealization}
+					isSubmitting={isSubmitting}
+				>
+					<div className="space-y-4">
+						<div className="space-y-1.5">
+							<label
+								htmlFor="real-amount"
+								className="block text-xs font-semibold text-foreground"
+							>
+								Nominal Realisasi SP2D (Rp)
+							</label>
+							<FormattedNumberInput
+								id="real-amount"
+								required
+								placeholder="0"
+								value={formAmount}
+								onChange={setFormAmount}
+								disabled={isSubmitting}
+								className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
+							/>
+						</div>
+
+						{/* Live Impact Preview */}
+						<div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 space-y-2 text-xs">
+							<p className="font-semibold text-foreground flex items-center gap-1.5">
+								<Info className="size-3.5 text-primary" />
+								<span>Live Preview Dampak Deviasi</span>
+							</p>
+							<div className="grid grid-cols-2 gap-2 text-[11px]">
+								<div>
+									<span className="text-muted-foreground block">Deviasi Akun:</span>
+									<span className="font-bold text-foreground">
+										{formatPercent(drawerPreview.accDev)}
+									</span>
+								</div>
+								<div>
+									<span className="text-muted-foreground block">Deviasi Tertimbang Bulan Ini:</span>
+									<span className="font-bold text-foreground">
+										{formatPercent(drawerPreview.monthWeightedDev)}
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</DomainFormDrawer>
 			</div>
 		</OperatorShell>
 	);
