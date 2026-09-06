@@ -837,6 +837,136 @@ function DeviasiPage() {
 					</div>
 				)}
 
+				{/* Box Status Penilaian Deviasi Hal III (Top Overview Banner) */}
+				<div className="rounded-2xl border border-border bg-surface p-4 shadow-xs space-y-3.5 sm:p-5">
+					<div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/70 pb-3">
+						<div className="flex items-center gap-2">
+							<ShieldCheck className="size-4 text-primary" />
+							<h2 className="text-xs font-bold text-foreground sm:text-sm">
+								Status Penilaian Deviasi Hal III
+							</h2>
+						</div>
+						<span className="rounded-md bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold text-primary">
+							Evaluasi s.d. {MONTH_NAMES[evalMonth - 1]} (n = {actualScoreObj.monthsCount} Bulan)
+						</span>
+					</div>
+
+					{/* 5 Score Cards in Balanced Horizontal Grid */}
+					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+						{/* Card 1: Nilai IKPA Deviasi */}
+						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+							<div className="flex items-center justify-between text-muted-foreground">
+								<span className="text-xs font-semibold">
+									Nilai IKPA Deviasi Hal III
+								</span>
+								<ShieldCheck className="size-4 text-primary" />
+							</div>
+							<p className="text-2xl font-extrabold text-primary sm:text-3xl">
+								{actualScoreObj.score !== null
+									? formatPercent(actualScoreObj.score)
+									: "—"}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								{actualScoreObj.avgDeviation !== null &&
+								actualScoreObj.avgDeviation <= 5
+									? "Maksimal (Rata-rata ≤ 5%)"
+									: "100 − Rata-rata Deviasi"}
+							</p>
+						</div>
+
+						{/* Card 2: Rata-rata Deviasi Kumulatif */}
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+							<div className="flex items-center justify-between text-muted-foreground">
+								<span className="text-xs font-semibold">
+									Rata-rata Deviasi
+								</span>
+								<Percent
+									className={`size-4 ${
+										actualScoreObj.avgDeviation !== null &&
+										actualScoreObj.avgDeviation > 10
+											? "text-danger"
+											: actualScoreObj.avgDeviation !== null &&
+												  actualScoreObj.avgDeviation > 5
+												? "text-warning"
+												: "text-success"
+									}`}
+								/>
+							</div>
+							<p
+								className={`text-2xl font-bold sm:text-3xl ${
+									actualScoreObj.avgDeviation !== null &&
+									actualScoreObj.avgDeviation > 10
+										? "text-danger"
+										: actualScoreObj.avgDeviation !== null &&
+											  actualScoreObj.avgDeviation > 5
+											? "text-warning"
+											: "text-foreground"
+								}`}
+							>
+								{actualScoreObj.avgDeviation !== null
+									? formatPercent(actualScoreObj.avgDeviation)
+									: "—"}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Ambang batas toleransi: <strong>≤ 5.00%</strong>
+							</p>
+						</div>
+
+						{/* Card 3: Pembagi n Bulan Berjalan */}
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+							<div className="flex items-center justify-between text-muted-foreground">
+								<span className="text-xs font-semibold">
+									Objek Penilaian (n)
+								</span>
+								<Calendar className="size-4 text-primary" />
+							</div>
+							<p className="text-2xl font-bold text-foreground sm:text-3xl">
+								n = {actualScoreObj.monthsCount} Bulan
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Januari s.d. {MONTH_NAMES[evalMonth - 1]}
+							</p>
+						</div>
+
+						{/* Card 4: Total RPD vs Realisasi Kumulatif */}
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+							<div className="flex items-center justify-between text-muted-foreground">
+								<span className="text-xs font-semibold">
+									Total s.d. {MONTH_NAMES[evalMonth - 1]}
+								</span>
+								<Coins className="size-4 text-primary" />
+							</div>
+							<div className="space-y-0.5 pt-0.5 text-xs font-semibold text-foreground">
+								<p className="truncate" title={`Realisasi: ${formatRupiah(totalRealizedTrail)}`}>
+									Real: <span className="font-bold">{formatRupiah(totalRealizedTrail)}</span>
+								</p>
+								<p className="truncate text-muted-foreground text-[11px]" title={`Target RPD: ${formatRupiah(totalPlannedTrail)}`}>
+									RPD: {formatRupiah(totalPlannedTrail)}
+								</p>
+							</div>
+						</div>
+
+						{/* Card 5: Kontribusi Nilai Akhir IKPA */}
+						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
+							<div className="flex items-center justify-between text-muted-foreground">
+								<span className="text-xs font-semibold">
+									Kontribusi IKPA (15%)
+								</span>
+								<Sparkles className="size-4 text-success" />
+							</div>
+							<p className="text-2xl font-extrabold text-success sm:text-3xl">
+								{actualScoreObj.contribution !== null
+									? `${actualScoreObj.contribution.toFixed(2)} pts`
+									: "—"}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Maksimal kontribusi: 15.00 poin
+							</p>
+						</div>
+					</div>
+				</div>
+
+				{/* Box Pagu Belanja Aktif Terkini & Bobot Proporsi Penimbang */}
 				<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-3">
 					<div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/70 pb-2.5">
 						<div className="flex items-center gap-2">
@@ -958,184 +1088,81 @@ function DeviasiPage() {
 							</div>
 						</div>
 
-						{/* Layout 2 Zona: Zona A (Tabel & Input Data) + Zona B (5 Sticky Score Cards) */}
-						<div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-							{/* ZONA A: Data Bulanan & Aksi Cepat (7 cols on lg) */}
-							<div className="space-y-4 lg:col-span-7">
-								{/* Card Ringkasan Bulan Terpilih */}
-								<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-3">
-									<div className="flex items-center justify-between">
-										<h2 className="text-sm font-bold text-foreground">
-											Data RPD vs Realisasi Bulan {MONTH_NAMES[selectedMonth - 1]}
-										</h2>
-										{selectedMonth === 12 && (
-											<span className="rounded-md bg-warning/10 px-2 py-0.5 text-[10px] font-bold text-warning">
-												Desember Dikecualikan dari Penilaian
-											</span>
-										)}
-									</div>
-
-									<div className="grid grid-cols-3 gap-2 text-xs">
-										<div className="rounded-lg bg-surface p-2.5 space-y-0.5">
-											<span className="text-[10px] text-muted-foreground block">
-												Total RPD Bulan Ini
-											</span>
-											<span className="font-bold text-foreground block truncate">
-												{formatRupiah(monthDevDetail.totalRpd)}
-											</span>
-										</div>
-										<div className="rounded-lg bg-surface p-2.5 space-y-0.5">
-											<span className="text-[10px] text-muted-foreground block">
-												Total Realisasi Bulan Ini
-											</span>
-											<span className="font-bold text-foreground block truncate">
-												{formatRupiah(monthDevDetail.totalReal)}
-											</span>
-										</div>
-										<div className="rounded-lg bg-surface p-2.5 space-y-0.5">
-											<span className="text-[10px] text-muted-foreground block">
-												Deviasi Tertimbang
-											</span>
-											<span
-												className={`font-extrabold block truncate ${
-													monthDevDetail.monthWeightedDeviation > 10
-														? "text-danger"
-														: monthDevDetail.monthWeightedDeviation > 5
-															? "text-warning"
-															: "text-success"
-												}`}
-											>
-												{formatPercent(monthDevDetail.monthWeightedDeviation)}
-											</span>
-										</div>
-									</div>
-								</div>
-
-								{/* Tabel 4 Akun Bulan Terpilih */}
-								<DomainDataTable
-									title={`Rincian 4 Jenis Belanja — ${MONTH_NAMES[selectedMonth - 1]}`}
-									data={monthlyData}
-									columns={columns}
-									totalCount={monthlyData.length}
-								/>
-
-								{/* Strip Pengingat H+10 Revisi RPD Triwulanan */}
-								<div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 shadow-xs space-y-2 text-xs">
-									<div className="flex items-center justify-between">
-										<p className="font-bold text-foreground flex items-center gap-1.5">
-											<Sparkles className="size-4 text-primary" />
-											<span>
-												Jadwal Pengajuan Revisi RPD Halaman III {activeQuarterReminder.label}
-											</span>
-										</p>
-										<span className="text-[11px] font-semibold text-primary">
-											Batas: {activeQuarterReminder.deadlineNotice}
-										</span>
-									</div>
-									<p className="text-muted-foreground leading-relaxed">
-										{activeQuarterReminder.recommendedAction}
-									</p>
-								</div>
+						{/* Card Ringkasan Bulan Terpilih */}
+						<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-3">
+							<div className="flex items-center justify-between">
+								<h2 className="text-sm font-bold text-foreground">
+									Data RPD vs Realisasi Bulan {MONTH_NAMES[selectedMonth - 1]}
+								</h2>
+								{selectedMonth === 12 && (
+									<span className="rounded-md bg-warning/10 px-2 py-0.5 text-[10px] font-bold text-warning">
+										Desember Dikecualikan dari Penilaian
+									</span>
+								)}
 							</div>
 
-							{/* ZONA B: 5 Sticky Score Cards (5 cols on lg) */}
-							<div className="space-y-4 lg:col-span-5 lg:sticky lg:top-6">
-								<div className="rounded-2xl border border-border bg-surface p-5 shadow-xs space-y-4">
-									<div className="flex items-center justify-between border-b border-border/80 pb-3">
-										<h2 className="text-sm font-bold text-foreground">
-											Status Penilaian Deviasi Hal III
-										</h2>
-										<span className="text-[11px] font-semibold text-muted-foreground">
-											Evaluasi s.d. {MONTH_NAMES[evalMonth - 1]}
-										</span>
-									</div>
-
-									{/* 5 Cards */}
-									<div className="space-y-3">
-										{/* Card 1: Nilai IKPA Deviasi */}
-										<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
-											<div className="flex items-center justify-between text-muted-foreground">
-												<span className="text-xs font-semibold">
-													Nilai IKPA Deviasi Hal III
-												</span>
-												<ShieldCheck className="size-4 text-primary" />
-											</div>
-											<p className="text-3xl font-extrabold text-primary">
-												{actualScoreObj.score !== null
-													? formatPercent(actualScoreObj.score)
-													: "—"}
-											</p>
-											<p className="text-[11px] text-muted-foreground">
-												{actualScoreObj.avgDeviation !== null &&
-												actualScoreObj.avgDeviation <= 5
-													? "Maksimal (Rata-rata ≤ 5%)"
-													: "100 − Rata-rata Deviasi"}
-											</p>
-										</div>
-
-										{/* Card 2: Rata-rata Deviasi Kumulatif */}
-										<div className="rounded-xl border border-border bg-background p-3.5 shadow-xs space-y-1">
-											<span className="text-[11px] font-semibold text-muted-foreground block">
-												Rata-rata Deviasi Kumulatif (Jan s.d. {MONTH_NAMES[evalMonth - 1]})
-											</span>
-											<p
-												className={`text-xl font-bold ${
-													actualScoreObj.avgDeviation !== null &&
-													actualScoreObj.avgDeviation > 5
-														? "text-warning"
-														: "text-foreground"
-												}`}
-											>
-												{actualScoreObj.avgDeviation !== null
-													? formatPercent(actualScoreObj.avgDeviation)
-													: "—"}
-											</p>
-											<p className="text-[10px] text-muted-foreground">
-												Ambang batas toleransi: <strong>≤ 5.00%</strong>
-											</p>
-										</div>
-
-										{/* Card 3: Pembagi n Bulan Berjalan */}
-										<div className="rounded-xl border border-border bg-background p-3.5 shadow-xs space-y-1">
-											<span className="text-[11px] font-semibold text-muted-foreground block">
-												Pembagi Bulan Berjalan (n)
-											</span>
-											<p className="text-xl font-bold text-foreground">
-												n = {actualScoreObj.monthsCount} Bulan
-											</p>
-											<p className="text-[10px] text-muted-foreground">
-												Januari s.d. {MONTH_NAMES[evalMonth - 1]} (Desember tidak dihitung)
-											</p>
-										</div>
-
-										{/* Card 4: Total RPD vs Realisasi Kumulatif */}
-										<div className="rounded-xl border border-border bg-background p-3.5 shadow-xs space-y-1">
-											<span className="text-[11px] font-semibold text-muted-foreground block">
-												Total RPD &amp; Realisasi s.d. {MONTH_NAMES[evalMonth - 1]}
-											</span>
-											<div className="flex items-center justify-between text-xs font-semibold text-foreground pt-0.5">
-												<span>RPD: {formatRupiah(totalPlannedTrail)}</span>
-												<span>Real: {formatRupiah(totalRealizedTrail)}</span>
-											</div>
-										</div>
-
-										{/* Card 5: Kontribusi Nilai Akhir IKPA */}
-										<div className="rounded-xl border border-success/20 bg-success/5 p-3.5 shadow-xs space-y-1">
-											<span className="text-[11px] font-semibold text-muted-foreground block">
-												Kontribusi ke Nilai Akhir IKPA (Bobot 15%)
-											</span>
-											<p className="text-xl font-extrabold text-success">
-												{actualScoreObj.contribution !== null
-													? `${actualScoreObj.contribution.toFixed(2)} pts`
-													: "—"}
-											</p>
-											<p className="text-[10px] text-muted-foreground">
-												Maksimal kontribusi: 15.00 poin
-											</p>
-										</div>
-									</div>
+							<div className="grid grid-cols-1 gap-3 sm:grid-cols-3 text-xs">
+								<div className="rounded-xl bg-surface p-3 space-y-1 border border-border/50">
+									<span className="text-[11px] text-muted-foreground block">
+										Total RPD Bulan Ini
+									</span>
+									<span className="text-base font-bold text-foreground block truncate">
+										{formatRupiah(monthDevDetail.totalRpd)}
+									</span>
+								</div>
+								<div className="rounded-xl bg-surface p-3 space-y-1 border border-border/50">
+									<span className="text-[11px] text-muted-foreground block">
+										Total Realisasi Bulan Ini
+									</span>
+									<span className="text-base font-bold text-foreground block truncate">
+										{formatRupiah(monthDevDetail.totalReal)}
+									</span>
+								</div>
+								<div className="rounded-xl bg-surface p-3 space-y-1 border border-border/50">
+									<span className="text-[11px] text-muted-foreground block">
+										Deviasi Tertimbang Bulan Ini
+									</span>
+									<span
+										className={`text-base font-extrabold block truncate ${
+											monthDevDetail.monthWeightedDeviation > 10
+												? "text-danger"
+												: monthDevDetail.monthWeightedDeviation > 5
+													? "text-warning"
+													: "text-success"
+										}`}
+									>
+										{formatPercent(monthDevDetail.monthWeightedDeviation)}
+									</span>
 								</div>
 							</div>
+						</div>
+
+						{/* Tabel 4 Akun Bulan Terpilih (Full Width - Spacious & Clear!) */}
+						<div className="rounded-2xl border border-border bg-surface p-4 shadow-xs space-y-4 sm:p-5">
+							<DomainDataTable
+								title={`Rincian 4 Jenis Belanja — ${MONTH_NAMES[selectedMonth - 1]}`}
+								data={monthlyData}
+								columns={columns}
+								totalCount={monthlyData.length}
+							/>
+						</div>
+
+						{/* Strip Pengingat H+10 Revisi RPD Triwulanan (Full Width) */}
+						<div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 shadow-xs space-y-2 text-xs">
+							<div className="flex items-center justify-between">
+								<p className="font-bold text-foreground flex items-center gap-1.5">
+									<Sparkles className="size-4 text-primary" />
+									<span>
+										Jadwal Pengajuan Revisi RPD Halaman III {activeQuarterReminder.label}
+									</span>
+								</p>
+								<span className="text-[11px] font-semibold text-primary">
+									Batas: {activeQuarterReminder.deadlineNotice}
+								</span>
+							</div>
+							<p className="text-muted-foreground leading-relaxed">
+								{activeQuarterReminder.recommendedAction}
+							</p>
 						</div>
 
 						{/* Accordion: Cara Angka Ini Dihitung (Step-by-Step Trace) */}

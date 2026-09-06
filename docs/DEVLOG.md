@@ -2,6 +2,34 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 121 - 2026-09-06
+**Time:** Start: 12:23 UTC | End: 12:28 UTC | Duration: ~5 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [DEV-FIX-3] Penataan Tata Letak Deviasi Hal III (`/operator/deviasi`): Box Status Penilaian Deviasi Dipindah ke Paling Atas Horizontal 5-Kartu di Atas Pagu Terkini, Tabel Rincian 4 Jenis Belanja Tampil Full-Width Lapang Tanpa Terpotong/Geser
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/deviasi.tsx`:
+    - Memindahkan container **Status Penilaian Deviasi Hal III** ke urutan paling atas (di atas box Pagu Belanja Aktif Terkini & Bobot Proporsi Penimbang).
+    - Menata 5 kartu status penilaian ke dalam grid horizontal yang responsif (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3`) dengan tipografi yang seimbang, badge evaluasi bulan berjalan, serta rincian akumulasi realisasi vs RPD.
+    - Menghapus pembagian layout 2-kolom (`lg:grid-cols-12` split 7/5) pada Tab 1 (Data & Perhitungan Riil) sehingga:
+      - Card ringkasan data bulanan tampil full width dengan 3 kartu metrik terpadu.
+      - Tabel **Rincian 4 Jenis Belanja — [Bulan Terpilih]** membentang 100% lebar layar penuh (*full width*), memberikan ruang lapang bagi ke-7 kolom data (Jenis Belanja, Target RPD + Tombol Ubah, Realisasi SP2D + Tombol Ubah, Deviasi %, Bobot Pagu Terkini %, Deviasi Tertimbang %, Status Kepatuhan) tanpa perlu digeser horizontal pada viewport laptop/desktop 1310×637.
+      - Strip pengingat H+10 revisi RPD, jejak perhitungan step-by-step trace, dan target proyeksi bulan depan tampil terstruktur secara vertikal di bawah tabel.
+  - `docs/BACKLOG.md`: Menambahkan task DEV-FIX-3 (Completed).
+- Files untouched (sengaja): core ikpa engine; schema DB; Admin; F13.
+- Verifikasi:
+  - `npx vitest run`: 76/76 unit tests di `apps/web` lulus 100%.
+  - `npm test`: Seluruh unit test suite monorepo lulus 100% (108/108 tests).
+  - `npm run typecheck`: 0 errors di seluruh 7 package/workspace monorepo.
+  - `npm run build`: Production client & SSR bundle build 100% sukses (7.00s).
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback/iterasi berikutnya dari user.
+
 ### Session 120 - 2026-09-06
 **Time:** Start: 12:03 UTC | End: 12:08 UTC | Duration: ~5 minutes
 - Status: Completed
