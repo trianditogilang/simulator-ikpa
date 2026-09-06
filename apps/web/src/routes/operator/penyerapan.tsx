@@ -96,6 +96,14 @@ function PenyerapanPage() {
 	const [isHelpOpen, setIsHelpOpen] = useState(false);
 	const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
+	const handleSelectQuarter = (q: 1 | 2 | 3 | 4) => {
+		setSelectedQuarter(q);
+		const endMonth = (q * 3) as 3 | 6 | 9 | 12;
+		if (activeContext?.setPeriod && currentMonth !== endMonth) {
+			activeContext.setPeriod({ kind: "month", value: endMonth });
+		}
+	};
+
 	// Sync selected quarter when currentMonth changes
 	useEffect(() => {
 		setSelectedQuarter(currentQuarter);
@@ -569,7 +577,7 @@ function PenyerapanPage() {
 								<button
 									key={q}
 									type="button"
-									onClick={() => setSelectedQuarter(q)}
+									onClick={() => handleSelectQuarter(q)}
 									className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
 										isSelected
 											? "bg-background text-foreground shadow-sm border border-border/80"

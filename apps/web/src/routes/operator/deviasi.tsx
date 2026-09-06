@@ -853,25 +853,22 @@ function DeviasiPage() {
 
 					{/* 5 Score Cards in Balanced Horizontal Grid */}
 					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-						{/* Card 1: Nilai IKPA Deviasi */}
-						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+						{/* Card 1: Total RPD vs Realisasi Kumulatif */}
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
 							<div className="flex items-center justify-between text-muted-foreground">
 								<span className="text-xs font-semibold">
-									Nilai IKPA Deviasi Hal III
+									Total s.d. {MONTH_NAMES[evalMonth - 1]}
 								</span>
-								<ShieldCheck className="size-4 text-primary" />
+								<Coins className="size-4 text-primary" />
 							</div>
-							<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-								{actualScoreObj.score !== null
-									? formatPercent(actualScoreObj.score)
-									: "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
-								{actualScoreObj.avgDeviation !== null &&
-								actualScoreObj.avgDeviation <= 5
-									? "Maksimal (Rata-rata ≤ 5%)"
-									: "100 − Rata-rata Deviasi"}
-							</p>
+							<div className="space-y-0.5 pt-0.5 text-xs font-semibold text-foreground">
+								<p className="truncate" title={`Realisasi: ${formatRupiah(totalRealizedTrail)}`}>
+									Real: <span className="font-bold">{formatRupiah(totalRealizedTrail)}</span>
+								</p>
+								<p className="truncate text-muted-foreground text-[11px]" title={`Target RPD: ${formatRupiah(totalPlannedTrail)}`}>
+									RPD: {formatRupiah(totalPlannedTrail)}
+								</p>
+							</div>
 						</div>
 
 						{/* Card 2: Rata-rata Deviasi Kumulatif */}
@@ -928,22 +925,25 @@ function DeviasiPage() {
 							</p>
 						</div>
 
-						{/* Card 4: Total RPD vs Realisasi Kumulatif */}
-						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						{/* Card 4: Nilai IKPA Deviasi */}
+						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
 							<div className="flex items-center justify-between text-muted-foreground">
 								<span className="text-xs font-semibold">
-									Total s.d. {MONTH_NAMES[evalMonth - 1]}
+									Nilai IKPA Deviasi Hal III
 								</span>
-								<Coins className="size-4 text-primary" />
+								<ShieldCheck className="size-4 text-primary" />
 							</div>
-							<div className="space-y-0.5 pt-0.5 text-xs font-semibold text-foreground">
-								<p className="truncate" title={`Realisasi: ${formatRupiah(totalRealizedTrail)}`}>
-									Real: <span className="font-bold">{formatRupiah(totalRealizedTrail)}</span>
-								</p>
-								<p className="truncate text-muted-foreground text-[11px]" title={`Target RPD: ${formatRupiah(totalPlannedTrail)}`}>
-									RPD: {formatRupiah(totalPlannedTrail)}
-								</p>
-							</div>
+							<p className="text-2xl font-extrabold text-primary sm:text-3xl">
+								{actualScoreObj.score !== null
+									? formatPercent(actualScoreObj.score)
+									: "—"}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								{actualScoreObj.avgDeviation !== null &&
+								actualScoreObj.avgDeviation <= 5
+									? "Maksimal (Rata-rata ≤ 5%)"
+									: "100 − Rata-rata Deviasi"}
+							</p>
 						</div>
 
 						{/* Card 5: Kontribusi Nilai Akhir IKPA */}

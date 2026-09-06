@@ -2,6 +2,59 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 124 - 2026-09-06
+**Time:** Start: 14:43 UTC | End: 14:46 UTC | Duration: ~3 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [ABS-FIX-2] Sinkronisasi Periode Bulan Header Otomatis ke Akhir Triwulan saat Tab Triwulan Diklik di `/operator/penyerapan`:
+  1. Menambahkan fungsi `handleSelectQuarter` di `apps/web/src/routes/operator/penyerapan.tsx` yang memanggil `activeContext.setPeriod({ kind: "month", value: endMonth })`:
+     - Triwulan 1 $\rightarrow$ Bulan 3 (Maret)
+     - Triwulan 2 $\rightarrow$ Bulan 6 (Juni)
+     - Triwulan 3 $\rightarrow$ Bulan 9 (September)
+     - Triwulan 4 $\rightarrow$ Bulan 12 (Desember)
+  2. Perubahan terisolasi ketat hanya pada interaksi tab triwulan di halaman `/operator/penyerapan`, tanpa mempengaruhi halaman atau indikator lain.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/penyerapan.tsx`: Penambahan `handleSelectQuarter` dan pengikatan ke event `onClick` pada tombol tab triwulan.
+  - `docs/BACKLOG.md`: Penambahan entri ABS-FIX-2 (Completed).
+- Verifikasi:
+  - `npx vitest run apps/web/src/lib/simulation/penyerapan-workspace.test.ts`: 10/10 tests passed (100%).
+  - `npx vitest run --no-cache`: Seluruh test suite monorepo lulus 100% (238/238 tests passed).
+  - `npm run typecheck`: 0 error di seluruh 7 package monorepo.
+  - `npm run build`: Production client dan SSR bundle build 100% sukses.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 123 - 2026-09-06
+**Time:** Start: 14:35 UTC | End: 14:40 UTC | Duration: ~5 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [DEV-FIX-4] Penataan Metrik Status Penilaian Deviasi Hal III: Menukar Posisi Kartu Nilai IKPA Deviasi Hal III dengan Total s.d. [Bulan]
+  1. Menukar posisi kartu metrik pada container "Status Penilaian Deviasi Hal III" di `/operator/deviasi`:
+     - Posisi 1 (baru): **Total s.d. [Bulan]** (Realisasi & Target RPD)
+     - Posisi 2: **Rata-rata Deviasi** (dengan indikator status toleransi ≤ 5%)
+     - Posisi 3: **Objek Penilaian (n)** (Januari s.d. Bulan Evaluasi)
+     - Posisi 4 (baru): **Nilai IKPA Deviasi Hal III** (Skor IKPA 100 − Deviasi)
+     - Posisi 5: **Kontribusi IKPA (15%)** (Poin kontribusi)
+  2. Tidak ada komponen atau perhitungan lain yang diubah.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/deviasi.tsx`: Penukaran posisi Card 1 dan Card 4 pada grid horizontal 5 kolom di container Status Penilaian Deviasi Hal III.
+  - `docs/BACKLOG.md`: Penambahan entri DEV-FIX-4 (Completed).
+- Verifikasi:
+  - `npx vitest run apps/web/src/lib/simulation/deviasi-workspace.test.ts`: 14/14 tests passed (100%).
+  - `npm run typecheck`: 0 error di seluruh package monorepo.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
 ### Session 122 - 2026-09-06
 **Time:** Start: 12:45 UTC | End: 13:25 UTC | Duration: ~40 minutes
 - Status: Completed
