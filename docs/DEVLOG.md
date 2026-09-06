@@ -2,6 +2,47 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 122 - 2026-09-06
+**Time:** Start: 12:45 UTC | End: 13:25 UTC | Duration: ~40 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator & Engine Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [ABS-FIX] Perbaikan Menyeluruh Menu & Engine Indikator Penyerapan Anggaran (Bobot 20%):
+  1. Agregasi Realisasi Akumulatif: Realisasi yang dibandingkan dengan target dihitung secara kumulatif dari Januari sampai dengan akhir triwulan berjalan (TW1: Jan–Mar, TW2: Jan–Jun, TW3: Jan–Sep, TW4: Jan–Des).
+  2. Divisor Dinamis Rata-Rata Triwulan ($n$): Nilai IKPA Penyerapan dihitung dari rata-rata triwulan $1 \dots n$ yang dinilai (bukan selalu dibagi 4 di tengah tahun).
+  3. Golden Tests Terpenuhi: Lulus Golden Test A (TW1 = 92,67) dan Golden Test B (TW2 = 85,15).
+  4. Dukungan Pagu Triwulan Cut-Off DIPA: Pagu acuan per triwulan dapat berbeda sesuai cut-off DIPA (Februari untuk TW1, April untuk TW2, Juli untuk TW3, akhir tahun untuk TW4).
+  5. UI/UX Ponytail Bebas Istilah Asing: Mengganti seluruh istilah asing (tanpa YTD, tanpa NKPAT, tanpa PA, tanpa Cap, tanpa Q1-Q4) menjadi Bahasa Indonesia ringkas ("Akumulatif", "sampai dengan triwulan", "Penyerapan vs target", "Triwulan 1–4", "Bobot 20%").
+  6. 4 Top Score Cards: Skor Penyerapan (Bobot 20% · Triwulan $n$ dari 4), Skor Aktual (Terkunci 🔒), Dampak Rencana (Simulasi ±%), Jarak ke 100.
+  7. Segmented Selector Triwulan: Tab navigasi Triwulan 1–4 untuk meninjau rincian perhitungan per triwulan secara spesifik.
+  8. Tabel Aktual Terkunci: Rincian 4 jenis belanja (51, 52, 53, 57) dengan kolom Pagu Triwulan, Realisasi Akumulatif, Target % & Nominal Rp, Penyerapan vs Target, Proporsi Pagu, dan Nilai Tertimbang.
+  9. Tabel Rencana Sisa Tahun (Sel Kuning): Form editable interaktif untuk simulasi bulan setelah bulan berjalan, tombol Simpan Skenario IKPA (persistensi via `executeSimulation`), dan tombol Reset Rencana.
+  10. Panel Bantuan Strategi: Kalkulasi sisa kebutuhan nominal per akun untuk mencapai target triwulan berjalan + 3 rekomendasi taktis.
+  11. Modal Panduan & Matriks Target 2026: Dialog bantuan interaktif `?` yang menampilkan matriks target akumulatif 51 (20/50/75/95), 52 (15/50/70/90), 53 (10/40/70/90), 57 (25/50/75/95) serta rumus step-by-step.
+  12. Banner Satker BLU: Status "Dikecualikan" dengan pesan informatif baseline PER-5/PB/2024.
+**Code Changes:**
+- Files modified:
+  - `packages/ikpa-engine/src/indicators/absorption.ts`: Formula calculation engine dengan validasi pagu dan pembagi triwulan valid.
+  - `packages/ikpa-engine/src/indicators/absorption.test.ts`: Penambahan Golden Test A (92,67) dan Golden Test B (85,15).
+  - `apps/web/src/server/simulation/calculate.ts`: Agregasi realisasi akumulatif bulan 1..akhir TW dan batasan triwulan sesuai periode evaluasi.
+  - `apps/web/src/lib/simulation/penyerapan-workspace.ts`: Helper perhitungan workspace, pagu cut-off resolver, detail akun per triwulan, dan kalkulasi skor akumulatif.
+  - `apps/web/src/lib/simulation/penyerapan-workspace.test.ts`: Test suite komprehensif 10 unit test termasuk Golden Tests A & B dan cut-off DIPA.
+  - `apps/web/src/routes/operator/penyerapan.tsx`: Overhaul lengkap UI ruang kerja Penyerapan Anggaran dengan styling Ponytail modern.
+  - `packages/contracts/package.json` & `packages/contracts/src/schemas.test.ts`: Standardisasi test script ke vitest runner.
+  - `packages/ui/src/components/system-states.test.tsx`: Penambahan jsdom environment header.
+  - `docs/BACKLOG.md`: Pencatatan task ABS-FIX (Completed).
+- Verifikasi:
+  - `npx vitest run packages/ikpa-engine/src/indicators/absorption.test.ts`: 6/6 tests passed (100%).
+  - `npx vitest run apps/web/src/lib/simulation/penyerapan-workspace.test.ts`: 10/10 tests passed (100%).
+  - `npm test`: Seluruh test suite monorepo lulus 100% (111/111 tests passed).
+  - `npm run typecheck`: 0 error di seluruh package monorepo.
+  - `npm run build`: Production client dan SSR bundle build 100% sukses.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
 ### Session 121 - 2026-09-06
 **Time:** Start: 12:23 UTC | End: 12:28 UTC | Duration: ~5 minutes
 - Status: Completed

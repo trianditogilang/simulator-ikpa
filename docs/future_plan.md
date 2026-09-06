@@ -6,20 +6,12 @@ fitur: setting profile pop up, tooltip, darkmode-->
 
 
 <!--notes:
-Saya sudah menyelesaikan CORR-01. Review docs/BACKLOG.md, docs/DEVLOG.md, dan docs/PRE-F13-Koreksi-IA-Operator.md dulu.
-Lanjut CORR-02 saja. Jangan F13, jangan Admin, jangan hapus route lama.
-
-Workspace Penyerapan Anggaran — bukan klon Excel:
-- Identitas halaman = indikator (skor, gap, target triwulan), bukan grid rumus
-- Actual YTD terkunci; sisa tahun editable (pola sel kuning Sheet1)
-- Skor instan via engine/rule set 2026 (51 20/50/75/95; 52 15/50/70/90; 53 10/40/70/90; 57 25/50/75/95; cap 100)
-- Sheet2 = contoh rumus bersih. Sheet1 nilai TW1 hardcoded 100: abaikan
-- Pagu netto (setelah blokir) boleh dipakai; bukan menu terpisah
-- Akun 57 tetap didukung meski tidak ada di Excel
-- ?/drawer rumus singkat. Actual tidak tertimpa
-
-
-Ponytail + context7. Update backlog, devlog, dan checkbox task list setelah DoD lulus.
+lakukan update menu deviasi halaman III dipa sesuai
+  @[docs/menu-fixing-indikator/perbaikan-deviasi-halaman-iii-dipa.md] , review
+  @[docs/BACKLOG.md] @[docs/DEVLOG.md], dan update selalu keduanya setelah selesai
+  melakukan task. Gunakan skills ponytail dan context7 untuk best practice tech stacknya.
+  Lakukan saja semuanya sampai selesai tanpa meminta izin baru nanti saya akan iterasi
+  kalau sudah selesai.
 
 3	CORR-02 Penyerapan	Excel penyerapan
 4	CORR-03 Deviasi	Excel DEV

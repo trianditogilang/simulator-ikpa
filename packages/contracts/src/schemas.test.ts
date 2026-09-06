@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { describe, expect, it } from "vitest";
 import {
 	decimalStringSchema,
 	globalContextSchema,
@@ -22,7 +21,8 @@ const ruleSet = {
 	calendarVersionId: "33333333-3333-4333-8333-333333333333",
 };
 
-test("shared contracts accept valid DTOs and reject unsafe shapes", () => {
+describe("shared contracts", () => {
+	it("accepts valid DTOs and rejects unsafe shapes", () => {
 	const context = globalContextSchema.parse({
 		access: {
 			status: "operator_single_scope",
@@ -39,7 +39,7 @@ test("shared contracts accept valid DTOs and reject unsafe shapes", () => {
 		timezone: "Asia/Jakarta",
 		generatedAt: "2026-08-31T21:12:00+07:00",
 	});
-	assert.equal(context.access.status, "operator_single_scope");
+	expect(context.access.status).toBe("operator_single_scope");
 
 	const page = paginatedSchema(snapshotSummarySchema).parse({
 		items: [
@@ -57,12 +57,12 @@ test("shared contracts accept valid DTOs and reject unsafe shapes", () => {
 		],
 		page: { page: 1, pageSize: 20, totalItems: 1, totalPages: 1 },
 	});
-	assert.equal(page.items[0]?.totalScore, "94.25");
-	assert.equal(decimalStringSchema.safeParse(94.25).success, false);
-	assert.equal(decimalStringSchema.safeParse("1e3").success, false);
-	assert.equal(
+	expect(page.items[0]?.totalScore).toBe("94.25");
+	expect(decimalStringSchema.safeParse(94.25).success).toBe(false);
+	expect(decimalStringSchema.safeParse("1e3").success).toBe(false);
+	expect(
 		globalContextSchema.safeParse({ ...context, unexpectedDatabaseField: true })
 			.success,
-		false,
-	);
+	).toBe(false);
+	});
 });

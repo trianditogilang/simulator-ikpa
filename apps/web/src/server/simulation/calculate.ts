@@ -223,16 +223,23 @@ export async function calculateAndPersistSnapshot(
 		budgetByType[b.accountCode] = b.amount as string;
 	}
 
-	// absorption quarters: aggregate per quarter 1..4
-	const quarters = [1, 2, 3, 4].map((q) => {
-		const months =
-			q === 1
-				? [1, 2, 3]
-				: q === 2
-					? [4, 5, 6]
-					: q === 3
-						? [7, 8, 9]
-						: [10, 11, 12];
+	// absorption quarters: cumulative aggregation Jan..end of quarter for quarters 1..maxEvalQuarter
+	const maxEvalQuarter = (() => {
+		if (params.period.kind === "quarter") {
+			return Math.min(Math.max(params.period.value, 1), 4);
+		}
+		if (params.period.kind === "month") {
+			return Math.min(Math.max(Math.ceil(params.period.value / 3), 1), 4);
+		}
+		if (params.period.kind === "semester") {
+			return Math.min(Math.max(params.period.value * 2, 1), 4);
+		}
+		return 4;
+	})();
+
+	const quarters = Array.from({ length: maxEvalQuarter }, (_, idx) => {
+		const q = (idx + 1) as 1 | 2 | 3 | 4;
+		const endMonth = q * 3;
 		const realized: Record<string, string> = {
 			"51": "0",
 			"52": "0",
@@ -240,10 +247,10 @@ export async function calculateAndPersistSnapshot(
 			"57": "0",
 		};
 		const budget: Record<string, string> = { ...budgetByType };
-		// sum realizations for quarter
+		// sum realizations cumulatively from month 1 through end of quarter q
 		for (const acc of ["51", "52", "53", "57"] as const) {
 			let sum = 0;
-			for (const m of months) {
+			for (let m = 1; m <= endMonth; m++) {
 				const row = realRows.find(
 					(r) => r.month === m && r.accountCode === acc,
 				);
