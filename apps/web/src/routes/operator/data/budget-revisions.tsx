@@ -7,7 +7,9 @@ import {
 	Info,
 	Pencil,
 	Plus,
+	ShieldCheck,
 	SlidersHorizontal,
+	Sparkles,
 	Trash2,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -687,47 +689,67 @@ function BudgetRevisionsPage() {
 					</div>
 				</div>
 
-				{/* Score Cards */}
-				<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-					{[
-						{
-							title: "NKRA Semester I",
-							sub: `${s1} objek terhitung · ${semesterStatus(s1)}`,
-							value: skor.nkraS1,
-							color: "text-primary",
-						},
-						{
-							title: "NKRA Semester II",
-							sub: `${s2} objek terhitung · ${semesterStatus(s2)}`,
-							value: skor.nkraS2,
-							color: "text-primary",
-						},
-						{
-							title: "Nilai Tahunan",
-							sub: "Rata-rata: (I + II) / 2",
-							value: skor.annual,
-							color: "text-foreground",
-						},
-						{
-							title: "Kontribusi ke IKPA",
-							sub: "Bobot 10% Nilai Akhir",
-							value: `${skor.contribution.toFixed(2)} pts`,
-							color: "text-success",
-						},
-					].map((k) => (
-						<div
-							key={k.title}
-							className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1"
-						>
-							<p className="text-[11px] font-semibold text-muted-foreground">
-								{k.title}
-							</p>
-							<p className={`text-2xl font-extrabold ${k.color}`}>
-								{k.value}
-							</p>
-							<p className="text-[11px] text-muted-foreground">{k.sub}</p>
+				{/* Score Cards in Balanced Grid */}
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+					{/* Card 1: NKRA Semester I */}
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="flex items-center justify-between text-muted-foreground">
+							<span className="text-xs font-semibold">NKRA Semester I</span>
+							<Calendar className="size-4 text-primary" />
 						</div>
-					))}
+						<p className="text-2xl font-bold text-foreground sm:text-3xl">
+							{skor.nkraS1}
+						</p>
+						<p className="text-[11px] text-muted-foreground">
+							{s1} objek terhitung · {semesterStatus(s1)}
+						</p>
+					</div>
+
+					{/* Card 2: NKRA Semester II */}
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="flex items-center justify-between text-muted-foreground">
+							<span className="text-xs font-semibold">NKRA Semester II</span>
+							<Calendar className="size-4 text-primary" />
+						</div>
+						<p className="text-2xl font-bold text-foreground sm:text-3xl">
+							{skor.nkraS2}
+						</p>
+						<p className="text-[11px] text-muted-foreground">
+							{s2} objek terhitung · {semesterStatus(s2)}
+						</p>
+					</div>
+
+					{/* Card 3: Nilai IKPA Revisi DIPA (2nd from right) */}
+					<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+						<div className="flex items-center justify-between text-muted-foreground">
+							<span className="text-xs font-semibold">
+								Nilai IKPA Revisi DIPA
+							</span>
+							<ShieldCheck className="size-4 text-primary" />
+						</div>
+						<p className="text-2xl font-extrabold text-primary sm:text-3xl">
+							{skor.annual}
+						</p>
+						<p className="text-[11px] text-muted-foreground">
+							Rata-rata: (Semester I + II) / 2
+						</p>
+					</div>
+
+					{/* Card 4: Kontribusi Nilai Akhir IKPA (Rightmost) */}
+					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
+						<div className="flex items-center justify-between text-muted-foreground">
+							<span className="text-xs font-semibold">
+								Kontribusi IKPA (10%)
+							</span>
+							<Sparkles className="size-4 text-success" />
+						</div>
+						<p className="text-2xl font-extrabold text-success sm:text-3xl">
+							{skor.contribution.toFixed(2)} pts
+						</p>
+						<p className="text-[11px] text-muted-foreground">
+							Maksimal kontribusi: 10.00 poin
+						</p>
+					</div>
 				</div>
 
 				{/* Feedback status */}

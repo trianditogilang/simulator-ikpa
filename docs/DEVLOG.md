@@ -2,6 +2,41 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 125 - 2026-09-06
+**Time:** Start: 14:52 UTC | End: 14:55 UTC | Duration: ~3 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [SCORE-CARD-ALIGN] Standardisasi Desain Metric Cards IKPA & Penempatan 2 Kartu Paling Kanan (Nilai IKPA & Kontribusi IKPA) di `/operator/penyerapan` dan `/operator/data/budget-revisions`:
+  1. Halaman **Penyerapan Anggaran** (`/operator/penyerapan`):
+     - Grid 5-kolom terpadu (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3`).
+     - Kartu 1: **Skor Aktual** (Terkunci 🔒, Realisasi s.d. bulan berjalan).
+     - Kartu 2: **Dampak Rencana** (Selisih simulasi terhadap IKPA).
+     - Kartu 3: **Jarak ke 100** (Kebutuhan optimal).
+     - Kartu 4 (2 paling kanan): **Nilai IKPA Penyerapan** (`border-primary/20 bg-background`, icon `ShieldCheck`, skor persentase/status BLU).
+     - Kartu 5 (paling kanan): **Kontribusi IKPA (20%)** (`border-success/20 bg-success/5`, icon `Sparkles`, poin kontribusi maksimal 20.00 pts).
+  2. Halaman **Pagu & Riwayat Revisi DIPA** (`/operator/data/budget-revisions`):
+     - Grid 4-kolom terpadu (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3`).
+     - Kartu 1: **NKRA Semester I** (Icon `Calendar`, jumlah objek & status toleransi).
+     - Kartu 2: **NKRA Semester II** (Icon `Calendar`, jumlah objek & status toleransi).
+     - Kartu 3 (2 paling kanan): **Nilai IKPA Revisi DIPA** (`border-primary/20 bg-background`, icon `ShieldCheck`, skor tahunan rata-rata S1+S2).
+     - Kartu 4 (paling kanan): **Kontribusi IKPA (10%)** (`border-success/20 bg-success/5`, icon `Sparkles`, poin kontribusi maksimal 10.00 pts).
+  3. Visual language, padding (`p-4`), radius (`rounded-xl`), typography, and shadow-xs seragam dengan halaman Deviasi Halaman III DIPA (`/operator/deviasi`).
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/penyerapan.tsx`: Standarisasi 5 score cards dengan Nilai IKPA dan Kontribusi IKPA di 2 kolom paling kanan.
+  - `apps/web/src/routes/operator/data/budget-revisions.tsx`: Standarisasi 4 score cards dengan Nilai IKPA dan Kontribusi IKPA di 2 kolom paling kanan.
+  - `docs/BACKLOG.md`: Penambahan entri SCORE-CARD-ALIGN (Completed).
+- Verifikasi:
+  - `npx vitest run --no-cache`: 238/238 tests passed (100%).
+  - `npm run typecheck`: 0 error di seluruh 7 package monorepo.
+  - `npm run build`: Production client dan SSR bundle build 100% sukses.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Menerapkan standardisasi metric card 2 kanan ini ke indikator-indikator lainnya secara bertahap saat diminta.
+
 ### Session 124 - 2026-09-06
 **Time:** Start: 14:43 UTC | End: 14:46 UTC | Duration: ~3 minutes
 - Status: Completed

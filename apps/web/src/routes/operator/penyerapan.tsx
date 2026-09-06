@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { default2026RuleSet } from "@simulator-ikpa/ikpa-engine";
+import { ShieldCheck, Sparkles, Target } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
@@ -482,87 +483,103 @@ function PenyerapanPage() {
 					</div>
 				) : null}
 
-				{/* 4 Key Metric Cards */}
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-					{/* Card 1: Skor Penyerapan */}
-					<div className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:border-primary/40 transition-colors">
-						<div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
-							<span>Skor Penyerapan</span>
-							<span className="font-semibold text-primary">Bobot 20%</span>
-						</div>
-						<div className="mt-2 flex items-baseline gap-2">
-							<span className="text-3xl font-extrabold tracking-tight text-foreground">
-								{score.score !== null ? formatPercent(score.score) : "—"}
-							</span>
-						</div>
-						<p className="mt-2 text-xs text-muted-foreground">
-							Triwulan {evaluatedQuartersCount} dari 4 · rata-rata {evaluatedQuartersCount} triwulan
-						</p>
-					</div>
-
-					{/* Card 2: Skor Aktual */}
-					<div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-						<div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
-							<span>Skor Aktual</span>
-							<span className="text-emerald-700 bg-emerald-50 font-semibold px-2 py-0.5 rounded-md text-[10px]">
+				{/* 5 Key Metric Cards in Balanced Horizontal Grid */}
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+					{/* Card 1: Skor Aktual Terkunci */}
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="flex items-center justify-between text-muted-foreground">
+							<span className="text-xs font-semibold">Skor Aktual</span>
+							<span className="text-emerald-700 bg-emerald-50 font-semibold px-1.5 py-0.5 rounded-md text-[10px]">
 								Terkunci 🔒
 							</span>
 						</div>
-						<div className="mt-2 flex items-baseline gap-2">
-							<span className="text-3xl font-extrabold tracking-tight text-foreground">
-								{actualScore.score !== null ? formatPercent(actualScore.score) : "—"}
-							</span>
-						</div>
-						<p className="mt-2 text-xs text-muted-foreground">
-							Tanpa rencana sisa tahun
+						<p className="text-2xl font-bold text-foreground sm:text-3xl">
+							{actualScore.score !== null ? formatPercent(actualScore.score) : "—"}
+						</p>
+						<p className="text-[11px] text-muted-foreground">
+							Realisasi s.d. {MONTH_NAMES[currentMonth - 1]}
 						</p>
 					</div>
 
-					{/* Card 3: Dampak Rencana */}
-					<div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-						<div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
-							<span>Dampak Rencana</span>
+					{/* Card 2: Dampak Rencana */}
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="flex items-center justify-between text-muted-foreground">
+							<span className="text-xs font-semibold">Dampak Rencana</span>
 							{hasPlan ? (
-								<span className="text-amber-800 bg-amber-50 font-semibold px-2 py-0.5 rounded-md text-[10px]">
+								<span className="text-amber-800 bg-amber-50 font-semibold px-1.5 py-0.5 rounded-md text-[10px]">
 									Simulasi Aktif
 								</span>
 							) : (
 								<span className="text-muted-foreground text-[10px]">Belum ada rencana</span>
 							)}
 						</div>
-						<div className="mt-2 flex items-baseline gap-2">
-							<span
-								className={`text-3xl font-extrabold tracking-tight ${
-									planDelta !== null && planDelta > 0
-										? "text-emerald-600"
-										: planDelta !== null && planDelta < 0
-											? "text-rose-600"
-											: "text-foreground"
-								}`}
-							>
-								{planDelta !== null
-									? `${planDelta > 0 ? "+" : ""}${formatPercent(planDelta)}`
-									: "—"}
-							</span>
-						</div>
-						<p className="mt-2 text-xs text-muted-foreground">
-							Selisih dampak terhadap IKPA
+						<p
+							className={`text-2xl font-bold sm:text-3xl ${
+								planDelta !== null && planDelta > 0
+									? "text-emerald-600"
+									: planDelta !== null && planDelta < 0
+										? "text-rose-600"
+										: "text-foreground"
+							}`}
+						>
+							{planDelta !== null
+								? `${planDelta > 0 ? "+" : ""}${formatPercent(planDelta)}`
+								: "—"}
+						</p>
+						<p className="text-[11px] text-muted-foreground">
+							Selisih terhadap nilai akhir
 						</p>
 					</div>
 
-					{/* Card 4: Jarak ke 100 */}
-					<div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-						<div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
-							<span>Jarak ke 100</span>
-							<span className="text-muted-foreground text-[10px]">Target Maksimal</span>
+					{/* Card 3: Target Jarak ke 100 */}
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="flex items-center justify-between text-muted-foreground">
+							<span className="text-xs font-semibold">Jarak ke 100</span>
+							<Target className="size-4 text-primary" />
 						</div>
-						<div className="mt-2 flex items-baseline gap-2">
-							<span className="text-3xl font-extrabold tracking-tight text-foreground">
-								{gap !== null ? formatPercent(gap) : "—"}
-							</span>
-						</div>
-						<p className="mt-2 text-xs text-muted-foreground">
+						<p className="text-2xl font-bold text-foreground sm:text-3xl">
+							{gap !== null ? formatPercent(gap) : "—"}
+						</p>
+						<p className="text-[11px] text-muted-foreground">
 							Kebutuhan menuju nilai optimal
+						</p>
+					</div>
+
+					{/* Card 4: Nilai IKPA Penyerapan (2nd from right) */}
+					<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+						<div className="flex items-center justify-between text-muted-foreground">
+							<span className="text-xs font-semibold">
+								Nilai IKPA Penyerapan
+							</span>
+							<ShieldCheck className="size-4 text-primary" />
+						</div>
+						<p className="text-2xl font-extrabold text-primary sm:text-3xl">
+							{score.score !== null ? formatPercent(score.score) : isBlu ? "Dikecualikan" : "—"}
+						</p>
+						<p className="text-[11px] text-muted-foreground">
+							{isBlu
+								? "Satker BLU (Dikecualikan)"
+								: `Rata-rata s.d. Triwulan ${evaluatedQuartersCount} dari 4`}
+						</p>
+					</div>
+
+					{/* Card 5: Kontribusi Nilai Akhir IKPA (Rightmost) */}
+					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
+						<div className="flex items-center justify-between text-muted-foreground">
+							<span className="text-xs font-semibold">
+								Kontribusi IKPA (20%)
+							</span>
+							<Sparkles className="size-4 text-success" />
+						</div>
+						<p className="text-2xl font-extrabold text-success sm:text-3xl">
+							{score.score !== null && !isBlu
+								? `${((score.score * 20) / 100).toFixed(2)} pts`
+								: isBlu
+									? "0.00 pts"
+									: "—"}
+						</p>
+						<p className="text-[11px] text-muted-foreground">
+							Maksimal kontribusi: 20.00 poin
 						</p>
 					</div>
 				</div>
