@@ -2,6 +2,118 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 128 - 2026-09-06
+**Time:** Start: 11:03 UTC | End: 11:07 UTC | Duration: ~4 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [KON-FIX-3] Penataan Urutan Metric Cards Belanja Kontraktual, Penyesuaian Nama, dan Standarisasi Typography/Height Alignment:
+  1. **Urutan Metric Cards Baru**:
+     - Posisi 1: **Pra DIPA (40%)** (sebelumnya KD)
+     - Posisi 2: **Akselerasi 53 (40%)** (sebelumnya AK53)
+     - Posisi 3: **Distribusi Akselerasi Kontrak (20%)** (sebelumnya DAK)
+     - Posisi 4 (2 paling kanan): **Nilai IKPA Kontraktual** (`border-primary/20 bg-background`, icon `ShieldCheck`, skor `text-2xl font-extrabold text-primary sm:text-3xl`)
+     - Posisi 5 (paling kanan): **Kontribusi IKPA (10%)** (`border-success/20 bg-success/5`, icon `Sparkles`, poin `text-2xl font-extrabold text-success sm:text-3xl`)
+  2. **Typography & Height Alignment**:
+     - Mengubah container kartu menjadi `space-y-1` seragam dengan `/operator/penyerapan` dan `/operator/deviasi`.
+     - Menggunakan ukuran font angka `text-2xl font-bold sm:text-3xl` / `font-extrabold` dan header `truncate` sehingga posisi tinggi angka sejajar sempurna secara horizontal di semua resolusi.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/contracts-invoices.tsx`: Reorder 5 cards, update card labels, set space-y-1 container, and align typography.
+  - `docs/BACKLOG.md`: Add KON-FIX-3 (Completed).
+  - `docs/DEVLOG.md`: Add Session 128.
+- Verifikasi:
+  - Vitest: 82/82 tests `apps/web` passed, 239/239 monorepo tests passed (100%).
+  - Typecheck: 0 error di seluruh package monorepo.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 127 - 2026-09-06
+**Time:** Start: 10:31 UTC | End: 10:34 UTC | Duration: ~3 minutes
+- Status: Completed
+- Agent/Role: Fullstack Integration Agent & Engine Specialist
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [KON-FIX-2] Pembatasan (Cap) Nilai Tertimbang Kontribusi IKPA Belanja Kontraktual Maksimal 10.00 Pts:
+  1. **Engine Update (`packages/ikpa-engine/src/indicators/contractual.ts`)**:
+     - Membatasi kontribusi tertimbang IKPA (`weightedContribution`) maksimal sebesar bobot indikator (10.00 pts) menggunakan formula `min(rawContribution, maxWeight)`.
+     - Nilai indikator (`score`) tetap mempertahankan nilai komposit aktual murni (misal 102.00 atau 108.00) untuk mencerminkan capaian kinerja subkomponen KD/Pra-DIPA, namun poin kontribusi terhadap IKPA total dibatasi tepat maksimal 10.00 pts.
+     - Penambahan step formula trace: `Kontribusi IKPA (Maksimal Bobot)`.
+  2. **Unit Test & UI Consistency (`packages/ikpa-engine/src/indicators/contractual.test.ts`, `apps/web/src/routes/operator/data/contracts-invoices.tsx`)**:
+     - Menambahkan unit test penerimaan untuk memastikan raw score > 100 (misal 108.00) menghasilkan kontribusi tepat 10.00 pts.
+     - Menyederhanakan subtitle pada Kartu 5 Kontribusi IKPA menjadi `Maksimal 10.00 poin terhadap IKPA`.
+**Code Changes:**
+- Files modified:
+  - `packages/ikpa-engine/src/indicators/contractual.ts`
+  - `packages/ikpa-engine/src/indicators/contractual.test.ts`
+  - `apps/web/src/routes/operator/data/contracts-invoices.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 51/51 tests `packages/ikpa-engine` passed, 82/82 tests `apps/web` passed, Monorepo 239/239 tests passed (100%).
+  - Typecheck: 0 error di seluruh monorepo.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 126 - 2026-09-06
+**Time:** Start: 09:30 UTC | End: 09:47 UTC | Duration: ~17 minutes
+- Status: Completed
+- Agent/Role: Fullstack Integration Agent & Engine Specialist
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [KON-FIX] Perbaikan Menyeluruh Indikator IKPA Belanja Kontraktual (Bobot 10%):
+  1. **Canonical Engine Implementation (`packages/ikpa-engine/src/indicators/contractual.ts`)**:
+     - **DAK (20%)**: Perhitungan rasio berbasis **jumlah kontrak eligible (count)** yang ditandatangani s.d. 30 Juni dibanding total kontrak eligible ($\ge$ Rp50jt). Menggunakan bucket table: 0% $\to$ 0, $\le$ 25% $\to$ 50, $\le$ 50% $\to$ 60, $\le$ 75% $\to$ 80, > 75% $\to$ 100.
+     - **KD (40%)**: Rata-rata poin per kontrak eligible ($\ge$ Rp50jt) yang ditandatangani s.d. 31 Maret (Pra-DIPA $\to$ 120 poin, Jan–Mar $\to$ 110 poin). Kontrak yang ditandatangani setelah 31 Maret secara kanonis dikeluarkan dari pembagi/penyebut rata-rata KD.
+     - **AK53 (40%)**: Evaluasi kontrak Belanja Modal (Akun 53), nilai Rp50jt s.d. Rp200jt (inklusif), metode pembayaran *sekaligus* (termin dikecualikan). Poin dinilai berdasarkan tanggal penyelesaian SP2D: TW I $\to$ 100, TW II $\to$ 90, TW III $\to$ 80, TW IV $\to$ 70. Kontrak yang belum memiliki tanggal SP2D tidak dinilai hingga SP2D diterbitkan.
+     - **Date Parsing Safety**: Parsing ISO date `YYYY-MM-DD` string deterministik tanpa UTC timezone shift.
+     - **Incomplete Handling**: Mengembalikan nilai `null` dan status `incomplete` bila tidak ada kontrak eligible (tidak defaulting 100).
+  2. **Acceptance Test Verifikasi (`packages/ikpa-engine/src/indicators/contractual.test.ts`)**:
+     - Lulus 100% (8 unit test), termasuk **Contoh Emas PDF 10-Kontrak**: NK-KD = 112,50, NK-AK53 = 90,00, NK-DAK = 80,00, Nilai Belanja Kontraktual = 97,00, Kontribusi IKPA = 9,70.
+  3. **Backend Mapping & Mutasi**:
+     - `packages/ikpa-engine/src/schemas.ts`: Skema kontrak mendukung `accountCode`, `signedDate`, `paymentType`, `sp2dDate`, `fiscalYear`.
+     - `apps/web/src/server/simulation/calculate.ts`: Pemetaan menyeluruh kolom DB riil `contracts` ke engine kalkulasi.
+     - `apps/web/src/server/domains/contracts-invoices.mutations.ts` & `contracts-invoices.ts`: Validasi akun 51, 52, 53, 57 dan pesan validasi `Nomor kontrak wajib diisi.`
+  4. **Frontend Workspace & UI Ponytail (`apps/web/src/routes/operator/data/contracts-invoices.tsx`, `kontraktual-workspace.ts`)**:
+     - 5 Top Metric Cards: NK-DAK, NK-KD, NK-AK53, Nilai IKPA Belanja Kontraktual (`ShieldCheck`), Kontribusi IKPA 10% (`Sparkles`).
+     - Accordion Trace Perhitungan: Rasio count DAK, detail rata-rata KD & AK53, dan alasan pengecualian kontrak.
+     - Rekomendasi Taktis: Saran kontekstual berdasarkan data riil kontrak.
+     - Tabel Data Kontrak: Badge per subkomponen (DAK, KD, AK53 dengan status/alasan pengecualian) dan tombol Edit / Hapus.
+     - Drawer Tambah/Ubah Kontrak: Live Preview dampak evaluasi DAK, KD, dan AK53 sebelum simpan.
+     - Navigasi Sidebar Terpisah: Belanja Kontraktual $\to$ `?tab=contracts`, Penyelesaian Tagihan $\to$ `?tab=spm`.
+  5. **Panduan Regulasi**:
+     - `apps/web/src/mocks/guides.ts`: Panduan `g-04` diperbarui sesuai rumus 3 subkomponen PER-5/PB/2024.
+**Code Changes:**
+- Files created/modified:
+  - `packages/ikpa-engine/src/indicators/contractual.ts`
+  - `packages/ikpa-engine/src/indicators/contractual.test.ts`
+  - `packages/ikpa-engine/src/schemas.ts`
+  - `apps/web/src/server/simulation/calculate.ts`
+  - `apps/web/src/server/domains/contracts-invoices.mutations.ts`
+  - `apps/web/src/server/contracts-invoices.ts`
+  - `apps/web/src/services/contracts-invoices-service.ts`
+  - `apps/web/src/lib/simulation/kontraktual-workspace.ts`
+  - `apps/web/src/lib/simulation/kontraktual-workspace.test.ts`
+  - `apps/web/src/routes/operator/data/contracts-invoices.tsx`
+  - `apps/web/src/components/layout/operator-navigation.tsx`
+  - `apps/web/src/mocks/guides.ts`
+  - `docs/implementation-review/05-belanja-kontraktual.md`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: `packages/ikpa-engine` 50/50 passed (100%), `apps/web` 82/82 passed (100%), Monorepo 238/238 passed (100%).
+  - Typecheck: 0 error di seluruh workspace monorepo.
+  - Build: Production client & SSR build 100% sukses.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk pengujian manual/iterasi pengguna.
+
 ### Session 125 - 2026-09-06
 **Time:** Start: 14:52 UTC | End: 14:55 UTC | Duration: ~3 minutes
 - Status: Completed

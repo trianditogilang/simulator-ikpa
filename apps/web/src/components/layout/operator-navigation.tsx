@@ -37,7 +37,7 @@ const dashboardItem: NavigationItem = {
 
 const tagihanItem: NavigationItem = {
 	label: "Penyelesaian Tagihan",
-	href: "/operator/data/contracts-invoices",
+	href: "/operator/data/contracts-invoices?tab=spm",
 	icon: Receipt,
 };
 
@@ -71,7 +71,7 @@ const indicatorItems: readonly NavigationItem[] = [
 	},
 	{
 		label: "Belanja Kontraktual",
-		href: "/operator/data/contracts-invoices",
+		href: "/operator/data/contracts-invoices?tab=contracts",
 		icon: FileSignature,
 	},
 	tagihanItem,
@@ -131,6 +131,30 @@ export function isOperatorRouteActive(
 ): boolean {
 	const path = normalizedPath(currentPath);
 	const target = normalizedPath(href).replace(/\/$/, "") || "/";
+
+	// Special handling for routes with query parameters like ?tab=contracts / ?tab=spm
+	if (href.includes("?")) {
+		const [targetBase, targetQuery] = href.split("?");
+		const currentBase = normalizedPath(currentPath);
+		if (currentBase !== targetBase) return false;
+
+		const targetParams = new URLSearchParams(targetQuery);
+		const currentQuery = currentPath.includes("?")
+			? currentPath.split("?")[1]
+			: "";
+		const currentParams = new URLSearchParams(currentQuery);
+
+		const targetTab = targetParams.get("tab");
+		const currentTab = currentParams.get("tab") || "contracts";
+
+		if (targetTab) {
+			return currentTab === targetTab;
+		}
+	}
+
+	if (path === "/operator/data/contracts-invoices" && !href.includes("?")) {
+		return false;
+	}
 
 	return path === target || (target !== "/" && path.startsWith(`${target}/`));
 }

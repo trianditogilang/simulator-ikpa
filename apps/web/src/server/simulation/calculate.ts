@@ -388,12 +388,17 @@ export async function calculateAndPersistSnapshot(
 		contractual: {
 			contracts: contractRows.map((c) => ({
 				id: c.id,
+				contractNumber: c.contractNumber,
+				accountCode: c.accountCode,
 				amount: c.value as string,
 				signedDate: c.signedAt as string,
+				paymentType: c.paymentType as "sekaligus" | "termin",
+				sp2dDate: (c.sp2dAt as string) || null,
 				submittedDate: (c.sp2dAt as string) ?? (c.signedAt as string),
 				isEarlyProcurement: false,
 			})),
 			accelerations53: [],
+			fiscalYear: fy.year,
 		},
 		invoiceTimeliness: {
 			invoices: spmLsRows.map((s) => ({

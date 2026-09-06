@@ -747,7 +747,9 @@ function BudgetRevisionsPage() {
 							{skor.contribution.toFixed(2)} pts
 						</p>
 						<p className="text-[11px] text-muted-foreground">
-							Maksimal kontribusi: 10.00 poin
+							{skor.contribution > 10
+								? `Bobot 10% + Insentif Revisi (+${(skor.contribution - 10).toFixed(2)} pts)`
+								: "Bobot 10% terhadap total IKPA"}
 						</p>
 					</div>
 				</div>

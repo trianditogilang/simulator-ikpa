@@ -40,21 +40,29 @@ export const absorptionInputSchema = z.strictObject({
 
 export const contractInputSchema = z.strictObject({
 	id: z.string(),
+	contractNumber: z.string().optional(),
+	accountCode: z.string().optional(),
 	amount: decimalStringSchema,
 	signedDate: isoDateSchema,
-	submittedDate: isoDateSchema,
-	isEarlyProcurement: z.boolean(),
+	paymentType: z.enum(["sekaligus", "termin"]).optional(),
+	sp2dDate: isoDateSchema.nullable().optional(),
+	submittedDate: isoDateSchema.optional(),
+	isEarlyProcurement: z.boolean().optional(),
 });
 
 export const acceleration53InputSchema = z.strictObject({
 	id: z.string(),
 	amount: decimalStringSchema,
 	signedDate: isoDateSchema,
+	sp2dDate: isoDateSchema.nullable().optional(),
+	paymentType: z.enum(["sekaligus", "termin"]).optional(),
+	accountCode: z.string().optional(),
 });
 
 export const contractualInputSchema = z.strictObject({
 	contracts: z.array(contractInputSchema),
-	accelerations53: z.array(acceleration53InputSchema),
+	accelerations53: z.array(acceleration53InputSchema).optional(),
+	fiscalYear: z.number().int().min(2020).max(2100).optional(),
 });
 
 export const invoiceInputSchema = z.strictObject({

@@ -48,9 +48,10 @@ export const mockGuides: GuideItem[] = [
 		weightLabel: "Bobot 10%",
 		regulationSource: "PER-5/PB/2024 Pasal 7",
 		summary:
-			"Menilai ketepatan pendaftaran data kontrak ke KPPN maksimal 3 hari kerja sejak penandatanganan.",
-		formula: "(Jumlah Kontrak Tepat Waktu / Total Kontrak) × 100.",
-		tips: "Segera kirimkan ADK pendaftaran kontrak ke KPPN begitu kontrak ditandatangani PPK.",
+			"Menilai akselerasi dan penyelesaian kontrak melalui tiga subkomponen: Distribusi Akselerasi Kontrak (20%), Kontrak Pra-DIPA / Dini (40%), dan Akselerasi Kontrak 53 (40%).",
+		formula:
+			"Nilai BK = (NK-DAK × 20%) + (NK-KD × 40%) + (NK-AK53 × 40%). DAK: Rasio jumlah kontrak ≥ Rp50jt s.d. 30 Juni / Total Kontrak TA. KD: Rata-rata poin kontrak Pra-DIPA (120) & s.d. 31 Mar (110) untuk kontrak ≥ Rp50jt. AK53: Rata-rata poin kontrak belanja 53 (Rp50–200jt, sekaligus) berdasarkan triwulan terbit SP2D (TW I: 100, TW II: 90, TW III: 80, TW IV: 70).",
+		tips: "Percepat pendaftaran kontrak eligible sebelum 30 Juni, maksimalkan penandatanganan Pra-DIPA/TW I, dan prioritaskan penerbitan SP2D belanja modal 53 di Triwulan I.",
 	},
 	{
 		id: "g-05",

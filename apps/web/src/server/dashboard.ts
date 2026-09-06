@@ -54,8 +54,8 @@ const RECOMMENDATION_ROUTES: Record<string, string> = {
 	dipa_revision: "/operator/data/budget-revisions",
 	rpd_deviation: "/operator/deviasi",
 	budget_absorption: "/operator/penyerapan",
-	contractual: "/operator/data/contracts-invoices",
-	invoice_timeliness: "/operator/data/contracts-invoices",
+	contractual: "/operator/data/contracts-invoices?tab=contracts",
+	invoice_timeliness: "/operator/data/contracts-invoices?tab=spm",
 	up_tup: "/operator/up-tup",
 	output_achievement: "/operator/data/output-achievement",
 };

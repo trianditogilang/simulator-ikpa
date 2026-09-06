@@ -12,8 +12,8 @@ const dec182 = z
 
 const createContractSchema = z.strictObject({
 	fiscalYearId: z.string().uuid(),
-	contractNumber: z.string().min(1).max(64),
-	accountCode: z.enum(["51", "52", "53"]),
+	contractNumber: z.string().min(1, "Nomor kontrak wajib diisi.").max(64),
+	accountCode: z.enum(["51", "52", "53", "57"]),
 	value: dec182,
 	signedAt: z.iso.date(),
 	paymentType: z.enum(["sekaligus", "termin"]),

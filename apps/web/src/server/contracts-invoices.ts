@@ -110,7 +110,7 @@ export const createContractFn = createServerFn({ method: "POST" })
 		(data: {
 			orgId?: string;
 			contractNumber: string;
-			accountCode: "51" | "52" | "53";
+			accountCode: "51" | "52" | "53" | "57";
 			value: string;
 			signedAt: string;
 			paymentType: "sekaligus" | "termin";
@@ -175,7 +175,7 @@ export const updateContractFn = createServerFn({ method: "POST" })
 			orgId?: string;
 			contractId: string;
 			contractNumber?: string;
-			accountCode?: "51" | "52" | "53";
+			accountCode?: "51" | "52" | "53" | "57";
 			value?: string;
 			signedAt?: string;
 			paymentType?: "sekaligus" | "termin";

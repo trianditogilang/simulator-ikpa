@@ -42,7 +42,7 @@ export async function fetchContractsAndInvoices(
 export async function addContract(input: {
 	orgId?: string;
 	contractNumber: string;
-	accountCode: "51" | "52" | "53";
+	accountCode: "51" | "52" | "53" | "57";
 	value: string;
 	signedAt: string;
 	paymentType: "sekaligus" | "termin";
@@ -55,7 +55,7 @@ export async function editContract(input: {
 	orgId?: string;
 	contractId: string;
 	contractNumber?: string;
-	accountCode?: "51" | "52" | "53";
+	accountCode?: "51" | "52" | "53" | "57";
 	value?: string;
 	signedAt?: string;
 	paymentType?: "sekaligus" | "termin";
