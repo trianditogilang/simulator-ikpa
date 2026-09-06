@@ -129,6 +129,78 @@ export function semesterRoman(s: 1 | 2 | 0): string {
 
 export const MAX_REVISI_JENIS = 5;
 
+export const ACCOUNT_CODES = ["51", "52", "53", "57"] as const;
+export type AccountCode = (typeof ACCOUNT_CODES)[number];
+
+export const ACCOUNT_NAMES: Record<AccountCode, string> = {
+  "51": "Belanja Pegawai (51)",
+  "52": "Belanja Barang (52)",
+  "53": "Belanja Modal (53)",
+  "57": "Belanja Bantuan Sosial (57)",
+};
+
+export interface AccountRevisionDetail {
+  accountCode: AccountCode;
+  paguBefore: string;
+  paguAfter: string;
+}
+
+export interface ParsedRevisionNotes {
+  userNotes: string;
+  accountDetails?: Record<AccountCode, { paguBefore: string; paguAfter: string }>;
+}
+
+export function formatRevisionNotesPayload(
+  userNotes: string,
+  accountDetails?: AccountRevisionDetail[],
+): string {
+  const trimmed = userNotes.trim();
+  if (!accountDetails || accountDetails.length === 0) {
+    return trimmed;
+  }
+  const accounts: Record<string, { before: string; after: string }> = {};
+  for (const a of accountDetails) {
+    accounts[a.accountCode] = {
+      before: a.paguBefore,
+      after: a.paguAfter,
+    };
+  }
+  const metaObj = {
+    notes: trimmed,
+    accounts,
+  };
+  return JSON.stringify(metaObj);
+}
+
+export function parseRevisionNotesPayload(rawNotes?: string | null): ParsedRevisionNotes {
+  if (!rawNotes) return { userNotes: "" };
+  const trimmed = rawNotes.trim();
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && typeof parsed === "object") {
+        const rawAccounts = (parsed as { accounts?: Record<string, { before: string; after: string }> }).accounts;
+        let accountDetails: Record<AccountCode, { paguBefore: string; paguAfter: string }> | undefined;
+        if (rawAccounts && typeof rawAccounts === "object") {
+          accountDetails = {
+            "51": rawAccounts["51"] ? { paguBefore: String(rawAccounts["51"].before), paguAfter: String(rawAccounts["51"].after) } : { paguBefore: "0", paguAfter: "0" },
+            "52": rawAccounts["52"] ? { paguBefore: String(rawAccounts["52"].before), paguAfter: String(rawAccounts["52"].after) } : { paguBefore: "0", paguAfter: "0" },
+            "53": rawAccounts["53"] ? { paguBefore: String(rawAccounts["53"].before), paguAfter: String(rawAccounts["53"].after) } : { paguBefore: "0", paguAfter: "0" },
+            "57": rawAccounts["57"] ? { paguBefore: String(rawAccounts["57"].before), paguAfter: String(rawAccounts["57"].after) } : { paguBefore: "0", paguAfter: "0" },
+          };
+        }
+        return {
+          userNotes: typeof (parsed as { notes?: unknown }).notes === "string" ? (parsed as { notes: string }).notes : "",
+          accountDetails,
+        };
+      }
+    } catch {
+      // fallback to plain string
+    }
+  }
+  return { userNotes: trimmed };
+}
+
 export const REVISI_JENIS: Readonly<Record<string, string>> = {
   "201": "Antar-Fungsi/Sub-Fungsi dan/atau Antar-Program",
   "211": "Pemenuhan Belanja Operasional",

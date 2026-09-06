@@ -3,6 +3,7 @@ import {
 	deleteBudgetFn,
 	deleteRevisionFn,
 	listBudgetsAndRevisionsFn,
+	saveInitialBudgetsFn,
 	updateRevisionFn,
 	upsertBudgetFn,
 } from "@/server/budget-revisions";
@@ -36,6 +37,17 @@ export async function fetchBudgetAndRevisions(
 	return listBudgetsAndRevisionsFn({ data: orgId ? { orgId } : undefined });
 }
 
+export async function saveInitialBudgets(input: {
+	orgId?: string;
+	budgets: Array<{
+		accountCode: "51" | "52" | "53" | "57";
+		amount: string;
+	}>;
+	effectiveAt?: string;
+}) {
+	return saveInitialBudgetsFn({ data: input });
+}
+
 export async function saveBudget(input: {
 	orgId?: string;
 	accountCode: "51" | "52" | "53" | "57";
@@ -51,6 +63,11 @@ export async function addRevision(input: {
 	revisionCode: string;
 	paguBefore: string;
 	paguAfter: string;
+	accountDetails?: Array<{
+		accountCode: "51" | "52" | "53" | "57";
+		paguBefore: string;
+		paguAfter: string;
+	}>;
 	notes?: string;
 }) {
 	return createRevisionFn({ data: input });
@@ -63,6 +80,11 @@ export async function editRevision(input: {
 	revisionCode: string;
 	paguBefore: string;
 	paguAfter: string;
+	accountDetails?: Array<{
+		accountCode: "51" | "52" | "53" | "57";
+		paguBefore: string;
+		paguAfter: string;
+	}>;
 	notes?: string;
 }) {
 	return updateRevisionFn({ data: input });

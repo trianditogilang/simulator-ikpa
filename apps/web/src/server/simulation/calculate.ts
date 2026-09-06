@@ -176,8 +176,21 @@ export async function calculateAndPersistSnapshot(
 		.filter((w) => !w.isHoliday)
 		.map((w) => w.date as string);
 
-	// rpdDeviation: group by month 1..11
-	const rpdMonths = Array.from({ length: 11 }, (_, i) => {
+	// rpdDeviation: group by month 1..maxEvalMonth (Jan-Nov, divisor n based on evaluation period context)
+	const maxEvalMonth = (() => {
+		if (params.period.kind === "month") {
+			return Math.min(Math.max(params.period.value, 1), 11);
+		}
+		if (params.period.kind === "quarter") {
+			return Math.min(Math.max(params.period.value * 3, 1), 11);
+		}
+		if (params.period.kind === "semester") {
+			return Math.min(Math.max(params.period.value * 6, 1), 11);
+		}
+		return 11;
+	})();
+
+	const rpdMonths = Array.from({ length: maxEvalMonth }, (_, i) => {
 		const month = i + 1;
 		const planned: Record<string, string> = {
 			"51": "0",

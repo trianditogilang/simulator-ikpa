@@ -143,6 +143,71 @@ export const listBudgetsAndRevisionsFn = createServerFn({ method: "GET" })
 		};
 	});
 
+export const saveInitialBudgetsFn = createServerFn({ method: "POST" })
+	.validator(
+		(data: {
+			orgId?: string;
+			budgets: Array<{
+				accountCode: "51" | "52" | "53" | "57";
+				amount: string;
+			}>;
+			effectiveAt?: string;
+		}) => data,
+	)
+	.handler(async ({ data }) => {
+		const auth = await getServerAuthSession();
+		const access = await getAccessResolutionForSession(auth, data.orgId);
+
+		const targetOrgId =
+			data.orgId ||
+			(access.status === "operator_single_scope" ||
+			access.status === "operator_multiple_scopes"
+				? access.activeOrganizationId
+				: null);
+
+		if (!targetOrgId) {
+			throw new Error("Satuan Kerja aktif tidak ditemukan.");
+		}
+
+		assertOperatorOrgScope(access, targetOrgId);
+
+		const db = getDatabase();
+		if (!db) {
+			throw new Error("Database belum dikonfigurasi.");
+		}
+
+		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
+		if (!fy) {
+			throw new Error("Tahun anggaran 2026 tidak ditemukan.");
+		}
+
+		const effectiveAt = data.effectiveAt || "2026-01-01";
+		const results = [];
+		const actorId =
+			access.status === "operator_single_scope" ||
+			access.status === "operator_multiple_scopes"
+				? access.userId
+				: targetOrgId;
+
+		for (const b of data.budgets) {
+			const res = await upsertBudget(
+				db,
+				access,
+				targetOrgId,
+				{
+					fiscalYearId: fy.id,
+					accountCode: b.accountCode,
+					amount: b.amount,
+					effectiveAt,
+				},
+				{ actorId },
+			);
+			results.push(res);
+		}
+
+		return { success: true, budgets: results };
+	});
+
 export const upsertBudgetFn = createServerFn({ method: "POST" })
 	.validator(
 		(data: {
@@ -209,6 +274,11 @@ export const createRevisionFn = createServerFn({ method: "POST" })
 			revisionCode: string;
 			paguBefore: string;
 			paguAfter: string;
+			accountDetails?: Array<{
+				accountCode: "51" | "52" | "53" | "57";
+				paguBefore: string;
+				paguAfter: string;
+			}>;
 			notes?: string;
 		}) => data,
 	)
@@ -239,6 +309,12 @@ export const createRevisionFn = createServerFn({ method: "POST" })
 			throw new Error("Tahun anggaran 2026 tidak ditemukan.");
 		}
 
+		const actorId =
+			access.status === "operator_single_scope" ||
+			access.status === "operator_multiple_scopes"
+				? access.userId
+				: targetOrgId;
+
 		const result = await createRevision(
 			db,
 			access,
@@ -252,13 +328,27 @@ export const createRevisionFn = createServerFn({ method: "POST" })
 				notes: data.notes,
 			},
 			{
-				actorId:
-					access.status === "operator_single_scope" ||
-					access.status === "operator_multiple_scopes"
-						? access.userId
-						: targetOrgId,
+				actorId,
 			},
 		);
+
+		// If account details provided, update the active budgets for this fiscal year
+		if (data.accountDetails && data.accountDetails.length > 0) {
+			for (const acc of data.accountDetails) {
+				await upsertBudget(
+					db,
+					access,
+					targetOrgId,
+					{
+						fiscalYearId: fy.id,
+						accountCode: acc.accountCode,
+						amount: acc.paguAfter,
+						effectiveAt: data.revisionDate,
+					},
+					{ actorId },
+				);
+			}
+		}
 
 		return { success: true, revision: result };
 	});
@@ -272,6 +362,11 @@ export const updateRevisionFn = createServerFn({ method: "POST" })
 			revisionCode: string;
 			paguBefore: string;
 			paguAfter: string;
+			accountDetails?: Array<{
+				accountCode: "51" | "52" | "53" | "57";
+				paguBefore: string;
+				paguAfter: string;
+			}>;
 			notes?: string;
 		}) => data,
 	)
@@ -297,13 +392,24 @@ export const updateRevisionFn = createServerFn({ method: "POST" })
 			throw new Error("Database belum dikonfigurasi.");
 		}
 
+		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
+		if (!fy) {
+			throw new Error("Tahun anggaran 2026 tidak ditemukan.");
+		}
+
+		const actorId =
+			access.status === "operator_single_scope" ||
+			access.status === "operator_multiple_scopes"
+				? access.userId
+				: targetOrgId;
+
 		const result = await updateRevision(
 			db,
 			access,
 			targetOrgId,
 			data.revisionId,
 			{
-				fiscalYearId: "00000000-0000-0000-0000-000000000000",
+				fiscalYearId: fy.id,
 				revisionDate: data.revisionDate,
 				revisionCode: data.revisionCode,
 				paguBefore: data.paguBefore,
@@ -311,13 +417,27 @@ export const updateRevisionFn = createServerFn({ method: "POST" })
 				notes: data.notes,
 			},
 			{
-				actorId:
-					access.status === "operator_single_scope" ||
-					access.status === "operator_multiple_scopes"
-						? access.userId
-						: targetOrgId,
+				actorId,
 			},
 		);
+
+		// If account details provided, update the active budgets
+		if (data.accountDetails && data.accountDetails.length > 0) {
+			for (const acc of data.accountDetails) {
+				await upsertBudget(
+					db,
+					access,
+					targetOrgId,
+					{
+						fiscalYearId: fy.id,
+						accountCode: acc.accountCode,
+						amount: acc.paguAfter,
+						effectiveAt: data.revisionDate,
+					},
+					{ actorId },
+				);
+			}
+		}
 
 		return { success: true, revision: result };
 	});
@@ -346,17 +466,24 @@ export const deleteRevisionFn = createServerFn({ method: "POST" })
 			return { success: true };
 		}
 
+		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
+		if (!fy) {
+			throw new Error("Tahun anggaran 2026 tidak ditemukan.");
+		}
+
+		const actorId =
+			access.status === "operator_single_scope" ||
+			access.status === "operator_multiple_scopes"
+				? access.userId
+				: targetOrgId;
+
 		const result = await softDeleteRevision(
 			db,
 			access,
 			targetOrgId,
 			data.revisionId,
 			{
-				actorId:
-					access.status === "operator_single_scope" ||
-					access.status === "operator_multiple_scopes"
-						? access.userId
-						: targetOrgId,
+				actorId,
 			},
 		);
 
@@ -396,8 +523,8 @@ export const deleteBudgetFn = createServerFn({ method: "POST" })
 				actorId:
 					access.status === "operator_single_scope" ||
 					access.status === "operator_multiple_scopes"
-						? access.userId
-						: targetOrgId,
+				? access.userId
+				: targetOrgId,
 			},
 		);
 

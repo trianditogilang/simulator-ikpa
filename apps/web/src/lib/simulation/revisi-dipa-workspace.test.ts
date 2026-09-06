@@ -68,3 +68,31 @@ test("multi-kode + tanggal luar TA diabaikan", () => {
   );
   expect([luar.s1, luar.s2]).toEqual([0, 0]);
 });
+
+test("formatRevisionNotesPayload and parseRevisionNotesPayload roundtrip", async () => {
+  const { formatRevisionNotesPayload, parseRevisionNotesPayload } = await import(
+    "./revisi-dipa-workspace"
+  );
+  const formatted = formatRevisionNotesPayload("Pergeseran 52 ke 53", [
+    { accountCode: "51", paguBefore: "1000.00", paguAfter: "1000.00" },
+    { accountCode: "52", paguBefore: "2000.00", paguAfter: "1800.00" },
+    { accountCode: "53", paguBefore: "1000.00", paguAfter: "1200.00" },
+    { accountCode: "57", paguBefore: "0.00", paguAfter: "0.00" },
+  ]);
+
+  const parsed = parseRevisionNotesPayload(formatted);
+  expect(parsed.userNotes).toBe("Pergeseran 52 ke 53");
+  expect(parsed.accountDetails?.["52"]).toEqual({
+    paguBefore: "2000.00",
+    paguAfter: "1800.00",
+  });
+  expect(parsed.accountDetails?.["53"]).toEqual({
+    paguBefore: "1000.00",
+    paguAfter: "1200.00",
+  });
+
+  // Plain string backward compatibility
+  const plain = parseRevisionNotesPayload("Catatan biasa manual");
+  expect(plain.userNotes).toBe("Catatan biasa manual");
+  expect(plain.accountDetails).toBeUndefined();
+});

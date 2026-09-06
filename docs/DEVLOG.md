@@ -2,6 +2,119 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 118 - 2026-09-06
+**Time:** Start: 11:12 UTC | End: 11:15 UTC | Duration: ~5 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [REV-FIX-6] Penyederhanaan kolom tabel riwayat revisi DIPA (menghapus kolom Rincian pergeseran akun dan Catatan Perubahan dari tabel)
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/budget-revisions.tsx`: Menghapus kolom `accountShift` ("Rincian Pergeseran Akun") dan `notes` ("Catatan Perubahan") dari definisi kolom tabel riwayat revisi DIPA agar tampilan tabel utama lebih bersih, ringkas, dan fokus. Seluruh rincian pergeseran pagu per akun (51, 52, 53, 57) beserta catatan revisi tetap dapat dilihat dan diubah secara lengkap melalui modal drawer dengan mengklik tombol **Edit** (ikon pensil) di kolom Aksi.
+  - `docs/BACKLOG.md`: Menambahkan task REV-FIX-6 (Completed).
+- Files untouched (sengaja): core ikpa engine; schema DB; Admin; F13.
+- Verifikasi:
+  - `npx vitest run`: 76/76 unit tests di `apps/web` lulus 100%.
+  - `npm run typecheck`: 0 errors di seluruh workspace.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback/iterasi berikutnya dari user.
+
+### Session 117 - 2026-09-06
+**Time:** Start: 11:00 UTC | End: 11:15 UTC | Duration: ~15 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [REV-FIX-5] Optimasi Responsivitas Horizontal & Pencegahan Zoom-Out pada Modal Dialog Tambah Data Revisi DIPA (`/operator/data/budget-revisions`)
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/data/domain-form-drawer.tsx`:
+    - Container dialog dioptimalkan dengan flexbox vertikal `max-h-[92vh] flex flex-col`, header `shrink-0`, body modal `flex-1 overflow-y-auto`, dan footer tombol aksi `shrink-0` yang tetap terpaku (sticky) di bagian bawah. Pengguna pada viewport pendek tidak akan lagi kehilangan tombol Simpan / Batal.
+  - `apps/web/src/routes/operator/data/budget-revisions.tsx`:
+    - Merombak form drawer **"Catat / Ubah Pengesahan Revisi DIPA"** menjadi layout horizontal 2-kolom (`className="max-w-4xl lg:max-w-5xl"`):
+      - **Kolom Kiri (`lg:col-span-5`)**: Step 1 (Identitas Revisi DIPA dengan multi-select kode 14 jenis / kode 3 angka custom dan tanggal pengesahan) & Step 3 (Catatan / No. Surat Pengesahan).
+      - **Kolom Kanan (`lg:col-span-7`)**: Step 2 (Rincian 4 jenis belanja 51, 52, 53, 57 dalam grid 2x2 dengan delta badge sebelum/sesudah), ringkasan Total Pagu (Sebelum, Sesudah, Δ), serta Status Evaluasi IKPA real-time.
+    - Merombak drawer **"Atur Pagu Awal TA"** menjadi layout 2-kolom (`className="max-w-2xl"`, `grid-cols-2`).
+  - `docs/BACKLOG.md`: Menambahkan task REV-FIX-5 (Completed).
+- Files untouched (sengaja): core ikpa engine; schema DB; Admin; F13.
+- Verifikasi:
+  - `npx vitest run`: 76/76 unit tests di `apps/web` lulus 100%.
+  - `npm test`: Seluruh unit test suite monorepo lulus 100% (108/108 tests).
+  - `npm run typecheck`: 0 errors di seluruh workspace.
+  - `npm run build`: Client bundle (2547 modules) dan SSR bundle (335 modules) build 100% sukses.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback/iterasi berikutnya dari user.
+**Notes:**
+- Sesuai prinsip ponytail & emil-design-eng: seluruh field form langsung tampak pada viewport 1310×637 tanpa zoom out, tata letak seimbang 2 kolom, dan tombol aksi selalu terlihat di bawah modal.
+
+### Session 116 - 2026-09-06
+**Time:** Start: 10:40 UTC | End: 11:00 UTC | Duration: ~20 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator & Backend Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [REV-FIX-4] Pengaturan Pagu Awal TA sekali/edit setahun & integrasi revisi DIPA wajib rincian akun 51/52/53/57 yang memutakhirkan pagu belanja aktif TA
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/lib/simulation/revisi-dipa-workspace.ts`: Menambahkan konstanta `ACCOUNT_CODES`, `ACCOUNT_NAMES`, tipe `AccountCode`, `AccountRevisionDetail`, `ParsedRevisionNotes`, serta pure helper functions `formatRevisionNotesPayload` dan `parseRevisionNotesPayload` untuk serialisasi/deserialisasi catatan & metadata rincian akun belanja.
+  - `apps/web/src/lib/simulation/revisi-dipa-workspace.test.ts`: Menambahkan unit test suite untuk pengujian roundtrip format dan parsing payload rincian akun serta backward compatibility catatan teks biasa.
+  - `apps/web/src/server/budget-revisions.ts`: Menambahkan server function `saveInitialBudgetsFn` untuk menyimpan pagu awal 4 akun sekaligus dalam 1 batch; memperbarui `createRevisionFn` dan `updateRevisionFn` agar menerima `accountDetails` dan secara otomatis memperbarui tabel `budgets` aktif TA sesuai `paguAfter` masing-masing jenis belanja; memperbarui `deleteRevisionFn`.
+  - `apps/web/src/services/budget-revisions-service.ts`: Mengekspor fungsi `saveInitialBudgets` dan menambahkan parameter `accountDetails` pada `addRevision` dan `editRevision`.
+  - `apps/web/src/routes/operator/data/budget-revisions.tsx`:
+    - Menambahkan tombol & drawer terpadu **"Atur Pagu Awal TA"** untuk menginput pagu awal 4 jenis belanja (51, 52, 53, 57) sebagai baseline 1 tahun anggaran.
+    - Menampilkan 4 kartu alokasi belanja per akun dengan status badge `"Pagu Awal TA"` vs `"Terkini (Revisi DIPA)"`.
+    - Merombak drawer **"Catat / Ubah Pengesahan Revisi DIPA"** dengan 3 langkah: (1) Identitas Revisi (kode multi-select 14 jenis/custom & tanggal), (2) Rincian Pagu per Jenis Belanja Wajib (51, 52, 53, 57) dengan kalkulasi real-time pagu sebelum, pagu sesudah, delta per akun, dan total delta serta status evaluasi IKPA, (3) Catatan/surat pengesahan.
+    - Menambahkan kolom **"Rincian Pergeseran Akun"** pada tabel riwayat revisi DIPA untuk menampilkan akun yang mengalami pergeseran anggaran.
+    - Membersihkan tampilan kolom catatan dari raw JSON metadata.
+  - `docs/BACKLOG.md`: Menambahkan task REV-FIX-4 (Completed).
+- Files untouched (sengaja): core ikpa engine; schema DB; Admin; F13.
+- Verifikasi:
+  - `npx vitest run apps/web/src/lib/simulation/revisi-dipa-workspace.test.ts`: 5/5 passing.
+  - `npm test`: Seluruh unit test suite monorepo lulus 100% (`@simulator-ikpa/access-control` 31/31, `@simulator-ikpa/contracts` 1/1, `@simulator-ikpa/ikpa-engine` 41/41, `@simulator-ikpa/policy-reminder` 27/27, `@ikpa/ui` 8/8, `apps/web` 76/76).
+  - `npm run typecheck`: 0 errors di seluruh workspace.
+  - `npm run build`: Client bundle (2547 modules) dan SSR bundle (335 modules) build 100% sukses.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback/iterasi berikutnya dari user.
+**Notes:**
+- Sesuai standar ponytail skill: tampilan form drawer responsif, validasi input nominal angka formatted, feedback banner, dan sinkronisasi real-time antara pencatatan revisi DIPA dan kartu pagu aktif belanja satker.
+
+### Session 115 - 2026-09-06
+**Time:** Start: 09:00 UTC | End: 09:30 UTC | Duration: ~30 minutes
+- Status: Completed
+- Agent/Role: Primary Agent / Frontend Operator & Engine Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [DEV-FIX] [DH-01..DH-13] Perbaikan Menu & Engine Deviasi Halaman III DIPA (Aturan 2026, Divisor n Dinamis, Layout 2 Zona, Sticky Cards, Step Trace, Target Projection, Validasi Input, Reminder Triwulanan H+10, Sinkronisasi Workspace)
+**Code Changes:**
+- Files created:
+  - `apps/web/src/lib/simulation/deviasi-workspace.test.ts`: 14 unit test suites menguji pure helpers `calcMonthDeviation`, `calculateHistoricalTrail`, `calcNextMonthTarget`, `getQuarterlyRpdReminders`, `paguWeights`, dan integrasi golden test case.
+- Files modified:
+  - `packages/ikpa-engine/src/indicators/rpd-deviation.test.ts`: Golden Tests untuk Jan (100.00), Feb (91.50), Mar (88.33), Mei (91.79), zero-plan/zero-denominator cases.
+  - `apps/web/src/server/simulation/calculate.ts`: Update `rpdMonths` untuk dynamic divisor $n$ ($1 \le n \le 11$) berbasis active/evaluated period `params.period` alih-alih hardcode 11 bulan dengan zero-padding.
+  - `apps/web/src/lib/simulation/deviasi-workspace.ts`: Helper kalkulasi deviasi bulanan, pembobot pagu, target realisasi bulan berikutnya, countdown reminder revisi triwulan H+10 (Feb/Apr/Jul/Okt), dan penyesuaian divisor $n$ pada `buildDeviationInput` & `calcDeviasiScore`.
+  - `apps/web/src/routes/operator/data/rpd-realization.tsx`: Overhaul total tampilan menjadi Layout 2 Zona (Zona A: Form/Tabel Data Bulanan & Pagu, Zona B: 5 Sticky Score Cards), copy header non-teknis dengan 3 langkah operator, pills filter bulan dengan label pengecualian Desember untuk deviasi, warning Pagu Netto 0 dalam bahasa Indonesia, drawer live preview hitung dampak deviasi sebelum simpan, validasi pencegahan input negatif, accordion step-by-step trace hitungan ("Cara angka ini dihitung"), strip countdown pengingat H+10 revisi RPD triwulan, dan panel strategi satker beserta kalkulator proyeksi target bulan berikutnya.
+  - `apps/web/src/routes/operator/deviasi.tsx`: Overhaul workspace dengan 4 live score cards (simulasi, aktual terkunci, dampak rencana, rata-rata deviasi), action strip sticky dengan tombol "Simpan Skenario IKPA" terintegrasi `executeSimulation`, dialog formula '?' diperbarui tanpa asumsi keliru '÷11', accordion jejak perhitungan, dan panel strategi satker.
+  - `apps/web/src/mocks/guides.ts`: Memperbarui panduan `g-02` indikator Deviasi Halaman III DIPA sesuai aturan 2026 (pembagi $n$, tabel konversi deviasi ke nilai akhir, dan pengecualian Desember).
+  - `docs/BACKLOG.md`: Menambahkan task DEV-FIX (Completed).
+- Files untouched (sengaja): core ikpa engine calculation function (formula inti `calculateRpdDeviation` sudah sesuai rumus, perbaikan dilakukan pada data provider & pembagi bulan dinamis); schema DB; Admin; F13.
+- Verifikasi:
+  - `npm run test`: All test suites passed across all packages (`@simulator-ikpa/access-control` 31/31, `@simulator-ikpa/contracts` 1/1, `@simulator-ikpa/ikpa-engine` 41/41, `@simulator-ikpa/policy-reminder` 27/27, `@ikpa/ui` 8/8, `apps/web` 74/74) — Total 108 tests passing.
+  - `npm run typecheck`: 0 errors di seluruh workspace.
+  - `npm run build`: Client bundle (2550 modules) dan SSR bundle (335 modules) build 100% sukses.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback/iterasi berikutnya dari user.
+**Notes:**
+- Seluruh desain UI mengadopsi standar ponytail skill (dual-zone split layout, sticky scorecard telemetry, contrast badges, accordion step-by-step trace calculation, interactive slider & target projection, accessible dialogs & micro-interactions).
+
 ### Session 114 - 2026-09-06
 **Time:** Start: 03:00 UTC | End: 03:20 UTC | Duration: ~20 minutes
 - Status: Completed

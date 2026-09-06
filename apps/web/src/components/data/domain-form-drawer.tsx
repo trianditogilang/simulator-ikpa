@@ -1,4 +1,4 @@
-﻿import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
 export interface DomainFormDrawerProps extends ComponentProps<"div"> {
@@ -25,16 +25,16 @@ export function DomainFormDrawer({
 	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
 			<div
 				{...props}
 				className={twMerge(
-					"relative w-full max-w-lg rounded-2xl border border-border bg-background p-6 shadow-xl",
+					"relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-2xl border border-border bg-background p-5 sm:p-6 shadow-xl my-auto",
 					className,
 				)}
 				data-slot="domain-form-drawer"
 			>
-				<div className="flex items-center justify-between border-b border-border/80 pb-3">
+				<div className="flex shrink-0 items-center justify-between border-b border-border/80 pb-3">
 					<div>
 						<h3 className="text-base font-bold text-foreground">{title}</h3>
 						{description && (
@@ -46,15 +46,15 @@ export function DomainFormDrawer({
 					<button
 						type="button"
 						onClick={onClose}
-						className="size-7 rounded-lg border border-border text-xs text-muted-foreground hover:bg-surface-muted"
+						className="size-7 rounded-lg border border-border text-xs text-muted-foreground hover:bg-surface-muted inline-flex items-center justify-center"
 					>
 						✕
 					</button>
 				</div>
 
-				<div className="py-4 text-xs">{children}</div>
+				<div className="py-3 sm:py-4 text-xs overflow-y-auto flex-1">{children}</div>
 
-				<div className="flex items-center justify-end gap-2 border-t border-border/80 pt-3">
+				<div className="flex shrink-0 items-center justify-end gap-2 border-t border-border/80 pt-3">
 					<button
 						type="button"
 						onClick={onClose}

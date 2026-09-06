@@ -1,4 +1,4 @@
-﻿export interface GuideItem {
+export interface GuideItem {
 	id: string;
 	title: string;
 	weightLabel: string;
@@ -26,10 +26,10 @@ export const mockGuides: GuideItem[] = [
 		weightLabel: "Bobot 15%",
 		regulationSource: "PER-5/PB/2024 Pasal 5",
 		summary:
-			"Menilai kesesuaian antara realisasi anggaran bulanan dengan rencana penarikan dana (RPD).",
+			"Menilai kesesuaian antara realisasi anggaran bulanan dengan rencana penarikan dana (RPD) per jenis belanja (51, 52, 53, 57).",
 		formula:
-			"Rata-rata deviasi bulanan. Deviasi ≤ 5% = 100. Kurva linier turun hingga batas toleransi.",
-		tips: "Perbarui RPD Hal III DIPA pada batas akhir triwulan sebelum triwulan berikutnya dimulai.",
+			"Deviasi akun = min(100, |Realisasi − RPD| ÷ RPD × 100). Deviasi bulanan = sum(deviasi akun × bobot pagu). Rata-rata = sum(deviasi bulanan) ÷ n bulan berjalan (Jan–Nov). Rata-rata ≤ 5% = 100; rata-rata > 5% = 100 − rata-rata (cap 0).",
+		tips: "Perbarui RPD Hal III DIPA pada batas akhir triwulan (Feb/Apr/Jul/Okt) sebelum triwulan berikutnya dimulai dan jaga rata-rata deviasi ≤ 5%.",
 	},
 	{
 		id: "g-03",
