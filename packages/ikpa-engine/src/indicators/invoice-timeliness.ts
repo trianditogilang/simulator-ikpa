@@ -1,43 +1,41 @@
 import type { RuleSetConfig } from "../rule-set";
-import type { IndicatorCalculation, InvoiceTimelinessInput } from "../types";
-
-// A day is a workday if it's NOT in holidays array.
-// Count workdays between two dates exclusive of start date.
-function countWorkdays(start: string, end: string, holidays: string[]): number {
-	const holidaySet = new Set(holidays);
-	let count = 0;
-
-	// Use UTC to avoid timezone shifts
-	const currentDate = new Date(`${start}T00:00:00Z`);
-	const endDate = new Date(`${end}T00:00:00Z`);
-
-	// Advance by 1 day to exclude start date
-	currentDate.setUTCDate(currentDate.getUTCDate() + 1);
-
-	while (currentDate <= endDate) {
-		const year = currentDate.getUTCFullYear();
-		const month = String(currentDate.getUTCMonth() + 1).padStart(2, "0");
-		const day = String(currentDate.getUTCDate()).padStart(2, "0");
-		const dateString = `${year}-${month}-${day}`;
-
-		if (!holidaySet.has(dateString)) {
-			count++;
-		}
-
-		currentDate.setUTCDate(currentDate.getUTCDate() + 1);
-	}
-
-	return count;
-}
+import type { FormulaStep, IndicatorCalculation, InvoiceTimelinessInput } from "../types";
+import { countWorkdays } from "../utils/workday-calendar";
 
 export function calculateInvoiceTimeliness(
 	input: InvoiceTimelinessInput,
 	config: RuleSetConfig,
 ): IndicatorCalculation {
 	const { invoices, workdayCalendar } = input;
-	const formulaTrace = [];
+	const formulaTrace: FormulaStep[] = [];
+	const warnings: string[] = [];
+	let stepCounter = 1;
 
-	if (invoices.length === 0) {
+	// 1. Filter only contractual and non-pegawai invoices
+	const eligibleInvoices = invoices.filter(
+		(inv) => inv.isPegawai !== true && inv.isContractual !== false,
+	);
+
+	const pegawaiCount = invoices.filter((inv) => inv.isPegawai === true).length;
+	const nonContractualCount = invoices.filter(
+		(inv) => inv.isContractual === false,
+	).length;
+
+	if (eligibleInvoices.length === 0) {
+		if (pegawaiCount > 0) {
+			warnings.push(
+				`Terdapat ${pegawaiCount} berkas SPM Belanja Pegawai yang dikecualikan dari penilaian.`,
+			);
+		}
+		if (nonContractualCount > 0) {
+			warnings.push(
+				`Terdapat ${nonContractualCount} berkas SPM Non-Kontraktual yang dikecualikan dari penilaian.`,
+			);
+		}
+		warnings.push(
+			"Tidak ada data SPM-LS kontraktual non-pegawai eligible (denominator nol).",
+		);
+
 		return {
 			key: "invoice_timeliness",
 			label: "Penyelesaian Tagihan",
@@ -46,32 +44,74 @@ export function calculateInvoiceTimeliness(
 			weightedContribution: null,
 			status: "incomplete",
 			formulaTrace: [],
-			warnings: ["Tidak ada data SPM-LS non-pegawai (denominator nol)."],
+			warnings,
 		};
 	}
 
-	let onTimeCount = 0;
-	const totalCount = invoices.length;
+	// 2. Classify completed vs pending invoices
+	const completedInvoices = eligibleInvoices.filter(
+		(inv) => inv.spmDate && inv.spmDate.trim() !== "",
+	);
+	const pendingInvoices = eligibleInvoices.filter(
+		(inv) => !inv.spmDate || inv.spmDate.trim() === "",
+	);
 
-	for (const invoice of invoices) {
-		const workdays = countWorkdays(
-			invoice.bastDate,
-			invoice.spmDate,
-			workdayCalendar.holidays,
+	if (completedInvoices.length === 0) {
+		warnings.push(
+			`Seluruh ${pendingInvoices.length} berkas SPM eligible masih menunggu tanggal konversi KPPN.`,
 		);
-		if (workdays <= 17) {
-			onTimeCount++;
+		return {
+			key: "invoice_timeliness",
+			label: "Penyelesaian Tagihan",
+			weight: config.weights.invoice_timeliness,
+			score: null,
+			weightedContribution: null,
+			status: "incomplete",
+			formulaTrace: [],
+			warnings,
+		};
+	}
+
+	// 3. Count on-time vs late using canonical workday calendar
+	let onTimeCount = 0;
+	let lateCount = 0;
+	let invalidDateCount = 0;
+
+	for (const inv of completedInvoices) {
+		const bast = inv.bastDate.slice(0, 10);
+		const spm = inv.spmDate!.slice(0, 10);
+
+		if (spm < bast) {
+			invalidDateCount++;
+			lateCount++;
+			continue;
+		}
+
+		try {
+			const workdays = countWorkdays(bast, spm, workdayCalendar);
+			if (workdays <= 17) {
+				onTimeCount++;
+			} else {
+				lateCount++;
+			}
+		} catch {
+			invalidDateCount++;
+			lateCount++;
 		}
 	}
 
-	const rawScore = (onTimeCount / totalCount) * 100;
+	const totalEvaluated = completedInvoices.length;
+	const rawScore = (onTimeCount / totalEvaluated) * 100;
 
-	// Truncate/round to fraction digits
-	const factor = 10 ** config.rounding.fractionDigits;
+	// Rounding using config rounding mode
+	const fractionDigits = config.rounding?.fractionDigits ?? 2;
+	const factor = 10 ** fractionDigits;
 	let roundedScore = rawScore;
-	if (config.rounding.mode === "half_up") {
+	const mode = config.rounding?.mode ?? "half_up";
+
+	if (mode === "half_up") {
 		roundedScore = Math.round(rawScore * factor) / factor;
-	} else if (config.rounding.mode === "half_down") {
+	} else if (mode === "half_down") {
 		const ceil = Math.ceil(rawScore * factor);
 		const floor = Math.floor(rawScore * factor);
 		if (rawScore * factor - floor > 0.5) {
@@ -79,62 +119,97 @@ export function calculateInvoiceTimeliness(
 		} else {
 			roundedScore = floor / factor;
 		}
-	} else if (config.rounding.mode === "down") {
+	} else if (mode === "down") {
 		roundedScore = Math.floor(rawScore * factor) / factor;
-	} else if (config.rounding.mode === "up") {
+	} else if (mode === "up") {
 		roundedScore = Math.ceil(rawScore * factor) / factor;
 	}
 
-	const scoreStr = roundedScore.toFixed(config.rounding.fractionDigits);
+	const scoreStr = roundedScore.toFixed(fractionDigits);
 
-	formulaTrace.push({
-		step: 1,
-		label: "Rasio Penyelesaian Tagihan Tepat Waktu",
-		formula: "(onTimeCount / totalCount) * 100",
-		inputs: {
-			onTimeCount: onTimeCount.toString(),
-			totalCount: totalCount.toString(),
-		},
-		result: scoreStr,
-	});
-
+	// Calculate weighted contribution capped at max weight
 	const weightNum = parseFloat(config.weights.invoice_timeliness);
 	const rawContribution = (roundedScore * weightNum) / 100;
-	let roundedContribution = rawContribution;
-	if (config.rounding.mode === "half_up") {
-		roundedContribution = Math.round(rawContribution * factor) / factor;
-	} else if (config.rounding.mode === "half_down") {
-		const ceil = Math.ceil(rawContribution * factor);
-		const floor = Math.floor(rawContribution * factor);
-		if (rawContribution * factor - floor > 0.5) {
+	const cappedContribution = Math.min(rawContribution, weightNum);
+	let roundedContribution = cappedContribution;
+
+	if (mode === "half_up") {
+		roundedContribution = Math.round(cappedContribution * factor) / factor;
+	} else if (mode === "half_down") {
+		const ceil = Math.ceil(cappedContribution * factor);
+		const floor = Math.floor(cappedContribution * factor);
+		if (cappedContribution * factor - floor > 0.5) {
 			roundedContribution = ceil / factor;
 		} else {
 			roundedContribution = floor / factor;
 		}
-	} else if (config.rounding.mode === "down") {
-		roundedContribution = Math.floor(rawContribution * factor) / factor;
-	} else if (config.rounding.mode === "up") {
-		roundedContribution = Math.ceil(rawContribution * factor) / factor;
+	} else if (mode === "down") {
+		roundedContribution = Math.floor(cappedContribution * factor) / factor;
+	} else if (mode === "up") {
+		roundedContribution = Math.ceil(cappedContribution * factor) / factor;
 	}
 
-	const contributionStr = roundedContribution.toFixed(
-		config.rounding.fractionDigits,
-	);
+	const contributionStr = roundedContribution.toFixed(fractionDigits);
 
 	formulaTrace.push({
-		step: 2,
-		label: "Nilai Tertimbang",
-		formula: "(score * weight) / 100",
+		step: stepCounter++,
+		label: "Objek Penilaian SPM LS Kontraktual Non-Pegawai",
+		formula: "Total SPM - SPM Pegawai - SPM Non-Kontraktual",
 		inputs: {
-			score: scoreStr,
-			weight: config.weights.invoice_timeliness,
+			totalInvoices: invoices.length.toString(),
+			pegawaiExcluded: pegawaiCount.toString(),
+			eligibleCompleted: totalEvaluated.toString(),
+			pendingWaiting: pendingInvoices.length.toString(),
+		},
+		result: totalEvaluated.toString(),
+	});
+
+	formulaTrace.push({
+		step: stepCounter++,
+		label: "Ketepatan Waktu Penerbitan SPM-LS (Maksimal H+17 Hari Kerja)",
+		formula: "(Jumlah SPM Tepat Waktu (≤ 17 HK) / Total SPM Selesai Konversi) * 100",
+		inputs: {
+			onTimeCount: onTimeCount.toString(),
+			lateCount: lateCount.toString(),
+			totalEvaluated: totalEvaluated.toString(),
+		},
+		result: `${scoreStr}%`,
+	});
+
+	formulaTrace.push({
+		step: stepCounter++,
+		label: "Nilai Tertimbang Kontribusi IKPA",
+		formula: "min((Nilai Indikator * Bobot) / 100, Bobot)",
+		inputs: {
+			nilaiIndikator: scoreStr,
+			bobot: config.weights.invoice_timeliness,
+			kontribusiMaksimal: weightNum.toFixed(fractionDigits),
 		},
 		result: contributionStr,
 	});
 
-	const warnings = config.assumptionWarnings.filter((w) =>
+	if (pegawaiCount > 0) {
+		warnings.push(
+			`${pegawaiCount} berkas SPM Belanja Pegawai dikecualikan dari pembilang dan penyebut.`,
+		);
+	}
+	if (pendingInvoices.length > 0) {
+		warnings.push(
+			`Terdapat ${pendingInvoices.length} berkas SPM berjalan yang belum selesai konversi KPPN (nilai bersifat estimasi).`,
+		);
+	}
+	if (invalidDateCount > 0) {
+		warnings.push(
+			`Terdapat ${invalidDateCount} berkas SPM dengan tanggal konversi tidak valid / sebelum BAST.`,
+		);
+	}
+
+	const assumptionWarnings = (config.assumptionWarnings ?? []).filter((w) =>
 		w.startsWith("TAG-"),
 	);
+	for (const w of assumptionWarnings) {
+		warnings.push(w);
+	}
 
 	return {
 		key: "invoice_timeliness",

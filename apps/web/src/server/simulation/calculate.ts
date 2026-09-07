@@ -403,8 +403,12 @@ export async function calculateAndPersistSnapshot(
 		invoiceTimeliness: {
 			invoices: spmLsRows.map((s) => ({
 				id: s.id,
+				referenceNumber: s.referenceNumber ?? undefined,
+				contractId: s.contractId ?? undefined,
 				bastDate: s.bastBappDate as string,
-				spmDate: s.receivedAtKppn as string,
+				spmDate: (s.receivedAtKppn as string) || undefined,
+				isPegawai: s.isPegawai ?? false,
+				isContractual: true,
 			})),
 			workdayCalendar: { holidays, workdays: workdayOverrides },
 		},

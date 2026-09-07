@@ -23,7 +23,7 @@ export const spmLs = pgTable(
 			.notNull(),
 		referenceNumber: text("reference_number").notNull(),
 		bastBappDate: date("bast_bapp_date").notNull(),
-		receivedAtKppn: date("received_at_kppn").notNull(),
+		receivedAtKppn: date("received_at_kppn"),
 		isPegawai: boolean("is_pegawai").default(false).notNull(),
 		createdBy: uuid("created_by").references(() => users.id, {
 			onDelete: "set null",

@@ -8,7 +8,6 @@ import {
 	ChevronUp,
 	Clock,
 	FileSignature,
-	FileText,
 	HelpCircle,
 	Info,
 	Pencil,
@@ -36,13 +35,15 @@ import {
 	evaluateSingleContract,
 } from "@/lib/simulation/kontraktual-workspace";
 import {
-	buildSpmReminders,
-	tagihanAdvice,
-} from "@/lib/simulation/tagihan-output-reminder";
+	calcTagihanSummary,
+	evaluateSingleSpm,
+	type SpmEvaluation,
+} from "@/lib/simulation/tagihan-workspace";
 import {
 	addContract,
 	addSpmLs,
 	editContract,
+	editSpmLs,
 	fetchContractsAndInvoices,
 	removeContract,
 	removeSpmLs,
@@ -52,7 +53,10 @@ import {
 
 export const Route = createFileRoute("/operator/data/contracts-invoices")({
 	validateSearch: (search: Record<string, unknown>) => ({
-		tab: search.tab === "spm" ? ("spm" as const) : ("contracts" as const),
+		tab:
+			search.tab === "invoices" || search.tab === "spm"
+				? (search.tab as "invoices" | "spm")
+				: ("contracts" as const),
 		org: typeof search.org === "string" ? search.org : undefined,
 	}),
 	loaderDeps: ({ search }) => ({ org: search.org }),
@@ -77,11 +81,13 @@ function ContractsInvoicesPage() {
 	const initialData = Route.useLoaderData();
 
 	const activeTab = searchParams.tab || "contracts";
+	const isTagihanTab = activeTab === "invoices" || activeTab === "spm";
 
 	const [search, setSearch] = useState("");
 	const [isContractDrawerOpen, setIsContractDrawerOpen] = useState(false);
 	const [isSpmDrawerOpen, setIsSpmDrawerOpen] = useState(false);
-	const [isGuideOpen, setIsGuideOpen] = useState(false);
+	const [isContractGuideOpen, setIsContractGuideOpen] = useState(false);
+	const [isTagihanGuideOpen, setIsTagihanGuideOpen] = useState(false);
 	const [isTraceExpanded, setIsTraceExpanded] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -104,7 +110,8 @@ function ContractsInvoicesPage() {
 	);
 	const [sp2dDate, setSp2dDate] = useState("");
 
-	// SPM Form State
+	// SPM Form State (Create / Edit)
+	const [editingSpmId, setEditingSpmId] = useState<string | null>(null);
 	const [selectedContractId, setSelectedContractId] = useState(
 		initialData.contracts[0]?.id ?? "",
 	);
@@ -112,19 +119,23 @@ function ContractsInvoicesPage() {
 	const [bastDate, setBastDate] = useState(
 		new Date().toISOString().slice(0, 10),
 	);
-	const [kppnReceiveDate, setKppnReceiveDate] = useState(
-		new Date().toISOString().slice(0, 10),
-	);
-	const [isPegawai, setIsPegawai] = useState(false);
+	const [kppnReceiveDate, setKppnReceiveDate] = useState("");
+	const [isPegawaiSpm, setIsPegawaiSpm] = useState(false);
 
 	// Computed Belanja Kontraktual Summary
-	const summary = useMemo(
+	const contractSummary = useMemo(
 		() => calcKontraktualSummary(initialData.contracts, initialData.year || 2026),
 		[initialData.contracts, initialData.year],
 	);
 
+	// Computed Penyelesaian Tagihan Summary
+	const tagihanSummary = useMemo(
+		() => calcTagihanSummary(initialData.spmLsList, initialData.contracts),
+		[initialData.spmLsList, initialData.contracts],
+	);
+
 	// Live preview of candidate contract in drawer
-	const liveDrawerPreview = useMemo(() => {
+	const liveContractDrawerPreview = useMemo(() => {
 		const valNum = parseFloat(contractValue) || 0;
 		const candidateRecord: ContractRecord = {
 			id: editingContractId || "preview",
@@ -147,16 +158,28 @@ function ContractsInvoicesPage() {
 		initialData.year,
 	]);
 
-	// Strip reminder H+17 wajib (for SPM tab)
-	const spmReminders = useMemo(
-		() => buildSpmReminders(initialData.spmLsList),
-		[initialData.spmLsList],
-	);
-	const spmAdvice = useMemo(() => tagihanAdvice(spmReminders), [spmReminders]);
-	const spmLate = spmReminders.filter((r) => r.status === "Terlambat");
-	const spmLateCount = spmLate.length;
+	// Live preview of candidate SPM in drawer
+	const liveSpmDrawerPreview = useMemo(() => {
+		const candidateSpm: SpmLsRecord = {
+			id: editingSpmId || "preview",
+			contractId: selectedContractId,
+			referenceNumber: spmRefNum || "Draft SPM-LS",
+			bastBappDate: bastDate,
+			receivedAtKppn: kppnReceiveDate.trim() ? kppnReceiveDate : null,
+			isPegawai: isPegawaiSpm,
+		};
+		return evaluateSingleSpm(candidateSpm, initialData.contracts);
+	}, [
+		editingSpmId,
+		selectedContractId,
+		spmRefNum,
+		bastDate,
+		kppnReceiveDate,
+		isPegawaiSpm,
+		initialData.contracts,
+	]);
 
-	const handleTabChange = (newTab: "contracts" | "spm") => {
+	const handleTabChange = (newTab: "contracts" | "invoices") => {
 		navigate({
 			to: "/operator/data/contracts-invoices",
 			search: (prev) => ({
@@ -166,6 +189,7 @@ function ContractsInvoicesPage() {
 		});
 	};
 
+	// Contract Handlers
 	const handleOpenCreateContract = () => {
 		setEditingContractId(null);
 		setContractNum("");
@@ -262,7 +286,34 @@ function ContractsInvoicesPage() {
 		}
 	};
 
-	const handleCreateSpm = async () => {
+	// SPM Handlers
+	const handleOpenCreateSpm = () => {
+		if (initialData.contracts.length === 0) {
+			alert("Daftarkan minimal satu kontrak terlebih dahulu sebelum mencatat SPM-LS.");
+			return;
+		}
+		setEditingSpmId(null);
+		setSelectedContractId(initialData.contracts[0]?.id ?? "");
+		setSpmRefNum("");
+		setBastDate(new Date().toISOString().slice(0, 10));
+		setKppnReceiveDate("");
+		setIsPegawaiSpm(false);
+		setErrorMessage(null);
+		setIsSpmDrawerOpen(true);
+	};
+
+	const handleOpenEditSpm = (spm: SpmLsRecord) => {
+		setEditingSpmId(spm.id);
+		setSelectedContractId(spm.contractId);
+		setSpmRefNum(spm.referenceNumber);
+		setBastDate(spm.bastBappDate);
+		setKppnReceiveDate(spm.receivedAtKppn || "");
+		setIsPegawaiSpm(spm.isPegawai);
+		setErrorMessage(null);
+		setIsSpmDrawerOpen(true);
+	};
+
+	const handleSaveSpm = async () => {
 		setActionMessage(null);
 		setErrorMessage(null);
 
@@ -274,25 +325,46 @@ function ContractsInvoicesPage() {
 			setErrorMessage("Nomor SPM-LS wajib diisi.");
 			return;
 		}
+		if (!bastDate) {
+			setErrorMessage("Tanggal BAST/BAPP wajib diisi.");
+			return;
+		}
+		if (kppnReceiveDate && kppnReceiveDate < bastDate) {
+			setErrorMessage(
+				"Tanggal konversi KPPN tidak boleh lebih awal dari tanggal BAST/BAPP.",
+			);
+			return;
+		}
 
 		setIsSubmitting(true);
 		try {
-			await addSpmLs({
-				contractId: selectedContractId,
-				referenceNumber: spmRefNum.trim(),
-				bastBappDate: bastDate,
-				receivedAtKppn: kppnReceiveDate,
-				isPegawai,
-			});
+			if (editingSpmId) {
+				await editSpmLs({
+					spmId: editingSpmId,
+					contractId: selectedContractId,
+					referenceNumber: spmRefNum.trim(),
+					bastBappDate: bastDate,
+					receivedAtKppn: kppnReceiveDate.trim() ? kppnReceiveDate : null,
+					isPegawai: isPegawaiSpm,
+				});
+				setActionMessage("Data SPM-LS berhasil diperbarui.");
+			} else {
+				await addSpmLs({
+					contractId: selectedContractId,
+					referenceNumber: spmRefNum.trim(),
+					bastBappDate: bastDate,
+					receivedAtKppn: kppnReceiveDate.trim() ? kppnReceiveDate : null,
+					isPegawai: isPegawaiSpm,
+				});
+				setActionMessage("Penerbitan SPM-LS berhasil dicatat.");
+			}
 
-			setActionMessage("Penerbitan SPM-LS berhasil dicatat.");
 			setIsSpmDrawerOpen(false);
-			setSpmRefNum("");
 			await router.invalidate();
 			setTimeout(() => setActionMessage(null), 4000);
 		} catch (err: unknown) {
 			setErrorMessage(
-				err instanceof Error ? err.message : "Gagal mencatat SPM-LS.",
+				err instanceof Error ? err.message : "Gagal menyimpan SPM-LS.",
 			);
 		} finally {
 			setIsSubmitting(false);
@@ -321,8 +393,10 @@ function ContractsInvoicesPage() {
 			c.accountCode.includes(search),
 	);
 
-	const filteredSpm = initialData.spmLsList.filter((s) =>
-		s.referenceNumber.toLowerCase().includes(search.toLowerCase()),
+	const filteredSpmEvaluations = tagihanSummary.evaluations.filter(
+		(e) =>
+			e.referenceNumber.toLowerCase().includes(search.toLowerCase()) ||
+			e.contractNumber.toLowerCase().includes(search.toLowerCase()),
 	);
 
 	const contractColumns: ColumnDef<ContractRecord>[] = [
@@ -450,6 +524,12 @@ function ContractsInvoicesPage() {
 						type="button"
 						onClick={() => {
 							setSelectedContractId(item.id);
+							setEditingSpmId(null);
+							setSpmRefNum("");
+							setBastDate(new Date().toISOString().slice(0, 10));
+							setKppnReceiveDate("");
+							setIsPegawaiSpm(false);
+							setErrorMessage(null);
 							setIsSpmDrawerOpen(true);
 						}}
 						className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary hover:bg-primary/20 transition"
@@ -471,69 +551,147 @@ function ContractsInvoicesPage() {
 		},
 	];
 
-	const spmColumns: ColumnDef<SpmLsRecord>[] = [
+	const spmColumns: ColumnDef<SpmEvaluation>[] = [
 		{
 			key: "ref",
-			header: "Nomor SPM-LS",
+			header: "Nomor SPM-LS & Kategori",
 			render: (item) => (
-				<div>
+				<div className="space-y-0.5">
 					<span className="font-semibold text-foreground">
 						{item.referenceNumber}
 					</span>
-					<p className="text-[11px] text-muted-foreground">
-						{item.isPegawai ? "Kategori Belanja Pegawai" : "Non-Pegawai / Rekanan"}
-					</p>
+					<div>
+						<span
+							className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+								item.isPegawai
+									? "bg-surface-muted text-muted-foreground border border-border"
+									: "bg-primary/10 text-primary border border-primary/20"
+							}`}
+						>
+							{item.isPegawai ? "Belanja Pegawai (Dikecualikan)" : "Non-Pegawai / Rekanan"}
+						</span>
+					</div>
 				</div>
 			),
 		},
 		{
-			key: "contractId",
+			key: "contract",
 			header: "Kontrak Terkait",
-			render: (item) => {
-				const parentContract = initialData.contracts.find(
-					(c) => c.id === item.contractId,
-				);
-				return (
-					<span className="text-xs font-medium text-foreground">
-						{parentContract?.contractNumber ||
-							"Kontrak ID: " + item.contractId.slice(0, 8)}
+			render: (item) => (
+				<div className="space-y-0.5">
+					<span className="text-xs font-semibold text-foreground">
+						{item.contractNumber}
 					</span>
-				);
-			},
+					<div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+						<span className="font-mono text-[10px]">Akun {item.accountCode}</span>
+						<span>·</span>
+						<span>{formatRupiah(Number.parseFloat(item.contractValue))}</span>
+					</div>
+				</div>
+			),
 		},
 		{
 			key: "bast",
-			header: "Tanggal BAST / BAPP",
+			header: "Tanggal BAST/BAPP",
 			render: (item) => (
-				<span className="inline-flex items-center gap-1.5 text-foreground">
-					<Calendar className="size-3 text-muted-foreground" />
-					<span>{item.bastBappDate}</span>
+				<span className="inline-flex items-center gap-1.5 text-xs text-foreground font-medium">
+					<Calendar className="size-3.5 text-muted-foreground" />
+					<span>{item.bastBappDate || "—"}</span>
 				</span>
 			),
 		},
 		{
 			key: "received",
-			header: "Diterima di KPPN",
+			header: "Konversi KPPN",
 			render: (item) => (
-				<span className="inline-flex items-center gap-1.5 text-foreground">
-					<Clock className="size-3.5 text-muted-foreground" />
-					<span>{item.receivedAtKppn}</span>
-				</span>
+				<div className="space-y-0.5">
+					{item.receivedAtKppn ? (
+						<span className="inline-flex items-center gap-1.5 text-xs text-foreground font-medium">
+							<Clock className="size-3.5 text-muted-foreground" />
+							<span>{item.receivedAtKppn}</span>
+						</span>
+					) : (
+						<span className="rounded bg-warning/10 border border-warning/20 px-1.5 py-0.5 text-[10px] font-semibold text-warning">
+							Belum Dikonversi
+						</span>
+					)}
+				</div>
+			),
+		},
+		{
+			key: "deadline",
+			header: "Deadline H+17",
+			render: (item) => (
+				<div className="space-y-0.5">
+					<span className="text-xs font-mono font-medium text-foreground">
+						{item.deadlineH17}
+					</span>
+					<p className="text-[10px] text-muted-foreground">
+						{item.workdaysElapsed !== null
+							? `${item.workdaysElapsed} HK berlalu`
+							: item.daysRemaining !== null
+								? item.daysRemaining >= 0
+									? `Sisa ${item.daysRemaining} HK`
+									: `${Math.abs(item.daysRemaining)} HK lewat`
+								: "—"}
+					</p>
+				</div>
+			),
+		},
+		{
+			key: "status",
+			header: "Status & Dampak Nilai",
+			render: (item) => (
+				<div className="space-y-1">
+					<span
+						className={`inline-block rounded px-2 py-0.5 text-[11px] font-semibold ${
+							item.badge.variant === "success"
+								? "bg-success/10 text-success border border-success/20"
+								: item.badge.variant === "warning"
+									? "bg-warning/10 text-warning border border-warning/20"
+									: item.badge.variant === "danger"
+										? "bg-danger/10 text-danger border border-danger/20"
+										: item.badge.variant === "info"
+											? "bg-primary/10 text-primary border border-primary/20"
+											: "bg-surface text-muted-foreground border border-border"
+						}`}
+					>
+						{item.badge.label}
+					</span>
+					<p className="text-[10px] text-muted-foreground">{item.impact}</p>
+				</div>
 			),
 		},
 		{
 			key: "actions",
 			header: "Aksi",
-			render: (item) => (
-				<button
-					type="button"
-					onClick={() => handleDeleteSpm(item.id)}
-					className="inline-flex items-center rounded-lg p-1.5 text-danger hover:bg-danger/10 transition"
-					title="Hapus SPM-LS"
-				>
-					<Trash2 className="size-3.5" />
-				</button>
-			),
+			render: (item) => {
+				const originalRow = initialData.spmLsList.find(
+					(s) => s.id === item.spmId,
+				);
+				return (
+					<div className="flex items-center gap-1.5">
+						{originalRow && (
+							<button
+								type="button"
+								onClick={() => handleOpenEditSpm(originalRow)}
+								className="inline-flex items-center rounded-lg p-1.5 text-primary hover:bg-primary/10 transition"
+								title="Ubah Data SPM-LS"
+							>
+								<Pencil className="size-3.5" />
+							</button>
+						)}
+						<button
+							type="button"
+							onClick={() => handleDeleteSpm(item.spmId)}
+							className="inline-flex items-center rounded-lg p-1.5 text-danger hover:bg-danger/10 transition"
+							title="Hapus SPM-LS"
+						>
+							<Trash2 className="size-3.5" />
+						</button>
+					</div>
+				);
+			},
 		},
 	];
 
@@ -546,7 +704,7 @@ function ContractsInvoicesPage() {
 				<div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-5 shadow-xs">
 					<div className="flex items-center gap-3">
 						<div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-							{activeTab === "contracts" ? (
+							{!isTagihanTab ? (
 								<FileSignature className="size-5" />
 							) : (
 								<Receipt className="size-5" />
@@ -555,28 +713,28 @@ function ContractsInvoicesPage() {
 						<div>
 							<div className="flex items-center gap-2">
 								<h1 className="text-lg font-bold text-foreground sm:text-xl">
-									{activeTab === "contracts"
+									{!isTagihanTab
 										? "Indikator Belanja Kontraktual"
-										: "Penyelesaian Tagihan (SPM-LS)"}
+										: "Indikator Penyelesaian Tagihan (SPM-LS)"}
 								</h1>
 								<span className="rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
 									Bobot 10%
 								</span>
 							</div>
 							<p className="text-xs text-muted-foreground">
-								{activeTab === "contracts"
+								{!isTagihanTab
 									? "Pantau akselerasi kontrak melalui Distribusi (20%), Kontrak Pra-DIPA / Dini (40%), dan Akselerasi Belanja Modal 53 (40%)."
-									: "Pantau kepatuhan penyelesaian tagihan SPM-LS maksimal 17 hari kerja setelah tanggal BAST/BAPP."}
+									: "Pantau kepatuhan penyelesaian tagihan SPM-LS maksimal 17 hari kerja sejak tanggal BAST/BAPP hingga konversi KPPN (khusus SPM non-belanja pegawai)."}
 							</p>
 						</div>
 					</div>
 
 					<div className="flex items-center gap-2">
-						{activeTab === "contracts" && (
+						{!isTagihanTab && (
 							<>
 								<button
 									type="button"
-									onClick={() => setIsGuideOpen(true)}
+									onClick={() => setIsContractGuideOpen(true)}
 									className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground shadow-xs transition hover:bg-surface-muted"
 								>
 									<HelpCircle className="size-3.5 text-primary" />
@@ -593,22 +751,25 @@ function ContractsInvoicesPage() {
 							</>
 						)}
 
-						{activeTab === "spm" && (
-							<button
-								type="button"
-								onClick={() => {
-									if (initialData.contracts.length === 0) {
-										alert("Daftarkan minimal satu kontrak terlebih dahulu.");
-										return;
-									}
-									setSelectedContractId(initialData.contracts[0]?.id ?? "");
-									setIsSpmDrawerOpen(true);
-								}}
-								className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
-							>
-								<Plus className="size-3.5" />
-								<span>Catat SPM-LS</span>
-							</button>
+						{isTagihanTab && (
+							<>
+								<button
+									type="button"
+									onClick={() => setIsTagihanGuideOpen(true)}
+									className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground shadow-xs transition hover:bg-surface-muted"
+								>
+									<HelpCircle className="size-3.5 text-primary" />
+									<span>Panduan Rumus</span>
+								</button>
+								<button
+									type="button"
+									onClick={handleOpenCreateSpm}
+									className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
+								>
+									<Plus className="size-3.5" />
+									<span>Catat SPM-LS</span>
+								</button>
+							</>
 						)}
 					</div>
 				</div>
@@ -631,8 +792,8 @@ function ContractsInvoicesPage() {
 					</div>
 				)}
 
-				{/* Standardized 5-Card Score Grid for Belanja Kontraktual */}
-				{activeTab === "contracts" && (
+				{/* 5-Card Score Grid for Belanja Kontraktual */}
+				{!isTagihanTab && (
 					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
 						{/* Card 1: Pra DIPA (40%) */}
 						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
@@ -644,17 +805,17 @@ function ContractsInvoicesPage() {
 							</div>
 							<div className="flex items-baseline gap-2">
 								<p className="text-2xl font-bold text-foreground sm:text-3xl">
-									{summary.kd.score ?? "—"}
+									{contractSummary.kd.score ?? "—"}
 								</p>
 								<span className="text-[11px] font-semibold text-muted-foreground">
-									{summary.kd.denominatorCount} Kontrak
+									{contractSummary.kd.denominatorCount} Kontrak
 								</span>
 							</div>
 							<p
 								className="text-[11px] text-muted-foreground truncate"
-								title={`${summary.kd.praDipaCount} Pra-DIPA (120) · ${summary.kd.q1Count} TW I (110)`}
+								title={`${contractSummary.kd.praDipaCount} Pra-DIPA (120) · ${contractSummary.kd.q1Count} TW I (110)`}
 							>
-								{summary.kd.praDipaCount} Pra-DIPA (120) · {summary.kd.q1Count} TW I (110)
+								{contractSummary.kd.praDipaCount} Pra-DIPA (120) · {contractSummary.kd.q1Count} TW I (110)
 							</p>
 						</div>
 
@@ -668,17 +829,17 @@ function ContractsInvoicesPage() {
 							</div>
 							<div className="flex items-baseline gap-2">
 								<p className="text-2xl font-bold text-foreground sm:text-3xl">
-									{summary.ak53.score ?? "—"}
+									{contractSummary.ak53.score ?? "—"}
 								</p>
 								<span className="text-[11px] font-semibold text-muted-foreground">
-									{summary.ak53.completedCount} Selesai
+									{contractSummary.ak53.completedCount} Selesai
 								</span>
 							</div>
 							<p
 								className="text-[11px] text-muted-foreground truncate"
-								title={`${summary.ak53.tw1Count} TW I · ${summary.ak53.tw2Count} TW II · ${summary.ak53.tw3Count} TW III`}
+								title={`${contractSummary.ak53.tw1Count} TW I · ${contractSummary.ak53.tw2Count} TW II · ${contractSummary.ak53.tw3Count} TW III`}
 							>
-								{summary.ak53.tw1Count} TW I · {summary.ak53.tw2Count} TW II · {summary.ak53.tw3Count} TW III
+								{contractSummary.ak53.tw1Count} TW I · {contractSummary.ak53.tw2Count} TW II · {contractSummary.ak53.tw3Count} TW III
 							</p>
 						</div>
 
@@ -695,17 +856,17 @@ function ContractsInvoicesPage() {
 							</div>
 							<div className="flex items-baseline gap-2">
 								<p className="text-2xl font-bold text-foreground sm:text-3xl">
-									{summary.dak.score ?? "—"}
+									{contractSummary.dak.score ?? "—"}
 								</p>
 								<span className="text-[11px] font-semibold text-primary">
-									Rasio {summary.dak.ratio.toFixed(1)}%
+									Rasio {contractSummary.dak.ratio.toFixed(1)}%
 								</span>
 							</div>
 							<p
 								className="text-[11px] text-muted-foreground truncate"
-								title={`${summary.dak.countQ2} dari ${summary.dak.totalEligible} kontrak s.d. 30 Juni`}
+								title={`${contractSummary.dak.countQ2} dari ${contractSummary.dak.totalEligible} kontrak s.d. 30 Juni`}
 							>
-								{summary.dak.countQ2} dari {summary.dak.totalEligible} kontrak s.d. 30 Juni
+								{contractSummary.dak.countQ2} dari {contractSummary.dak.totalEligible} kontrak s.d. 30 Juni
 							</p>
 						</div>
 
@@ -719,16 +880,16 @@ function ContractsInvoicesPage() {
 							</div>
 							<div className="flex items-baseline gap-2">
 								<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-									{summary.final.score ?? "—"}
+									{contractSummary.final.score ?? "—"}
 								</p>
 								<span
 									className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
-										summary.final.status === "complete"
+										contractSummary.final.status === "complete"
 											? "bg-success/10 text-success"
 											: "bg-warning/10 text-warning"
 									}`}
 								>
-									{summary.final.statusLabel}
+									{contractSummary.final.statusLabel}
 								</span>
 							</div>
 							<p className="text-[11px] text-muted-foreground truncate">
@@ -745,8 +906,8 @@ function ContractsInvoicesPage() {
 								<Sparkles className="size-4 text-success" />
 							</div>
 							<p className="text-2xl font-extrabold text-success sm:text-3xl">
-								{summary.final.weightedContribution
-									? `${summary.final.weightedContribution} pts`
+								{contractSummary.final.weightedContribution
+									? `${contractSummary.final.weightedContribution} pts`
 									: "—"}
 							</p>
 							<p className="text-[11px] text-muted-foreground truncate">
@@ -756,8 +917,129 @@ function ContractsInvoicesPage() {
 					</div>
 				)}
 
-				{/* Accordion: Trace & Detail Perhitungan */}
-				{activeTab === "contracts" && (
+				{/* 5-Card Score Grid for Penyelesaian Tagihan (SPM-LS) */}
+				{isTagihanTab && (
+					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+						{/* Card 1: SPM Tepat Waktu */}
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+							<div className="flex items-center justify-between text-muted-foreground">
+								<span className="text-xs font-semibold truncate" title="SPM Tepat Waktu (≤ 17 HK)">
+									SPM Tepat Waktu
+								</span>
+								<CheckCircle2 className="size-4 text-success" />
+							</div>
+							<div className="flex items-baseline gap-2">
+								<p className="text-2xl font-bold text-foreground sm:text-3xl">
+									{tagihanSummary.onTimeCount}
+								</p>
+								<span className="text-[11px] font-semibold text-muted-foreground">
+									/ {tagihanSummary.eligibleCount} Eligible
+								</span>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate">
+								Maks. 17 HK sejak BAST/BAPP
+							</p>
+						</div>
+
+						{/* Card 2: SPM Terlambat */}
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+							<div className="flex items-center justify-between text-muted-foreground">
+								<span className="text-xs font-semibold truncate" title="SPM Terlambat (> 17 HK)">
+									SPM Terlambat
+								</span>
+								<Clock className="size-4 text-danger" />
+							</div>
+							<div className="flex items-baseline gap-2">
+								<p className="text-2xl font-bold text-danger sm:text-3xl">
+									{tagihanSummary.lateCount}
+								</p>
+								<span className="text-[11px] font-semibold text-muted-foreground">
+									Berkas
+								</span>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate">
+								{tagihanSummary.lateCount > 0
+									? "Mengurangi persentase skor"
+									: "Nihil berkas terlambat"}
+							</p>
+						</div>
+
+						{/* Card 3: Menunggu Konversi */}
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+							<div className="flex items-center justify-between text-muted-foreground">
+								<span className="text-xs font-semibold truncate" title="Menunggu Konversi KPPN">
+									Menunggu Konversi
+								</span>
+								<TrendingUp className="size-4 text-primary" />
+							</div>
+							<div className="flex items-baseline gap-2">
+								<p className="text-2xl font-bold text-foreground sm:text-3xl">
+									{tagihanSummary.pendingCount}
+								</p>
+								<span className="text-[11px] font-semibold text-muted-foreground">
+									{tagihanSummary.riskyCount > 0
+										? `${tagihanSummary.riskyCount} Berisiko`
+										: "Proses"}
+								</span>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate">
+								{tagihanSummary.pegawaiCount > 0
+									? `+${tagihanSummary.pegawaiCount} Belanja Pegawai (Dikecualikan)`
+									: "Belum masuk penilaian final"}
+							</p>
+						</div>
+
+						{/* Card 4 (2 paling kanan): Nilai IKPA Tagihan */}
+						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+							<div className="flex items-center justify-between text-muted-foreground">
+								<span className="text-xs font-semibold text-foreground truncate">
+									Nilai IKPA Tagihan
+								</span>
+								<ShieldCheck className="size-4 text-primary" />
+							</div>
+							<div className="flex items-baseline gap-2">
+								<p className="text-2xl font-extrabold text-primary sm:text-3xl">
+									{tagihanSummary.score ?? "—"}
+								</p>
+								<span
+									className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+										tagihanSummary.status === "complete"
+											? "bg-success/10 text-success"
+											: tagihanSummary.status === "warning"
+												? "bg-warning/10 text-warning"
+												: "bg-surface-muted text-muted-foreground"
+									}`}
+								>
+									{tagihanSummary.statusLabel}
+								</span>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate">
+								(SPM Tepat Waktu ÷ Total Eligible) × 100
+							</p>
+						</div>
+
+						{/* Card 5 (paling kanan): Kontribusi IKPA (10%) */}
+						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
+							<div className="flex items-center justify-between text-muted-foreground">
+								<span className="text-xs font-semibold text-success truncate">
+									Kontribusi IKPA (10%)
+								</span>
+								<Sparkles className="size-4 text-success" />
+							</div>
+							<p className="text-2xl font-extrabold text-success sm:text-3xl">
+								{tagihanSummary.weightedContribution
+									? `${tagihanSummary.weightedContribution} pts`
+									: "—"}
+							</p>
+							<p className="text-[11px] text-muted-foreground truncate">
+								Maksimal kontribusi: 10.00 poin
+							</p>
+						</div>
+					</div>
+				)}
+
+				{/* Accordion: Trace & Detail Perhitungan Belanja Kontraktual */}
+				{!isTagihanTab && (
 					<div className="rounded-2xl border border-border bg-background shadow-xs overflow-hidden">
 						<button
 							type="button"
@@ -788,7 +1070,7 @@ function ContractsInvoicesPage() {
 										<div className="flex items-center justify-between font-semibold text-foreground">
 											<span>1. DAK (Bobot 20%)</span>
 											<span className="text-primary font-bold">
-												Skor: {summary.dak.score ?? "—"}
+												Skor: {contractSummary.dak.score ?? "—"}
 											</span>
 										</div>
 										<p className="text-muted-foreground text-[11px]">
@@ -796,28 +1078,28 @@ function ContractsInvoicesPage() {
 										</p>
 										<div className="rounded-lg bg-surface p-2.5 font-mono text-[11px] space-y-1 text-foreground">
 											<p>
-												Hitungan: ({summary.dak.countQ2} / {summary.dak.totalEligible}) × 100% ={" "}
+												Hitungan: ({contractSummary.dak.countQ2} / {contractSummary.dak.totalEligible}) × 100% ={" "}
 												<span className="font-bold text-primary">
-													{summary.dak.ratio.toFixed(2)}%
+													{contractSummary.dak.ratio.toFixed(2)}%
 												</span>
 											</p>
 											<p className="text-[10px] text-muted-foreground">
 												Bucket:{" "}
-												{summary.dak.ratio === 0
+												{contractSummary.dak.ratio === 0
 													? "0% → 0"
-													: summary.dak.ratio <= 25
+													: contractSummary.dak.ratio <= 25
 														? "≤25% → 50"
-														: summary.dak.ratio <= 50
+														: contractSummary.dak.ratio <= 50
 															? "≤50% → 60"
-															: summary.dak.ratio <= 75
+															: contractSummary.dak.ratio <= 75
 																? "≤75% → 80"
 																: ">75% → 100"}
 											</p>
 										</div>
 										<p className="text-[11px] text-muted-foreground">
-											Kontribusi = {summary.dak.score ?? 0} × 20% ={" "}
+											Kontribusi = {contractSummary.dak.score ?? 0} × 20% ={" "}
 											<span className="font-semibold text-foreground">
-												{summary.dak.weightedContribution ?? 0}
+												{contractSummary.dak.weightedContribution ?? 0}
 											</span>
 										</p>
 									</div>
@@ -827,7 +1109,7 @@ function ContractsInvoicesPage() {
 										<div className="flex items-center justify-between font-semibold text-foreground">
 											<span>2. KD (Bobot 40%)</span>
 											<span className="text-primary font-bold">
-												Skor: {summary.kd.score ?? "—"}
+												Skor: {contractSummary.kd.score ?? "—"}
 											</span>
 										</div>
 										<p className="text-muted-foreground text-[11px]">
@@ -835,24 +1117,24 @@ function ContractsInvoicesPage() {
 										</p>
 										<div className="rounded-lg bg-surface p-2.5 font-mono text-[11px] space-y-1 text-foreground">
 											<p>
-												Pra-DIPA: {summary.kd.praDipaCount} × 120 ={" "}
-												{summary.kd.praDipaCount * 120}
+												Pra-DIPA: {contractSummary.kd.praDipaCount} × 120 ={" "}
+												{contractSummary.kd.praDipaCount * 120}
 											</p>
 											<p>
-												TW I: {summary.kd.q1Count} × 110 ={" "}
-												{summary.kd.q1Count * 110}
+												TW I: {contractSummary.kd.q1Count} × 110 ={" "}
+												{contractSummary.kd.q1Count * 110}
 											</p>
 											<p>
-												Rata-rata: {summary.kd.totalPoints} ÷ {summary.kd.denominatorCount} ={" "}
+												Rata-rata: {contractSummary.kd.totalPoints} ÷ {contractSummary.kd.denominatorCount} ={" "}
 												<span className="font-bold text-primary">
-													{summary.kd.score ?? "—"}
+													{contractSummary.kd.score ?? "—"}
 												</span>
 											</p>
 										</div>
 										<p className="text-[11px] text-muted-foreground">
-											Kontribusi = {summary.kd.score ?? 0} × 40% ={" "}
+											Kontribusi = {contractSummary.kd.score ?? 0} × 40% ={" "}
 											<span className="font-semibold text-foreground">
-												{summary.kd.weightedContribution ?? 0}
+												{contractSummary.kd.weightedContribution ?? 0}
 											</span>
 										</p>
 									</div>
@@ -862,7 +1144,7 @@ function ContractsInvoicesPage() {
 										<div className="flex items-center justify-between font-semibold text-foreground">
 											<span>3. AK53 (Bobot 40%)</span>
 											<span className="text-primary font-bold">
-												Skor: {summary.ak53.score ?? "—"}
+												Skor: {contractSummary.ak53.score ?? "—"}
 											</span>
 										</div>
 										<p className="text-muted-foreground text-[11px]">
@@ -870,22 +1152,22 @@ function ContractsInvoicesPage() {
 										</p>
 										<div className="rounded-lg bg-surface p-2.5 font-mono text-[11px] space-y-1 text-foreground">
 											<p>
-												Selesai TW I: {summary.ak53.tw1Count} × 100 | TW II: {summary.ak53.tw2Count} × 90
+												Selesai TW I: {contractSummary.ak53.tw1Count} × 100 | TW II: {contractSummary.ak53.tw2Count} × 90
 											</p>
 											<p>
-												Selesai TW III: {summary.ak53.tw3Count} × 80 | TW IV: {summary.ak53.tw4Count} × 70
+												Selesai TW III: {contractSummary.ak53.tw3Count} × 80 | TW IV: {contractSummary.ak53.tw4Count} × 70
 											</p>
 											<p>
 												Rata-rata ={" "}
 												<span className="font-bold text-primary">
-													{summary.ak53.score ?? "—"}
+													{contractSummary.ak53.score ?? "—"}
 												</span>
 											</p>
 										</div>
 										<p className="text-[11px] text-muted-foreground">
-											Kontribusi = {summary.ak53.score ?? 0} × 40% ={" "}
+											Kontribusi = {contractSummary.ak53.score ?? 0} × 40% ={" "}
 											<span className="font-semibold text-foreground">
-												{summary.ak53.weightedContribution ?? 0}
+												{contractSummary.ak53.weightedContribution ?? 0}
 											</span>
 										</p>
 									</div>
@@ -899,10 +1181,10 @@ function ContractsInvoicesPage() {
 										</p>
 										<p className="text-[11px] text-muted-foreground mt-0.5">
 											Nilai BK = (DAK × 20%) + (KD × 40%) + (AK53 × 40%) = (
-											{summary.dak.score ?? 0} × 0.2) + ({summary.kd.score ?? 0} × 0.4) + (
-											{summary.ak53.score ?? 0} × 0.4) ={" "}
+											{contractSummary.dak.score ?? 0} × 0.2) + ({contractSummary.kd.score ?? 0} × 0.4) + (
+											{contractSummary.ak53.score ?? 0} × 0.4) ={" "}
 											<span className="font-bold text-foreground">
-												{summary.final.score ?? "Belum Lengkap"}
+												{contractSummary.final.score ?? "Belum Lengkap"}
 											</span>
 										</p>
 									</div>
@@ -911,8 +1193,8 @@ function ContractsInvoicesPage() {
 											Kontribusi IKPA (Bobot 10%)
 										</p>
 										<p className="text-base font-bold text-success">
-											{summary.final.weightedContribution
-												? `${summary.final.weightedContribution} Pts`
+											{contractSummary.final.weightedContribution
+												? `${contractSummary.final.weightedContribution} Pts`
 												: "—"}
 										</p>
 									</div>
@@ -922,15 +1204,143 @@ function ContractsInvoicesPage() {
 					</div>
 				)}
 
-				{/* Contextual Recommendations Panel */}
-				{activeTab === "contracts" && summary.recommendations.length > 0 && (
+				{/* Accordion: Trace & Detail Perhitungan Penyelesaian Tagihan */}
+				{isTagihanTab && (
+					<div className="rounded-2xl border border-border bg-background shadow-xs overflow-hidden">
+						<button
+							type="button"
+							onClick={() => setIsTraceExpanded(!isTraceExpanded)}
+							className="flex w-full items-center justify-between p-4 text-left hover:bg-surface-muted transition"
+						>
+							<div className="flex items-center gap-2">
+								<Info className="size-4 text-primary" />
+								<span className="text-xs font-semibold text-foreground">
+									Lihat Rincian Rumus &amp; Jejak Perhitungan Penyelesaian Tagihan
+								</span>
+							</div>
+							<div className="flex items-center gap-1 text-xs text-primary font-medium">
+								<span>{isTraceExpanded ? "Sembunyikan" : "Tampilkan"}</span>
+								{isTraceExpanded ? (
+									<ChevronUp className="size-4" />
+								) : (
+									<ChevronDown className="size-4" />
+								)}
+							</div>
+						</button>
+
+						{isTraceExpanded && (
+							<div className="border-t border-border p-4 sm:p-5 space-y-4 text-xs bg-surface/30">
+								<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+									{/* Step 1: Objek Penilaian & Pengecualian Pegawai */}
+									<div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
+										<div className="flex items-center justify-between font-semibold text-foreground">
+											<span>1. Objek Penilaian Non-Pegawai</span>
+											<span className="text-primary font-bold">
+												{tagihanSummary.eligibleCount} Eligible
+											</span>
+										</div>
+										<p className="text-muted-foreground text-[11px]">
+											Hanya menilai SPM-LS kontraktual non-belanja pegawai yang telah selesai proses konversi di KPPN.
+										</p>
+										<div className="rounded-lg bg-surface p-2.5 font-mono text-[11px] space-y-1 text-foreground">
+											<p>Total Baris SPM: {tagihanSummary.totalSpmCount}</p>
+											<p className="text-muted-foreground">
+												Belanja Pegawai (Dikecualikan): {tagihanSummary.pegawaiCount}
+											</p>
+											<p className="text-muted-foreground">
+												Menunggu Konversi (Belum Final): {tagihanSummary.pendingCount}
+											</p>
+											<p className="font-bold text-primary">
+												Penyebut Selesai Dinilai: {tagihanSummary.eligibleCount}
+											</p>
+										</div>
+										<p className="text-[11px] text-muted-foreground">
+											*SPM Belanja Pegawai dikeluarkan dari pembilang &amp; penyebut.
+										</p>
+									</div>
+
+									{/* Step 2: Ketepatan Waktu Penerbitan SPM */}
+									<div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
+										<div className="flex items-center justify-between font-semibold text-foreground">
+											<span>2. Ketepatan Waktu (≤ 17 HK)</span>
+											<span className="text-primary font-bold">
+												Skor: {tagihanSummary.score ?? "—"}
+											</span>
+										</div>
+										<p className="text-muted-foreground text-[11px]">
+											SPM tepat waktu jika tanggal diterima KPPN saat konversi ≤ 17 hari kerja sejak tanggal BAST/BAPP.
+										</p>
+										<div className="rounded-lg bg-surface p-2.5 font-mono text-[11px] space-y-1 text-foreground">
+											<p>Tepat Waktu (≤ 17 HK): {tagihanSummary.onTimeCount}</p>
+											<p>Terlambat (&gt; 17 HK / Invalid): {tagihanSummary.lateCount}</p>
+											<p>
+												Rasio: ({tagihanSummary.onTimeCount} ÷ {tagihanSummary.eligibleCount || 1}) × 100 ={" "}
+												<span className="font-bold text-primary">
+													{tagihanSummary.score ?? "—"}%
+												</span>
+											</p>
+										</div>
+										<p className="text-[11px] text-muted-foreground">
+											*Hari kerja dihitung Senin–Jumat di luar libur nasional.
+										</p>
+									</div>
+
+									{/* Step 3: Nilai Tertimbang Kontribusi */}
+									<div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
+										<div className="flex items-center justify-between font-semibold text-foreground">
+											<span>3. Kontribusi IKPA (Bobot 10%)</span>
+											<span className="text-success font-bold">
+												{tagihanSummary.weightedContribution
+													? `${tagihanSummary.weightedContribution} Pts`
+													: "—"}
+											</span>
+										</div>
+										<p className="text-muted-foreground text-[11px]">
+											Kontribusi = min((Nilai Tagihan × 10%) , 10.00).
+										</p>
+										<div className="rounded-lg bg-surface p-2.5 font-mono text-[11px] space-y-1 text-foreground">
+											<p>Nilai Tagihan: {tagihanSummary.score ?? 0}</p>
+											<p>Bobot Indikator: 10%</p>
+											<p>
+												Tertimbang: {tagihanSummary.score ?? 0} × 10% ={" "}
+												<span className="font-bold text-success">
+													{tagihanSummary.weightedContribution ?? 0}
+												</span>
+											</p>
+										</div>
+										<p className="text-[11px] text-muted-foreground">
+											*Maksimal kontribusi adalah 10.00 poin.
+										</p>
+									</div>
+								</div>
+
+								{/* Trace Warnings if any */}
+								{tagihanSummary.warnings.length > 0 && (
+									<div className="rounded-xl border border-warning/20 bg-warning/5 p-3.5 space-y-1.5 text-foreground">
+										<p className="font-semibold text-xs text-warning">
+											Catatan &amp; Peringatan Penilaian:
+										</p>
+										<ul className="list-disc list-inside space-y-0.5 text-[11px] text-muted-foreground">
+											{tagihanSummary.warnings.map((w) => (
+												<li key={w}>{w}</li>
+											))}
+										</ul>
+									</div>
+								)}
+							</div>
+						)}
+					</div>
+				)}
+
+				{/* Contextual Recommendations Panel for Belanja Kontraktual */}
+				{!isTagihanTab && contractSummary.recommendations.length > 0 && (
 					<div className="rounded-2xl border border-border bg-background p-4 sm:p-5 shadow-xs space-y-3">
 						<div className="flex items-center gap-2 text-foreground font-semibold text-xs">
 							<Sparkles className="size-4 text-warning" />
 							<span>Rekomendasi Strategis Belanja Kontraktual</span>
 						</div>
 						<ul className="space-y-2">
-							{summary.recommendations.map((rec) => (
+							{contractSummary.recommendations.map((rec) => (
 								<li
 									key={rec}
 									className="flex items-start gap-2.5 rounded-xl border border-border bg-surface p-3 text-xs text-foreground"
@@ -946,109 +1356,115 @@ function ContractsInvoicesPage() {
 					</div>
 				)}
 
-				{/* Metric Summary for SPM tab */}
-				{activeTab === "spm" && (
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-						<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
-							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-medium">Jumlah Kontrak Terdaftar</span>
-								<FileText className="size-4 text-primary" />
-							</div>
-							<p className="text-lg font-bold text-foreground sm:text-xl">
-								{initialData.contracts.length} Kontrak
-							</p>
-							<p className="text-[11px] text-muted-foreground">
-								Total komitmen belanja
-							</p>
+				{/* Contextual Recommendations Panel for Penyelesaian Tagihan */}
+				{isTagihanTab && tagihanSummary.recommendations.length > 0 && (
+					<div className="rounded-2xl border border-border bg-background p-4 sm:p-5 shadow-xs space-y-3">
+						<div className="flex items-center gap-2 text-foreground font-semibold text-xs">
+							<Sparkles className="size-4 text-warning" />
+							<span>Rekomendasi Strategis Penyelesaian Tagihan (SPM-LS)</span>
 						</div>
-
-						<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
-							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-medium">Jumlah SPM-LS Terbit</span>
-								<Receipt className="size-4 text-success" />
-							</div>
-							<p className="text-lg font-bold text-foreground sm:text-xl">
-								{initialData.spmLsList.length} Berkas
-							</p>
-							<p className="text-[11px] text-muted-foreground">
-								Target batas waktu: 17 HK setelah BAST
-							</p>
-						</div>
-
-						<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
-							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-medium">SPM-LS Terlambat</span>
-								<Clock className="size-4 text-danger" />
-							</div>
-							<p className="text-lg font-bold text-danger sm:text-xl">
-								{spmLateCount} Berkas
-							</p>
-							<p className="text-[11px] text-muted-foreground">
-								Potensi pengurangan nilai tagihan
-							</p>
-						</div>
+						<ul className="space-y-2">
+							{tagihanSummary.recommendations.map((rec) => (
+								<li
+									key={rec}
+									className="flex items-start gap-2.5 rounded-xl border border-border bg-surface p-3 text-xs text-foreground"
+								>
+									<ArrowRight className="size-3.5 text-primary shrink-0 mt-0.5" />
+									<span>{rec}</span>
+								</li>
+							))}
+						</ul>
+						<p className="text-[11px] text-muted-foreground">
+							*Rekomendasi dirancang berdasarkan PER-5/PB/2024 guna memastikan tidak ada SPM yang melewati batas H+17 hari kerja.
+						</p>
 					</div>
 				)}
 
-				{/* Strip reminder H+17 (Only for SPM Tab) */}
-				{activeTab === "spm" && (
+				{/* Actionable Reminder Strip H+17 for SPM tab */}
+				{isTagihanTab && (
 					<section
 						aria-label="Reminder penyelesaian tagihan H+17 wajib"
 						className="space-y-2 rounded-2xl border border-border bg-background p-4 sm:p-5"
 					>
 						<div className="flex items-center justify-between gap-3">
-							<h2 className="text-sm font-semibold text-foreground">
-								Reminder H+17 wajib
-								{spmLateCount > 0 ? ` · ${spmLateCount} terlambat` : null}
+							<h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+								<Clock className="size-4 text-primary" />
+								<span>
+									Monitoring &amp; Reminder H+17 Hari Kerja
+									{tagihanSummary.lateCount > 0
+										? ` · ${tagihanSummary.lateCount} Berkas Terlambat`
+										: tagihanSummary.riskyCount > 0
+											? ` · ${tagihanSummary.riskyCount} Berkas Kritis/Berisiko`
+											: null}
+								</span>
 							</h2>
 							<a
 								href="/operator/reminders"
 								className="shrink-0 text-[11px] font-semibold text-primary underline-offset-4 hover:underline"
 							>
-								Reminder Center
+								Buka Reminder Center
 							</a>
 						</div>
-						{spmReminders.length === 0 ? (
-							<p className="text-body-small text-muted-foreground">{spmAdvice}</p>
+
+						{tagihanSummary.evaluations.filter(
+							(e) => !e.isPegawai && (e.status === "late" || e.status === "risky" || e.status === "late_unconverted"),
+						).length === 0 ? (
+							<p className="text-xs text-muted-foreground">
+								Seluruh berkas SPM-LS berjalan berada dalam batas aman kepatuhan (≤ 17 hari kerja dari tanggal BAST/BAPP).
+							</p>
 						) : (
 							<ul className="space-y-1.5">
-								{spmLate.slice(0, 5).map((r) => (
-									<li
-										key={r.id}
-										className="flex items-start justify-between gap-3 rounded-lg border border-danger/30 bg-danger/[0.03] px-3 py-2 text-body-small"
-									>
-										<div>
-											<p className="font-semibold text-foreground">
-												{r.referenceNumber}
-												{r.isPegawai ? " · Pegawai" : null}
-											</p>
-											<p className="text-muted-foreground">
-												BAST {r.bastDate}
-												{r.receivedDate
-													? ` · diterima ${r.receivedDate}`
-													: " · belum diterima"} ·{" "}
-												{r.elapsedWorkdays !== null
-													? `${r.elapsedWorkdays} hari kerja`
-													: "—"}
-											</p>
-										</div>
-										<span className="shrink-0 rounded-full bg-danger/10 px-2.5 py-1 text-[11px] font-semibold text-danger">
-											Terlambat
-										</span>
-									</li>
-								))}
-								{spmLate.length > 5 ? (
-									<li className="px-1 text-[11px] text-muted-foreground">
-										+{spmLate.length - 5} berkas terlambat lainnya — lihat di
-										tabel Tagihan SPM-LS.
-									</li>
-								) : null}
+								{tagihanSummary.evaluations
+									.filter(
+										(e) =>
+											!e.isPegawai &&
+											(e.status === "late" ||
+												e.status === "risky" ||
+												e.status === "late_unconverted"),
+									)
+									.slice(0, 5)
+									.map((r) => (
+										<li
+											key={r.spmId}
+											className={`flex items-start justify-between gap-3 rounded-lg border p-3 text-xs ${
+												r.status === "late" || r.status === "late_unconverted"
+													? "border-danger/30 bg-danger/[0.03]"
+													: "border-warning/30 bg-warning/[0.03]"
+											}`}
+										>
+											<div>
+												<p className="font-semibold text-foreground">
+													{r.referenceNumber} · {r.contractNumber}
+												</p>
+												<p className="text-muted-foreground text-[11px] mt-0.5">
+													BAST: {r.bastBappDate} · Konversi:{" "}
+													{r.receivedAtKppn ? r.receivedAtKppn : "Belum Dikonversi"}{" "}
+													· Deadline H+17: {r.deadlineH17} (
+													{r.workdaysElapsed !== null
+														? `${r.workdaysElapsed} HK berlalu`
+														: r.daysRemaining !== null
+															? r.daysRemaining >= 0
+																? `Sisa ${r.daysRemaining} HK`
+																: `${Math.abs(r.daysRemaining)} HK terlambat`
+															: "—"}
+													)
+												</p>
+											</div>
+											<span
+												className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
+													r.status === "late" || r.status === "late_unconverted"
+														? "bg-danger/10 text-danger"
+														: "bg-warning/10 text-warning"
+												}`}
+											>
+												{r.badge.label}
+											</span>
+										</li>
+									))}
 							</ul>
 						)}
-						<p className="text-[11px] text-muted-foreground">{spmAdvice}</p>
 						<p className="text-[11px] text-muted-foreground">
-							Hitungan estimasi hari kerja Senin–Jumat (tanpa libur nasional);
-							penilaian resmi memakai kalender kerja KPPN.
+							*Penghitungan hari kerja resmi menggunakan kalender kerja (Senin–Jumat di luar libur nasional dan override kalender).
 						</p>
 					</section>
 				)}
@@ -1059,7 +1475,7 @@ function ContractsInvoicesPage() {
 						type="button"
 						onClick={() => handleTabChange("contracts")}
 						className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
-							activeTab === "contracts"
+							!isTagihanTab
 								? "bg-primary text-primary-foreground shadow-xs"
 								: "text-muted-foreground hover:text-foreground"
 						}`}
@@ -1068,9 +1484,9 @@ function ContractsInvoicesPage() {
 					</button>
 					<button
 						type="button"
-						onClick={() => handleTabChange("spm")}
+						onClick={() => handleTabChange("invoices")}
 						className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
-							activeTab === "spm"
+							isTagihanTab
 								? "bg-primary text-primary-foreground shadow-xs"
 								: "text-muted-foreground hover:text-foreground"
 						}`}
@@ -1080,7 +1496,7 @@ function ContractsInvoicesPage() {
 				</div>
 
 				{/* Data Tables */}
-				{activeTab === "contracts" ? (
+				{!isTagihanTab ? (
 					<DomainDataTable
 						title="Daftar Komitmen Data Kontrak"
 						data={filteredContracts}
@@ -1093,19 +1509,12 @@ function ContractsInvoicesPage() {
 				) : (
 					<DomainDataTable
 						title="Daftar Penyelesaian Tagihan SPM-LS"
-						data={filteredSpm}
+						data={filteredSpmEvaluations}
 						columns={spmColumns}
 						searchValue={search}
 						onSearchChange={setSearch}
-						onAddClick={() => {
-							if (initialData.contracts.length === 0) {
-								alert("Daftarkan minimal satu kontrak terlebih dahulu.");
-								return;
-							}
-							setSelectedContractId(initialData.contracts[0]?.id ?? "");
-							setIsSpmDrawerOpen(true);
-						}}
-						totalCount={filteredSpm.length}
+						onAddClick={handleOpenCreateSpm}
+						totalCount={filteredSpmEvaluations.length}
 					/>
 				)}
 
@@ -1246,7 +1655,7 @@ function ContractsInvoicesPage() {
 							/>
 						</div>
 
-						{/* Live Preview of Impact in Drawer */}
+						{/* Live Preview of Contract in Drawer */}
 						<div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 space-y-2 text-xs">
 							<div className="flex items-center gap-1.5 font-semibold text-primary">
 								<Sparkles className="size-3.5" />
@@ -1256,19 +1665,19 @@ function ContractsInvoicesPage() {
 								<div className="rounded-lg bg-background p-2 border border-border">
 									<p className="text-muted-foreground text-[10px]">DAK (20%)</p>
 									<p className="font-semibold text-foreground mt-0.5">
-										{liveDrawerPreview.dakBadge.label}
+										{liveContractDrawerPreview.dakBadge.label}
 									</p>
 								</div>
 								<div className="rounded-lg bg-background p-2 border border-border">
 									<p className="text-muted-foreground text-[10px]">KD (40%)</p>
 									<p className="font-semibold text-foreground mt-0.5">
-										{liveDrawerPreview.kdBadge.label}
+										{liveContractDrawerPreview.kdBadge.label}
 									</p>
 								</div>
 								<div className="rounded-lg bg-background p-2 border border-border">
 									<p className="text-muted-foreground text-[10px]">AK53 (40%)</p>
 									<p className="font-semibold text-foreground mt-0.5">
-										{liveDrawerPreview.ak53Badge.label}
+										{liveContractDrawerPreview.ak53Badge.label}
 									</p>
 								</div>
 							</div>
@@ -1276,13 +1685,13 @@ function ContractsInvoicesPage() {
 					</div>
 				</DomainFormDrawer>
 
-				{/* Drawer 2: Form Terbitkan SPM-LS */}
+				{/* Drawer 2: Form Tambah / Ubah SPM-LS */}
 				<DomainFormDrawer
 					isOpen={isSpmDrawerOpen}
-					title="Catat Penerbitan SPM-LS"
-					description="Masukkan data SPM-LS yang diajukan ke KPPN atas penyelesaian BAST."
+					title={editingSpmId ? "Ubah Data SPM-LS" : "Catat Penerbitan SPM-LS"}
+					description="Masukkan data SPM-LS yang diajukan ke KPPN atas penyelesaian BAST/BAPP."
 					onClose={() => setIsSpmDrawerOpen(false)}
-					onSubmit={handleCreateSpm}
+					onSubmit={handleSaveSpm}
 					isSubmitting={isSubmitting}
 				>
 					<div className="space-y-4">
@@ -1291,7 +1700,7 @@ function ContractsInvoicesPage() {
 								htmlFor="spm-contract-select"
 								className="block text-xs font-semibold text-foreground"
 							>
-								Kontrak Terkait
+								Kontrak Terkait <span className="text-danger">*</span>
 							</label>
 							<select
 								id="spm-contract-select"
@@ -1313,7 +1722,7 @@ function ContractsInvoicesPage() {
 								htmlFor="spm-ref-num"
 								className="block text-xs font-semibold text-foreground"
 							>
-								Nomor SPM-LS
+								Nomor SPM-LS <span className="text-danger">*</span>
 							</label>
 							<input
 								id="spm-ref-num"
@@ -1333,7 +1742,7 @@ function ContractsInvoicesPage() {
 									htmlFor="spm-bast-date"
 									className="block text-xs font-semibold text-foreground"
 								>
-									Tanggal BAST / BAPP
+									Tanggal BAST / BAPP <span className="text-danger">*</span>
 								</label>
 								<input
 									id="spm-bast-date"
@@ -1344,6 +1753,9 @@ function ContractsInvoicesPage() {
 									disabled={isSubmitting}
 									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 								/>
+								<p className="text-[10px] text-muted-foreground">
+									Titik awal batas H+17 hari kerja.
+								</p>
 							</div>
 
 							<div className="space-y-1.5">
@@ -1351,44 +1763,76 @@ function ContractsInvoicesPage() {
 									htmlFor="spm-kppn-receive"
 									className="block text-xs font-semibold text-foreground"
 								>
-									Diterima di KPPN
+									Tanggal Konversi / Diterima KPPN
 								</label>
 								<input
 									id="spm-kppn-receive"
 									type="date"
-									required
 									value={kppnReceiveDate}
 									onChange={(e) => setKppnReceiveDate(e.target.value)}
 									disabled={isSubmitting}
 									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 								/>
+								<p className="text-[10px] text-muted-foreground">
+									Kosongkan bila SPM masih dalam proses berjalan.
+								</p>
 							</div>
 						</div>
 
-						<div className="flex items-center gap-2 pt-1">
-							<input
-								id="spm-is-pegawai"
-								type="checkbox"
-								checked={isPegawai}
-								onChange={(e) => setIsPegawai(e.target.checked)}
-								disabled={isSubmitting}
-								className="size-4 rounded border-border text-primary focus:ring-primary"
-							/>
-							<label
-								htmlFor="spm-is-pegawai"
-								className="text-xs text-foreground font-medium cursor-pointer"
-							>
-								Jenis Belanja Pegawai (Gaji / Tunjangan)
-							</label>
+						<div className="rounded-xl border border-border bg-surface p-3 space-y-1">
+							<div className="flex items-center gap-2">
+								<input
+									id="spm-is-pegawai"
+									type="checkbox"
+									checked={isPegawaiSpm}
+									onChange={(e) => setIsPegawaiSpm(e.target.checked)}
+									disabled={isSubmitting}
+									className="size-4 rounded border-border text-primary focus:ring-primary"
+								/>
+								<label
+									htmlFor="spm-is-pegawai"
+									className="text-xs text-foreground font-semibold cursor-pointer"
+								>
+									Jenis Belanja Pegawai (Gaji / Tunjangan)
+								</label>
+							</div>
+							<p className="text-[11px] text-muted-foreground pl-6">
+								Centang jika merupakan SPM Belanja Pegawai. Sesuai PER-5/PB/2024, SPM Belanja Pegawai akan secara otomatis dikecualikan dari pembilang dan penyebut indikator.
+							</p>
+						</div>
+
+						{/* Live Preview of SPM in Drawer */}
+						<div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 space-y-2 text-xs">
+							<div className="flex items-center gap-1.5 font-semibold text-primary">
+								<Sparkles className="size-3.5" />
+								<span>Evaluasi Ketepatan Waktu Berkas Ini (Live Preview)</span>
+							</div>
+							<div className="grid grid-cols-2 gap-2 text-[11px]">
+								<div className="rounded-lg bg-background p-2 border border-border">
+									<p className="text-muted-foreground text-[10px]">Deadline H+17 HK</p>
+									<p className="font-semibold text-foreground mt-0.5 font-mono">
+										{liveSpmDrawerPreview.deadlineH17}
+									</p>
+								</div>
+								<div className="rounded-lg bg-background p-2 border border-border">
+									<p className="text-muted-foreground text-[10px]">Status Ketepatan</p>
+									<p className="font-semibold text-foreground mt-0.5">
+										{liveSpmDrawerPreview.badge.label}
+									</p>
+								</div>
+							</div>
+							<p className="text-[10px] text-muted-foreground">
+								Dampak ke IKPA: {liveSpmDrawerPreview.impact}
+							</p>
 						</div>
 					</div>
 				</DomainFormDrawer>
 
 				{/* Modal: Panduan Rumus Belanja Kontraktual */}
-				{isGuideOpen && (
+				{isContractGuideOpen && (
 					<div
 						className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-xs p-4"
-						onClick={() => setIsGuideOpen(false)}
+						onClick={() => setIsContractGuideOpen(false)}
 					>
 						<div
 							className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-background p-6 shadow-xl space-y-4"
@@ -1403,7 +1847,7 @@ function ContractsInvoicesPage() {
 								</div>
 								<button
 									type="button"
-									onClick={() => setIsGuideOpen(false)}
+									onClick={() => setIsContractGuideOpen(false)}
 									className="rounded-lg p-1.5 text-muted-foreground hover:bg-surface-muted hover:text-foreground transition"
 								>
 									<X className="size-4" />
@@ -1428,52 +1872,6 @@ function ContractsInvoicesPage() {
 									<p className="text-muted-foreground">
 										Menilai proporsi jumlah kontrak bernilai ≥ Rp50 juta (semua jenis belanja) yang ditandatangani s.d. 30 Juni (Triwulan II).
 									</p>
-									<div className="overflow-x-auto">
-										<table className="w-full text-[11px] border border-border">
-											<thead className="bg-surface">
-												<tr>
-													<th className="border border-border p-1.5 text-left">
-														Rasio DAK
-													</th>
-													<th className="border border-border p-1.5 text-center">
-														Nilai NK-DAK
-													</th>
-												</tr>
-											</thead>
-											<tbody>
-												<tr>
-													<td className="border border-border p-1.5">Rasio = 0%</td>
-													<td className="border border-border p-1.5 text-center font-bold">
-														0
-													</td>
-												</tr>
-												<tr>
-													<td className="border border-border p-1.5">0% &lt; Rasio ≤ 25%</td>
-													<td className="border border-border p-1.5 text-center font-bold">
-														50
-													</td>
-												</tr>
-												<tr>
-													<td className="border border-border p-1.5">25% &lt; Rasio ≤ 50%</td>
-													<td className="border border-border p-1.5 text-center font-bold">
-														60
-													</td>
-												</tr>
-												<tr>
-													<td className="border border-border p-1.5">50% &lt; Rasio ≤ 75%</td>
-													<td className="border border-border p-1.5 text-center font-bold">
-														80
-													</td>
-												</tr>
-												<tr>
-													<td className="border border-border p-1.5">Rasio &gt; 75%</td>
-													<td className="border border-border p-1.5 text-center font-bold">
-														100
-													</td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
 								</div>
 
 								{/* 2. KD */}
@@ -1506,7 +1904,88 @@ function ContractsInvoicesPage() {
 							<div className="flex justify-end pt-2 border-t border-border">
 								<button
 									type="button"
-									onClick={() => setIsGuideOpen(false)}
+									onClick={() => setIsContractGuideOpen(false)}
+									className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition"
+								>
+									Tutup Panduan
+								</button>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* Modal: Panduan Rumus Penyelesaian Tagihan */}
+				{isTagihanGuideOpen && (
+					<div
+						className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-xs p-4"
+						onClick={() => setIsTagihanGuideOpen(false)}
+					>
+						<div
+							className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-background p-6 shadow-xl space-y-4"
+							onClick={(e) => e.stopPropagation()}
+						>
+							<div className="flex items-center justify-between border-b border-border pb-3">
+								<div className="flex items-center gap-2">
+									<HelpCircle className="size-5 text-primary" />
+									<h2 className="text-base font-bold text-foreground">
+										Panduan Indikator Penyelesaian Tagihan (SPM-LS)
+									</h2>
+								</div>
+								<button
+									type="button"
+									onClick={() => setIsTagihanGuideOpen(false)}
+									className="rounded-lg p-1.5 text-muted-foreground hover:bg-surface-muted hover:text-foreground transition"
+								>
+									<X className="size-4" />
+								</button>
+							</div>
+
+							<div className="space-y-4 text-xs text-foreground">
+								<div className="rounded-xl bg-surface p-3.5 border border-border space-y-1">
+									<p className="font-semibold text-primary">
+										Dasar Regulasi: PER-5/PB/2024 Pasal 8 · Bobot 10%
+									</p>
+									<p className="text-muted-foreground text-[11px]">
+										Menilai ketepatan waktu penyelesaian tagihan SPM-LS kontraktual non-belanja pegawai dalam batas maksimal 17 hari kerja sejak tanggal BAST/BAPP hingga diterima KPPN saat konversi.
+									</p>
+								</div>
+
+								<div className="rounded-xl border border-border p-3.5 space-y-2">
+									<p className="font-bold text-foreground">Formula Penilaian</p>
+									<div className="rounded-lg bg-surface p-2.5 font-mono text-[11px] text-primary">
+										Nilai PT = (Jumlah SPM-LS Tepat Waktu ÷ Total SPM-LS Eligible Non-Pegawai) × 100
+									</div>
+									<div className="rounded-lg bg-surface p-2.5 font-mono text-[11px] text-success">
+										Kontribusi IKPA = Nilai PT × 10% (Maksimal 10.00 Poin)
+									</div>
+								</div>
+
+								<div className="rounded-xl border border-border p-3.5 space-y-2">
+									<p className="font-bold text-foreground">Ketentuan Kritis</p>
+									<ul className="list-disc list-inside space-y-1 text-muted-foreground text-[11px]">
+										<li>
+											<strong>Titik Awal:</strong> Tanggal BAST/BAPP pada Modul Komitmen SAKTI (hari ke-0).
+										</li>
+										<li>
+											<strong>Titik Akhir:</strong> Tanggal SPM diterima KPPN pada saat proses konversi (bukan tanggal cetak SPM).
+										</li>
+										<li>
+											<strong>Batas Waktu:</strong> Maksimal 17 hari kerja (Senin–Jumat di luar libur nasional dan cuti bersama).
+										</li>
+										<li>
+											<strong>Pengecualian Belanja Pegawai:</strong> SPM Belanja Pegawai (gaji, tunjangan, uang makan) secara tegas dikecualikan dari pembilang dan penyebut.
+										</li>
+										<li>
+											<strong>SPM Berjalan:</strong> Berkas yang belum memiliki tanggal konversi KPPN berstatus estimasi dan belum masuk ke pembilang nilai final.
+										</li>
+									</ul>
+								</div>
+							</div>
+
+							<div className="flex justify-end pt-2 border-t border-border">
+								<button
+									type="button"
+									onClick={() => setIsTagihanGuideOpen(false)}
 									className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition"
 								>
 									Tutup Panduan

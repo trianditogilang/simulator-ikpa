@@ -59,9 +59,10 @@ export const mockGuides: GuideItem[] = [
 		weightLabel: "Bobot 10%",
 		regulationSource: "PER-5/PB/2024 Pasal 8",
 		summary:
-			"Menilai ketepatan penerbitan SPM-LS non-pegawai maksimal 17 hari kerja sejak BAST/BAPP.",
-		formula: "(Jumlah SPM-LS ≤ 17 Hari Kerja / Total SPM-LS) × 100.",
-		tips: "Pantau tanggal BAST di aplikasi dan jadwalkan pengujian berkas tagihan sebelum H-5.",
+			"Menilai ketepatan waktu penyelesaian tagihan SPM-LS kontraktual non-belanja pegawai maksimal 17 hari kerja sejak tanggal BAST/BAPP hingga diterima KPPN saat proses konversi.",
+		formula:
+			"Nilai PT = (Jumlah SPM-LS Kontraktual Non-Pegawai Tepat Waktu (≤ 17 Hari Kerja) ÷ Total SPM-LS Kontraktual Non-Pegawai Eligible) × 100. Kontribusi IKPA = min(Nilai PT × 10%, 10.00 pts). SPM Belanja Pegawai dikecualikan dari pembilang dan penyebut.",
+		tips: "Titik awal adalah tanggal BAST/BAPP di Modul Komitmen SAKTI dan titik akhir adalah tanggal SPM diterima KPPN pada proses konversi (17 hari kerja, Senin–Jumat di luar libur). Koordinasikan kelengkapan berkas rekanan dan ajukan sebelum batas H-5.",
 	},
 	{
 		id: "g-06",

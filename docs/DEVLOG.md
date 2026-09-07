@@ -2,6 +2,78 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 129 - 2026-09-06
+**Time:** Start: 12:14 UTC | End: 12:35 UTC | Duration: ~21 minutes
+- Status: Completed
+- Agent/Role: Fullstack Integration Agent & Engine Specialist
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [TAG-FIX] Perbaikan Menyeluruh Indikator IKPA Penyelesaian Tagihan (SPM-LS Bobot 10%):
+  1. **Canonical Engine Implementation (`packages/ikpa-engine/src/indicators/invoice-timeliness.ts`)**:
+     - Memfilter secara ketat `isPegawai: false` & `isContractual: true`. SPM Belanja Pegawai (gaji, tunjangan, uang makan) secara tegas dikeluarkan dari pembilang dan penyebut.
+     - Penghitungan ketepatan waktu menggunakan utilitas kalender kerja kanonis (`countWorkdays`) start-exclusive end-inclusive, Senin–Jumat, mengecualikan libur nasional, dan mendukung override kalender.
+     - SPM tepat waktu jika tanggal diterima KPPN saat proses konversi $\le$ 17 hari kerja sejak tanggal BAST/BAPP.
+     - Validasi `receivedAtKppn >= bastBappDate`; konversi sebelum BAST ditolak/ditandai invalid.
+     - Dukungan berkas SPM berjalan tanpa tanggal konversi (`receivedAtKppn = null`), menghasilkan status `warning` (nilai estimasi) dan tidak diakui sebagai tepat waktu secara artifisial.
+     - Status `incomplete` dan nilai `null` jika tidak terdapat SPM eligible (denominator nol).
+     - Pembatasan (cap) nilai tertimbang kontribusi IKPA maksimal sebesar bobot indikator (10.00 pts).
+  2. **Workday Calendar Utility (`packages/ikpa-engine/src/utils/workday-calendar.ts`, `packages/ikpa-engine/src/index.ts`)**:
+     - Fungsi `isWorkday`, `addWorkdays`, `subtractWorkdays`, `countWorkdays`, dan `parseIsoDateParts` berbasis ISO Date string lokal tanpa pergeseran timezone UTC.
+     - Diekspor untuk digunakan bersama oleh engine, workspace helper, dan reminder.
+  3. **Database Schema & Server Mutations (`packages/db/src/schema/spm-ls.ts`, `apps/web/src/server/domains/contracts-invoices.mutations.ts`, `contracts-invoices.ts`, `contracts-invoices-service.ts`)**:
+     - Mengubah kolom `receivedAtKppn` pada `spmLs` menjadi nullable untuk mendukung SPM dalam proses berjalan / draft.
+     - Menambahkan validasi `receivedAtKppn >= bastBappDate` pada mutasi `createSpmLs` dan `updateSpmLs`.
+     - Mengekspos mutasi `updateSpmLsFn` dan service `editSpmLs` untuk pengeditan berkas SPM-LS.
+  4. **Workspace Helper & Acceptance Tests (`apps/web/src/lib/simulation/tagihan-workspace.ts`, `tagihan-workspace.test.ts`)**:
+     - Fungsi `evaluateSingleSpm` & `calcTagihanSummary` menghasilkan 5 kartu metriks, evaluasi deadline H+17, status SPM (Tepat Waktu, Terlambat, Menunggu Konversi, Berisiko, Dikecualikan), dan rekomendasi dinamis.
+     - Lulus **Contoh Emas PDF 15-SPM**: 13 tepat waktu dari 15 eligible non-pegawai $\to$ Nilai PT = 86,67, Kontribusi IKPA = 8,67.
+     - Lulus uji boundary test H+17 vs H+18, weekend/holiday skip, pengecualian belanja pegawai, dan denominator nol.
+  5. **Frontend UI Ponytail (`apps/web/src/routes/operator/data/contracts-invoices.tsx`, `operator-navigation.tsx`)**:
+     - Standardisasi 5 top score cards pada Tab Penyelesaian Tagihan:
+       1. SPM Tepat Waktu (`CheckCircle2`)
+       2. SPM Terlambat (`Clock`)
+       3. Menunggu Konversi (`TrendingUp`)
+       4. Nilai IKPA Tagihan (`ShieldCheck`, `text-2xl font-extrabold text-primary sm:text-3xl`)
+       5. Kontribusi IKPA (10%) (`Sparkles`, `bg-success/5 border-success/20`, `text-2xl font-extrabold text-success sm:text-3xl`)
+     - Accordion jejak perhitungan 3 langkah transparan (Filter Objek, Ketepatan H+17, Nilai Tertimbang).
+     - Panel rekomendasi strategis penyelesaian tagihan sesuai PER-5/PB/2024.
+     - Actionable reminder strip H+17 dengan daftar berkas kritis/berisiko.
+     - Tabel SPM-LS lengkap dengan kolom kategori, BAST/BAPP, konversi KPPN, deadline H+17, hari kerja berlalu, status badge, dampak nilai, dan tombol aksi Edit/Hapus.
+     - Drawer Form Tambah/Ubah SPM-LS dengan Live Preview evaluasi kelayakan secara real-time.
+     - Navigasi sidebar `Penyelesaian Tagihan` mengarah ke `?tab=invoices` dengan active state presisi terisolasi dari Belanja Kontraktual.
+  6. **Panduan & Dokumentasi (`apps/web/src/mocks/guides.ts`, `docs/implementation-review/06-penyelesaian-tagihan.md`)**:
+     - Panduan `g-05` dimutakhirkan sesuai PER-5/PB/2024.
+     - Dokumen audit `06-penyelesaian-tagihan.md` diperbarui mencerminkan implementasi penuh.
+**Code Changes:**
+- Files created/modified:
+  - `packages/ikpa-engine/src/indicators/invoice-timeliness.ts`
+  - `packages/ikpa-engine/src/indicators/invoice-timeliness.test.ts`
+  - `packages/ikpa-engine/src/utils/workday-calendar.ts`
+  - `packages/ikpa-engine/src/schemas.ts`
+  - `packages/ikpa-engine/src/index.ts`
+  - `packages/db/src/schema/spm-ls.ts`
+  - `apps/web/src/server/simulation/calculate.ts`
+  - `apps/web/src/server/domains/contracts-invoices.mutations.ts`
+  - `apps/web/src/server/contracts-invoices.ts`
+  - `apps/web/src/services/contracts-invoices-service.ts`
+  - `apps/web/src/lib/simulation/tagihan-workspace.ts`
+  - `apps/web/src/lib/simulation/tagihan-workspace.test.ts`
+  - `apps/web/src/lib/simulation/tagihan-output-reminder.ts`
+  - `apps/web/src/routes/operator/data/contracts-invoices.tsx`
+  - `apps/web/src/components/layout/operator-navigation.tsx`
+  - `apps/web/src/mocks/guides.ts`
+  - `docs/implementation-review/06-penyelesaian-tagihan.md`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 58/58 tests `packages/ikpa-engine` passed, 87/87 tests `apps/web` passed, Monorepo 239/239 tests passed (100%).
+  - Typecheck: 0 error di seluruh package monorepo.
+  - Build: Vite client (2,548 modules) dan SSR server (335 modules) lulus 100%.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk evaluasi dan iterasi selanjutnya dari user.
+
 ### Session 128 - 2026-09-06
 **Time:** Start: 11:03 UTC | End: 11:07 UTC | Duration: ~4 minutes
 - Status: Completed

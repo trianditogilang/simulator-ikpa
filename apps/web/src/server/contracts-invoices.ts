@@ -11,6 +11,7 @@ import {
 	softDeleteContract,
 	softDeleteSpmLs,
 	updateContract,
+	updateSpmLs,
 } from "./domains/contracts-invoices.mutations";
 import {
 	listContracts,
@@ -277,7 +278,7 @@ export const createSpmLsFn = createServerFn({ method: "POST" })
 			contractId: string;
 			referenceNumber: string;
 			bastBappDate: string;
-			receivedAtKppn: string;
+			receivedAtKppn?: string | null;
 			isPegawai?: boolean;
 		}) => data,
 	)
@@ -317,8 +318,66 @@ export const createSpmLsFn = createServerFn({ method: "POST" })
 				contractId: data.contractId,
 				referenceNumber: data.referenceNumber,
 				bastBappDate: data.bastBappDate,
-				receivedAtKppn: data.receivedAtKppn,
+				receivedAtKppn: data.receivedAtKppn || null,
 				isPegawai: data.isPegawai ?? false,
+			},
+			{
+				actorId:
+					access.status === "operator_single_scope" ||
+					access.status === "operator_multiple_scopes"
+						? access.userId
+						: targetOrgId,
+			},
+		);
+
+		return { success: true, spm: result };
+	});
+
+export const updateSpmLsFn = createServerFn({ method: "POST" })
+	.validator(
+		(data: {
+			orgId?: string;
+			spmId: string;
+			contractId?: string;
+			referenceNumber?: string;
+			bastBappDate?: string;
+			receivedAtKppn?: string | null;
+			isPegawai?: boolean;
+		}) => data,
+	)
+	.handler(async ({ data }) => {
+		const auth = await getServerAuthSession();
+		const access = await getAccessResolutionForSession(auth, data.orgId);
+
+		const targetOrgId =
+			data.orgId ||
+			(access.status === "operator_single_scope" ||
+			access.status === "operator_multiple_scopes"
+				? access.activeOrganizationId
+				: null);
+
+		if (!targetOrgId) {
+			throw new Error("Satuan Kerja aktif tidak ditemukan.");
+		}
+
+		assertOperatorOrgScope(access, targetOrgId);
+
+		const db = getDatabase();
+		if (!db) {
+			return { success: true };
+		}
+
+		const result = await updateSpmLs(
+			db,
+			access,
+			targetOrgId,
+			data.spmId,
+			{
+				contractId: data.contractId,
+				referenceNumber: data.referenceNumber,
+				bastBappDate: data.bastBappDate,
+				receivedAtKppn: data.receivedAtKppn !== undefined ? data.receivedAtKppn || null : undefined,
+				isPegawai: data.isPegawai,
 			},
 			{
 				actorId:

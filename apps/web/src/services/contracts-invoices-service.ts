@@ -5,6 +5,7 @@ import {
 	deleteSpmLsFn,
 	listContractsAndSpmFn,
 	updateContractFn,
+	updateSpmLsFn,
 } from "@/server/contracts-invoices";
 
 export interface ContractRecord {
@@ -22,7 +23,7 @@ export interface SpmLsRecord {
 	contractId: string;
 	referenceNumber: string;
 	bastBappDate: string;
-	receivedAtKppn: string;
+	receivedAtKppn?: string | null;
 	isPegawai: boolean;
 }
 
@@ -73,10 +74,22 @@ export async function addSpmLs(input: {
 	contractId: string;
 	referenceNumber: string;
 	bastBappDate: string;
-	receivedAtKppn: string;
+	receivedAtKppn?: string | null;
 	isPegawai?: boolean;
 }) {
 	return createSpmLsFn({ data: input });
+}
+
+export async function editSpmLs(input: {
+	orgId?: string;
+	spmId: string;
+	contractId?: string;
+	referenceNumber?: string;
+	bastBappDate?: string;
+	receivedAtKppn?: string | null;
+	isPegawai?: boolean;
+}) {
+	return updateSpmLsFn({ data: input });
 }
 
 export async function removeSpmLs(spmId: string, orgId?: string) {

@@ -20,14 +20,42 @@ const createContractSchema = z.strictObject({
 	sp2dAt: z.iso.date().nullable().optional(),
 });
 
-const createSpmSchema = z.strictObject({
-	fiscalYearId: z.string().uuid(),
-	contractId: z.string().uuid(),
-	referenceNumber: z.string().min(1).max(64),
-	bastBappDate: z.iso.date(),
-	receivedAtKppn: z.iso.date(),
-	isPegawai: z.boolean().optional(),
-});
+const createSpmSchema = z
+	.strictObject({
+		fiscalYearId: z.string().uuid(),
+		contractId: z.string().uuid(),
+		referenceNumber: z.string().min(1, "Nomor SPM-LS wajib diisi.").max(64),
+		bastBappDate: z.iso.date(),
+		receivedAtKppn: z.iso.date().nullable().optional(),
+		isPegawai: z.boolean().optional(),
+	})
+	.superRefine((data, ctx) => {
+		if (data.receivedAtKppn && data.bastBappDate && data.receivedAtKppn < data.bastBappDate) {
+			ctx.addIssue({
+				code: "custom",
+				message: "Tanggal konversi KPPN tidak boleh lebih awal dari tanggal BAST/BAPP.",
+				path: ["receivedAtKppn"],
+			});
+		}
+	});
+
+const updateSpmSchema = z
+	.strictObject({
+		contractId: z.string().uuid().optional(),
+		referenceNumber: z.string().min(1, "Nomor SPM-LS wajib diisi.").max(64).optional(),
+		bastBappDate: z.iso.date().optional(),
+		receivedAtKppn: z.iso.date().nullable().optional(),
+		isPegawai: z.boolean().optional(),
+	})
+	.superRefine((data, ctx) => {
+		if (data.receivedAtKppn && data.bastBappDate && data.receivedAtKppn < data.bastBappDate) {
+			ctx.addIssue({
+				code: "custom",
+				message: "Tanggal konversi KPPN tidak boleh lebih awal dari tanggal BAST/BAPP.",
+				path: ["receivedAtKppn"],
+			});
+		}
+	});
 
 async function assertFy(
 	db: DbClient,
@@ -194,6 +222,80 @@ export async function createSpmLs(
 		requestId: meta.requestId ?? null,
 	});
 	return created;
+}
+
+export async function updateSpmLs(
+	db: DbClient,
+	access: AccessResolution,
+	orgId: string,
+	spmId: string,
+	input: unknown,
+	meta: { actorId: string; requestId?: string | null },
+) {
+	const data = updateSpmSchema.parse(input);
+	const [existing] = await db
+		.select()
+		.from(spmLs)
+		.where(eq(spmLs.id, spmId))
+		.limit(1);
+	if (!existing) throw new Error("SPM LS tidak ditemukan.");
+	await assertFy(db, access, orgId, existing.fiscalYearId);
+
+	if (data.contractId) {
+		const [contract] = await db
+			.select()
+			.from(contracts)
+			.where(eq(contracts.id, data.contractId))
+			.limit(1);
+		if (!contract) throw new Error("Kontrak terkait tidak ditemukan.");
+		if (contract.fiscalYearId !== existing.fiscalYearId)
+			throw new Error("Kontrak dan SPM harus dalam tahun anggaran yang sama.");
+		if (contract.deletedAt) throw new Error("Kontrak sudah dihapus.");
+	}
+
+	const effectiveBast = data.bastBappDate ?? (existing.bastBappDate as string);
+	const effectiveReceived =
+		data.receivedAtKppn !== undefined
+			? data.receivedAtKppn
+			: (existing.receivedAtKppn as string | null);
+
+	if (
+		effectiveReceived &&
+		effectiveBast &&
+		effectiveReceived < effectiveBast
+	) {
+		throw new Error(
+			"Tanggal konversi KPPN tidak boleh lebih awal dari tanggal BAST/BAPP.",
+		);
+	}
+
+	const [updated] = await db
+		.update(spmLs)
+		.set({
+			...(data.contractId ? { contractId: data.contractId } : {}),
+			...(data.referenceNumber ? { referenceNumber: data.referenceNumber } : {}),
+			...(data.bastBappDate ? { bastBappDate: data.bastBappDate } : {}),
+			...(data.receivedAtKppn !== undefined
+				? { receivedAtKppn: data.receivedAtKppn }
+				: {}),
+			...(data.isPegawai !== undefined ? { isPegawai: data.isPegawai } : {}),
+			updatedAt: new Date(),
+		})
+		.where(eq(spmLs.id, spmId))
+		.returning();
+
+	await writeAudit(db, {
+		actorId: meta.actorId,
+		actorAccessType: "operator_satker",
+		entityType: "spm_ls",
+		entityId: spmId,
+		action: "update_spm_ls",
+		beforeJson: existing,
+		afterJson: updated,
+		orgId,
+		requestId: meta.requestId ?? null,
+	});
+	return updated;
 }
 
 export async function softDeleteSpmLs(

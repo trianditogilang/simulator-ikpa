@@ -11,3 +11,4 @@ export * from "./recommendations";
 export * from "./rule-set";
 export * from "./schemas";
 export * from "./types";
+export * from "./utils/workday-calendar";

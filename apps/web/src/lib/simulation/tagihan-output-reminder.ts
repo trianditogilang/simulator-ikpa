@@ -1,3 +1,10 @@
+import {
+	addWorkdays,
+	countWorkdays,
+	parseIsoDateParts,
+	type WorkdayCalendarInput,
+} from "@simulator-ikpa/ikpa-engine";
+
 function parseISO(value: string | null | undefined): Date | null {
 	if (!value || typeof value !== "string") return null;
 	const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value.trim());
@@ -11,35 +18,35 @@ function toISO(dt: Date): string {
 }
 
 /**
- * Hitung hari kerja Senin–Jumat, start-exclusive end-inclusive.
- * Estimasi tanpa tabel libur nasional (engine memakai kalender libur penuh).
+ * Hitung hari kerja start-exclusive end-inclusive.
+ * Menggunakan utilitas kalender kerja kanonis.
  */
-export function countWorkdaysMonFri(startISO: string, endISO: string): number | null {
-	const start = parseISO(startISO);
-	const end = parseISO(endISO);
-	if (!start || !end || end < start) return null;
-	let count = 0;
-	const cur = new Date(start.getTime() + 86400000);
-	while (cur <= end) {
-		const dow = cur.getUTCDay();
-		if (dow !== 0 && dow !== 6) count++;
-		cur.setUTCDate(cur.getUTCDate() + 1);
+export function countWorkdaysMonFri(
+	startISO: string,
+	endISO: string,
+	cal?: Partial<WorkdayCalendarInput> | null,
+): number | null {
+	if (!parseIsoDateParts(startISO) || !parseIsoDateParts(endISO)) return null;
+	if (endISO < startISO) return null;
+	try {
+		return countWorkdays(startISO, endISO, cal);
+	} catch {
+		return null;
 	}
-	return count;
 }
 
-/** Tambah N hari kerja Senin–Jumat dari tanggal awal. */
-export function addWorkdaysMonFri(startISO: string, n: number): string | null {
-	const start = parseISO(startISO);
-	if (!start || n < 0) return null;
-	const cur = new Date(start.getTime());
-	let added = 0;
-	while (added < n) {
-		cur.setUTCDate(cur.getUTCDate() + 1);
-		const dow = cur.getUTCDay();
-		if (dow !== 0 && dow !== 6) added++;
+/** Tambah N hari kerja dari tanggal awal. */
+export function addWorkdaysMonFri(
+	startISO: string,
+	n: number,
+	cal?: Partial<WorkdayCalendarInput> | null,
+): string | null {
+	if (!parseIsoDateParts(startISO) || n < 0) return null;
+	try {
+		return addWorkdays(startISO, n, cal);
+	} catch {
+		return null;
 	}
-	return toISO(cur);
 }
 
 export type DeadlineStatus = "Tepat Waktu" | "Terlambat" | "Menunggu";

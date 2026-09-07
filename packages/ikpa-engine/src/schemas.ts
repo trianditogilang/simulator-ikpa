@@ -67,8 +67,12 @@ export const contractualInputSchema = z.strictObject({
 
 export const invoiceInputSchema = z.strictObject({
 	id: z.string(),
+	referenceNumber: z.string().optional(),
+	contractId: z.string().optional(),
 	bastDate: isoDateSchema,
-	spmDate: isoDateSchema,
+	spmDate: isoDateSchema.nullable().optional(),
+	isPegawai: z.boolean().optional(),
+	isContractual: z.boolean().optional(),
 });
 
 export const workdayCalendarSchema = z.strictObject({

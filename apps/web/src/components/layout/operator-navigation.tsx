@@ -37,7 +37,7 @@ const dashboardItem: NavigationItem = {
 
 const tagihanItem: NavigationItem = {
 	label: "Penyelesaian Tagihan",
-	href: "/operator/data/contracts-invoices?tab=spm",
+	href: "/operator/data/contracts-invoices?tab=invoices",
 	icon: Receipt,
 };
 
@@ -148,6 +148,9 @@ export function isOperatorRouteActive(
 		const currentTab = currentParams.get("tab") || "contracts";
 
 		if (targetTab) {
+			if (targetTab === "invoices" || targetTab === "spm") {
+				return currentTab === "invoices" || currentTab === "spm";
+			}
 			return currentTab === targetTab;
 		}
 	}
