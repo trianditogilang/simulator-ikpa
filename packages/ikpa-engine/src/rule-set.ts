@@ -21,6 +21,8 @@ export const dispensationBucketSchema = z.strictObject({
 	minRatio: decimalStringSchema,
 	maxRatio: decimalStringSchema,
 	deduction: decimalStringSchema,
+	category: z.number().int().optional(),
+	label: z.string().optional(),
 });
 
 export const ruleSetConfigSchema = z.strictObject({
@@ -177,11 +179,11 @@ export const default2026RuleSet: RuleSetConfig = {
 		{ min: "75.01", max: "100", score: "100" },
 	],
 	dispensationBuckets: [
-		{ minRatio: "0", maxRatio: "0.009", deduction: "0" },
-		{ minRatio: "0.01", maxRatio: "0.099", deduction: "0.25" },
-		{ minRatio: "0.1", maxRatio: "0.999", deduction: "0.50" },
-		{ minRatio: "1", maxRatio: "4.999", deduction: "0.75" },
-		{ minRatio: "5", maxRatio: "9999", deduction: "1.00" },
+		{ minRatio: "0", maxRatio: "0", deduction: "0", category: 1, label: "Tidak ada dispensasi" },
+		{ minRatio: "0.01", maxRatio: "0.09", deduction: "0.25", category: 2, label: "Sangat rendah" },
+		{ minRatio: "0.10", maxRatio: "0.99", deduction: "0.50", category: 3, label: "Rendah" },
+		{ minRatio: "1.00", maxRatio: "4.99", deduction: "0.75", category: 4, label: "Sedang" },
+		{ minRatio: "5.00", maxRatio: "9999", deduction: "1.00", category: 5, label: "Tinggi" },
 	],
 	absorptionTargets: {
 		"51": { "1": "20", "2": "50", "3": "75", "4": "95" },

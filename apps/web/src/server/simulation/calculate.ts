@@ -429,15 +429,25 @@ export async function calculateAndPersistSnapshot(
 					`${fy.year}-${String(o.month).padStart(2, "0")}-05` as string,
 			})),
 		},
-		spmDispensation: useDisp && assumptionDisp
-			? {
-					dispensationCount: Math.max(0, Math.floor(assumptionDisp.dispensationCount)),
-					totalSpmQ4: Math.max(0, Math.floor(assumptionDisp.totalSpmQ4)),
+		spmDispensation: (() => {
+			if (useDisp && assumptionDisp) {
+				const disp = Math.max(0, Math.floor(assumptionDisp.dispensationCount));
+				const total = Math.max(0, Math.floor(assumptionDisp.totalSpmQ4));
+				if (disp > total) {
+					throw new Error(
+						"Jumlah SPM dispensasi tidak boleh melebihi total SPM Q4.",
+					);
 				}
-			: {
-					dispensationCount: spmQ4Rows.filter((r) => r.isDispensasi).length,
-					totalSpmQ4: spmQ4Rows.length,
-				},
+				return {
+					dispensationCount: disp,
+					totalSpmQ4: total,
+				};
+			}
+			return {
+				dispensationCount: spmQ4Rows.filter((r) => r.isDispensasi).length,
+				totalSpmQ4: spmQ4Rows.length,
+			};
+		})(),
 		overrides: params.overrides as never,
 	};
 

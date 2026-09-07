@@ -3,6 +3,11 @@ import { and, eq } from "drizzle-orm";
 import { assertOperatorOrgScope } from "@simulator-ikpa/access-control";
 import { createDbClient } from "@simulator-ikpa/db";
 import { fiscalYears, ruleSets } from "@simulator-ikpa/db/schema";
+import {
+	calculateSpmDispensation,
+	default2026RuleSet,
+	parseRuleSet,
+} from "@simulator-ikpa/ikpa-engine";
 import { getAccessResolutionForSession } from "./access.server";
 import { getServerAuthSession } from "./auth-session.server";
 import {
@@ -76,24 +81,71 @@ export const listSpmDispensationsFn = createServerFn({ method: "GET" })
 
 		const db = getDatabase();
 		if (!db) {
+			const fallbackCalc = calculateSpmDispensation(
+				{ dispensationCount: 0, totalSpmQ4: 0 },
+				default2026RuleSet,
+			);
 			return {
 				fiscalYearId: "fy-mock-2026",
 				year: 2026,
 				spmQ4List: [],
+				calculation: {
+					ratio: fallbackCalc.ratio,
+					category: fallbackCalc.category,
+					deduction: fallbackCalc.deduction,
+					formulaTrace: fallbackCalc.formulaTrace,
+					warnings: fallbackCalc.warnings,
+				},
 			};
 		}
 
 		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
 		if (!fy) {
-			throw new Error("Tahun anggaran 2026 tidak ditemukan.");
+			throw new Error("Tahun anggaran tidak ditemukan.");
+		}
+
+		let ruleSetConfig = default2026RuleSet;
+		if (fy.activeRuleSetId) {
+			const [ruleSetRow] = await db
+				.select()
+				.from(ruleSets)
+				.where(eq(ruleSets.id, fy.activeRuleSetId))
+				.limit(1);
+			if (ruleSetRow) {
+				try {
+					ruleSetConfig = parseRuleSet(ruleSetRow.configJson);
+				} catch {
+					ruleSetConfig = default2026RuleSet;
+				}
+			}
 		}
 
 		const rows = await listSpmQ4(db, access, targetOrgId, fy.id);
 
+		const totalSpmQ4 = rows.length;
+		const dispensationCount = rows.filter((r) => r.isDispensasi).length;
+
+		const calc = calculateSpmDispensation(
+			{ dispensationCount, totalSpmQ4 },
+			ruleSetConfig,
+		);
+
 		return {
 			fiscalYearId: fy.id,
 			year: fy.year,
-			spmQ4List: rows,
+			spmQ4List: rows.map((r) => ({
+				id: r.id,
+				referenceNumber: r.referenceNumber,
+				issuedAt: r.issuedAt as string,
+				isDispensasi: Boolean(r.isDispensasi),
+			})),
+			calculation: {
+				ratio: calc.ratio,
+				category: calc.category,
+				deduction: calc.deduction,
+				formulaTrace: calc.formulaTrace,
+				warnings: calc.warnings,
+			},
 		};
 	});
 
@@ -130,7 +182,7 @@ export const createSpmDispensasiFn = createServerFn({ method: "POST" })
 
 		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
 		if (!fy) {
-			throw new Error("Tahun anggaran 2026 tidak ditemukan.");
+			throw new Error("Tahun anggaran tidak ditemukan.");
 		}
 
 		const result = await createSpmQ4(

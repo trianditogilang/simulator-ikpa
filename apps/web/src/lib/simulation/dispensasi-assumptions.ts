@@ -1,3 +1,8 @@
+import {
+	calculateSpmDispensation,
+	default2026RuleSet,
+} from "@simulator-ikpa/ikpa-engine";
+
 /**
  * Asumsi operasional SPM Dispensasi — ponytail minimal.
  * Total tetap: Σ 7 kontribusi − pengurang (bukan bobot positif).
@@ -23,9 +28,11 @@ export function hasDispensasiChanges(
 	);
 }
 
-/** Rasio permil + bucket pengurang (selaras rule set 2026.1). */
+/** Rasio permil + bucket pengurang (selaras engine resmi 2026). */
 export function calcDispensasiPreview(a: DispensasiAssumptions): {
 	ratio: number;
+	ratioFormatted: string;
+	category: number;
 	deduction: number;
 	isValid: boolean;
 	message: string | null;
@@ -37,36 +44,58 @@ export function calcDispensasiPreview(a: DispensasiAssumptions): {
 		dispensationCount < 0 ||
 		totalSpmQ4 < 0
 	) {
-		return { ratio: 0, deduction: 0, isValid: false, message: "Isi angka ≥ 0." };
-	}
-	if (totalSpmQ4 === 0) {
 		return {
 			ratio: 0,
+			ratioFormatted: "0,00",
+			category: 1,
+			deduction: 0,
+			isValid: false,
+			message: "Isi angka ≥ 0.",
+		};
+	}
+
+	const intDisp = Math.floor(dispensationCount);
+	const intTotal = Math.floor(totalSpmQ4);
+
+	if (intTotal === 0) {
+		return {
+			ratio: 0,
+			ratioFormatted: "0,00",
+			category: 1,
 			deduction: 0,
 			isValid: true,
-			message: dispensationCount > 0 ? "Total Q4 0 — isi total dulu." : null,
+			message: intDisp > 0 ? "Total SPM Q4 bernilai 0. Isi total SPM terlebih dahulu." : null,
 		};
 	}
-	if (dispensationCount > totalSpmQ4) {
+
+	if (intDisp > intTotal) {
+		const rawRatio = (intDisp / intTotal) * 1000;
 		return {
-			ratio: (dispensationCount / totalSpmQ4) * 1000,
-			deduction: 1,
+			ratio: rawRatio,
+			ratioFormatted: rawRatio.toFixed(2).replace(".", ","),
+			category: 5,
+			deduction: 1.0,
 			isValid: false,
-			message: "Dispensasi tidak boleh melebihi total Q4.",
+			message: "Dispensasi tidak boleh melebihi total SPM Q4.",
 		};
 	}
-	const ratio = (dispensationCount / totalSpmQ4) * 1000;
-	const buckets: Array<{ min: number; max: number; deduction: number }> = [
-		{ min: 0, max: 0.009, deduction: 0 },
-		{ min: 0.01, max: 0.099, deduction: 0.25 },
-		{ min: 0.1, max: 0.999, deduction: 0.5 },
-		{ min: 1, max: 4.999, deduction: 0.75 },
-		{ min: 5, max: Number.POSITIVE_INFINITY, deduction: 1 },
-	];
-	const hit = buckets.find((b) => ratio >= b.min && ratio <= b.max);
+
+	const engineResult = calculateSpmDispensation(
+		{
+			dispensationCount: intDisp,
+			totalSpmQ4: intTotal,
+		},
+		default2026RuleSet,
+	);
+
+	const ratioNum = parseFloat(engineResult.ratio) || 0;
+	const deductionNum = parseFloat(engineResult.deduction) || 0;
+
 	return {
-		ratio,
-		deduction: hit?.deduction ?? 0,
+		ratio: ratioNum,
+		ratioFormatted: engineResult.ratio.replace(".", ","),
+		category: engineResult.category,
+		deduction: deductionNum,
 		isValid: true,
 		message: null,
 	};

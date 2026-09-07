@@ -2,6 +2,131 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 132 - 2026-09-07
+**Time:** Start: 05:14 UTC | End: 05:24 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [FIX-09 / Page Feedback] Penyesuaian Styling Status Banner Belum Ada SPM Q4 (`/operator/data/spm-dispensation`):
+  1. **Background & Border Biru Muda (Sky)**:
+     - Mengembalikan warna latar dan border banner ke biru muda yang lembut dan bersih (`border-sky-500/30 bg-sky-500/10`) serta ikon `text-sky-600 dark:text-sky-400`.
+  2. **Teks Kontras Biru Tua (Deep Blue)**:
+     - Teks paragraf spesifik di dalam banner menggunakan warna biru tua tegas berbobot bold (`text-blue-950 dark:text-blue-200 font-bold leading-relaxed`) untuk memastikan kontras optimal tanpa mengubah elemen lain.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/spm-dispensation.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 222/222 monorepo unit tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 131 - 2026-09-07
+**Time:** Start: 05:08 UTC | End: 05:13 UTC | Duration: ~5 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [FIX-09 / Page Feedback] Penambahan Tombol Edit di Kolom Aksi Tabel SPM Dispensasi (`/operator/data/spm-dispensation`):
+  1. **UI Action Column**:
+     - Menambahkan tombol ikon Ubah (`Pencil`) di antara tombol toggle status ("Tandai Dispensasi"/"Set Normal") dan tombol Hapus (`Trash2`).
+     - Styling selaras dengan desain sistem Ponytail (`p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition`) lengkap dengan `title="Ubah detail SPM"` dan accessible `aria-label`.
+  2. **Drawer Edit Mode Integration**:
+     - State `editingSpmId` ditambahkan untuk membedakan mode Create vs Edit.
+     - Handler `handleOpenEditSpm(item)` mengisi form secara otomatis (Nomor SPM, Tanggal Terbit, Status Dispensasi) dan mengarahkan drawer ke judul "Ubah Data Penerbitan SPM Triwulan IV".
+     - Handler `handleSaveSpm` secara pintar memanggil `editSpmDispensasi` jika sedang dalam mode edit atau `addSpmDispensasi` jika baru.
+     - Reset state form dan `editingSpmId` secara aman saat drawer ditutup atau selesai submit.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/spm-dispensation.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 222/222 monorepo unit tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+  - Build: Production Vite client & SSR server build 100% passed.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 130 - 2026-09-07
+**Time:** Start: 04:46 UTC | End: 05:00 UTC | Duration: ~14 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Engine Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [FIX-09] Perbaikan Menyeluruh Menu Dispensasi SPM (Pengurang Nilai IKPA):
+  1. **Canonical Engine Implementation (`packages/ikpa-engine/src/indicators/spm-dispensation.ts`, `rule-set.ts`)**:
+     - Menghitung rasio permil secara presisi dengan pembulatan 2 desimal HALF_UP: `ratio = round_half_up((dispensationCount * 1000) / totalSpmQ4, 2)`.
+     - Mengubah bucket tabel konfigurasi rule set 2026 menjadi 5 kategori resmi:
+       - Kategori 1: `0,00` (tidak ada dispensasi) $\to$ Pengurang `0,00` poin.
+       - Kategori 2: `0,01 – 0,09 ‰` $\to$ Pengurang `0,25` poin.
+       - Kategori 3: `0,10 – 0,99 ‰` $\to$ Pengurang `0,50` poin.
+       - Kategori 4: `1,00 – 4,99 ‰` $\to$ Pengurang `0,75` poin.
+       - Kategori 5: $\ge$ `5,00 ‰` $\to$ Pengurang `1,00` poin.
+     - Penanganan `totalSpmQ4 === 0`: mengembalikan status lengkap, pengurang `0`, rasio `0.00`, dan peringatan informatif `"Belum ada SPM Triwulan IV. Pengurang dispensasi dihitung 0."`.
+     - Jejak formula trace 3 langkah dalam Bahasa Indonesia: Rasio permil, Kategori & pengurang bucket, serta Dampak terhadap nilai IKPA akhir.
+  2. **Golden Acceptance Test Pusdiklat (`packages/ikpa-engine/src/indicators/spm-dispensation.test.ts`, `calculate.test.ts`)**:
+     - Lulus **Golden Test Resmi Pusdiklat**: 24 SPM dispensasi / 5.214 Total SPM Q4 = 4,60‰ (Kategori 4) $\to$ Pengurang 0,75 poin.
+     - Lulus uji orkestrator total IKPA: Subtotal 7 indikator 97,25 − Pengurang 0,75 = Nilai IKPA Akhir 96,50.
+     - Lulus seluruh uji batas (boundary tests): 0/100 (Kat. 1 $\to$ 0,00), 9/100000 = 0,09‰ (Kat. 2 $\to$ 0,25), 1/10000 = 0,10‰ (Kat. 3 $\to$ 0,50), 99/100000 = 0,99‰ (Kat. 3 $\to$ 0,50), 1/1000 = 1,00‰ (Kat. 4 $\to$ 0,75), 26/5214 = 4,99‰ (Kat. 4 $\to$ 0,75), 5/1000 = 5,00‰ (Kat. 5 $\to$ 1,00), 10/1000 = 10,00‰ (Kat. 5 $\to$ 1,00).
+  3. **Database Schema, Seed & Mutations (`packages/db/src/schema/spm-q4.ts`, `seed.ts`, `apps/web/src/server/domains/spm-dispensation.mutations.ts`)**:
+     - Menambahkan partial unique index pada `spm_q4 (fiscal_year_id, reference_number)` di mana `deleted_at IS NULL` dan validasi server dengan pesan `"Nomor SPM sudah tercatat di Triwulan IV tahun ini."`.
+     - Validasi kalender bisnis WIB untuk tanggal penerbitan SPM (`Asia/Jakarta`), hanya menerima bulan Oktober–Desember tahun anggaran aktif dengan pesan `"Tanggal harus pada Oktober–Desember {tahun}. Penyebut rasio hanya SPM Triwulan IV."`.
+     - Default nilai saat input SPM baru = Normal (`isDispensasi: false`).
+     - Konfigurasi seed reminder `spm_dispensation_q4`: kategori `recommended`, lead time 1 s.d. 30 hari.
+  4. **Simulation Server & Assumptions Sync (`apps/web/src/server/simulation/calculate.ts`, `dispensasi-assumptions.ts`, `dispensasi-assumption-panel.tsx`)**:
+     - Validasi server `dispensationCount <= totalSpmQ4` pada kalkulasi simulasi scenario/forecast.
+     - `calcDispensasiPreview` didelegasikan langsung memanggil `calculateSpmDispensation` engine resmi tanpa duplikasi bucket lokal.
+     - Panel asumsi simulasi diperbarui dengan tampilan Pratinjau Pengurang (Bukan Bobot), rasio permil 2 desimal, badge kategori, dan dampak IKPA.
+     - `RECOMMENDATION_ROUTES` dipetakan secara tepat untuk `spm_dispensasi` / `spm_dispensation` $\to$ `/operator/data/spm-dispensation`.
+  5. **Frontend UI Overhaul Ponytail (`apps/web/src/routes/operator/data/spm-dispensation.tsx`, `guides.ts`)**:
+     - Header dinamis sesuai tahun anggaran aktif (`initialData.year`).
+     - 4 Top Metric Cards: Total SPM Q4, SPM Dispensasi (0 = hijau, >0 = merah), Rasio Dispensasi (‰), Pengurang IKPA (Paling Kanan dengan rumus `Nilai IKPA akhir = nilai 7 indikator − {deduction}`).
+     - Banner status autoritatif dari engine (1 baris dengan variant info, success, warning, danger).
+     - Strip reminder batas akhir SPM tahun anggaran dengan link ke Reminder Center dan anchor scroll ke strategi satker.
+     - Toolbar dengan filter interaktif: Semua / Normal / Dispensasi + counter count.
+     - Dialog konfirmasi sebelum menandai SPM sebagai dispensasi (`"Menandai SPM ini sebagai dispensasi akan menaikkan rasio permil dan dapat memotong nilai IKPA. Lanjutkan?"`).
+     - Dialog konfirmasi hapus SPM (`"Hapus SPM {nomor}? Data terhapus dari perhitungan rasio Triwulan IV."`).
+     - Layout 2 Kolom di bagian bawah:
+       - **Kiri**: Panel Cara Perhitungan + Tabel 5 Kategori resmi dengan baris kategori satker ter-highlight + Accordion Contoh Resmi Pusdiklat.
+       - **Kanan**: Panel 3 Strategi Satker ("Agar Nilai IKPA Tidak Dipotong") + Alert Kategori saat ini + Catatan disclaimer simulasi internal.
+     - Panduan `g-08` dimutakhirkan dengan formula permil dan strategi pengendalian.
+**Code Changes:**
+- Files created/modified:
+  - `packages/ikpa-engine/src/indicators/spm-dispensation.ts`
+  - `packages/ikpa-engine/src/indicators/spm-dispensation.test.ts`
+  - `packages/ikpa-engine/src/rule-set.ts`
+  - `packages/ikpa-engine/src/calculate.test.ts`
+  - `packages/db/src/schema/spm-q4.ts`
+  - `packages/db/src/seed.ts`
+  - `apps/web/src/server/domains/spm-dispensation.mutations.ts`
+  - `apps/web/src/server/spm-dispensation.ts`
+  - `apps/web/src/services/spm-dispensation-service.ts`
+  - `apps/web/src/server/simulation/calculate.ts`
+  - `apps/web/src/lib/simulation/dispensasi-assumptions.ts`
+  - `apps/web/src/lib/simulation/dispensasi-assumptions.test.ts`
+  - `apps/web/src/components/operator/dispensasi-assumption-panel.tsx`
+  - `apps/web/src/server/dashboard.ts`
+  - `apps/web/src/routes/operator/data/spm-dispensation.tsx`
+  - `apps/web/src/mocks/guides.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 67/67 tests `packages/ikpa-engine` passed, 222/222 monorepo tests passed (100%).
+  - Typecheck: 0 error di seluruh 7 package/workspace monorepo.
+  - Build: Production Vite client bundle (2,548 modules) dan SSR server bundle (335 modules) build 100% sukses.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk evaluasi dan iterasi selanjutnya dari user.
+
 ### Session 129 - 2026-09-06
 **Time:** Start: 12:14 UTC | End: 12:35 UTC | Duration: ~21 minutes
 - Status: Completed

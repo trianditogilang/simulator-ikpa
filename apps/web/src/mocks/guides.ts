@@ -87,13 +87,13 @@ export const mockGuides: GuideItem[] = [
 	},
 	{
 		id: "g-08",
-		title: "8. Dispensasi SPM (Faktor Pengurang)",
-		weightLabel: "Pengurang",
+		title: "8. Dispensasi SPM (Pengurang Nilai IKPA)",
+		weightLabel: "Pengurang (Bobot 0%)",
 		regulationSource: "PER-5/PB/2024 Pasal 11",
 		summary:
-			"Pengurang nilai total IKPA satker akibat penerbitan SPM dispensasi pada akhir tahun anggaran.",
+			"Faktor pengurang nilai akhir IKPA satker akibat penerbitan SPM dengan surat dispensasi pada akhir tahun anggaran (Triwulan IV). Dihitung dari rasio permil jumlah lembar SPM dispensasi terhadap seluruh SPM Q4.",
 		formula:
-			"Rasio permil dispensasi terhadap total SPM Q4 (rentang pengurangan 0,25 hingga 2,00 poin).",
-		tips: "Selesaikan seluruh proses tagihan dan SPM sebelum batas cut-off akhir tahun yang ditetapkan KPPN.",
+			"Rasio (‰) = (Jumlah SPM Dispensasi ÷ Total SPM Q4) × 1.000. Pengurang: 0,00‰ = 0; 0,01–0,09‰ = 0,25; 0,10–0,99‰ = 0,50; 1,00–4,99‰ = 0,75; ≥ 5,00‰ = 1,00. Nilai IKPA Akhir = Nilai 7 Indikator − Pengurang.",
+		tips: "Pantau pengumuman batas akhir SPM dari DJPb pada Oktober/November, mitigasi risiko tagihan di akhir tahun, dan lakukan pencairan belanja lebih awal.",
 	},
 ];

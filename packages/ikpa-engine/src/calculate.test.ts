@@ -106,6 +106,30 @@ describe("calculateIkpa orchestrator", () => {
 		expect(output.dispensationDeduction).toBe("1.00");
 	});
 
+	it("passes golden orchestrator test: 97.25 subtotal − 0.75 deduction (24/5214 SPM Q4) = 96.50", () => {
+		const inputWithOverrides: EngineInput = {
+			...mockInput,
+			spmDispensation: {
+				dispensationCount: 24,
+				totalSpmQ4: 5214,
+			},
+			overrides: {
+				dipa_revision: "97.25",
+				rpd_deviation: "97.25",
+				budget_absorption: "97.25",
+				contractual: "97.25",
+				invoice_timeliness: "97.25",
+				up_tup: "97.25",
+				output_achievement: "97.25",
+			},
+		};
+
+		const output = calculateIkpa(inputWithOverrides, default2026RuleSet);
+		// 97.25 - 0.75 = 96.50
+		expect(output.totalScore).toBe("96.50");
+		expect(output.dispensationDeduction).toBe("0.75");
+	});
+
 	it("rounds properly per rule set config", () => {
 		// Mock overrides to get 99.985...
 		const configWith1Dec = {

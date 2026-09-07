@@ -58,6 +58,8 @@ const RECOMMENDATION_ROUTES: Record<string, string> = {
 	invoice_timeliness: "/operator/data/contracts-invoices?tab=spm",
 	up_tup: "/operator/up-tup",
 	output_achievement: "/operator/data/output-achievement",
+	spm_dispensasi: "/operator/data/spm-dispensation",
+	spm_dispensation: "/operator/data/spm-dispensation",
 };
 
 export const getOperatorDashboardFn = createServerFn({ method: "GET" })

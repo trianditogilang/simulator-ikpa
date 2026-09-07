@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
 	boolean,
 	date,
@@ -5,6 +6,7 @@ import {
 	pgTable,
 	text,
 	timestamp,
+	uniqueIndex,
 	uuid,
 } from "drizzle-orm/pg-core";
 import { fiscalYears } from "./fiscal-years";
@@ -32,6 +34,9 @@ export const spmQ4 = pgTable(
 			.notNull(),
 	},
 	(table) => [
+		uniqueIndex("spm_q4_fy_ref_unique_idx")
+			.on(table.fiscalYearId, table.referenceNumber)
+			.where(sql`deleted_at IS NULL`),
 		index("spm_q4_fiscal_year_id_idx").on(table.fiscalYearId),
 		index("spm_q4_reference_number_idx").on(table.referenceNumber),
 		index("spm_q4_issued_at_idx").on(table.issuedAt),
