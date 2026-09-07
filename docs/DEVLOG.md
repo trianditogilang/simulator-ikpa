@@ -2,6 +2,33 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 158 - 2026-09-07
+**Time:** Start: 14:38 UTC | End: 14:45 UTC | Duration: ~7 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-UP-TUP-DRAWER-STRICT-VALIDATION] Pengkondisian 1 Date Picker 'Tanggal Rencana SP2D' untuk Non-GUP dan Validasi Wajib Isi Semua Field (`/operator/data/up-tup-kkp`):
+  1. **Pengkondisian Date Picker Transaksi Non-GUP vs GUP (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
+     - Untuk jenis transaksi selain GUP (`UP`, `TUP`, `GUP_NIHIL`, `PTUP`, `SETORAN_TUP`), hanya ditampilkan tepat 1 date picker berjudul `Tanggal Rencana SP2D *`.
+     - Untuk jenis transaksi `GUP`, ditampilkan 2 date picker: `Tanggal SP2D Terakhir *` (dengan opsi dropdown referensi UP/GUP sebelumnya) dan `Tanggal Rencana SP2D *`.
+  2. **Validasi Form Wajib Isi & Penguncian Tombol Simpan Data (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
+     - Seluruh field (`Jenis Transaksi`, `Nominal Transaksi (Rp) > 0`, `Tanggal Rencana SP2D`, dan `Tanggal SP2D Terakhir` khusus GUP) ditetapkan sebagai wajib isi (`*`).
+     - Menghubungkan state validasi `isUpTupSubmitDisabled` ke prop `isSubmitDisabled` pada `DomainFormDrawer`.
+     - Tombol `Simpan Data` terkunci (`disabled:opacity-50 disabled:cursor-not-allowed`) selama ada field wajib yang belum diisi, sehingga pengguna hanya bisa menekan `Batal` hingga seluruh data terisi lengkap dan valid.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/up-tup-kkp.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 15/15 test files (101/101 tests) passed in `apps/web`, 36/36 test files (147/147 tests) passed across monorepo.
+  - Typecheck: 0 error across all 7 workspace packages monorepo.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
 ### Session 157 - 2026-09-07
 **Time:** Start: 14:24 UTC | End: 14:30 UTC | Duration: ~6 minutes
 - Status: Completed

@@ -147,6 +147,15 @@ function UpTupKkpPage() {
 			.sort((a, b) => b.sp2dAt.localeCompare(a.sp2dAt));
 	}, [initialData.upTupList, editingUpTup]);
 
+	// Form validation state: all required fields must be filled to enable submit
+	const isUpTupSubmitDisabled = useMemo(() => {
+		const amountVal = Number(txAmount);
+		if (!Number.isFinite(amountVal) || amountVal <= 0) return true;
+		if (!txSp2dDate || !txSp2dDate.trim()) return true;
+		if (txType === "GUP" && (!refSp2dDate || !refSp2dDate.trim())) return true;
+		return false;
+	}, [txAmount, txSp2dDate, txType, refSp2dDate]);
+
 	// KKP Form State
 	const [kkpMonth, setKkpMonth] = useState<number>(new Date().getMonth() + 1);
 	const [kkpAmount, setKkpAmount] = useState("");
@@ -259,8 +268,16 @@ function UpTupKkpPage() {
 		setErrorMessage(null);
 
 		const amountVal = Math.round(Number(txAmount) || 0);
-		if ((txType === "GUP" || txType === "PTUP") && !refSp2dDate) {
-			setErrorMessage("Tanggal SP2D terakhir wajib diisi untuk transaksi GUP dan PTUP.");
+		if (amountVal <= 0) {
+			setErrorMessage("Nominal transaksi wajib diisi dan harus lebih besar dari Rp0.");
+			return;
+		}
+		if (!txSp2dDate) {
+			setErrorMessage("Tanggal rencana SP2D wajib diisi.");
+			return;
+		}
+		if (txType === "GUP" && !refSp2dDate) {
+			setErrorMessage("Tanggal SP2D terakhir wajib diisi untuk transaksi GUP.");
 			return;
 		}
 
@@ -272,7 +289,7 @@ function UpTupKkpPage() {
 					type: txType,
 					amount: String(amountVal),
 					sp2dAt: txSp2dDate,
-					referenceSp2dAt: refSp2dDate || null,
+					referenceSp2dAt: txType === "GUP" ? (refSp2dDate || null) : null,
 					settlementDate: editingUpTup.settlementDate ?? null,
 					isSettled: editingUpTup.isSettled ?? false,
 				});
@@ -282,7 +299,7 @@ function UpTupKkpPage() {
 					type: txType,
 					amount: String(amountVal),
 					sp2dAt: txSp2dDate,
-					referenceSp2dAt: refSp2dDate || null,
+					referenceSp2dAt: txType === "GUP" ? (refSp2dDate || null) : null,
 					settlementDate: null,
 					isSettled: false,
 				});
@@ -863,6 +880,7 @@ function UpTupKkpPage() {
 					}}
 					onSubmit={handleSaveUpTup}
 					isSubmitting={isSubmitting}
+					isSubmitDisabled={isUpTupSubmitDisabled}
 				>
 					<div className="space-y-4">
 						<div className="space-y-1.5">
@@ -870,7 +888,7 @@ function UpTupKkpPage() {
 								htmlFor="tx-type"
 								className="block text-xs font-semibold text-foreground"
 							>
-								Jenis Transaksi
+								Jenis Transaksi <span className="text-danger ml-0.5">*</span>
 							</label>
 							<select
 								id="tx-type"
@@ -903,7 +921,7 @@ function UpTupKkpPage() {
 								htmlFor="tx-amount"
 								className="block text-xs font-semibold text-foreground"
 							>
-								Nominal Transaksi (Rp)
+								Nominal Transaksi (Rp) <span className="text-danger ml-0.5">*</span>
 							</label>
 							<FormattedNumberInput
 								id="tx-amount"
@@ -917,73 +935,91 @@ function UpTupKkpPage() {
 							/>
 						</div>
 
-						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-							<div className="space-y-1.5">
-								<label
-									htmlFor="ref-sp2d-date"
-									className="block text-xs font-semibold text-foreground"
-								>
-									Tanggal SP2D Terakhir
-									{(txType === "GUP" || txType === "PTUP") && (
-										<span className="text-danger ml-1">*</span>
-									)}
-								</label>
-								<input
-									id="ref-sp2d-date"
-									type="date"
-									value={refSp2dDate}
-									onChange={(e) => setRefSp2dDate(e.target.value)}
-									disabled={isSubmitting}
-									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
-								/>
-								{previousUpGupList.length > 0 && (
-									<div className="space-y-1 pt-0.5">
-										<label
-											htmlFor="ref-sp2d-select"
-											className="block text-[10px] text-muted-foreground"
-										>
-											Opsi referensi data UP / GUP sebelumnya:
-										</label>
-										<select
-											id="ref-sp2d-select"
-											value={
-												previousUpGupList.some(
-													(t) => t.sp2dAt.slice(0, 10) === refSp2dDate,
-												)
-													? refSp2dDate
-													: ""
-											}
-											onChange={(e) => {
-												if (e.target.value) {
-													setRefSp2dDate(e.target.value);
+						{txType === "GUP" ? (
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+								<div className="space-y-1.5">
+									<label
+										htmlFor="ref-sp2d-date"
+										className="block text-xs font-semibold text-foreground"
+									>
+										Tanggal SP2D Terakhir <span className="text-danger ml-0.5">*</span>
+									</label>
+									<input
+										id="ref-sp2d-date"
+										type="date"
+										required
+										value={refSp2dDate}
+										onChange={(e) => setRefSp2dDate(e.target.value)}
+										disabled={isSubmitting}
+										className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
+									/>
+									{previousUpGupList.length > 0 && (
+										<div className="space-y-1 pt-0.5">
+											<label
+												htmlFor="ref-sp2d-select"
+												className="block text-[10px] text-muted-foreground"
+											>
+												Opsi referensi data UP / GUP sebelumnya:
+											</label>
+											<select
+												id="ref-sp2d-select"
+												value={
+													previousUpGupList.some(
+														(t) => t.sp2dAt.slice(0, 10) === refSp2dDate,
+													)
+														? refSp2dDate
+														: ""
 												}
-											}}
-											disabled={isSubmitting}
-											className="w-full rounded-lg border border-border bg-surface-muted/60 px-2.5 py-1.5 text-[11px] text-foreground focus:border-primary focus:outline-none"
-										>
-											<option value="">
-												-- Pilih data UP / GUP sebelumnya --
-											</option>
-											{previousUpGupList.map((tx) => (
-												<option key={tx.id} value={tx.sp2dAt.slice(0, 10)}>
-													{tx.type === "UP"
-														? "UP Awal"
-														: TYPE_LABELS[tx.type] || tx.type}{" "}
-													· {formatDateDDMMYYYY(tx.sp2dAt)} (
-													{formatRupiah(Number(tx.amount))})
+												onChange={(e) => {
+													if (e.target.value) {
+														setRefSp2dDate(e.target.value);
+													}
+												}}
+												disabled={isSubmitting}
+												className="w-full rounded-lg border border-border bg-surface-muted/60 px-2.5 py-1.5 text-[11px] text-foreground focus:border-primary focus:outline-none"
+											>
+												<option value="">
+													-- Pilih data UP / GUP sebelumnya --
 												</option>
-											))}
-										</select>
-									</div>
-								)}
-							</div>
+												{previousUpGupList.map((tx) => (
+													<option key={tx.id} value={tx.sp2dAt.slice(0, 10)}>
+														{tx.type === "UP"
+															? "UP Awal"
+															: TYPE_LABELS[tx.type] || tx.type}{" "}
+														· {formatDateDDMMYYYY(tx.sp2dAt)} (
+														{formatRupiah(Number(tx.amount))})
+													</option>
+												))}
+											</select>
+										</div>
+									)}
+								</div>
 
+								<div className="space-y-1.5">
+									<label
+										htmlFor="tx-sp2d-date"
+										className="block text-xs font-semibold text-foreground"
+									>
+										Tanggal Rencana SP2D <span className="text-danger ml-0.5">*</span>
+									</label>
+									<input
+										id="tx-sp2d-date"
+										type="date"
+										required
+										value={txSp2dDate}
+										onChange={(e) => setTxSp2dDate(e.target.value)}
+										disabled={isSubmitting}
+										className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
+									/>
+								</div>
+							</div>
+						) : (
 							<div className="space-y-1.5">
 								<label
 									htmlFor="tx-sp2d-date"
 									className="block text-xs font-semibold text-foreground"
 								>
-									Tanggal Rencana SP2D
+									Tanggal Rencana SP2D <span className="text-danger ml-0.5">*</span>
 								</label>
 								<input
 									id="tx-sp2d-date"
@@ -995,7 +1031,7 @@ function UpTupKkpPage() {
 									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 								/>
 							</div>
-						</div>
+						)}
 
 						{/* Hint & Fairness notification */}
 						{isThrAppliedInForm && (
