@@ -75,7 +75,16 @@ export interface UpTupScore {
 	contribution: number | null;
 	tunai: number | null;
 	kkp: number | null;
+	timeliness: number | null;
+	monthlyGup: number | null;
+	tupDeposit: number | null;
 	status: string;
+}
+
+export function isThr2026FairnessApplied(referenceSp2dAt?: string | null): boolean {
+	if (!referenceSp2dAt) return false;
+	const date = referenceSp2dAt.slice(0, 10);
+	return date >= "2026-02-18" && date <= "2026-03-17";
 }
 
 export function calcUpTupScore(
@@ -83,15 +92,25 @@ export function calcUpTupScore(
 	kkpTransactions: KkpTransaction[],
 	currentMonth: number,
 	config: RuleSetConfig = default2026RuleSet,
+	hasKkp?: boolean,
 ): UpTupScore {
 	if (transactions.length === 0 && kkpTransactions.length === 0) {
-		return { score: null, contribution: null, tunai: null, kkp: null, status: "incomplete" };
+		return {
+			score: null,
+			contribution: null,
+			tunai: null,
+			kkp: null,
+			timeliness: null,
+			monthlyGup: null,
+			tupDeposit: null,
+			status: "incomplete",
+		};
 	}
 	const month = Number.isFinite(currentMonth)
 		? Math.min(Math.max(Math.floor(currentMonth), 1), 12)
 		: 12;
 	const result = calculateUpTup(
-		{ transactions, kkpTransactions } as never,
+		{ transactions, kkpTransactions, hasKkp } as never,
 		{ kind: "month", value: month } as never,
 		config,
 	);
@@ -103,11 +122,23 @@ export function calcUpTupScore(
 	const kkp = Number(
 		result.subComponents?.find((s) => s.key === "kkp")?.score,
 	);
+	const timeliness = Number(
+		result.subComponents?.find((s) => s.key === "timeliness")?.score,
+	);
+	const monthlyGup = Number(
+		result.subComponents?.find((s) => s.key === "monthlyGup")?.score,
+	);
+	const tupDeposit = Number(
+		result.subComponents?.find((s) => s.key === "tupDeposit")?.score,
+	);
 	return {
 		score: Number.isFinite(score) ? score : null,
 		contribution: Number.isFinite(contribution) ? contribution : null,
 		tunai: Number.isFinite(tunai) ? tunai : null,
 		kkp: Number.isFinite(kkp) ? kkp : null,
+		timeliness: Number.isFinite(timeliness) ? timeliness : null,
+		monthlyGup: Number.isFinite(monthlyGup) ? monthlyGup : null,
+		tupDeposit: Number.isFinite(tupDeposit) ? tupDeposit : null,
 		status: result.status,
 	};
 }

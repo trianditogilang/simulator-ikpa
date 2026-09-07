@@ -69,11 +69,20 @@ describe("calculateUpTup", () => {
 
 		expect(result.score).toBe("101.00");
 		expect(result.subComponents).toBeDefined();
-		expect(result.subComponents![0].score).toBe("100.00"); // Tunai
-		expect(result.subComponents![1].score).toBe("110.00"); // KKP
+		const tunaiComp = result.subComponents?.find((c) => c.key === "tunai");
+		const timelinessComp = result.subComponents?.find((c) => c.key === "timeliness");
+		const monthlyGupComp = result.subComponents?.find((c) => c.key === "monthlyGup");
+		const tupDepositComp = result.subComponents?.find((c) => c.key === "tupDeposit");
+		const kkpComp = result.subComponents?.find((c) => c.key === "kkp");
+
+		expect(tunaiComp?.score).toBe("100.00"); // Tunai
+		expect(timelinessComp?.score).toBe("100.00"); // Ketepatan
+		expect(monthlyGupComp?.score).toBe("100.00"); // %GUP Disebulankan
+		expect(tupDepositComp?.score).toBe("100.00"); // Setoran TUP
+		expect(kkpComp?.score).toBe("110.00"); // KKP
 	});
 
-	it("calculates tunai components correctly with some late settlements", () => {
+	it("calculates tunai components correctly with some late settlements and no KKP (default 90% cap)", () => {
 		const input: UpTupInput = {
 			transactions: [
 				{
@@ -107,10 +116,62 @@ describe("calculateUpTup", () => {
 		// Setoran TUP: t2 is on time -> 100%
 		// Tunai Score = (50% * 0.5) + (0% * 0.25) + (100% * 0.25) = 25 + 0 + 25 = 50.
 
-		// KKP: 0 transactions, 0% target not met for any quarter?
-		// Targets: 1, 5, 9, 12.5. all > 0. So all KKP quarter scores = 100.
-		// Total Score = 90% * 50 + 10% * 100 = 45 + 10 = 55.
+		// Default Tanpa KKP: 90% * 50 = 45.00
+		expect(result.score).toBe("45.00");
+		expect(result.subComponents?.find((c) => c.key === "kkp")?.score).toBe("0.00");
+	});
 
-		expect(result.score).toBe("55.00");
+	it("caps satker without UP KKP at exactly 90.00 when tunai is 100% on time", () => {
+		const input: UpTupInput = {
+			transactions: [
+				{
+					id: "t1",
+					type: "UP",
+					amount: "1000",
+					date: "2026-01-01",
+					settlementDate: "2026-01-15",
+					isSettled: true,
+				},
+			],
+			kkpTransactions: [],
+			hasKkp: false,
+		};
+
+		const result = calculateUpTup(
+			input,
+			{ kind: "year", value: 1 },
+			default2026RuleSet,
+		);
+
+		// Tunai is 100%, but satker has no UP KKP -> 90% * 100 = 90.00
+		expect(result.score).toBe("90.00");
+		expect(result.weightedContribution).toBe("9.00");
+	});
+
+	it("allows satker with active KKP to reach 100.00 even with 0 KKP transactions", () => {
+		const input: UpTupInput = {
+			transactions: [
+				{
+					id: "t1",
+					type: "UP",
+					amount: "1000",
+					date: "2026-01-01",
+					settlementDate: "2026-01-15",
+					isSettled: true,
+				},
+			],
+			kkpTransactions: [],
+			hasKkp: true,
+		};
+
+		const result = calculateUpTup(
+			input,
+			{ kind: "year", value: 1 },
+			default2026RuleSet,
+		);
+
+		// Tunai is 100%, KKP active (base 100) -> 90% * 100 + 10% * 100 = 100.00
+		expect(result.score).toBe("100.00");
+		expect(result.weightedContribution).toBe("10.00");
 	});
 });

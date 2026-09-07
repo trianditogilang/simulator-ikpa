@@ -3,6 +3,7 @@ import {
 	deleteKkpFn,
 	deleteUpTupFn,
 	listUpTupAndKkpFn,
+	updateUpTupFn,
 	upsertKkpFn,
 } from "@/server/up-tup-kkp";
 
@@ -44,6 +45,19 @@ export async function addUpTup(input: {
 	isSettled?: boolean;
 }) {
 	return createUpTupFn({ data: input });
+}
+
+export async function editUpTup(input: {
+	id: string;
+	orgId?: string;
+	type: "UP" | "TUP" | "GUP" | "GUP_NIHIL" | "PTUP" | "SETORAN_TUP";
+	amount: string;
+	sp2dAt: string;
+	referenceSp2dAt?: string | null;
+	settlementDate?: string | null;
+	isSettled?: boolean;
+}) {
+	return updateUpTupFn({ data: input });
 }
 
 export async function removeUpTup(id: string, orgId?: string) {

@@ -118,66 +118,83 @@ export function calculateUpTup(
 		result: tunaiScore.toFixed(config.rounding.fractionDigits),
 	});
 
-	// KKP Score
-	// We calculate quarterly targets.
-	// Group amounts cumulatively to check targets.
-	let kkpScore = 100;
+	// KKP Score & Status Evaluasi
+	// Secara default satker tidak memiliki UP KKP (hasKkp = false), sehingga maksimal hanya mendapat 90% nilai dari Tunai.
+	// Jika status KKP diaktifkan atau satker memiliki transaksi KKP, KKP dievaluasi terhadap target triwulanan (peluang nilai 100).
+	const hasKkp = input.hasKkp ?? (input.kkpTransactions.length > 0);
+	let kkpScore = 0;
 
-	// Determine which quarters to evaluate based on period
-	let maxQuarterToEvaluate = 1;
-	if (period.kind === "quarter") maxQuarterToEvaluate = period.value;
-	else if (period.kind === "month")
-		maxQuarterToEvaluate = Math.ceil(period.value / 3);
-	else if (period.kind === "semester") maxQuarterToEvaluate = period.value * 2;
-	else if (period.kind === "year") maxQuarterToEvaluate = 4;
+	if (hasKkp) {
+		// Determine which quarters to evaluate based on period
+		let maxQuarterToEvaluate = 1;
+		if (period.kind === "quarter") maxQuarterToEvaluate = period.value;
+		else if (period.kind === "month")
+			maxQuarterToEvaluate = Math.ceil(period.value / 3);
+		else if (period.kind === "semester") maxQuarterToEvaluate = period.value * 2;
+		else if (period.kind === "year") maxQuarterToEvaluate = 4;
 
-	const kkpQuarterScores: number[] = [];
-	for (let q = 1; q <= maxQuarterToEvaluate; q++) {
-		let totalKkpAmount = 0;
-		let totalTunaiAmount = 0;
+		const kkpQuarterScores: number[] = [];
+		for (let q = 1; q <= maxQuarterToEvaluate; q++) {
+			let totalKkpAmount = 0;
+			let totalTunaiAmount = 0;
 
-		for (const tx of kkpTransactions) {
-			if (getQuarter(tx.date) <= q) {
-				totalKkpAmount += parseFloat(tx.amount);
+			for (const tx of kkpTransactions) {
+				if (getQuarter(tx.date) <= q) {
+					totalKkpAmount += parseFloat(tx.amount);
+				}
+			}
+			for (const tx of transactions) {
+				if (getQuarter(tx.date) <= q) {
+					totalTunaiAmount += parseFloat(tx.amount);
+				}
+			}
+
+			const totalAmount = totalKkpAmount + totalTunaiAmount;
+			const kkpPercentage =
+				totalAmount > 0 ? (totalKkpAmount / totalAmount) * 100 : 0;
+
+			const targetStr = config.kkpTargets[q.toString()] || "0";
+			const target = parseFloat(targetStr);
+
+			if (kkpPercentage >= target && totalAmount > 0) {
+				kkpQuarterScores.push(110);
+			} else {
+				kkpQuarterScores.push(100);
 			}
 		}
-		for (const tx of transactions) {
-			if (getQuarter(tx.date) <= q) {
-				totalTunaiAmount += parseFloat(tx.amount);
-			}
+
+		if (kkpQuarterScores.length > 0) {
+			kkpScore =
+				kkpQuarterScores.reduce((a, b) => a + b, 0) / kkpQuarterScores.length;
 		}
 
-		const totalAmount = totalKkpAmount + totalTunaiAmount;
-		const kkpPercentage =
-			totalAmount > 0 ? (totalKkpAmount / totalAmount) * 100 : 0;
-
-		const targetStr = config.kkpTargets[q.toString()] || "0";
-		const target = parseFloat(targetStr);
-
-		if (kkpPercentage >= target && totalAmount > 0) {
-			kkpQuarterScores.push(110);
-		} else {
-			kkpQuarterScores.push(100);
-		}
+		formulaTrace.push({
+			step: 2,
+			label: "Komponen KKP",
+			formula: "Rata-rata capaian triwulanan KKP",
+			inputs: {
+				statusKKP: "Aktif",
+				jumlahTriwulanDievaluasi: kkpQuarterScores.length.toString(),
+			},
+			result: kkpScore.toFixed(config.rounding.fractionDigits),
+		});
+	} else {
+		formulaTrace.push({
+			step: 2,
+			label: "Komponen KKP (Tanpa UP KKP)",
+			formula: "Satker tidak memiliki UP KKP (Maksimal nilai indikator: 90,00)",
+			inputs: {
+				statusKKP: "Tidak Memiliki UP KKP",
+			},
+			result: "0.00",
+		});
+		warnings.push(
+			"Satker terkonfigurasi tidak memiliki UP KKP. Maksimal nilai capaian indikator UP/TUP adalah 90,00 (hanya 90% komponen Tunai).",
+		);
 	}
 
-	if (kkpQuarterScores.length > 0) {
-		kkpScore =
-			kkpQuarterScores.reduce((a, b) => a + b, 0) / kkpQuarterScores.length;
-	}
-
-	formulaTrace.push({
-		step: 2,
-		label: "Komponen KKP",
-		formula: "Rata-rata capaian triwulanan KKP",
-		inputs: {
-			jumlahTriwulanDievaluasi: kkpQuarterScores.length.toString(),
-		},
-		result: kkpScore.toFixed(config.rounding.fractionDigits),
-	});
-
-	// Total UP/TUP Score = 90% Tunai + 10% KKP
-	const finalRawScore = tunaiScore * 0.9 + kkpScore * 0.1;
+	// Total UP/TUP Score = 90% Tunai + (hasKkp ? 10% KKP : 0)
+	const finalRawScore = tunaiScore * 0.9 + (hasKkp ? kkpScore * 0.1 : 0);
 	const finalScore = roundDec(
 		finalRawScore,
 		config.rounding.fractionDigits,
@@ -197,11 +214,11 @@ export function calculateUpTup(
 
 	formulaTrace.push({
 		step: 3,
-		label: "Nilai Akhir UP/TUP",
-		formula: "(Tunai * 0.9) + (KKP * 0.1)",
+		label: hasKkp ? "Nilai Akhir UP/TUP" : "Nilai Akhir UP/TUP (Tanpa KKP)",
+		formula: hasKkp ? "(Tunai * 0.9) + (KKP * 0.1)" : "(Tunai * 0.9) + 0",
 		inputs: {
 			Tunai: tunaiScore.toFixed(2),
-			KKP: kkpScore.toFixed(2),
+			KKP: hasKkp ? kkpScore.toFixed(2) : "0.00",
 		},
 		result: finalScoreStr,
 	});
@@ -237,11 +254,40 @@ export function calculateUpTup(
 				),
 			},
 			{
+				key: "timeliness",
+				label: "Ketepatan Waktu GUP/PTUP",
+				score: scoreKetepatan.toFixed(config.rounding.fractionDigits),
+				weight: "50",
+				weightedContribution: (scoreKetepatan * 0.5).toFixed(
+					config.rounding.fractionDigits,
+				),
+			},
+			{
+				key: "monthlyGup",
+				label: "%GUP Disebulankan",
+				score: scoreGupSebulan.toFixed(config.rounding.fractionDigits),
+				weight: "25",
+				weightedContribution: (scoreGupSebulan * 0.25).toFixed(
+					config.rounding.fractionDigits,
+				),
+			},
+			{
+				key: "tupDeposit",
+				label: "Kinerja Setoran TUP",
+				score: scoreTup.toFixed(config.rounding.fractionDigits),
+				weight: "25",
+				weightedContribution: (scoreTup * 0.25).toFixed(
+					config.rounding.fractionDigits,
+				),
+			},
+			{
 				key: "kkp",
-				label: "Kartu Kredit Pemerintah",
-				score: kkpScore.toFixed(config.rounding.fractionDigits),
+				label: hasKkp
+					? "Kartu Kredit Pemerintah"
+					: "Kartu Kredit Pemerintah (Tanpa KKP)",
+				score: hasKkp ? kkpScore.toFixed(config.rounding.fractionDigits) : "0.00",
 				weight: "10",
-				weightedContribution: (kkpScore * 0.1).toFixed(
+				weightedContribution: (hasKkp ? kkpScore * 0.1 : 0).toFixed(
 					config.rounding.fractionDigits,
 				),
 			},

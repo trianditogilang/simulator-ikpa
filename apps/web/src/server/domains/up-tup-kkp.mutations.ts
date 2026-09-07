@@ -88,6 +88,52 @@ export async function createUpTup(
 	return created;
 }
 
+export async function updateUpTup(
+	db: DbClient,
+	access: AccessResolution,
+	orgId: string,
+	id: string,
+	input: unknown,
+	meta: { actorId: string; requestId?: string | null },
+) {
+	const data = upTupSchema.parse(input);
+	await assertFy(db, access, orgId, data.fiscalYearId);
+	const [existing] = await db
+		.select()
+		.from(upTupTransactions)
+		.where(and(eq(upTupTransactions.id, id), isNull(upTupTransactions.deletedAt)))
+		.limit(1);
+	if (!existing) throw new Error("Transaksi UP/TUP tidak ditemukan.");
+	if ((data.type === "GUP" || data.type === "PTUP") && !data.referenceSp2dAt) {
+		throw new Error("GUP/PTUP wajib memiliki referensi SP2D asal.");
+	}
+	const [updated] = await db
+		.update(upTupTransactions)
+		.set({
+			type: data.type,
+			amount: data.amount,
+			sp2dAt: data.sp2dAt,
+			referenceSp2dAt: data.referenceSp2dAt ?? null,
+			settlementDate: data.settlementDate ?? null,
+			isSettled: data.isSettled ?? false,
+			updatedAt: new Date(),
+		})
+		.where(eq(upTupTransactions.id, id))
+		.returning();
+	await writeAudit(db, {
+		actorId: meta.actorId,
+		actorAccessType: "operator_satker",
+		entityType: "up_tup_transactions",
+		entityId: id,
+		action: "update_up_tup",
+		beforeJson: existing,
+		afterJson: updated,
+		orgId,
+		requestId: meta.requestId ?? null,
+	});
+	return updated;
+}
+
 export async function softDeleteUpTup(
 	db: DbClient,
 	access: AccessResolution,

@@ -103,6 +103,7 @@ export const kkpTransactionSchema = z.strictObject({
 export const upTupInputSchema = z.strictObject({
 	transactions: z.array(upTupTransactionSchema),
 	kkpTransactions: z.array(kkpTransactionSchema),
+	hasKkp: z.boolean().optional(),
 });
 
 export const outputReportSchema = z.strictObject({

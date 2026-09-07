@@ -50,7 +50,7 @@ describe("calcUpTupScore", () => {
 		expect(calcUpTupScore([], [], 5).score).toBeNull();
 	});
 
-	it("skor via engine untuk actual GUP tepat waktu", () => {
+	it("skor via engine untuk actual GUP tepat waktu tanpa KKP (default 90% cap)", () => {
 		const { transactions, kkpTransactions } = mapActualToEngine(
 			[
 				{ id: "1", type: "GUP", amount: "11000000", sp2dAt: "2026-05-05", settlementDate: "2026-05-25", isSettled: true },
@@ -59,6 +59,20 @@ describe("calcUpTupScore", () => {
 			2026,
 		);
 		const result = calcUpTupScore(transactions, kkpTransactions, 5);
+		expect(result.score).toBe(90);
+		expect(result.contribution).toBe(9);
+		expect(result.status).toBe("complete");
+	});
+
+	it("skor via engine untuk actual GUP tepat waktu dengan KKP aktif", () => {
+		const { transactions, kkpTransactions } = mapActualToEngine(
+			[
+				{ id: "1", type: "GUP", amount: "11000000", sp2dAt: "2026-05-05", settlementDate: "2026-05-25", isSettled: true },
+			],
+			[],
+			2026,
+		);
+		const result = calcUpTupScore(transactions, kkpTransactions, 5, undefined, true);
 		expect(result.score).toBe(100);
 		expect(result.contribution).toBe(10);
 		expect(result.status).toBe("complete");

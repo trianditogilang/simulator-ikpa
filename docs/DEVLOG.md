@@ -2,6 +2,150 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 149 - 2026-09-07
+**Time:** Start: 09:15 UTC | End: 09:23 UTC | Duration: ~8 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Engine Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-UP-TUP-NO-KKP-DEFAULT] Pengaturan Default Konfigurasi UP KKP Menjadi 'Tidak Memiliki UP KKP' (Pembatasan Skor Maksimal 90% dari Tunai & Peluang 100% saat KKP Diaktifkan):
+  1. **Engine & Schemas (`packages/ikpa-engine/src/schemas.ts`, `indicators/up-tup.ts`, `up-tup.test.ts`)**:
+     - Menambahkan flag `hasKkp: z.boolean().optional()` pada `upTupInputSchema`.
+     - Ketika `hasKkp === false` (default untuk satker tanpa kepemilikan KKP / 0 transaksi KKP):
+       - Komponen KKP bernilai `0.00` (kontribusi KKP 0%).
+       - Skor akhir UP/TUP hanya dihitung dari `90% × NK Tunai` (maksimal 90,00 poin dengan kontribusi maksimal 9,00 pts).
+       - Subkomponen KKP dilabeli `Kartu Kredit Pemerintah (Tanpa KKP)`.
+       - Formula trace dan warnings mendokumentasikan batas skor 90,00 secara transparan.
+     - Ketika `hasKkp === true` (status KKP aktif / terdapat kepemilikan KKP):
+       - Komponen KKP 10% dievaluasi normal terhadap target kumulatif triwulanan (skor 100 atau 110), membuka peluang satker memperoleh skor maksimal hingga `100,00`.
+  2. **Workspace Simulation Helper (`apps/web/src/lib/simulation/up-tup-workspace.ts`, `up-tup-workspace.test.ts`)**:
+     - Mengembangkan `calcUpTupScore` untuk mendukung parameter `hasKkp?: boolean`.
+  3. **Data Page `/operator/data/up-tup-kkp` (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
+     - Mengatur nilai awal `kkpStatus` secara default menjadi `"none"` ("Tidak Memiliki UP KKP / Tanpa KKP") dan plafon bulanan `"0"`.
+     - Menambahkan banner informatif status konfigurasi KKP (menjelaskan batas default 90% vs peluang 100% saat status diaktifkan).
+     - Kartu metrik Plafon KKP Bulanan menampilkan `Rp 0` dengan status `Tanpa KKP (Maks. 90%)`.
+     - Menyimpan pilihan status KKP dan plafon bulanan di `localStorage` agar pengaturan satker tersimpan persisten.
+  4. **Workspace Page `/operator/up-tup` (`apps/web/src/routes/operator/up-tup.tsx`)**:
+     - Membaca konfigurasi kepemilikan KKP satker.
+     - Menampilkan banner peringatan status satker tanpa UP KKP dengan tombol aksi langsung ke pengaturan KKP.
+     - Menyesuaikan footer kartu skor Top 4 (Formula Tanpa KKP Maks. 90,00 dan Kontribusi Maks. 9.00 pts saat tanpa KKP).
+**Code Changes:**
+- Files modified:
+  - `packages/ikpa-engine/src/schemas.ts`
+  - `packages/ikpa-engine/src/indicators/up-tup.ts`
+  - `packages/ikpa-engine/src/indicators/up-tup.test.ts`
+  - `apps/web/src/lib/simulation/up-tup-workspace.ts`
+  - `apps/web/src/lib/simulation/up-tup-workspace.test.ts`
+  - `apps/web/src/routes/operator/data/up-tup-kkp.tsx`
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 240/240 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 148 - 2026-09-07
+**Time:** Start: 09:09 UTC | End: 09:12 UTC | Duration: ~3 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-UP-TUP-REC-POSITION] Penataan Posisi Panel Strategi & Rekomendasi Pengendalian UP/TUP ke Bagian Paling Bawah Halaman (`/operator/up-tup`):
+  1. **Reposisi Container Rekomendasi (`apps/web/src/routes/operator/up-tup.tsx`)**:
+     - Memindahkan container `Strategi & Rekomendasi Pengendalian UP/TUP` dari posisi sebelum tabel menjadi berada di bagian paling bawah halaman, tepat setelah `Tabel Objek Transaksi Pembentuk Nilai` dan `Panel Simulasi Rencana Sisa Tahun (GUP + KKP)`.
+     - Mempertahankan seluruh struktur grid 3-kolom, indikator warna tipe kartu (warn/good/info), serta logika rekomendasi taktis satker.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 237/237 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 147 - 2026-09-07
+**Time:** Start: 09:04 UTC | End: 09:07 UTC | Duration: ~3 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-UP-TUP-FORMULA-DESC] Penyempurnaan Teks Penjelasan Rumus Modal Dialog UP/TUP (NK Ketepatan Waktu & Penjelasan Kinerja Setoran TUP):
+  1. **Teks Formula NK Tunai (`apps/web/src/routes/operator/up-tup.tsx`)**:
+     - Mengubah istilah `NK Ketepatan` menjadi `NK Ketepatan Waktu` pada rumus `NK Tunai = (50% × NK Ketepatan Waktu) + (25% × %GUP Sebulan) + (25% × NK Setoran TUP)`.
+  2. **Penjelasan Kinerja Setoran TUP (`apps/web/src/routes/operator/up-tup.tsx`)**:
+     - Mengubah penjelasan rumus menjadi: `100 − (%Setoran TUP terhadap Total TUP dalam setahun). Atur TUP seperlunya dengan cermat agar meminimalisasi Setoran TUP di kemudian hari.`
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 237/237 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 146 - 2026-09-07
+**Time:** Start: 08:25 UTC | End: 08:40 UTC | Duration: ~15 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Fullstack Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-UP-TUP-REDESIGN] Pembaruan Menyeluruh Menu Indikator UP/TUP & KKP (Bobot 10% IKPA) Sesuai Spesifikasi Perbaikan & Ponytail Design:
+  1. **Engine & Subkomponen (`packages/ikpa-engine/src/indicators/up-tup.ts`, `up-tup.test.ts`)**:
+     - Memperluas output `subComponents` engine dengan 5 komponen granular: `tunai` (90%), `timeliness` (50%), `monthlyGup` (25%), `tupDeposit` (25%), dan `kkp` (10%).
+     - Memutakhirkan assertions test engine untuk memverifikasi kelima subkomponen terhitung presisi.
+  2. **Workspace Simulation Helper & Fairness THR 2026 (`apps/web/src/lib/simulation/up-tup-workspace.ts`)**:
+     - Menambahkan utilitas deteksi `isThr2026FairnessApplied(referenceSp2dAt)` untuk mendeteksi transaksi yang SP2D referensinya terbit antara `18-02-2026` s.d. `17-03-2026` (Fairness Treatment THR 2026 dengan tenggat 7 hari kalender).
+     - Mengembangkan `calcUpTupScore` untuk mengekstrak subkomponen ketepatan waktu, %GUP disebulankan, dan setoran TUP.
+  3. **Backend & Service Edit Support (`apps/web/src/server/domains/up-tup-kkp.mutations.ts`, `apps/web/src/server/up-tup-kkp.ts`, `apps/web/src/services/up-tup-kkp-service.ts`)**:
+     - Mengimplementasikan mutasi `updateUpTup` dengan audit log tamper-proof.
+     - Mengekspos `updateUpTupFn` ServerFn dan fungsi service `editUpTup` untuk pengeditan data transaksi UP/TUP.
+  4. **Workspace Redesign `/operator/up-tup` (`apps/web/src/routes/operator/up-tup.tsx`)**:
+     - Banner aktif Fairness Treatment THR 2026.
+     - 4 Top Metric Cards (Ponytail style): Skor Indikator UP/TUP, Nilai Kinerja Tunai (90%), Nilai Kinerja KKP (10%), dan Kontribusi IKPA (10%).
+     - 3 Cash Component Detail Cards: Ketepatan Waktu GUP/PTUP (50%), %GUP Disebulankan (25%), dan Kinerja Setoran TUP (25%).
+     - Strip Reminder GUP/PTUP Wajib dengan badge status kanonis (Tepat Waktu, Berisiko, Terlambat).
+     - Rekomendasi Taktis Satker Dinamis.
+     - Tabel Transaksi Terkunci Aktual dengan tanggal `DD-MM-YYYY` dan badge Fairness THR.
+     - Mempertahankan panel simulasi interaktif What-If (`UpTupAssumptionPanel`) dan snapshot skenario.
+     - Modal Dialog Panduan Rumus PER-5/PB/2024 & Matriks Target KKP 2026.
+  5. **Data Page Redesign `/operator/data/up-tup-kkp` (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
+     - 3-Tab Selector: `Transaksi UP / TUP / GUP`, `Penggunaan KKP`, dan `Konfigurasi UP KKP & Target`.
+     - 4 Top Summary Metric Cards: Total UP/TUP Terbit, Transaksi Revolving, Total Belanja KKP, dan Plafon KKP Bulanan.
+     - Dukungan penuh Edit (Pencil) dan Hapus (Trash) untuk data transaksi riil.
+     - Form drawers dengan input terformat ribuan integer murni (`FormattedNumberInput`).
+     - Tab 3 Konfigurasi KKP: Status Satker, Plafon Bulanan & Tahunan, serta Matriks Target Triwulanan 2026 (TW I 1%, TW II 5%, TW III 9%, TW IV 12.5%) dengan evaluasi real-time realisasi vs target.
+**Code Changes:**
+- Files modified:
+  - `packages/ikpa-engine/src/indicators/up-tup.ts`
+  - `packages/ikpa-engine/src/indicators/up-tup.test.ts`
+  - `apps/web/src/lib/simulation/up-tup-workspace.ts`
+  - `apps/web/src/server/domains/up-tup-kkp.mutations.ts`
+  - `apps/web/src/server/up-tup-kkp.ts`
+  - `apps/web/src/services/up-tup-kkp-service.ts`
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `apps/web/src/routes/operator/data/up-tup-kkp.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 237/237 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
 ### Session 145 - 2026-09-07
 **Time:** Start: 08:10 UTC | End: 08:16 UTC | Duration: ~6 minutes
 - Status: Completed

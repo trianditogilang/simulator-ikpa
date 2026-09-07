@@ -9,6 +9,7 @@ import {
 	createUpTup,
 	softDeleteKkp,
 	softDeleteUpTup,
+	updateUpTup,
 	upsertKkp,
 } from "./domains/up-tup-kkp.mutations";
 import {
@@ -147,6 +148,72 @@ export const createUpTupFn = createServerFn({ method: "POST" })
 			db,
 			access,
 			targetOrgId,
+			{
+				fiscalYearId: fy.id,
+				type: data.type,
+				amount: data.amount,
+				sp2dAt: data.sp2dAt,
+				referenceSp2dAt: data.referenceSp2dAt ?? null,
+				settlementDate: data.settlementDate ?? null,
+				isSettled: data.isSettled ?? false,
+			},
+			{
+				actorId:
+					access.status === "operator_single_scope" ||
+					access.status === "operator_multiple_scopes"
+						? access.userId
+						: targetOrgId,
+			},
+		);
+
+		return { success: true, upTup: result };
+	});
+
+export const updateUpTupFn = createServerFn({ method: "POST" })
+	.validator(
+		(data: {
+			id: string;
+			orgId?: string;
+			type: "UP" | "TUP" | "GUP" | "GUP_NIHIL" | "PTUP" | "SETORAN_TUP";
+			amount: string;
+			sp2dAt: string;
+			referenceSp2dAt?: string | null;
+			settlementDate?: string | null;
+			isSettled?: boolean;
+		}) => data,
+	)
+	.handler(async ({ data }) => {
+		const auth = await getServerAuthSession();
+		const access = await getAccessResolutionForSession(auth, data.orgId);
+
+		const targetOrgId =
+			data.orgId ||
+			(access.status === "operator_single_scope" ||
+			access.status === "operator_multiple_scopes"
+				? access.activeOrganizationId
+				: null);
+
+		if (!targetOrgId) {
+			throw new Error("Satuan Kerja aktif tidak ditemukan.");
+		}
+
+		assertOperatorOrgScope(access, targetOrgId);
+
+		const db = getDatabase();
+		if (!db) {
+			return { success: true };
+		}
+
+		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
+		if (!fy) {
+			throw new Error("Tahun anggaran 2026 tidak ditemukan.");
+		}
+
+		const result = await updateUpTup(
+			db,
+			access,
+			targetOrgId,
+			data.id,
 			{
 				fiscalYearId: fy.id,
 				type: data.type,
