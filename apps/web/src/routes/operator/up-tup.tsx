@@ -377,7 +377,43 @@ function UpTupPage() {
 
 				{/* 4 Top Score Cards (Ponytail Style) */}
 				<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-					{/* Card 1: Nilai Indikator UP/TUP */}
+					{/* Card 1: NK Tunai */}
+					<div className="rounded-2xl border border-border bg-background p-4 sm:p-5 shadow-xs space-y-1.5">
+						<div className="flex items-center justify-between text-muted-foreground">
+							<span className="text-xs font-medium">NK Tunai (Bobot 90%)</span>
+							<Coins className="size-4 text-foreground" />
+						</div>
+						<p className="text-2xl font-bold text-foreground sm:text-3xl">
+							{score.tunai !== null ? formatNumber(score.tunai) : "—"}
+						</p>
+						<div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/60">
+							<span>3 Komponen</span>
+							<span className="font-medium text-foreground">50% + 25% + 25%</span>
+						</div>
+					</div>
+
+					{/* Card 2: NK KKP */}
+					<div className="rounded-2xl border border-border bg-background p-4 sm:p-5 shadow-xs space-y-1.5">
+						<div className="flex items-center justify-between text-muted-foreground">
+							<span className="text-xs font-medium">NK KKP (Bobot 10%)</span>
+							<CreditCard className="size-4 text-warning" />
+						</div>
+						<p className="text-2xl font-bold text-foreground sm:text-3xl">
+							{hasKkp
+								? score.kkp !== null
+									? formatNumber(score.kkp)
+									: "—"
+								: "0,00"}
+						</p>
+						<div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/60">
+							<span>{hasKkp ? "Target Triwulanan" : "Status Satker"}</span>
+							<span className="font-medium text-foreground">
+								{hasKkp ? "1% · 5% · 9% · 12,5%" : "Tanpa UP KKP"}
+							</span>
+						</div>
+					</div>
+
+					{/* Card 3: Nilai Indikator UP/TUP */}
 					<div className="rounded-2xl border-2 border-primary/40 bg-surface p-4 sm:p-5 shadow-xs space-y-1.5">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">Nilai Indikator UP/TUP</span>
@@ -396,42 +432,6 @@ function UpTupPage() {
 								}
 							>
 								{hasKkp ? "90% Tunai + 10% KKP" : "90% Tunai (Maks. 90,00)"}
-							</span>
-						</div>
-					</div>
-
-					{/* Card 2: NK Tunai */}
-					<div className="rounded-2xl border border-border bg-background p-4 sm:p-5 shadow-xs space-y-1.5">
-						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-medium">NK Tunai (Bobot 90%)</span>
-							<Coins className="size-4 text-foreground" />
-						</div>
-						<p className="text-2xl font-bold text-foreground sm:text-3xl">
-							{score.tunai !== null ? formatNumber(score.tunai) : "—"}
-						</p>
-						<div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/60">
-							<span>3 Komponen</span>
-							<span className="font-medium text-foreground">50% + 25% + 25%</span>
-						</div>
-					</div>
-
-					{/* Card 3: NK KKP */}
-					<div className="rounded-2xl border border-border bg-background p-4 sm:p-5 shadow-xs space-y-1.5">
-						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-medium">NK KKP (Bobot 10%)</span>
-							<CreditCard className="size-4 text-warning" />
-						</div>
-						<p className="text-2xl font-bold text-foreground sm:text-3xl">
-							{hasKkp
-								? score.kkp !== null
-									? formatNumber(score.kkp)
-									: "—"
-								: "0,00"}
-						</p>
-						<div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/60">
-							<span>{hasKkp ? "Target Triwulanan" : "Status Satker"}</span>
-							<span className="font-medium text-foreground">
-								{hasKkp ? "1% · 5% · 9% · 12,5%" : "Tanpa UP KKP"}
 							</span>
 						</div>
 					</div>
