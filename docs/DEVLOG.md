@@ -2,6 +2,68 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 151 - 2026-09-07
+**Time:** Start: 09:46 UTC | End: 09:51 UTC | Duration: ~5 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-UP-TUP-DRAWER-SIMPLIFY] Standardisasi Istilah 'Setoran TUP' (Tanpa Sisa & Hapus SSBP), Penghapusan Field Opsional/Checkbox Drawer UP/TUP, dan Penukaran Posisi Date Picker (SP2D Asal di Kiri):
+  1. **Standardisasi Istilah Setoran TUP (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`, `apps/web/src/routes/operator/up-tup.tsx`, `apps/web/src/components/operator/up-tup-assumption-panel.tsx`)**:
+     - Mengubah semua istilah `Setoran Sisa TUP (SSBP)` menjadi `Setoran TUP`.
+     - Menghapus akronim `SSBP` di seluruh halaman data, deskripsi header banner, kartu strategi, dan catatan panel asumsi simulasi.
+  2. **Penyederhanaan Form Drawer UP/TUP**:
+     - Menghapus field date picker opsional `Tanggal Pertanggungjawaban Selesai (Opsional)`.
+     - Menghapus checkbox `Tandai transaksi sudah dipertanggungjawabkan lunas`.
+     - Membersihkan state `settleDate` dan `isSettled` dari form pencatatan UP/TUP untuk menghemat memori dan menyederhanakan interaksi pengguna.
+  3. **Penataan Posisi Date Picker**:
+     - Menukar posisi field tanggal pada form drawer UP/TUP:
+       - **Kolom Kiri**: `Tanggal SP2D Asal / Referensi`
+       - **Kolom Kanan**: `Tanggal SP2D Saat Ini`
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/up-tup-kkp.tsx`
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `apps/web/src/components/operator/up-tup-assumption-panel.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 240/240 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 150 - 2026-09-07
+**Time:** Start: 09:30 UTC | End: 09:37 UTC | Duration: ~7 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-UP-TUP-KKP-TAB-CONSOLIDATE] Konsolidasi Pengaturan Plafon KKP & Matriks Target ke Dalam Tab 'Penggunaan KKP' pada Halaman `/operator/data/up-tup-kkp`:
+  1. **Penyederhanaan Tab Navigasi (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
+     - Mengubah state `activeTab` dari `"uptup" | "kkp" | "config"` menjadi `"uptup" | "kkp"`.
+     - Mengonsolidasikan tab navigasi menjadi 2 tab: `Transaksi UP / TUP / GUP` dan `Penggunaan KKP`.
+  2. **Hierarki Tata Letak Tab 'Penggunaan KKP'**:
+     - **Card 1 (Top)**: `Pengaturan Plafon UP KKP Satker` (status badge, banner penjelasan default tanpa KKP maks 90% vs aktif peluang 100%, dropdown status KKP satker, FormattedNumberInput plafon bulanan, dan display plafon tahunan x12).
+     - **Card 2 (Middle)**: `Matriks Target Triwulanan & Evaluasi Capaian KKP TA [Tahun]` (grid 4 triwulan Q1–Q4 dengan target persentase, target nominal, realisasi kumulatif, batas waktu pelaporan, dan badge status tercapai/skor 110).
+     - **Card 3 (Bottom)**: `Daftar Penggunaan Kartu Kredit Pemerintah (KKP)` (tabel `DomainDataTable` untuk pencatatan dan pengelolaan transaksi riil KKP bulanan dengan aksi edit dan hapus).
+  3. **Aksi Tombol Header**:
+     - Memperbarui tombol "Atur Plafon KKP" di header halaman untuk langsung beralih ke tab `activeTab = "kkp"`.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/up-tup-kkp.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 240/240 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
 ### Session 149 - 2026-09-07
 **Time:** Start: 09:15 UTC | End: 09:23 UTC | Duration: ~8 minutes
 - Status: Completed

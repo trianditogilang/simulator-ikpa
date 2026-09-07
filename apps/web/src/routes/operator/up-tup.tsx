@@ -73,7 +73,7 @@ const TYPE_LABELS: Record<string, string> = {
 	GUP: "Ganti UP (Revolving GUP)",
 	GUP_NIHIL: "GUP Nihil",
 	PTUP: "Pertanggungjawaban TUP (PTUP)",
-	SETORAN_TUP: "Setoran Sisa TUP (SSBP)",
+	SETORAN_TUP: "Setoran TUP",
 };
 
 function UpTupPage() {
@@ -186,8 +186,8 @@ function UpTupPage() {
 		}
 
 		list.push({
-			title: "Perencanaan TUP Tanpa Sisa Setoran",
-			desc: "Nilai kinerja setoran TUP maksimal 100 dan berkurang proporsional jika terdapat sisa TUP yang disetorkan kembali (SSBP). Rencanakan kebutuhan TUP secara presisi.",
+			title: "Perencanaan TUP Tanpa Setoran Kembali",
+			desc: "Nilai kinerja setoran TUP maksimal 100 dan berkurang proporsional jika terdapat setoran TUP kembali. Rencanakan kebutuhan TUP secara presisi.",
 			type: "info",
 		});
 

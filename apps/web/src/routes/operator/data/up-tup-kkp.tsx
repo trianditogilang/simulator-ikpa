@@ -69,7 +69,7 @@ const TYPE_LABELS: Record<string, string> = {
 	GUP: "Ganti UP (Revolving GUP)",
 	GUP_NIHIL: "GUP Nihil",
 	PTUP: "Pertanggungjawaban TUP (PTUP)",
-	SETORAN_TUP: "Setoran Sisa TUP (SSBP)",
+	SETORAN_TUP: "Setoran TUP",
 };
 
 const KKP_TARGETS_2026 = [
@@ -83,7 +83,7 @@ function UpTupKkpPage() {
 	const router = useRouter();
 	const initialData = Route.useLoaderData();
 
-	const [activeTab, setActiveTab] = useState<"uptup" | "kkp" | "config">("uptup");
+	const [activeTab, setActiveTab] = useState<"uptup" | "kkp">("uptup");
 	const [search, setSearch] = useState("");
 	const [isUpTupDrawerOpen, setIsUpTupDrawerOpen] = useState(false);
 	const [editingUpTup, setEditingUpTup] = useState<UpTupRecord | null>(null);
@@ -102,8 +102,6 @@ function UpTupKkpPage() {
 		new Date().toISOString().slice(0, 10),
 	);
 	const [refSp2dDate, setRefSp2dDate] = useState("");
-	const [settleDate, setSettleDate] = useState("");
-	const [isSettled, setIsSettled] = useState(false);
 
 	// KKP Form State
 	const [kkpMonth, setKkpMonth] = useState<number>(new Date().getMonth() + 1);
@@ -178,8 +176,6 @@ function UpTupKkpPage() {
 		setTxAmount("");
 		setTxSp2dDate(new Date().toISOString().slice(0, 10));
 		setRefSp2dDate("");
-		setSettleDate("");
-		setIsSettled(false);
 		setIsUpTupDrawerOpen(true);
 	};
 
@@ -190,8 +186,6 @@ function UpTupKkpPage() {
 		setTxAmount(String(Math.round(Number(item.amount) || 0)));
 		setTxSp2dDate(item.sp2dAt.slice(0, 10));
 		setRefSp2dDate(item.referenceSp2dAt ? item.referenceSp2dAt.slice(0, 10) : "");
-		setSettleDate(item.settlementDate ? item.settlementDate.slice(0, 10) : "");
-		setIsSettled(item.isSettled);
 		setIsUpTupDrawerOpen(true);
 	};
 
@@ -232,8 +226,8 @@ function UpTupKkpPage() {
 					amount: String(amountVal),
 					sp2dAt: txSp2dDate,
 					referenceSp2dAt: refSp2dDate || null,
-					settlementDate: settleDate || null,
-					isSettled,
+					settlementDate: editingUpTup.settlementDate ?? null,
+					isSettled: editingUpTup.isSettled ?? false,
 				});
 				setActionMessage(`Transaksi ${TYPE_LABELS[txType] ?? txType} berhasil diperbarui.`);
 			} else {
@@ -242,8 +236,8 @@ function UpTupKkpPage() {
 					amount: String(amountVal),
 					sp2dAt: txSp2dDate,
 					referenceSp2dAt: refSp2dDate || null,
-					settlementDate: settleDate || null,
-					isSettled,
+					settlementDate: null,
+					isSettled: false,
 				});
 				setActionMessage(`Transaksi ${TYPE_LABELS[txType] ?? txType} berhasil dicatat.`);
 			}
@@ -252,7 +246,6 @@ function UpTupKkpPage() {
 			setEditingUpTup(null);
 			setTxAmount("");
 			setRefSp2dDate("");
-			setSettleDate("");
 			await router.invalidate();
 			setTimeout(() => setActionMessage(null), 4000);
 		} catch (err: unknown) {
@@ -502,7 +495,7 @@ function UpTupKkpPage() {
 								Pengelolaan UP / TUP &amp; Kartu Kredit Pemerintah (KKP)
 							</h1>
 							<p className="text-xs text-muted-foreground">
-								Kelola penerbitan SP2D UP, TUP, revolving GUP, PTUP, SSBP, serta realisasi KKP bulanan.
+								Kelola penerbitan SP2D UP, TUP, revolving GUP, PTUP, Setoran TUP, serta realisasi KKP bulanan.
 							</p>
 						</div>
 					</div>
@@ -526,7 +519,7 @@ function UpTupKkpPage() {
 						</button>
 						<button
 							type="button"
-							onClick={() => setActiveTab("config")}
+							onClick={() => setActiveTab("kkp")}
 							className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground shadow-xs transition hover:bg-surface-muted"
 						>
 							<Settings className="size-3.5 text-muted-foreground" />
@@ -623,7 +616,7 @@ function UpTupKkpPage() {
 					</div>
 				</div>
 
-				{/* 3 Tab Selector */}
+				{/* 2 Tab Selector */}
 				<div className="flex items-center gap-2 border-b border-border pb-2">
 					<button
 						type="button"
@@ -647,17 +640,6 @@ function UpTupKkpPage() {
 					>
 						Penggunaan KKP ({initialData.kkpList.length})
 					</button>
-					<button
-						type="button"
-						onClick={() => setActiveTab("config")}
-						className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
-							activeTab === "config"
-								? "bg-primary text-primary-foreground shadow-xs"
-								: "text-muted-foreground hover:text-foreground"
-						}`}
-					>
-						Konfigurasi UP KKP &amp; Target
-					</button>
 				</div>
 
 				{/* Tab 1: UP/TUP Table */}
@@ -673,22 +655,10 @@ function UpTupKkpPage() {
 					/>
 				)}
 
-				{/* Tab 2: KKP Table */}
+				{/* Tab 2: KKP Tab (Plafon Config + Target Matrix + KKP Usage Table) */}
 				{activeTab === "kkp" && (
-					<DomainDataTable
-						title="Daftar Penggunaan Kartu Kredit Pemerintah (KKP)"
-						data={initialData.kkpList}
-						columns={kkpColumns}
-						searchValue=""
-						onSearchChange={() => {}}
-						onAddClick={handleOpenCreateKkp}
-						totalCount={initialData.kkpList.length}
-					/>
-				)}
-
-				{/* Tab 3: KKP Configuration & Target Matrix */}
-				{activeTab === "config" && (
 					<div className="space-y-6">
+						{/* Card 1: Pengaturan Plafon UP KKP Satker */}
 						<div className="rounded-2xl border border-border bg-background p-5 shadow-xs space-y-4">
 							<div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
 								<div>
@@ -783,14 +753,14 @@ function UpTupKkpPage() {
 							</div>
 						</div>
 
-						{/* Target Kumulatif KKP 2026 Matrix */}
+						{/* Card 2: Target Kumulatif KKP 2026 Matrix */}
 						<div className="rounded-2xl border border-border bg-surface p-5 shadow-xs space-y-4">
 							<div>
 								<h3 className="text-sm font-bold text-foreground">
 									Matriks Target Triwulanan &amp; Evaluasi Capaian KKP TA {initialData.year}
 								</h3>
 								<p className="text-xs text-muted-foreground">
-									Target kumulatif dihitung dari persentase terhadap Plafon KKP Tahunan. Nilai 110 diberikan bila realisasi kumulatif $\ge$ target.
+									Target kumulatif dihitung dari persentase terhadap Plafon KKP Tahunan. Nilai 110 diberikan bila realisasi kumulatif &ge; target.
 								</p>
 							</div>
 
@@ -848,6 +818,17 @@ function UpTupKkpPage() {
 								})}
 							</div>
 						</div>
+
+						{/* Card 3: Daftar Penggunaan Kartu Kredit Pemerintah (KKP) */}
+						<DomainDataTable
+							title="Daftar Penggunaan Kartu Kredit Pemerintah (KKP)"
+							data={initialData.kkpList}
+							columns={kkpColumns}
+							searchValue=""
+							onSearchChange={() => {}}
+							onAddClick={handleOpenCreateKkp}
+							totalCount={initialData.kkpList.length}
+						/>
 					</div>
 				)}
 
@@ -893,7 +874,7 @@ function UpTupKkpPage() {
 								<option value="TUP">Tambahan UP (TUP)</option>
 								<option value="GUP_NIHIL">GUP Nihil</option>
 								<option value="PTUP">Pertanggungjawaban TUP (PTUP)</option>
-								<option value="SETORAN_TUP">Setoran Sisa TUP (SSBP)</option>
+								<option value="SETORAN_TUP">Setoran TUP</option>
 							</select>
 						</div>
 
@@ -919,24 +900,6 @@ function UpTupKkpPage() {
 						<div className="grid grid-cols-2 gap-3">
 							<div className="space-y-1.5">
 								<label
-									htmlFor="tx-sp2d-date"
-									className="block text-xs font-semibold text-foreground"
-								>
-									Tanggal SP2D Saat Ini
-								</label>
-								<input
-									id="tx-sp2d-date"
-									type="date"
-									required
-									value={txSp2dDate}
-									onChange={(e) => setTxSp2dDate(e.target.value)}
-									disabled={isSubmitting}
-									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
-								/>
-							</div>
-
-							<div className="space-y-1.5">
-								<label
 									htmlFor="ref-sp2d-date"
 									className="block text-xs font-semibold text-foreground"
 								>
@@ -950,6 +913,24 @@ function UpTupKkpPage() {
 									type="date"
 									value={refSp2dDate}
 									onChange={(e) => setRefSp2dDate(e.target.value)}
+									disabled={isSubmitting}
+									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
+								/>
+							</div>
+
+							<div className="space-y-1.5">
+								<label
+									htmlFor="tx-sp2d-date"
+									className="block text-xs font-semibold text-foreground"
+								>
+									Tanggal SP2D Saat Ini
+								</label>
+								<input
+									id="tx-sp2d-date"
+									type="date"
+									required
+									value={txSp2dDate}
+									onChange={(e) => setTxSp2dDate(e.target.value)}
 									disabled={isSubmitting}
 									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 								/>
@@ -977,46 +958,12 @@ function UpTupKkpPage() {
 
 						{txType === "SETORAN_TUP" && (
 							<div className="rounded-lg border border-warning/30 bg-warning/5 p-3 text-[11px] text-warning space-y-1">
-								<p className="font-semibold">Perhatian Setoran Sisa TUP:</p>
+								<p className="font-semibold">Perhatian Setoran TUP:</p>
 								<p>
-									Setoran sisa TUP (SSBP) mengurangi nilai kinerja setoran TUP. Usahakan belanja TUP terserap maksimal sesuai rencana.
+									Setoran TUP mengurangi nilai kinerja setoran TUP. Usahakan belanja TUP terserap maksimal sesuai rencana.
 								</p>
 							</div>
 						)}
-
-						<div className="space-y-1.5">
-							<label
-								htmlFor="settle-date"
-								className="block text-xs font-semibold text-foreground"
-							>
-								Tanggal Pertanggungjawaban Selesai (Opsional)
-							</label>
-							<input
-								id="settle-date"
-								type="date"
-								value={settleDate}
-								onChange={(e) => setSettleDate(e.target.value)}
-								disabled={isSubmitting}
-								className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
-							/>
-						</div>
-
-						<div className="flex items-center gap-2 pt-1">
-							<input
-								id="tx-is-settled"
-								type="checkbox"
-								checked={isSettled}
-								onChange={(e) => setIsSettled(e.target.checked)}
-								disabled={isSubmitting}
-								className="size-4 rounded border-border text-primary focus:ring-primary"
-							/>
-							<label
-								htmlFor="tx-is-settled"
-								className="text-xs text-foreground font-medium cursor-pointer"
-							>
-								Tandai transaksi sudah dipertanggungjawabkan lunas
-							</label>
-						</div>
 					</div>
 				</DomainFormDrawer>
 

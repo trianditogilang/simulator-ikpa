@@ -297,7 +297,7 @@ export function UpTupAssumptionPanel({
 			<div className="rounded-xl border border-danger/30 bg-danger/5 p-3 text-xs">
 				<p className="font-semibold text-foreground">Catatan :</p>
 				<ol className="mt-1 list-decimal space-y-0.5 pl-5 text-foreground">
-					<li>Jika ingin menggunakan TUP harus sesuai antara permintaan dan pertanggungjawaban, hindari adanya SSBP</li>
+					<li>Jika ingin menggunakan TUP harus sesuai antara permintaan dan pertanggungjawaban, hindari adanya setoran TUP</li>
 					<li>Perhatikan GUP terakhir, jangan sampai terlambat</li>
 					<li>Hati2 untuk keterlambatan GUP di tanggal jika ada libur bersama</li>
 				</ol>
