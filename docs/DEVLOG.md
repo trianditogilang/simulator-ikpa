@@ -2,6 +2,35 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 157 - 2026-09-07
+**Time:** Start: 14:24 UTC | End: 14:30 UTC | Duration: ~6 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-UP-TUP-DRAWER-DATE-LABELS-REF] Penyesuaian Label Tanggal Form Drawer UP/TUP (Tanggal SP2D Terakhir & Tanggal Rencana SP2D) dan Opsi Referensi Data UP/GUP Sebelumnya (`/operator/data/up-tup-kkp`):
+  1. **Pembaruan Label Tanggal Modal Drawer (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
+     - Mengubah label `Tanggal SP2D Asal / Referensi` menjadi `Tanggal SP2D Terakhir`.
+     - Mengubah label `Tanggal SP2D Saat Ini` menjadi `Tanggal Rencana SP2D`.
+  2. **Opsi Referensi Riwayat UP / GUP Sebelumnya (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
+     - Menyediakan opsi dropdown selector di bawah field tanggal SP2D terakhir yang memuat daftar transaksi UP Awal, GUP, dan GUP Nihil yang telah tersimpan (diurutkan kronologis terbaru).
+     - Pengguna dapat memilih langsung dari riwayat transaksi yang ada atau tetap mengetik/memilih tanggal kustom secara bebas.
+     - Auto-populate tanggal SP2D terakhir dari transaksi paling mutakhir saat modal pencatatan dibuka (`handleOpenCreateUpTup`).
+  3. **Penyelarasan Teks Simulasi & Validasi (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
+     - Memperbarui pesan validasi drawer dan teks panduan simulasi GUP agar selaras dengan istilah tanggal SP2D terakhir & tanggal rencana SP2D.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/up-tup-kkp.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 15/15 test files (101/101 tests) passed in `apps/web`, 36/36 test files (147/147 tests) passed across monorepo.
+  - Typecheck: 0 error across all 7 workspace packages monorepo.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
 ### Session 156 - 2026-09-07
 **Time:** Start: 13:40 UTC | End: 13:48 UTC | Duration: ~8 minutes
 - Status: Completed

@@ -136,6 +136,17 @@ function UpTupKkpPage() {
 		});
 	}, [txType, activeUpAmount, txAmount, refSp2dDate, txSp2dDate]);
 
+	// Previous UP / GUP records available for reference
+	const previousUpGupList = useMemo(() => {
+		return initialData.upTupList
+			.filter((u) => {
+				if (u.type !== "UP" && u.type !== "GUP" && u.type !== "GUP_NIHIL") return false;
+				if (editingUpTup && u.id === editingUpTup.id) return false;
+				return Boolean(u.sp2dAt);
+			})
+			.sort((a, b) => b.sp2dAt.localeCompare(a.sp2dAt));
+	}, [initialData.upTupList, editingUpTup]);
+
 	// KKP Form State
 	const [kkpMonth, setKkpMonth] = useState<number>(new Date().getMonth() + 1);
 	const [kkpAmount, setKkpAmount] = useState("");
@@ -208,7 +219,10 @@ function UpTupKkpPage() {
 		setTxType("GUP");
 		setTxAmount("");
 		setTxSp2dDate(new Date().toISOString().slice(0, 10));
-		setRefSp2dDate("");
+		const latestUpGup = initialData.upTupList
+			.filter((u) => u.type === "UP" || u.type === "GUP" || u.type === "GUP_NIHIL")
+			.sort((a, b) => b.sp2dAt.localeCompare(a.sp2dAt))[0];
+		setRefSp2dDate(latestUpGup ? latestUpGup.sp2dAt.slice(0, 10) : "");
 		setIsUpTupDrawerOpen(true);
 	};
 
@@ -246,7 +260,7 @@ function UpTupKkpPage() {
 
 		const amountVal = Math.round(Number(txAmount) || 0);
 		if ((txType === "GUP" || txType === "PTUP") && !refSp2dDate) {
-			setErrorMessage("Tanggal SP2D asal/referensi wajib diisi untuk transaksi GUP dan PTUP.");
+			setErrorMessage("Tanggal SP2D terakhir wajib diisi untuk transaksi GUP dan PTUP.");
 			return;
 		}
 
@@ -903,13 +917,13 @@ function UpTupKkpPage() {
 							/>
 						</div>
 
-						<div className="grid grid-cols-2 gap-3">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 							<div className="space-y-1.5">
 								<label
 									htmlFor="ref-sp2d-date"
 									className="block text-xs font-semibold text-foreground"
 								>
-									Tanggal SP2D Asal / Referensi
+									Tanggal SP2D Terakhir
 									{(txType === "GUP" || txType === "PTUP") && (
 										<span className="text-danger ml-1">*</span>
 									)}
@@ -922,6 +936,46 @@ function UpTupKkpPage() {
 									disabled={isSubmitting}
 									className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 								/>
+								{previousUpGupList.length > 0 && (
+									<div className="space-y-1 pt-0.5">
+										<label
+											htmlFor="ref-sp2d-select"
+											className="block text-[10px] text-muted-foreground"
+										>
+											Opsi referensi data UP / GUP sebelumnya:
+										</label>
+										<select
+											id="ref-sp2d-select"
+											value={
+												previousUpGupList.some(
+													(t) => t.sp2dAt.slice(0, 10) === refSp2dDate,
+												)
+													? refSp2dDate
+													: ""
+											}
+											onChange={(e) => {
+												if (e.target.value) {
+													setRefSp2dDate(e.target.value);
+												}
+											}}
+											disabled={isSubmitting}
+											className="w-full rounded-lg border border-border bg-surface-muted/60 px-2.5 py-1.5 text-[11px] text-foreground focus:border-primary focus:outline-none"
+										>
+											<option value="">
+												-- Pilih data UP / GUP sebelumnya --
+											</option>
+											{previousUpGupList.map((tx) => (
+												<option key={tx.id} value={tx.sp2dAt.slice(0, 10)}>
+													{tx.type === "UP"
+														? "UP Awal"
+														: TYPE_LABELS[tx.type] || tx.type}{" "}
+													· {formatDateDDMMYYYY(tx.sp2dAt)} (
+													{formatRupiah(Number(tx.amount))})
+												</option>
+											))}
+										</select>
+									</div>
+								)}
 							</div>
 
 							<div className="space-y-1.5">
@@ -929,7 +983,7 @@ function UpTupKkpPage() {
 									htmlFor="tx-sp2d-date"
 									className="block text-xs font-semibold text-foreground"
 								>
-									Tanggal SP2D Saat Ini
+									Tanggal Rencana SP2D
 								</label>
 								<input
 									id="tx-sp2d-date"
@@ -977,7 +1031,7 @@ function UpTupKkpPage() {
 											</span>
 										</div>
 										<p className="text-[11px] leading-relaxed">
-											Masukkan nominal GUP, tanggal SP2D referensi, dan tanggal SP2D saat ini untuk melihat simulasi ketepatan waktu serta GUP disebulankan secara real-time.
+											Masukkan nominal GUP, tanggal SP2D terakhir, dan tanggal rencana SP2D untuk melihat simulasi ketepatan waktu serta GUP disebulankan secara real-time.
 										</p>
 									</div>
 								) : refSp2dDate && txSp2dDate && txSp2dDate <= refSp2dDate ? (
@@ -987,7 +1041,7 @@ function UpTupKkpPage() {
 											<span>Tanggal SP2D Tidak Valid</span>
 										</div>
 										<p className="text-[11px] leading-relaxed">
-											Tanggal SP2D saat ini harus setelah tanggal SP2D referensi agar interval GUP dapat dihitung.
+											Tanggal rencana SP2D harus setelah tanggal SP2D terakhir agar interval GUP dapat dihitung.
 										</p>
 									</div>
 								) : gupAnalysis && gupAnalysis.isValid ? (
@@ -1251,7 +1305,7 @@ function UpTupKkpPage() {
 													</strong>
 												</div>
 												<div>
-													<span className="text-muted-foreground">SP2D Sebelumnya: </span>
+													<span className="text-muted-foreground">SP2D Terakhir: </span>
 													<strong className="text-foreground">
 														{formatDateIndonesian(gupAnalysis.previousSp2dDate)}
 													</strong>
