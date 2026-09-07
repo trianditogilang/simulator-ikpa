@@ -85,9 +85,18 @@ export const invoiceTimelinessInputSchema = z.strictObject({
 	workdayCalendar: workdayCalendarSchema,
 });
 
+export const upTupTransactionTypeSchema = z.enum([
+	"UP",
+	"GUP",
+	"GUP_NIHIL",
+	"TUP",
+	"PTUP",
+	"SETORAN_TUP",
+]);
+
 export const upTupTransactionSchema = z.strictObject({
 	id: z.string(),
-	type: z.enum(["UP", "TUP"]),
+	type: upTupTransactionTypeSchema,
 	amount: decimalStringSchema,
 	date: isoDateSchema,
 	settlementDate: isoDateSchema.nullable(),

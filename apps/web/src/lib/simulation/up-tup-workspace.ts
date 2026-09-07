@@ -31,7 +31,23 @@ function isoDate(value: string | null | undefined): string | null {
 	return m ? `${m[1]}-${m[2]}-${m[3]}` : null;
 }
 
-/** Collapse tipe DB → UP/TUP persis server calculate.ts. */
+/** Map tipe DB → UpTupTransaction type. */
+export function normalizeUpTupType(
+	type: string,
+): UpTupTransaction["type"] {
+	if (
+		type === "UP" ||
+		type === "GUP" ||
+		type === "GUP_NIHIL" ||
+		type === "TUP" ||
+		type === "PTUP" ||
+		type === "SETORAN_TUP"
+	) {
+		return type;
+	}
+	return "UP";
+}
+
 export function collapseDbType(
 	type: string,
 ): "UP" | "TUP" {
@@ -44,18 +60,50 @@ export function mapActualToEngine(
 	year: number,
 ): { transactions: UpTupTransaction[]; kkpTransactions: KkpTransaction[] } {
 	const transactions: UpTupTransaction[] = [];
-	for (const u of upTupList) {
-		const date = isoDate(u.sp2dAt);
-		if (!date) continue;
+	const sortedUpTup = [...upTupList].sort((a, b) =>
+		(a.sp2dAt || "").localeCompare(b.sp2dAt || ""),
+	);
+
+	for (let i = 0; i < sortedUpTup.length; i++) {
+		const u = sortedUpTup[i];
+		const sp2d = isoDate(u.sp2dAt);
+		if (!sp2d) continue;
+
+		let refDate = isoDate(u.referenceSp2dAt);
+		if (
+			!refDate &&
+			(u.type === "GUP" ||
+				u.type === "GUP_NIHIL" ||
+				u.type === "PTUP" ||
+				u.type === "SETORAN_TUP")
+		) {
+			for (let j = i - 1; j >= 0; j--) {
+				const prev = sortedUpTup[j];
+				if (
+					prev.type === "UP" ||
+					prev.type === "GUP" ||
+					prev.type === "GUP_NIHIL" ||
+					prev.type === "TUP"
+				) {
+					refDate = isoDate(prev.sp2dAt);
+					break;
+				}
+			}
+		}
+
+		const finalRefDate = refDate ?? sp2d;
+		const finalSettlementDate = isoDate(u.settlementDate) ?? sp2d;
+
 		transactions.push({
 			id: u.id,
-			type: collapseDbType(u.type),
+			type: normalizeUpTupType(u.type),
 			amount: decimalString(parseAmount(u.amount)),
-			date,
-			settlementDate: isoDate(u.settlementDate),
-			isSettled: u.isSettled,
+			date: finalRefDate,
+			settlementDate: finalSettlementDate,
+			isSettled: true,
 		});
 	}
+
 	const kkpTransactions: KkpTransaction[] = [];
 	for (const k of kkpList) {
 		const date =

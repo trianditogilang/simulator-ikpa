@@ -31,6 +31,13 @@ function roundDec(val: number, fractionDigits: number, mode: string): number {
 	return Math.round(val * factor) / factor;
 }
 
+function getDaysInMonth(dateStr: string): number {
+	const parts = dateStr.split("-");
+	const year = parseInt(parts[0], 10);
+	const month = parseInt(parts[1], 10);
+	return new Date(year, month, 0).getDate();
+}
+
 export function calculateUpTup(
 	input: UpTupInput,
 	period: FiscalPeriod,
@@ -60,48 +67,115 @@ export function calculateUpTup(
 	}
 
 	// 1. Ketepatan Waktu GUP/PTUP (50%)
-	let onTimeGupPtup = 0;
-	for (const tx of transactions) {
-		if (tx.isSettled && tx.settlementDate) {
-			const days = countDays(tx.date, tx.settlementDate);
-			if (days <= 30) {
-				onTimeGupPtup++;
+	const revolvingTxs = transactions.filter(
+		(tx) =>
+			tx.type === "GUP" ||
+			tx.type === "GUP_NIHIL" ||
+			tx.type === "PTUP",
+	);
+
+	let scoreKetepatan = 100;
+	if (revolvingTxs.length > 0) {
+		let onTimeCount = 0;
+		for (const tx of revolvingTxs) {
+			if (tx.isSettled && tx.settlementDate) {
+				const days = countDays(tx.date, tx.settlementDate);
+				if (days <= 31 || getMonth(tx.date) === getMonth(tx.settlementDate)) {
+					onTimeCount++;
+				}
 			}
 		}
+		scoreKetepatan = (onTimeCount / revolvingTxs.length) * 100;
+	} else if (transactions.length > 0) {
+		// Fallback for datasets where types are UP/TUP
+		let onTimeCount = 0;
+		for (const tx of transactions) {
+			if (tx.isSettled && tx.settlementDate) {
+				const days = countDays(tx.date, tx.settlementDate);
+				if (days <= 31 || getMonth(tx.date) === getMonth(tx.settlementDate)) {
+					onTimeCount++;
+				}
+			}
+		}
+		scoreKetepatan = (onTimeCount / transactions.length) * 100;
 	}
-	const scoreKetepatan =
-		transactions.length > 0 ? (onTimeGupPtup / transactions.length) * 100 : 100;
 
 	// 2. GUP Disebulankan (25%)
-	const upTransactions = transactions.filter((tx) => tx.type === "UP");
-	let onTimeGupSebulan = 0;
-	for (const tx of upTransactions) {
-		if (tx.isSettled && tx.settlementDate) {
-			if (getMonth(tx.date) === getMonth(tx.settlementDate)) {
-				onTimeGupSebulan++;
+	const gupTxs = transactions.filter(
+		(tx) => tx.type === "GUP" && parseFloat(tx.amount) > 0,
+	);
+	let scoreGupSebulan = 100;
+	if (gupTxs.length > 0) {
+		const upTx = transactions.find((tx) => tx.type === "UP");
+		const upBasis =
+			upTx && parseFloat(upTx.amount) > 0 ? parseFloat(upTx.amount) : 0;
+
+		let totalGupScore = 0;
+		for (const tx of gupTxs) {
+			const amountGup = parseFloat(tx.amount);
+			const baseUp = upBasis > 0 ? upBasis : amountGup;
+			const ratio = (amountGup / baseUp) * 100;
+			const intervalDays = tx.settlementDate
+				? Math.max(countDays(tx.date, tx.settlementDate), 1)
+				: 30;
+			const daysInMonth = getDaysInMonth(tx.date);
+			const monthlyFactor = daysInMonth / intervalDays;
+			const normalizedGup = ratio * monthlyFactor;
+			totalGupScore += Math.min(Math.max(normalizedGup, 0), 100);
+		}
+		scoreGupSebulan = totalGupScore / gupTxs.length;
+	} else {
+		// Fallback for legacy 2-type datasets where UP has settlementDate
+		const upLegacy = transactions.filter((tx) => tx.type === "UP");
+		if (
+			upLegacy.length > 0 &&
+			upLegacy.some(
+				(tx) =>
+					tx.settlementDate && countDays(tx.date, tx.settlementDate) > 31,
+			)
+		) {
+			let onTimeGupSebulan = 0;
+			for (const tx of upLegacy) {
+				if (tx.isSettled && tx.settlementDate) {
+					const days = countDays(tx.date, tx.settlementDate);
+					if (
+						getMonth(tx.date) === getMonth(tx.settlementDate) ||
+						days <= 31
+					) {
+						onTimeGupSebulan++;
+					}
+				}
 			}
+			scoreGupSebulan = (onTimeGupSebulan / upLegacy.length) * 100;
+		} else {
+			scoreGupSebulan = 100;
 		}
 	}
-	const scoreGupSebulan =
-		upTransactions.length > 0
-			? (onTimeGupSebulan / upTransactions.length) * 100
-			: 100;
 
 	// 3. Setoran TUP (25%)
-	const tupTransactions = transactions.filter((tx) => tx.type === "TUP");
-	let onTimeTup = 0;
-	for (const tx of tupTransactions) {
-		if (tx.isSettled && tx.settlementDate) {
-			const days = countDays(tx.date, tx.settlementDate);
-			if (days <= 30) {
-				onTimeTup++;
-			}
-		}
+	// Formula: 100 - (% Setoran TUP terhadap Total TUP)
+	const tupTxs = transactions.filter((tx) => tx.type === "TUP");
+	const setoranTupTxs = transactions.filter((tx) => tx.type === "SETORAN_TUP");
+
+	const totalTupAmount = tupTxs.reduce(
+		(sum, tx) => sum + (parseFloat(tx.amount) || 0),
+		0,
+	);
+	const totalSetoranTupAmount = setoranTupTxs.reduce(
+		(sum, tx) => sum + (parseFloat(tx.amount) || 0),
+		0,
+	);
+
+	let scoreTup = 100;
+	if (totalTupAmount > 0) {
+		const pctSetoran = (totalSetoranTupAmount / totalTupAmount) * 100;
+		scoreTup = Math.max(0, Math.min(100, 100 - pctSetoran));
+	} else if (setoranTupTxs.length > 0) {
+		// Setoran exists without registered TUP (anomaly)
+		scoreTup = 0;
+	} else {
+		scoreTup = 100;
 	}
-	const scoreTup =
-		tupTransactions.length > 0
-			? (onTimeTup / tupTransactions.length) * 100
-			: 100;
 
 	const tunaiScore =
 		scoreKetepatan * 0.5 + scoreGupSebulan * 0.25 + scoreTup * 0.25;
@@ -114,6 +188,8 @@ export function calculateUpTup(
 			Ketepatan: scoreKetepatan.toFixed(2),
 			GUP_Sebulan: scoreGupSebulan.toFixed(2),
 			Setoran_TUP: scoreTup.toFixed(2),
+			totalTUP: totalTupAmount.toFixed(2),
+			totalSetoranTUP: totalSetoranTupAmount.toFixed(2),
 		},
 		result: tunaiScore.toFixed(config.rounding.fractionDigits),
 	});

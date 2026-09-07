@@ -296,9 +296,20 @@ export async function calculateAndPersistSnapshot(
 
 	const baseUpTup = upTupRows.map((u) => ({
 		id: u.id,
-		type: (u.type === "UP" || u.type === "TUP" ? u.type : "UP") as
+		type: (u.type === "UP" ||
+		u.type === "GUP" ||
+		u.type === "GUP_NIHIL" ||
+		u.type === "TUP" ||
+		u.type === "PTUP" ||
+		u.type === "SETORAN_TUP"
+			? u.type
+			: "UP") as
 			| "UP"
-			| "TUP",
+			| "GUP"
+			| "GUP_NIHIL"
+			| "TUP"
+			| "PTUP"
+			| "SETORAN_TUP",
 		amount: u.amount as string,
 		date: u.sp2dAt as string,
 		settlementDate: (u.settlementDate as string) ?? null,

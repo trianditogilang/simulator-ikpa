@@ -2,6 +2,107 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 162 - 2026-09-07
+**Time:** Start: 16:35 UTC | End: 16:44 UTC | Duration: ~9 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Engine Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [FIX-UP-TUP-SETORAN-AND-TUNAI-FORMULA] Presisi Perhitungan Kanonis Kinerja Setoran TUP, %GUP Disebulankan, dan Rincian Subkomponen Tunai (`/operator/up-tup` & `@simulator-ikpa/ikpa-engine`):
+  1. **Kanonisasi Tipe Transaksi UP/TUP di Seluruh Layer Schema & Engine (`packages/ikpa-engine/src/schemas.ts` & `packages/ikpa-engine/src/indicators/up-tup.ts`)**:
+     - Memperluas `upTupTransactionSchema` untuk menerima seluruh 6 jenis transaksi resmi: `"UP" | "GUP" | "GUP_NIHIL" | "TUP" | "PTUP" | "SETORAN_TUP"`.
+     - Menghapus pereduksian (`collapseDbType`) tipe transaksi menjadi hanya `"UP"` pada `mapActualToEngine` (`apps/web/src/lib/simulation/up-tup-workspace.ts`) dan server simulation (`apps/web/src/server/simulation/calculate.ts`).
+  2. **Implementasi Formula Kanonis PER-5/PB/2024 pada 3 Subkomponen Tunai (`packages/ikpa-engine/src/indicators/up-tup.ts`)**:
+     - **Ketepatan Waktu GUP/PTUP (50%)**: Dievaluasi khusus dari transaksi bertipe `GUP`, `GUP_NIHIL`, dan `PTUP` terhadap SP2D referensinya ($\le 31$ hari / bulan yang sama).
+     - **%GUP Disebulankan (25%)**: Dihitung dari rasio `(nilai_GUP / nilai_UP_dasar) * 100 * (hari_dalam_bulan / selisih_hari_SP2D)`.
+     - **Kinerja Setoran TUP (25%)**: Dihitung secara proporsional dari nominal `persentase_setoran = (total_SETORAN_TUP / total_TUP) * 100`, dan `NK_SETORAN_TUP = 100 - persentase_setoran` (misal TUP 6jt, Setoran 100k $\rightarrow$ persentase setoran = 1,67% $\rightarrow$ skor kinerja = 98,33).
+     - **NK Tunai (90%)**: Terhitung dinamis dari `(50% × NK Ketepatan) + (25% × NK %GUP Sebulan) + (25% × NK Setoran TUP)` (misal $50 + 25 + 24,58 = 99,58$).
+  3. **Penyempurnaan Tampilan UI & Penjelasan Transparan (`apps/web/src/routes/operator/up-tup.tsx`)**:
+     - Memperbarui Subcard 3 `Kinerja Setoran TUP` agar menampilkan persentase setoran aktual beserta nominal pembandingnya secara transparan (misal: `100 − Setoran 1,67% (Rp 100.000 dari Rp 6.000.000)`).
+  4. **Verifikasi & Automated Tests**:
+     - Menambahkan golden test kasus spesifik TUP 6jt + Setoran 100k di `up-tup.test.ts` dan `up-tup-workspace.test.ts`.
+     - Seluruh 15 test files (104 tests) di `apps/web` dan 36 test files (149 tests) di monorepo lulus 100%. Typecheck 0 error lintas 7 workspace packages.
+**Code Changes:**
+- Files modified:
+  - `packages/ikpa-engine/src/schemas.ts`
+  - `packages/ikpa-engine/src/indicators/up-tup.ts`
+  - `packages/ikpa-engine/src/indicators/up-tup.test.ts`
+  - `apps/web/src/lib/simulation/up-tup-workspace.ts`
+  - `apps/web/src/lib/simulation/up-tup-workspace.test.ts`
+  - `apps/web/src/server/simulation/calculate.ts`
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 104/104 tests passed in `apps/web`, 149/149 tests passed across monorepo.
+  - Typecheck: 0 error across all 7 workspace packages monorepo.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 161 - 2026-09-07
+**Time:** Start: 16:05 UTC | End: 16:18 UTC | Duration: ~13 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Engine Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [FIX-UP-TUP-ACTUAL-SCORING-SYNC] Sinkronisasi dan Perhitungan Real-Time NK Tunai & Skor Agregat UP/TUP dari Input Data Transaksi Aktual (`/operator/up-tup`):
+  1. **Pemetaan Transaksi Aktual ke Engine (`apps/web/src/lib/simulation/up-tup-workspace.ts`)**:
+     - Memperbaiki `mapActualToEngine` agar mengurutkan transaksi secara kronologis dan memetakan `referenceSp2dAt` (atau tanggal SP2D UP/GUP sebelumnya) sebagai tanggal awal revolving periode (`date`), `sp2dAt` sebagai tanggal pertanggungjawaban/penyelesaian (`settlementDate`), serta menandai `isSettled: true`.
+     - Untuk transaksi `UP` (UP Awal), memetakan `date: sp2dAt` dan `settlementDate: sp2dAt` dengan `isSettled: true` sehingga diakui tepat waktu.
+  2. **Perhitungan Toleransi & Ketepatan Waktu Engine (`packages/ikpa-engine/src/indicators/up-tup.ts`)**:
+     - Menyempurnakan `calculateUpTup` pada evaluasi ketepatan waktu revolving dan `%GUP disebulankan`: transaksi dinilai tepat waktu jika rentang hari $\le 31$ hari atau berada di bulan yang sama (`days <= 31 || getMonth(date) === getMonth(settlementDate)`).
+  3. **Verifikasi & Pengujian Otomatis**:
+     - Menambahkan unit test di `apps/web/src/lib/simulation/up-tup-workspace.test.ts` untuk memastikan transaksi yang tersimpan melalui Form Drawer menghasilkan `NK Tunai = 100.00`, `Score = 90.00`, dan `Kontribusi IKPA = 9.00`.
+     - Seluruh 15 test files (102 tests) di `apps/web` dan 36 test files (148 tests) di monorepo lulus 100%. Typecheck 0 error lintas 7 workspace packages.
+**Code Changes:**
+- Files modified:
+  - `packages/ikpa-engine/src/indicators/up-tup.ts`
+  - `apps/web/src/lib/simulation/up-tup-workspace.ts`
+  - `apps/web/src/lib/simulation/up-tup-workspace.test.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 102/102 tests passed in `apps/web`, 148/148 tests passed across monorepo.
+  - Typecheck: 0 error across all 7 workspace packages monorepo.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 160 - 2026-09-07
+**Time:** Start: 15:52 UTC | End: 16:01 UTC | Duration: ~9 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-UP-TUP-WORKSPACE-DATA-CONSOLIDATION] Konsolidasi Seluruh Komponen dan Manajemen Data `/operator/data/up-tup-kkp` ke Halaman `/operator/up-tup` (Mereplace Card Objek Transaksi Terkunci):
+  1. **Penggantian Objek Transaksi Terkunci (`apps/web/src/routes/operator/up-tup.tsx`)**:
+     - Menggantikan card statis `<section aria-label="Aktual tahun berjalan terkunci">...</section>` di halaman `/operator/up-tup` dengan seluruh komponen interaktif dan alur kerja lengkap dari `/operator/data/up-tup-kkp` tanpa mengubah elemen lain pada halaman tersebut.
+     - Menyertakan:
+       - Banner alert status feedback (Sukses / Gagal).
+       - 4 Summary Metric Cards (`Total UP/TUP Terbit`, `Transaksi Revolving`, `Total Belanja KKP`, `Plafon KKP Bulanan`).
+       - 2 Tab Selector (`Transaksi UP / TUP / GUP` dan `Penggunaan KKP`).
+       - Tab 1: `DomainDataTable` Riwayat Transaksi UP / TUP / Revolving GUP (pencarian, tambah data, aksi ubah & hapus).
+       - Tab 2: Card 1 Pengaturan Plafon UP KKP Satker (status KKP, plafon bulanan, plafon tahunan), Card 2 Matriks Target Triwulanan & Evaluasi Capaian KKP TA [Tahun], dan Card 3 `DomainDataTable` Daftar Penggunaan Kartu Kredit Pemerintah (KKP).
+       - Drawer 1: `DomainFormDrawer` Tambah/Ubah Transaksi UP/TUP/GUP dengan micro-simulation GUP real-time pre-save guidance, 3 chip status, rekomendasi tindakan taktis, tombol quick action, dan opsi referensi UP/GUP sebelumnya.
+       - Drawer 2: `DomainFormDrawer` Penggunaan KKP Bulanan.
+  2. **Integrasi Mutasi dan Reaktivitas Data**:
+     - Menghubungkan seluruh mutation handler (`handleSaveUpTup`, `handleSaveKkp`, `handleDeleteUpTup`, `handleDeleteKkp`) dengan invalidasi router (`router.invalidate()`) sehingga penambahan/perubahan data transaksi langsung memutakhirkan skor agregat IKPA, reminder jatuh tempo, dan tabel data secara real-time.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 15/15 test files (101/101 tests) passed in `apps/web`, 36/36 test files (147/147 tests) passed across monorepo.
+  - Typecheck: 0 error across all 7 workspace packages monorepo.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
 ### Session 159 - 2026-09-07
 **Time:** Start: 15:00 UTC | End: 15:04 UTC | Duration: ~4 minutes
 - Status: Completed

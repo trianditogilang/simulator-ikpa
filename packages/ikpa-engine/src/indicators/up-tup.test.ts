@@ -174,4 +174,59 @@ describe("calculateUpTup", () => {
 		expect(result.score).toBe("100.00");
 		expect(result.weightedContribution).toBe("10.00");
 	});
+
+	it("calculates Kinerja Setoran TUP precisely based on nominal ratio (e.g., TUP 6jt + Setoran TUP 100k -> 1.67% setoran -> 98.33 score)", () => {
+		const input: UpTupInput = {
+			transactions: [
+				{
+					id: "t1",
+					type: "UP",
+					amount: "50000000",
+					date: "2026-01-10",
+					settlementDate: "2026-01-10",
+					isSettled: true,
+				},
+				{
+					id: "t2",
+					type: "TUP",
+					amount: "6000000",
+					date: "2026-02-01",
+					settlementDate: "2026-02-01",
+					isSettled: true,
+				},
+				{
+					id: "t3",
+					type: "SETORAN_TUP",
+					amount: "100000",
+					date: "2026-02-25",
+					settlementDate: "2026-02-25",
+					isSettled: true,
+				},
+			],
+			kkpTransactions: [],
+			hasKkp: false,
+		};
+
+		const result = calculateUpTup(
+			input,
+			{ kind: "month", value: 2 },
+			default2026RuleSet,
+		);
+
+		// Ketepatan = 100
+		// GUP Disebulankan = 100 (no GUP)
+		// % Setoran TUP = 100.000 / 6.000.000 * 100 = 1.6667%
+		// Kinerja Setoran TUP = 100 - 1.6667 = 98.33
+		// NK Tunai = (50% * 100) + (25% * 100) + (25% * 98.33) = 50 + 25 + 24.5825 = 99.58
+		// Final Score (hasKkp=false) = 99.58 * 0.9 = 89.62
+		// Kontribusi IKPA = 89.62 * 0.1 = 8.96
+
+		const tupDepositComp = result.subComponents?.find((c) => c.key === "tupDeposit");
+		const tunaiComp = result.subComponents?.find((c) => c.key === "tunai");
+
+		expect(tupDepositComp?.score).toBe("98.33");
+		expect(tunaiComp?.score).toBe("99.58");
+		expect(result.score).toBe("89.63");
+		expect(result.weightedContribution).toBe("8.96");
+	});
 });

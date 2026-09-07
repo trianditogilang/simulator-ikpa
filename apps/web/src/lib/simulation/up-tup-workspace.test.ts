@@ -30,7 +30,7 @@ describe("mapActualToEngine", () => {
 			2026,
 		);
 		expect(transactions).toHaveLength(1);
-		expect(transactions[0].type).toBe("UP");
+		expect(transactions[0].type).toBe("GUP");
 		expect(transactions[0].amount).toBe("11000000.00");
 		expect(kkpTransactions[0].date).toBe("2026-05-15");
 	});
@@ -75,6 +75,63 @@ describe("calcUpTupScore", () => {
 		const result = calcUpTupScore(transactions, kkpTransactions, 5, undefined, true);
 		expect(result.score).toBe(100);
 		expect(result.contribution).toBe(10);
+		expect(result.status).toBe("complete");
+	});
+
+	it("skor via engine untuk input form riil (UP awal dan GUP ber-referenceSp2dAt tanpa settlementDate eksplisit)", () => {
+		const { transactions, kkpTransactions } = mapActualToEngine(
+			[
+				{ id: "1", type: "UP", amount: "50000000", sp2dAt: "2026-01-10", referenceSp2dAt: null, settlementDate: null, isSettled: false },
+				{ id: "2", type: "GUP", amount: "25000000", sp2dAt: "2026-02-05", referenceSp2dAt: "2026-01-10", settlementDate: null, isSettled: false },
+			],
+			[],
+			2026,
+		);
+		const result = calcUpTupScore(transactions, kkpTransactions, 2, undefined, false);
+		// 25jt / 50jt * (31 / 26) = 59.62%
+		expect(result.timeliness).toBe(100);
+		expect(result.monthlyGup).toBe(59.62);
+		expect(result.tupDeposit).toBe(100);
+		expect(result.tunai).toBe(89.9);
+		expect(result.score).toBe(80.91);
+		expect(result.contribution).toBe(8.09);
+		expect(result.status).toBe("complete");
+	});
+
+	it("skor via engine untuk input GUP optimal (45jt revolving dalam 26 hari mencapai nilai maksimal 100)", () => {
+		const { transactions, kkpTransactions } = mapActualToEngine(
+			[
+				{ id: "1", type: "UP", amount: "50000000", sp2dAt: "2026-01-10", referenceSp2dAt: null, settlementDate: null, isSettled: false },
+				{ id: "2", type: "GUP", amount: "45000000", sp2dAt: "2026-02-05", referenceSp2dAt: "2026-01-10", settlementDate: null, isSettled: false },
+			],
+			[],
+			2026,
+		);
+		const result = calcUpTupScore(transactions, kkpTransactions, 2, undefined, false);
+		expect(result.timeliness).toBe(100);
+		expect(result.monthlyGup).toBe(100);
+		expect(result.tupDeposit).toBe(100);
+		expect(result.tunai).toBe(100);
+		expect(result.score).toBe(90);
+		expect(result.contribution).toBe(9);
+		expect(result.status).toBe("complete");
+	});
+
+	it("menghitung penurunan Kinerja Setoran TUP dan NK Tunai saat ada Setoran TUP (TUP 6jt, Setoran 100k)", () => {
+		const { transactions, kkpTransactions } = mapActualToEngine(
+			[
+				{ id: "1", type: "UP", amount: "50000000", sp2dAt: "2026-01-10", referenceSp2dAt: null, settlementDate: null, isSettled: false },
+				{ id: "2", type: "TUP", amount: "6000000", sp2dAt: "2026-02-01", referenceSp2dAt: null, settlementDate: null, isSettled: false },
+				{ id: "3", type: "SETORAN_TUP", amount: "100000", sp2dAt: "2026-02-25", referenceSp2dAt: "2026-02-01", settlementDate: null, isSettled: false },
+			],
+			[],
+			2026,
+		);
+		const result = calcUpTupScore(transactions, kkpTransactions, 2, undefined, false);
+		expect(result.tupDeposit).toBe(98.33);
+		expect(result.tunai).toBe(99.58);
+		expect(result.score).toBe(89.63);
+		expect(result.contribution).toBe(8.96);
 		expect(result.status).toBe("complete");
 	});
 });
