@@ -10,7 +10,6 @@ import {
 	CreditCard,
 	HelpCircle,
 	Info,
-	Layers,
 	Lightbulb,
 	Pencil,
 	RotateCw,
@@ -238,10 +237,6 @@ function UpTupPage() {
 	};
 
 	// Totals
-	const totalUpAmount = data.upTupList
-		.filter((u) => u.type === "UP" || u.type === "TUP")
-		.reduce((sum, u) => sum + (Number.parseFloat(u.amount) || 0), 0);
-
 	const totalTupAmount = useMemo(() => {
 		return data.upTupList
 			.filter((u) => u.type === "TUP")
@@ -258,11 +253,6 @@ function UpTupPage() {
 		if (totalTupAmount <= 0) return 0;
 		return (totalSetoranTupAmount / totalTupAmount) * 100;
 	}, [totalTupAmount, totalSetoranTupAmount]);
-
-	const totalKkpAmount = data.kkpList.reduce(
-		(sum, k) => sum + (Number.parseFloat(k.amount) || 0),
-		0,
-	);
 
 	const annualKkpCeiling = useMemo(() => {
 		const monthly = Number(monthlyKkpCeiling) || 0;
@@ -531,6 +521,16 @@ function UpTupPage() {
 
 	const upTupColumns: ColumnDef<UpTupRecord>[] = [
 		{
+			key: "no",
+			header: "No.",
+			className: "w-12 text-center",
+			render: (_, index) => (
+				<span className="font-semibold text-muted-foreground">
+					{index + 1}
+				</span>
+			),
+		},
+		{
 			key: "type",
 			header: "Jenis Transaksi",
 			render: (item) => (
@@ -560,15 +560,6 @@ function UpTupPage() {
 				<span className="inline-flex items-center gap-1.5 text-foreground text-xs">
 					<Calendar className="size-3.5 text-muted-foreground" />
 					<span>{formatDateDDMMYYYY(item.sp2dAt)}</span>
-				</span>
-			),
-		},
-		{
-			key: "ref",
-			header: "SP2D Asal / Referensi",
-			render: (item) => (
-				<span className="text-xs text-muted-foreground">
-					{item.referenceSp2dAt ? formatDateDDMMYYYY(item.referenceSp2dAt) : "—"}
 				</span>
 			),
 		},
@@ -624,6 +615,16 @@ function UpTupPage() {
 	];
 
 	const kkpColumns: ColumnDef<KkpRecord>[] = [
+		{
+			key: "no",
+			header: "No.",
+			className: "w-12 text-center",
+			render: (_, index) => (
+				<span className="font-semibold text-muted-foreground">
+					{index + 1}
+				</span>
+			),
+		},
 		{
 			key: "month",
 			header: "Bulan Penggunaan",
@@ -1104,76 +1105,6 @@ function UpTupPage() {
 					</div>
 				)}
 
-				{/* Summary Metrics (4 Cards) */}
-				<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-					<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
-						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-medium">Total UP/TUP Terbit</span>
-							<Coins className="size-4 text-primary" />
-						</div>
-						<p className="text-lg font-bold text-foreground sm:text-xl font-mono">
-							{formatRupiah(totalUpAmount)}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Dana persediaan aktif
-						</p>
-					</div>
-
-					<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
-						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-medium">
-								Transaksi Revolving
-							</span>
-							<Layers className="size-4 text-success" />
-						</div>
-						<p className="text-lg font-bold text-foreground sm:text-xl">
-							{data.upTupList.length} Transaksi
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							UP, GUP, PTUP &amp; Setoran
-						</p>
-					</div>
-
-					<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
-						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-medium">Total Belanja KKP</span>
-							<CreditCard className="size-4 text-warning" />
-						</div>
-						<p className="text-lg font-bold text-foreground sm:text-xl font-mono">
-							{formatRupiah(totalKkpAmount)}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Realisasi belanja KKP
-						</p>
-					</div>
-
-					<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
-						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-medium">Plafon KKP Bulanan</span>
-							<ShieldCheck className="size-4 text-primary" />
-						</div>
-						<p className="text-lg font-bold text-foreground sm:text-xl font-mono">
-							{kkpStatus === "none" ? "Rp 0" : formatRupiah(Number(monthlyKkpCeiling) || 0)}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Status:{" "}
-							<span
-								className={
-									kkpStatus === "active"
-										? "font-semibold text-success"
-										: "font-semibold text-warning"
-								}
-							>
-								{kkpStatus === "active"
-									? "Aktif (Maks 100%)"
-									: kkpStatus === "pending"
-										? "Menunggu Bank"
-										: "Tanpa KKP (Maks 90%)"}
-							</span>
-						</p>
-					</div>
-				</div>
-
 				{/* 2 Tab Selector */}
 				<div className="flex items-center gap-2 border-b border-border pb-2">
 					<button
@@ -1210,6 +1141,7 @@ function UpTupPage() {
 						onSearchChange={setSearch}
 						onAddClick={handleOpenCreateUpTup}
 						totalCount={filteredUpTup.length}
+						maxRows={5}
 					/>
 				)}
 
@@ -1386,6 +1318,7 @@ function UpTupPage() {
 							onSearchChange={() => {}}
 							onAddClick={handleOpenCreateKkp}
 							totalCount={data.kkpList.length}
+							maxRows={5}
 						/>
 					</div>
 				)}

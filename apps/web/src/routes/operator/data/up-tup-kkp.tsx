@@ -394,6 +394,16 @@ function UpTupKkpPage() {
 
 	const upTupColumns: ColumnDef<UpTupRecord>[] = [
 		{
+			key: "no",
+			header: "No.",
+			className: "w-12 text-center",
+			render: (_, index) => (
+				<span className="font-semibold text-muted-foreground">
+					{index + 1}
+				</span>
+			),
+		},
+		{
 			key: "type",
 			header: "Jenis Transaksi",
 			render: (item) => (
@@ -423,15 +433,6 @@ function UpTupKkpPage() {
 				<span className="inline-flex items-center gap-1.5 text-foreground text-xs">
 					<Calendar className="size-3.5 text-muted-foreground" />
 					<span>{formatDateDDMMYYYY(item.sp2dAt)}</span>
-				</span>
-			),
-		},
-		{
-			key: "ref",
-			header: "SP2D Asal / Referensi",
-			render: (item) => (
-				<span className="text-xs text-muted-foreground">
-					{item.referenceSp2dAt ? formatDateDDMMYYYY(item.referenceSp2dAt) : "—"}
 				</span>
 			),
 		},
@@ -487,6 +488,16 @@ function UpTupKkpPage() {
 	];
 
 	const kkpColumns: ColumnDef<KkpRecord>[] = [
+		{
+			key: "no",
+			header: "No.",
+			className: "w-12 text-center",
+			render: (_, index) => (
+				<span className="font-semibold text-muted-foreground">
+					{index + 1}
+				</span>
+			),
+		},
 		{
 			key: "month",
 			header: "Bulan Penggunaan",
@@ -689,6 +700,7 @@ function UpTupKkpPage() {
 						onSearchChange={setSearch}
 						onAddClick={handleOpenCreateUpTup}
 						totalCount={filteredUpTup.length}
+						maxRows={5}
 					/>
 				)}
 
@@ -865,6 +877,7 @@ function UpTupKkpPage() {
 							onSearchChange={() => {}}
 							onAddClick={handleOpenCreateKkp}
 							totalCount={initialData.kkpList.length}
+							maxRows={5}
 						/>
 					</div>
 				)}

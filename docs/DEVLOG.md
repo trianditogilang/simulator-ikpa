@@ -2,6 +2,42 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 163 - 2026-09-07
+**Time:** Start: 16:47 UTC | End: 16:58 UTC | Duration: ~11 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-UP-TUP-TABLE-REFINEMENT-AND-DATE-STANDARD] Penghapusan 4 Summary Metric Cards, Penataan Kolom Tabel UP/TUP (Tambah Kolom No, Hapus Kolom SP2D Asal, Scroll Internal Card >5 Data), dan Standardisasi Seluruh Format Tanggal Menjadi DD-MM-YYYY:
+  1. **Penghapusan 4 Summary Metric Cards (`apps/web/src/routes/operator/up-tup.tsx`)**:
+     - Menghapus 4 kartu metrik ringkasan (`Total UP/TUP Terbit`, `Transaksi Revolving`, `Total Belanja KKP`, `Plafon KKP Bulanan`) yang berada di atas 2 Tab Selector, sehingga tata letak data menjadi lebih rapi, fokus, dan ringkas.
+  2. **Penataan Kolom Tabel & Scroll Container (`apps/web/src/components/data/domain-data-table.tsx` & `apps/web/src/routes/operator/up-tup.tsx`)**:
+     - Menambahkan kolom `No.` di kolom paling kiri dengan penomoran urut otomatis (`index + 1`).
+     - Menghapus kolom `SP2D Asal / Referensi` dari tabel transaksi UP/TUP.
+     - Mengimplementasikan scrolling vertikal di dalam card (`maxRows={5}` / `max-h-[340px] overflow-y-auto`) dengan `sticky thead` saat data melebihi 5 baris sehingga tabel tidak memanjang keluar batas card.
+  3. **Standardisasi Seluruh Tampilan Tanggal Menjadi DD-MM-YYYY**:
+     - Memperbarui `buildGupReminders` pada `up-tup-workspace.ts` agar tanggal jatuh tempo dan pertanggungjawaban dalam teks detail selalu diformat `DD-MM-YYYY` (e.g. `05-03-2026`).
+     - Memperbarui `formatDateIndonesian` pada `up-tup-assumptions.ts` agar selalu menghasilkan format kanonis `DD-MM-YYYY`.
+  4. **Verifikasi & Automated Tests**:
+     - 104/104 tests di `apps/web` dan 149/149 tests di monorepo lulus 100%. Typecheck 0 error lintas 7 workspace packages.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/data/domain-data-table.tsx`
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `apps/web/src/routes/operator/data/up-tup-kkp.tsx`
+  - `apps/web/src/lib/simulation/up-tup-workspace.ts`
+  - `apps/web/src/lib/simulation/up-tup-assumptions.ts`
+  - `apps/web/src/lib/simulation/up-tup-assumptions.test.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 104/104 tests passed in `apps/web`, 149/149 tests passed across monorepo.
+  - Typecheck: 0 error across all 7 workspace packages monorepo.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
 ### Session 162 - 2026-09-07
 **Time:** Start: 16:35 UTC | End: 16:44 UTC | Duration: ~9 minutes
 - Status: Completed

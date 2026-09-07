@@ -198,11 +198,11 @@ export function getMonthNameIndonesian(monthZeroIndexed: number): string {
 	return names[monthZeroIndexed] ?? "";
 }
 
+import { formatDateDDMMYYYY } from "@/lib/format";
+
 export function formatDateIndonesian(s?: string | null): string {
 	if (!s) return "—";
-	const dt = parseISODate(s);
-	if (!dt) return s;
-	return `${dt.getUTCDate()} ${getMonthNameIndonesian(dt.getUTCMonth())} ${dt.getUTCFullYear()}`;
+	return formatDateDDMMYYYY(s);
 }
 
 /** Tanggal maksimal GUP = hari yang sama bulan depan. */

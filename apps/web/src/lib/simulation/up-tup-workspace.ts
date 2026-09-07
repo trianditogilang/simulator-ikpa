@@ -210,6 +210,8 @@ export function mergeWithAssumptions(
 	};
 }
 
+import { formatDateDDMMYYYY } from "@/lib/format";
+
 export interface GupReminder {
 	id: string;
 	type: string;
@@ -248,19 +250,19 @@ export function buildGupReminders(
 			status = settled <= dueDate ? "Tepat Waktu" : "Terlambat";
 			detail =
 				status === "Tepat Waktu"
-					? `Dipertanggungjawabkan ${settled} (maks. ${dueDate}).`
-					: `Terlambat — dipertanggungjawabkan ${settled}, maks. ${dueDate}.`;
+					? `Dipertanggungjawabkan ${formatDateDDMMYYYY(settled)} (maks. ${formatDateDDMMYYYY(dueDate)}).`
+					: `Terlambat — dipertanggungjawabkan ${formatDateDDMMYYYY(settled)}, maks. ${formatDateDDMMYYYY(dueDate)}.`;
 		} else if (dueDate) {
 			const left = diffDays(today, dueDate);
 			if (left === null) {
-				detail = `Jatuh tempo ${dueDate}. Segera pertanggungjawabkan.`;
+				detail = `Jatuh tempo ${formatDateDDMMYYYY(dueDate)}. Segera pertanggungjawabkan.`;
 			} else if (left < 0) {
 				status = "Terlambat";
-				detail = `Lewat ${Math.abs(left)} hari dari maks. ${dueDate}. Segera pertanggungjawabkan.`;
+				detail = `Lewat ${Math.abs(left)} hari dari maks. ${formatDateDDMMYYYY(dueDate)}. Segera pertanggungjawabkan.`;
 			} else if (left === 0) {
-				detail = `Jatuh tempo hari ini (${dueDate}).`;
+				detail = `Jatuh tempo hari ini (${formatDateDDMMYYYY(dueDate)}).`;
 			} else {
-				detail = `Jatuh tempo ${dueDate} (H−${left}).`;
+				detail = `Jatuh tempo ${formatDateDDMMYYYY(dueDate)} (H−${left}).`;
 			}
 		} else {
 			detail = "Tanggal SP2D tak valid — periksa data.";

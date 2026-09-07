@@ -170,7 +170,7 @@ describe("analyzeGupPlan - 6 Specification Scenarios (Section 11)", () => {
 		expect(res.submissionStatus).toBe("LATE");
 		expect(res.ikpaQualityStatus).toBe("LATE_NOT_OPTIMAL");
 		expect(res.actions[0].type).toBe("adjust_date");
-		expect(res.actions[0].description).toMatch(/2026-02-01|1 Februari 2026/);
+		expect(res.actions[0].description).toMatch(/01-02-2026/);
 	});
 
 	it("Skenario 4 - Di bawah Minimum: UP 10M, GUP 1M, 1 Jan -> 23 Jan 2026", () => {

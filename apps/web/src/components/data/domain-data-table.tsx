@@ -1,11 +1,11 @@
-﻿import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
 export interface ColumnDef<T> {
 	key: string;
 	header: string;
 	className?: string;
-	render: (item: T) => ReactNode;
+	render: (item: T, index: number) => ReactNode;
 }
 
 export interface DomainDataTableProps<T> extends ComponentProps<"div"> {
@@ -20,6 +20,7 @@ export interface DomainDataTableProps<T> extends ComponentProps<"div"> {
 	onAddClick?: () => void;
 	onImportClick?: () => void;
 	totalCount?: number;
+	maxRows?: number;
 }
 
 export function DomainDataTable<T extends { id: string | number }>({
@@ -34,9 +35,12 @@ export function DomainDataTable<T extends { id: string | number }>({
 	onAddClick,
 	onImportClick,
 	totalCount,
+	maxRows,
 	className,
 	...props
 }: DomainDataTableProps<T>) {
+	const shouldScroll = maxRows !== undefined && data.length > maxRows;
+
 	return (
 		<div
 			{...props}
@@ -100,15 +104,20 @@ export function DomainDataTable<T extends { id: string | number }>({
 			)}
 
 			{/* Data Table */}
-			<div className="overflow-x-auto rounded-xl border border-border/80">
+			<div
+				className={twMerge(
+					"overflow-x-auto rounded-xl border border-border/80",
+					shouldScroll && "max-h-[340px] overflow-y-auto",
+				)}
+			>
 				<table className="w-full text-left text-xs">
-					<thead className="border-b border-border/80 bg-surface text-muted-foreground">
+					<thead className="sticky top-0 z-10 border-b border-border/80 bg-surface text-muted-foreground">
 						<tr>
 							{columns.map((col) => (
 								<th
 									key={col.key}
 									className={twMerge(
-										"px-4 py-2.5 font-semibold",
+										"px-4 py-2.5 font-semibold bg-surface",
 										col.className,
 									)}
 								>
@@ -137,7 +146,7 @@ export function DomainDataTable<T extends { id: string | number }>({
 								</td>
 							</tr>
 						) : (
-							data.map((item) => (
+							data.map((item, index) => (
 								<tr
 									key={item.id}
 									className="transition hover:bg-surface-muted/50"
@@ -147,7 +156,7 @@ export function DomainDataTable<T extends { id: string | number }>({
 											key={col.key}
 											className={twMerge("px-4 py-2.5", col.className)}
 										>
-											{col.render(item)}
+											{col.render(item, index)}
 										</td>
 									))}
 								</tr>
