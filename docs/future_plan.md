@@ -6,8 +6,7 @@ fitur: setting profile pop up, tooltip, darkmode-->
 
 
 <!--notes:
-lakukan update menu deviasi halaman III dipa sesuai
-  @[docs/menu-fixing-indikator/perbaikan-deviasi-halaman-iii-dipa.md] , review
+lakukan update menu belanja kontraktual sesuai , review
   @[docs/BACKLOG.md] @[docs/DEVLOG.md], dan update selalu keduanya setelah selesai
   melakukan task. Gunakan skills ponytail dan context7 untuk best practice tech stacknya.
   Lakukan saja semuanya sampai selesai tanpa meminta izin baru nanti saya akan iterasi
