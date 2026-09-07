@@ -6,21 +6,17 @@ import {
 	Info,
 	Lightbulb,
 } from "lucide-react";
-import { default2026RuleSet } from "@simulator-ikpa/ikpa-engine";
-import { calculateUpTup } from "@simulator-ikpa/ikpa-engine";
-import { formatNumber, formatPercent, formatRupiah } from "@/lib/format";
+import { formatPercent, formatRupiah } from "@/lib/format";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import {
-	buildUpTupEngineInput,
 	calcGupPreview,
 	formatDateIndonesian,
-	UP_TUP_WEIGHT,
 	type UpTupAssumptions,
 } from "@/lib/simulation/up-tup-assumptions";
 
 interface Props {
 	value: UpTupAssumptions;
-	actualUpTupContrib: number | null;
+	actualUpTupContrib?: number | null;
 	onChange: (next: UpTupAssumptions) => void;
 	onReset: () => void;
 }
@@ -51,35 +47,11 @@ function num(v: string): number {
 
 export function UpTupAssumptionPanel({
 	value,
-	actualUpTupContrib,
 	onChange,
 	onReset,
 }: Props) {
 	const preview = useMemo(() => calcGupPreview(value), [value]);
 	const analysis = preview.analysis;
-
-	const engine = useMemo(() => {
-		try {
-			const input = buildUpTupEngineInput(value);
-			const month = Number(value.tanggalRencanaGUP.slice(5, 7)) || 5;
-			return calculateUpTup(
-				{ transactions: input.transactions as never, kkpTransactions: input.kkpTransactions as never },
-				{ kind: "month", value: Math.min(Math.max(month, 1), 12) } as never,
-				default2026RuleSet,
-			);
-		} catch {
-			return null;
-		}
-	}, [value]);
-
-	const engineScore = engine?.score ? Number(engine.score) : null;
-	const engineContrib = engine?.weightedContribution
-		? Number(engine.weightedContribution)
-		: null;
-	const delta =
-		engineContrib !== null && actualUpTupContrib !== null
-			? engineContrib - actualUpTupContrib
-			: null;
 
 	const set = (patch: Partial<UpTupAssumptions>) =>
 		onChange({ ...value, ...patch });
@@ -445,29 +417,6 @@ export function UpTupAssumptionPanel({
 				</div>
 			</details>
 
-			<div aria-live="polite" className="grid grid-cols-3 gap-2 rounded-xl bg-surface p-3 text-xs">
-				<div>
-					<p className="text-[10px] text-muted-foreground">Status</p>
-					<p className={preview.status === "Tepat Waktu" ? "font-semibold text-success" : "font-semibold text-danger"}>
-						{preview.status}
-					</p>
-					<p className="text-[10px] text-muted-foreground">Maks. {preview.tanggalMaksimal}</p>
-				</div>
-				<div>
-					<p className="text-[10px] text-muted-foreground">Nilai UP/TUP</p>
-					<p className="font-bold text-foreground">
-						{engineScore !== null ? formatNumber(engineScore) : "—"}
-					</p>
-					<p className="text-[10px] text-muted-foreground">Bobot {UP_TUP_WEIGHT}%</p>
-				</div>
-				<div>
-					<p className="text-[10px] text-muted-foreground">Dampak total</p>
-					<p className="font-bold text-primary">
-						{delta !== null ? `${delta >= 0 ? "+" : ""}${formatNumber(delta)}` : "—"}
-					</p>
-					<p className="text-[10px] text-muted-foreground">poin vs aktual</p>
-				</div>
-			</div>
 			<div className="rounded-xl border border-danger/30 bg-danger/5 p-3 text-xs">
 				<p className="font-semibold text-foreground">Catatan :</p>
 				<ol className="mt-1 list-decimal space-y-0.5 pl-5 text-foreground">

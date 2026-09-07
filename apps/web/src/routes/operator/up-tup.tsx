@@ -133,11 +133,6 @@ function UpTupPage() {
 		[actualEngine, currentMonth, hasKkp],
 	);
 
-	const planDelta =
-		score.score !== null && actualScore.score !== null
-			? score.score - actualScore.score
-			: null;
-
 	const reminders = useMemo(
 		() => buildGupReminders(data.upTupList),
 		[data.upTupList],
@@ -727,43 +722,22 @@ function UpTupPage() {
 					)}
 				</section>
 
-				{/* Panel Simulasi %GUP Disebulankan (Preserving Existing Format) */}
+				{/* Panel Simulasi %GUP Disebulankan */}
 				<section
 					aria-label="Simulasi %GUP Disebulankan"
-					className="space-y-4 rounded-2xl border border-yellow-300/80 bg-yellow-50/40 dark:bg-yellow-950/20 dark:border-yellow-800/60 p-4 sm:p-5 shadow-xs"
+					className="space-y-4 rounded-2xl border border-blue-200/80 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900/60 p-4 sm:p-5 shadow-xs"
 				>
-					<div className="flex flex-wrap items-center justify-between gap-3 border-b border-yellow-200 dark:border-yellow-900/60 pb-3">
+					<div className="flex flex-wrap items-center justify-between gap-3 border-b border-blue-200/80 dark:border-blue-900/60 pb-3">
 						<div>
 							<h2 className="text-sm font-bold text-foreground sm:text-base">
 								Simulasi %GUP Disebulankan · Interaktif
 							</h2>
 							<p className="text-xs text-muted-foreground">
-								Uji coba skenario pengajuan GUP (nominal, tanggal, frekuensi) dan porsi belanja KKP tanpa mengubah data aktual DB.
+								Uji coba skenario pengajuan GUP (nominal, tanggal, frekuensi) tanpa mengubah data aktual DB.
 							</p>
 						</div>
 
-						{assumptions ? (
-							<div className="flex items-center gap-2">
-								<div className="rounded-lg bg-background px-3 py-1 text-xs border border-border">
-									<span className="text-muted-foreground">Dampak Rencana: </span>
-									<strong
-										className={
-											(planDelta ?? 0) >= 0 ? "text-success" : "text-danger"
-										}
-									>
-										{(planDelta ?? 0) >= 0 ? "+" : ""}
-										{planDelta !== null ? formatNumber(planDelta) : "0,00"} poin
-									</strong>
-								</div>
-								<button
-									type="button"
-									onClick={() => setAssumptions(null)}
-									className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-surface-muted hover:text-foreground transition"
-								>
-									Reset Simulasi
-								</button>
-							</div>
-						) : (
+						{!assumptions && (
 							<button
 								type="button"
 								onClick={() =>
@@ -785,7 +759,7 @@ function UpTupPage() {
 							onReset={() => setAssumptions(null)}
 						/>
 					) : (
-						<div className="rounded-xl bg-background/60 p-4 text-xs text-muted-foreground border border-yellow-200/60 dark:border-yellow-900/40">
+						<div className="rounded-xl bg-background/60 p-4 text-xs text-muted-foreground border border-blue-200/60 dark:border-blue-900/40">
 							<p>
 								Tekan <strong>Mulai Simulasi Rencana</strong> untuk mengatur asumsi revolving GUP sisa tahun (nominal GUP, selisih hari SP2D, rasio perputaran) serta estimasi tambahan belanja KKP. Hasil nilai akan terproyeksi secara instan di atas data aktual.
 							</p>
