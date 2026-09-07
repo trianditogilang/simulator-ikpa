@@ -2,6 +2,40 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 156 - 2026-09-07
+**Time:** Start: 13:40 UTC | End: 13:48 UTC | Duration: ~8 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-UP-TUP-MODAL-GUP-SIMULATION] Simulasi dan Rekomendasi Real-Time pada Modal Input GUP (Pre-Save Guidance) serta Penghapusan 3 Tombol Header (`/operator/data/up-tup-kkp`):
+  1. **Penghapusan 3 Tombol Header Banner (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
+     - Menghapus tombol `Catat UP/TUP`, `Input KKP`, dan `Atur Plafon KKP` dari top header banner agar antarmuka lebih bersih dan tidak redundan dengan tombol aksi tabel.
+  2. **Micro-Simulation & Real-Time Pre-Save Guidance Modal GUP (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
+     - Mengubah panel informasi statis pada modal `DomainFormDrawer` transaksi UP/TUP khusus `Jenis Transaksi = GUP (Ganti UP / Revolving GUP)` menjadi simulasi dinamis real-time sesuai spesifikasi `Addendum-Modal-Input-GUP-Simulasi-Real-Time.md`.
+     - Tiga State Penanganan:
+       - **State A (Incomplete / Prompt)**: Panduan saat nominal/tanggal belum lengkap atau saat UP aktif belum tersedia.
+       - **State B (Invalid Date)**: Alert error inline jelas saat tanggal SP2D saat ini mendahului atau sama dengan tanggal SP2D referensi.
+       - **State C/D/E/F (Analisis & Rekomendasi Valid)**:
+         - Context header UP aktif Rp...
+         - 3 Metric Chips: Status Nominal (>= 50% UP), Status Waktu (Tepat Waktu / Terlambat X hari), GUP Disebulankan (% vs target 100%).
+         - Ringkasan penjelasan dinamis & saran tindakan terstruktur (mempertahankan tanggal vs mempertahankan nominal).
+         - Tombol Quick Action aman untuk mengisi nominal minimum/optimal atau tanggal target langsung ke dalam draft form tanpa auto-save.
+         - Collapsible accordion `<details>` Dasar Perhitungan.
+     - Mempertahankan tipe transaksi non-GUP (`UP`, `TUP`, `PTUP`, `GUP_NIHIL`, `SETORAN_TUP`) tanpa perubahan yang tidak semestinya.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/up-tup-kkp.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 147 unit tests passed 100% across all packages in monorepo.
+  - Typecheck: 0 error across all 7 workspace packages monorepo.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
 ### Session 155 - 2026-09-07
 **Time:** Start: 12:44 UTC | End: 12:47 UTC | Duration: ~3 minutes
 - Status: Completed

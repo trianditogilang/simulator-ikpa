@@ -1,14 +1,15 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
 	AlertCircle,
+	AlertTriangle,
 	Calendar,
 	CheckCircle2,
 	Coins,
 	CreditCard,
+	Info,
 	Layers,
+	Lightbulb,
 	Pencil,
-	Plus,
-	Settings,
 	ShieldCheck,
 	Trash2,
 	Wallet,
@@ -22,6 +23,10 @@ import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { formatDateDDMMYYYY, formatRupiah } from "@/lib/format";
+import {
+	analyzeGupPlan,
+	formatDateIndonesian,
+} from "@/lib/simulation/up-tup-assumptions";
 import { isThr2026FairnessApplied } from "@/lib/simulation/up-tup-workspace";
 import {
 	addUpTup,
@@ -102,6 +107,34 @@ function UpTupKkpPage() {
 		new Date().toISOString().slice(0, 10),
 	);
 	const [refSp2dDate, setRefSp2dDate] = useState("");
+
+	// Active UP amount from existing UP record
+	const activeUpAmount = useMemo(() => {
+		const upRecord = initialData.upTupList.find((r) => r.type === "UP");
+		return upRecord && Number(upRecord.amount) > 0 ? Number(upRecord.amount) : 0;
+	}, [initialData.upTupList]);
+
+	// Real-time pre-save GUP analysis on draft modal inputs
+	const gupAnalysis = useMemo(() => {
+		if (txType !== "GUP") return null;
+		if (!activeUpAmount || activeUpAmount <= 0) return null;
+		if (!txAmount || Number(txAmount) <= 0 || !refSp2dDate || !txSp2dDate) return null;
+		if (txSp2dDate <= refSp2dDate) return null;
+
+		return analyzeGupPlan({
+			nilaiUP: String(activeUpAmount),
+			nilaiRencanaGUP: txAmount,
+			tanggalGUPSebelumnya: refSp2dDate,
+			tanggalRencanaGUP: txSp2dDate,
+			tupTepat: 0,
+			tupTerlambat: 0,
+			ptupTepat: 0,
+			gupNihilCount: 0,
+			setoranTepat: 0,
+			kkpNominal: "0",
+			kkpTanggal: "",
+		});
+	}, [txType, activeUpAmount, txAmount, refSp2dDate, txSp2dDate]);
 
 	// KKP Form State
 	const [kkpMonth, setKkpMonth] = useState<number>(new Date().getMonth() + 1);
@@ -498,33 +531,6 @@ function UpTupKkpPage() {
 								Kelola penerbitan SP2D UP, TUP, revolving GUP, PTUP, Setoran TUP, serta realisasi KKP bulanan.
 							</p>
 						</div>
-					</div>
-
-					<div className="flex items-center gap-2">
-						<button
-							type="button"
-							onClick={handleOpenCreateUpTup}
-							className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
-						>
-							<Plus className="size-3.5" />
-							<span>Catat UP/TUP</span>
-						</button>
-						<button
-							type="button"
-							onClick={handleOpenCreateKkp}
-							className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground shadow-xs transition hover:bg-surface-muted"
-						>
-							<CreditCard className="size-3.5 text-primary" />
-							<span>Input KKP</span>
-						</button>
-						<button
-							type="button"
-							onClick={() => setActiveTab("kkp")}
-							className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground shadow-xs transition hover:bg-surface-muted"
-						>
-							<Settings className="size-3.5 text-muted-foreground" />
-							<span>Atur Plafon KKP</span>
-						</button>
 					</div>
 				</div>
 
@@ -948,11 +954,339 @@ function UpTupKkpPage() {
 						)}
 
 						{txType === "GUP" && (
-							<div className="rounded-lg border border-border bg-surface p-3 text-[11px] text-muted-foreground space-y-1">
-								<p className="font-semibold text-foreground">Informasi Komponen GUP:</p>
-								<p>
-									GUP revolving dievaluasi ketepatan waktunya (≤ 1 bulan) serta proporsinya terhadap UP awal dalam sebulan (%GUP Disebulankan).
-								</p>
+							<div aria-live="polite" className="space-y-3 pt-1">
+								{!activeUpAmount || activeUpAmount <= 0 ? (
+									<div className="rounded-xl border border-border/80 bg-surface p-3.5 text-xs text-muted-foreground space-y-1.5 shadow-2xs">
+										<div className="flex items-center gap-2 font-semibold text-foreground">
+											<Info className="size-4 text-primary shrink-0" />
+											<span>Informasi &amp; Simulasi GUP</span>
+										</div>
+										<p className="text-[11px] leading-relaxed">
+											Analisis GUP akan tersedia setelah nilai UP aktif untuk periode ini tersedia.
+										</p>
+									</div>
+								) : !txAmount || Number(txAmount) <= 0 || !refSp2dDate || !txSp2dDate ? (
+									<div className="rounded-xl border border-border/80 bg-surface p-3.5 text-xs text-muted-foreground space-y-1.5 shadow-2xs">
+										<div className="flex items-center justify-between">
+											<div className="flex items-center gap-2 font-semibold text-foreground">
+												<Info className="size-4 text-primary shrink-0" />
+												<span>Informasi &amp; Simulasi GUP</span>
+											</div>
+											<span className="text-[10px] font-semibold text-muted-foreground">
+												UP aktif: {formatRupiah(activeUpAmount)}
+											</span>
+										</div>
+										<p className="text-[11px] leading-relaxed">
+											Masukkan nominal GUP, tanggal SP2D referensi, dan tanggal SP2D saat ini untuk melihat simulasi ketepatan waktu serta GUP disebulankan secara real-time.
+										</p>
+									</div>
+								) : refSp2dDate && txSp2dDate && txSp2dDate <= refSp2dDate ? (
+									<div className="rounded-xl border border-danger/30 bg-danger/5 p-3.5 text-xs text-danger space-y-1.5 shadow-2xs">
+										<div className="flex items-center gap-2 font-semibold">
+											<AlertCircle className="size-4 shrink-0" />
+											<span>Tanggal SP2D Tidak Valid</span>
+										</div>
+										<p className="text-[11px] leading-relaxed">
+											Tanggal SP2D saat ini harus setelah tanggal SP2D referensi agar interval GUP dapat dihitung.
+										</p>
+									</div>
+								) : gupAnalysis && gupAnalysis.isValid ? (
+									<div className="rounded-xl border border-border/80 bg-surface p-3.5 sm:p-4 text-xs space-y-3 shadow-2xs">
+										{/* Header & Context */}
+										<div className="flex items-start justify-between gap-2 border-b border-border/50 pb-2.5">
+											<div className="flex items-start gap-2">
+												<div className="mt-0.5 shrink-0">
+													{gupAnalysis.submissionSeverity === "success" ? (
+														<CheckCircle2 className="size-4 text-success" />
+													) : gupAnalysis.submissionSeverity === "warning" ? (
+														<AlertTriangle className="size-4 text-amber-600 dark:text-amber-400" />
+													) : gupAnalysis.submissionSeverity === "danger" ? (
+														<AlertCircle className="size-4 text-danger" />
+													) : (
+														<Info className="size-4 text-muted-foreground" />
+													)}
+												</div>
+												<div>
+													<div className="flex items-center gap-2">
+														<span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+															Simulasi &amp; Saran GUP Real-Time
+														</span>
+													</div>
+													<h4 className="text-xs font-bold text-foreground sm:text-sm">
+														{gupAnalysis.title}
+													</h4>
+												</div>
+											</div>
+											<div className="text-right shrink-0">
+												<span className="block text-[10px] font-medium text-muted-foreground">
+													UP Aktif
+												</span>
+												<span className="text-[11px] font-bold text-foreground">
+													{formatRupiah(gupAnalysis.upAmount)}
+												</span>
+											</div>
+										</div>
+
+										{/* 3 Metric Chips */}
+										<div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+											{/* Status Nominal */}
+											<div className="rounded-lg border border-border/70 bg-background/80 p-2.5 space-y-1">
+												<span className="block text-[10px] font-semibold text-muted-foreground uppercase">
+													Status Nominal
+												</span>
+												<span
+													className={`inline-block rounded-md px-2 py-0.5 text-[10px] font-bold border ${
+														gupAnalysis.isMinimumAmountMet
+															? "bg-success/10 text-success border-success/30"
+															: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+													}`}
+												>
+													{gupAnalysis.isMinimumAmountMet
+														? "Memenuhi Minimum"
+														: "Di Bawah Minimum"}
+												</span>
+												<p className="text-[10px] text-muted-foreground">
+													{gupAnalysis.rawGupPercent.toFixed(1)}% UP (min.{" "}
+													{gupAnalysis.minGupRatioPercent}%)
+												</p>
+											</div>
+
+											{/* Status Waktu */}
+											<div className="rounded-lg border border-border/70 bg-background/80 p-2.5 space-y-1">
+												<span className="block text-[10px] font-semibold text-muted-foreground uppercase">
+													Status Waktu
+												</span>
+												<p
+													className={`text-xs font-bold ${
+														gupAnalysis.isOnTime ? "text-success" : "text-danger"
+													}`}
+												>
+													{gupAnalysis.isOnTime
+														? "Tepat Waktu"
+														: `Terlambat (${gupAnalysis.lateDays} hari)`}
+												</p>
+												<p
+													className="text-[10px] text-muted-foreground truncate"
+													title={formatDateIndonesian(
+														gupAnalysis.latestOnTimeDate,
+													)}
+												>
+													Batas: {formatDateIndonesian(gupAnalysis.latestOnTimeDate)}
+												</p>
+											</div>
+
+											{/* Kualitas GUP Disebulankan */}
+											<div className="rounded-lg border border-border/70 bg-background/80 p-2.5 space-y-1">
+												<span className="block text-[10px] font-semibold text-muted-foreground uppercase">
+													GUP Disebulankan
+												</span>
+												<p
+													className={`text-xs font-bold ${
+														gupAnalysis.isProportional
+															? "text-success"
+															: "text-amber-600 dark:text-amber-400"
+													}`}
+												>
+													{gupAnalysis.annualizedGupPercent.toFixed(1)}%
+													<span className="text-[10px] font-normal text-muted-foreground">
+														{" "}
+														/ 100%
+													</span>
+												</p>
+												<p className="text-[10px] text-muted-foreground">
+													{gupAnalysis.isProportional
+														? "Memenuhi target optimal"
+														: "Belum optimal (100%)"}
+												</p>
+											</div>
+										</div>
+
+										{/* Summary Explanation */}
+										<p className="text-xs text-foreground leading-relaxed">
+											{gupAnalysis.summaryExplanation}
+										</p>
+
+										{/* Actionable Suggestions & Quick Actions */}
+										{gupAnalysis.actions.length > 0 && (
+											<div className="space-y-2 pt-0.5">
+												<div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+													<Lightbulb className="size-3.5 text-amber-500 shrink-0" />
+													<span>Saran Tindakan:</span>
+												</div>
+												<div className="space-y-1.5">
+													{gupAnalysis.actions.map((action, idx) => (
+														<div
+															key={idx}
+															className="rounded-lg border border-border/70 bg-background/90 p-2.5 text-xs space-y-0.5"
+														>
+															<p className="font-semibold text-foreground">
+																• {action.label}
+															</p>
+															<p className="text-[11px] text-muted-foreground leading-relaxed">
+																{action.description}
+															</p>
+														</div>
+													))}
+												</div>
+
+												{/* Quick Action Buttons */}
+												<div className="flex flex-wrap items-center gap-2 pt-1">
+													{!gupAnalysis.isMinimumAmountMet &&
+														gupAnalysis.minGupAmount > 0 && (
+															<button
+																type="button"
+																onClick={() =>
+																	setTxAmount(String(gupAnalysis.minGupAmount))
+																}
+																className="inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/20 transition"
+															>
+																<span>
+																	Gunakan Min.{" "}
+																	{formatRupiah(gupAnalysis.minGupAmount)}
+																</span>
+															</button>
+														)}
+
+													{gupAnalysis.isMinimumAmountMet &&
+														!gupAnalysis.isProportional &&
+														gupAnalysis.isOnTime &&
+														gupAnalysis.minimumAmountForOptimalAtPlannedDate >
+															Number(txAmount) && (
+															<button
+																type="button"
+																onClick={() =>
+																	setTxAmount(
+																		String(
+																			gupAnalysis.minimumAmountForOptimalAtPlannedDate,
+																		),
+																	)
+																}
+																className="inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/20 transition"
+															>
+																<span>
+																	Gunakan{" "}
+																	{formatRupiah(
+																		gupAnalysis.minimumAmountForOptimalAtPlannedDate,
+																	)}
+																</span>
+															</button>
+														)}
+
+													{gupAnalysis.isMinimumAmountMet &&
+														!gupAnalysis.isProportional &&
+														gupAnalysis.latestOptimalDateForCurrentAmount &&
+														gupAnalysis.latestOptimalDateForCurrentAmount !==
+															txSp2dDate && (
+															<button
+																type="button"
+																onClick={() =>
+																	setTxSp2dDate(
+																		gupAnalysis.latestOptimalDateForCurrentAmount!,
+																	)
+																}
+																className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-[11px] font-semibold text-foreground hover:bg-surface-muted transition"
+															>
+																<span>
+																	Pakai Tanggal{" "}
+																	{formatDateIndonesian(
+																		gupAnalysis.latestOptimalDateForCurrentAmount,
+																	)}
+																</span>
+															</button>
+														)}
+
+													{!gupAnalysis.isOnTime &&
+														gupAnalysis.latestOnTimeDate &&
+														gupAnalysis.latestOnTimeDate !== "—" && (
+															<button
+																type="button"
+																onClick={() =>
+																	setTxSp2dDate(gupAnalysis.latestOnTimeDate)
+																}
+																className="inline-flex items-center gap-1 rounded-lg border border-danger/30 bg-danger/10 px-2.5 py-1 text-[11px] font-semibold text-danger hover:bg-danger/20 transition"
+															>
+																<span>
+																	Pakai Batas{" "}
+																	{formatDateIndonesian(
+																		gupAnalysis.latestOnTimeDate,
+																	)}
+																</span>
+															</button>
+														)}
+												</div>
+											</div>
+										)}
+
+										{/* Notes */}
+										{gupAnalysis.notes.length > 0 && (
+											<div className="rounded-lg border border-border/60 bg-surface-muted/50 p-2.5 text-[11px] text-muted-foreground space-y-1">
+												{gupAnalysis.notes.map((note, idx) => (
+													<p key={idx} className="leading-relaxed">
+														• {note}
+													</p>
+												))}
+											</div>
+										)}
+
+										{/* Dasar Perhitungan Collapsible */}
+										<details className="group rounded-lg border border-border/60 bg-background/50 p-2.5 text-xs">
+											<summary className="cursor-pointer font-semibold text-foreground list-none flex items-center justify-between hover:text-primary transition">
+												<span>Dasar Perhitungan</span>
+												<span className="text-[10px] font-normal text-muted-foreground group-open:rotate-180 transition-transform">
+													▾
+												</span>
+											</summary>
+											<div className="mt-2.5 pt-2 border-t border-border/40 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+												<div>
+													<span className="text-muted-foreground">Nilai UP Aktif: </span>
+													<strong className="text-foreground">
+														{formatRupiah(gupAnalysis.upAmount)}
+													</strong>
+												</div>
+												<div>
+													<span className="text-muted-foreground">Nominal GUP: </span>
+													<strong className="text-foreground">
+														{formatRupiah(gupAnalysis.plannedGupAmount)} (
+														{gupAnalysis.rawGupPercent.toFixed(1)}% UP)
+													</strong>
+												</div>
+												<div>
+													<span className="text-muted-foreground">SP2D Sebelumnya: </span>
+													<strong className="text-foreground">
+														{formatDateIndonesian(gupAnalysis.previousSp2dDate)}
+													</strong>
+												</div>
+												<div>
+													<span className="text-muted-foreground">Rencana SP2D: </span>
+													<strong className="text-foreground">
+														{formatDateIndonesian(gupAnalysis.plannedSp2dDate)}
+													</strong>
+												</div>
+												<div>
+													<span className="text-muted-foreground">Interval Antar-SP2D: </span>
+													<strong className="text-foreground">
+														{gupAnalysis.intervalDays} hari kalender
+													</strong>
+												</div>
+												<div>
+													<span className="text-muted-foreground">Hari Bulan Referensi: </span>
+													<strong className="text-foreground">
+														{gupAnalysis.referenceMonthDays} hari (
+														{gupAnalysis.referenceMonthName})
+													</strong>
+												</div>
+												<div className="sm:col-span-2">
+													<span className="text-muted-foreground">Rumus GUP Disebulankan: </span>
+													<code className="rounded bg-surface-muted px-1.5 py-0.5 text-[10px] font-mono text-foreground">
+														{gupAnalysis.rawGupPercent.toFixed(2)}% × (
+														{gupAnalysis.referenceMonthDays} / {gupAnalysis.intervalDays}) ={" "}
+														{gupAnalysis.annualizedGupPercent.toFixed(2)}%
+													</code>
+												</div>
+											</div>
+										</details>
+									</div>
+								) : null}
 							</div>
 						)}
 
