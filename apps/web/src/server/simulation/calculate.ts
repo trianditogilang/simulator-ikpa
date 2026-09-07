@@ -3,6 +3,8 @@ import { assertOperatorOrgScope } from "@simulator-ikpa/access-control";
 import type { AccessResolution } from "@simulator-ikpa/contracts";
 import type { DbClient } from "@simulator-ikpa/db";
 import {
+	assessmentExclusionPolicies,
+	assessmentExclusionProposals,
 	budgets,
 	contracts,
 	dipaRevisions,
@@ -21,8 +23,14 @@ import {
 	workdays,
 } from "@simulator-ikpa/db/schema";
 import type { EngineInput } from "@simulator-ikpa/ikpa-engine";
-import { calculateIkpa, parseRuleSet } from "@simulator-ikpa/ikpa-engine";
+import {
+	calculateFifthWorkingDayOfNextMonth,
+	calculateIkpa,
+	parseRuleSet,
+} from "@simulator-ikpa/ikpa-engine";
 import { and, eq, isNull } from "drizzle-orm";
+import { resolveOutputAssessmentEligibility } from "../policy/fairness-resolver";
+
 
 export interface UpTupAssumptionInput {
 	nilaiUP: string;
@@ -100,7 +108,10 @@ export async function calculateAndPersistSnapshot(
 		outputRows,
 		spmQ4Rows,
 		workdayRows,
+		policyRows,
+		proposalRows,
 	] = await Promise.all([
+
 		db
 			.select()
 			.from(rpdLines)
@@ -166,7 +177,29 @@ export async function calculateAndPersistSnapshot(
 			.from(spmQ4)
 			.where(and(eq(spmQ4.fiscalYearId, fy.id), isNull(spmQ4.deletedAt))),
 		db.select().from(workdays).where(eq(workdays.year, fy.year)),
+		db
+			.select()
+			.from(assessmentExclusionPolicies)
+			.where(
+				and(
+					eq(assessmentExclusionPolicies.status, "published"),
+					eq(assessmentExclusionPolicies.indicatorKey, "output_achievement"),
+				),
+			)
+			.catch(() => []),
+		db
+			.select()
+			.from(assessmentExclusionProposals)
+			.where(
+				and(
+					eq(assessmentExclusionProposals.organizationId, orgId),
+					eq(assessmentExclusionProposals.fiscalYearId, fy.id),
+				),
+			)
+			.catch(() => []),
 	]);
+
+
 
 	// Build EngineInput (ponytail: minimal mapping, missing fields default to 0/empty; engine handles incomplete)
 	const holidays = workdayRows
@@ -417,18 +450,42 @@ export async function calculateAndPersistSnapshot(
 			kkpTransactions: baseKkp,
 		},
 		outputAchievement: {
-			reports: outputRows.map((o) => ({
-				id: o.id,
-				period: o.month,
-				target: o.volumeDipa as string,
-				realized: o.rvro as string,
-				reportedDate: (o.reportedAt
-					? new Date(o.reportedAt).toISOString().slice(0, 10)
-					: `${fy.year}-${String(o.month).padStart(2, "0")}-05`) as string,
-				deadlineDate:
-					`${fy.year}-${String(o.month).padStart(2, "0")}-05` as string,
-			})),
+			reports: outputRows.map((o) => {
+				const eligibility = resolveOutputAssessmentEligibility({
+					roCode: o.roCode,
+					periodMonth: o.month,
+					year: fy.year,
+					organizationId: orgId,
+					publishedPolicies: policyRows as never,
+					operatorProposals: proposalRows as never,
+				});
+				const deadline = calculateFifthWorkingDayOfNextMonth(fy.year, o.month, {
+					holidays,
+					workdays: workdayOverrides,
+				});
+				return {
+					id: o.id,
+					roCode: o.roCode,
+					month: o.month,
+					period: o.month,
+					rvro: o.rvro as string,
+					volumeDipa: o.volumeDipa as string,
+					pcro: o.pcro as string,
+					tpcro: o.tpcro as string,
+					target: o.volumeDipa as string,
+					realized: o.rvro as string,
+					reportedDate: o.reportedAt
+						? new Date(o.reportedAt).toISOString().slice(0, 10)
+						: null,
+					deadlineDate: deadline,
+					confirmed: o.confirmed ?? false,
+					isExcluded: eligibility.assessmentStatus === "excluded",
+					exclusionReason: eligibility.exclusionReason ?? undefined,
+				};
+			}),
 		},
+
+
 		spmDispensation: (() => {
 			if (useDisp && assumptionDisp) {
 				const disp = Math.max(0, Math.floor(assumptionDisp.dispensationCount));

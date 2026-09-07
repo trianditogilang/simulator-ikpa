@@ -9,6 +9,7 @@ export interface DomainFormDrawerProps extends ComponentProps<"div"> {
 	onClose: () => void;
 	onSubmit: () => void;
 	isSubmitting?: boolean;
+	isSubmitDisabled?: boolean;
 }
 
 export function DomainFormDrawer({
@@ -19,6 +20,7 @@ export function DomainFormDrawer({
 	onClose,
 	onSubmit,
 	isSubmitting,
+	isSubmitDisabled,
 	className,
 	...props
 }: DomainFormDrawerProps) {
@@ -66,8 +68,8 @@ export function DomainFormDrawer({
 					<button
 						type="button"
 						onClick={onSubmit}
-						disabled={isSubmitting}
-						className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary-hover disabled:opacity-50"
+						disabled={isSubmitting || isSubmitDisabled}
+						className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{isSubmitting ? "Menyimpan..." : "Simpan Data"}
 					</button>

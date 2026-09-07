@@ -19,6 +19,7 @@ export const outputReports = pgTable(
 			.references(() => fiscalYears.id, { onDelete: "cascade" })
 			.notNull(),
 		roCode: text("ro_code").notNull(),
+		roName: text("ro_name"),
 		month: smallint("month").notNull(),
 		rvro: numeric("rvro", { precision: 18, scale: 4 }).notNull(),
 		volumeDipa: numeric("volume_dipa", { precision: 18, scale: 4 }).notNull(),
@@ -26,6 +27,10 @@ export const outputReports = pgTable(
 		tpcro: numeric("tpcro", { precision: 8, scale: 4 }).notNull(),
 		reportedAt: timestamp("reported_at", { withTimezone: true }),
 		confirmed: boolean("confirmed").default(false).notNull(),
+		confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+		confirmedBy: uuid("confirmed_by").references(() => users.id, {
+			onDelete: "set null",
+		}),
 		createdBy: uuid("created_by").references(() => users.id, {
 			onDelete: "set null",
 		}),

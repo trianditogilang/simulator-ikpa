@@ -36,6 +36,7 @@ import { Route as OperatorUpTupRouteImport } from './routes/operator/up-tup'
 import { Route as AdminKppnMonitoringRemindersRouteImport } from './routes/admin-kppn/monitoring/reminders'
 import { Route as AdminKppnOrganizationsIndexRouteImport } from './routes/admin-kppn/organizations/index'
 import { Route as AdminKppnOrganizationsOrgIdRouteImport } from './routes/admin-kppn/organizations/$orgId'
+import { Route as AdminKppnPolicyFairnessRouteImport } from './routes/admin-kppn/policy/fairness'
 import { Route as AdminKppnPolicyHistoryRouteImport } from './routes/admin-kppn/policy/history'
 import { Route as AdminKppnPolicyRemindersRouteImport } from './routes/admin-kppn/policy/reminders'
 import { Route as AdminKppnPolicyWorkdaysRouteImport } from './routes/admin-kppn/policy/workdays'
@@ -189,6 +190,11 @@ const AdminKppnOrganizationsOrgIdRoute =
     path: '/organizations/$orgId',
     getParentRoute: () => AdminKppnRouteRoute,
   } as any)
+const AdminKppnPolicyFairnessRoute = AdminKppnPolicyFairnessRouteImport.update({
+  id: '/policy/fairness',
+  path: '/policy/fairness',
+  getParentRoute: () => AdminKppnRouteRoute,
+} as any)
 const AdminKppnPolicyHistoryRoute = AdminKppnPolicyHistoryRouteImport.update({
   id: '/policy/history',
   path: '/policy/history',
@@ -295,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/operator/up-tup': typeof OperatorUpTupRoute
   '/admin-kppn/monitoring/reminders': typeof AdminKppnMonitoringRemindersRoute
   '/admin-kppn/organizations/$orgId': typeof AdminKppnOrganizationsOrgIdRoute
+  '/admin-kppn/policy/fairness': typeof AdminKppnPolicyFairnessRoute
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
   '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
   '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
@@ -338,6 +345,7 @@ export interface FileRoutesByTo {
   '/operator/up-tup': typeof OperatorUpTupRoute
   '/admin-kppn/monitoring/reminders': typeof AdminKppnMonitoringRemindersRoute
   '/admin-kppn/organizations/$orgId': typeof AdminKppnOrganizationsOrgIdRoute
+  '/admin-kppn/policy/fairness': typeof AdminKppnPolicyFairnessRoute
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
   '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
   '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
@@ -382,6 +390,7 @@ export interface FileRoutesById {
   '/operator/up-tup': typeof OperatorUpTupRoute
   '/admin-kppn/monitoring/reminders': typeof AdminKppnMonitoringRemindersRoute
   '/admin-kppn/organizations/$orgId': typeof AdminKppnOrganizationsOrgIdRoute
+  '/admin-kppn/policy/fairness': typeof AdminKppnPolicyFairnessRoute
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
   '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
   '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
@@ -427,6 +436,7 @@ export interface FileRouteTypes {
     | '/operator/up-tup'
     | '/admin-kppn/monitoring/reminders'
     | '/admin-kppn/organizations/$orgId'
+    | '/admin-kppn/policy/fairness'
     | '/admin-kppn/policy/history'
     | '/admin-kppn/policy/reminders'
     | '/admin-kppn/policy/workdays'
@@ -470,6 +480,7 @@ export interface FileRouteTypes {
     | '/operator/up-tup'
     | '/admin-kppn/monitoring/reminders'
     | '/admin-kppn/organizations/$orgId'
+    | '/admin-kppn/policy/fairness'
     | '/admin-kppn/policy/history'
     | '/admin-kppn/policy/reminders'
     | '/admin-kppn/policy/workdays'
@@ -513,6 +524,7 @@ export interface FileRouteTypes {
     | '/operator/up-tup'
     | '/admin-kppn/monitoring/reminders'
     | '/admin-kppn/organizations/$orgId'
+    | '/admin-kppn/policy/fairness'
     | '/admin-kppn/policy/history'
     | '/admin-kppn/policy/reminders'
     | '/admin-kppn/policy/workdays'
@@ -735,6 +747,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminKppnOrganizationsOrgIdRouteImport
       parentRoute: typeof AdminKppnRouteRoute
     }
+    '/admin-kppn/policy/fairness': {
+      id: '/admin-kppn/policy/fairness'
+      path: '/policy/fairness'
+      fullPath: '/admin-kppn/policy/fairness'
+      preLoaderRoute: typeof AdminKppnPolicyFairnessRouteImport
+      parentRoute: typeof AdminKppnRouteRoute
+    }
     '/admin-kppn/policy/history': {
       id: '/admin-kppn/policy/history'
       path: '/policy/history'
@@ -843,6 +862,7 @@ interface AdminKppnRouteRouteChildren {
   AdminKppnReportsRoute: typeof AdminKppnReportsRoute
   AdminKppnMonitoringRemindersRoute: typeof AdminKppnMonitoringRemindersRoute
   AdminKppnOrganizationsOrgIdRoute: typeof AdminKppnOrganizationsOrgIdRoute
+  AdminKppnPolicyFairnessRoute: typeof AdminKppnPolicyFairnessRoute
   AdminKppnPolicyHistoryRoute: typeof AdminKppnPolicyHistoryRoute
   AdminKppnPolicyRemindersRoute: typeof AdminKppnPolicyRemindersRoute
   AdminKppnPolicyWorkdaysRoute: typeof AdminKppnPolicyWorkdaysRoute
@@ -858,6 +878,7 @@ const AdminKppnRouteRouteChildren: AdminKppnRouteRouteChildren = {
   AdminKppnReportsRoute: AdminKppnReportsRoute,
   AdminKppnMonitoringRemindersRoute: AdminKppnMonitoringRemindersRoute,
   AdminKppnOrganizationsOrgIdRoute: AdminKppnOrganizationsOrgIdRoute,
+  AdminKppnPolicyFairnessRoute: AdminKppnPolicyFairnessRoute,
   AdminKppnPolicyHistoryRoute: AdminKppnPolicyHistoryRoute,
   AdminKppnPolicyRemindersRoute: AdminKppnPolicyRemindersRoute,
   AdminKppnPolicyWorkdaysRoute: AdminKppnPolicyWorkdaysRoute,

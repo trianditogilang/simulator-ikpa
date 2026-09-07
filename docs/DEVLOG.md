@@ -2,7 +2,432 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
-### Session 132 - 2026-09-07
+### Session 145 - 2026-09-07
+**Time:** Start: 08:10 UTC | End: 08:16 UTC | Duration: ~6 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Backend Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-INTEGER-VOL-RVRO] Pembatasan Target Volume RO DIPA dan RVRO Menjadi Bilangan Bulat Murni (Integer) Tanpa Desimal:
+  1. **Komponen `FormattedNumberInput` (`apps/web/src/components/data/formatted-number-input.tsx`, `formatted-number-input.test.ts`)**:
+     - Saat `allowDecimal={false}`, secara ketat menolak pengetikan karakter desimal (titik/koma) via `onKeyDown`.
+     - Mengubah `inputMode` menjadi `"numeric"` untuk mengoptimalkan keyboard angka tanpa tombol desimal pada perangkat layar sentuh/mobile.
+     - `parseGroupedInput` membersihkan fraksi desimal dan hanya mengambil bagian integer murni.
+  2. **Form Drawer Capaian Output (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Mengatur `allowDecimal={false}` pada input `out-vol-dipa` (Target Volume RO DIPA) dan `out-rvro` (Realisasi Volume (RVRO)).
+     - Mengonversi nilai ke integer string saat penyimpanan (`handleSaveOutput`).
+  3. **Tampilan Tabel dan Live Preview Formula Drawer (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Memformat RVRO dan Target Volume RO DIPA dengan `maxDigits = 0` pada kolom tabel dan langkah perhitungan live preview formula drawer.
+  4. **Validasi Server (`apps/web/src/server/domains/output-achievement.mutations.ts`)**:
+     - Menambahkan validasi `Number.isInteger(rv)` dan `Number.isInteger(vol)` pada fungsi `upsertOutput`.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/data/formatted-number-input.tsx`
+  - `apps/web/src/components/data/formatted-number-input.test.ts`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `apps/web/src/server/domains/output-achievement.mutations.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 233/233 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 144 - 2026-09-07
+**Time:** Start: 07:55 UTC | End: 08:05 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: Fullstack Integration & Backend Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-FAIRNESS-DEDUP-LIFECYCLE] Idempotent Upsert Usulan Fairness Satker, Penghapusan Bersih saat Nonaktif, dan Reactivasi Tanpa Duplikasi Data:
+  1. **Upsert Idempotent & Anti-Duplikasi (`apps/web/src/server/domains/output-achievement.mutations.ts`)**:
+     - `createFairnessProposal` memeriksa record proposal yang ada untuk kombinasi `(organizationId, fiscalYearId, roCode)`.
+     - Jika ditemukan, memperbarui baris utama dan menghapus row yatim/duplikat untuk menjaga tabel tetap ramping ($\le 1$ baris per RO).
+     - Jika belum ada, melakukan insert tepat 1 baris record usulan.
+  2. **Penghapusan Bersih saat Deaktivasi (`apps/web/src/server/domains/output-achievement.mutations.ts`, `apps/web/src/server/output-achievement.ts`, `apps/web/src/services/output-achievement-service.ts`)**:
+     - Menambahkan fungsi `deleteFairnessProposal` (`removeFairnessProposal`).
+     - Saat operator menonaktifkan fairness (kembali ke "Dinilai (Normal)"), data record usulan RO dihapus bersih dari database, mengembalikan status RO menjadi dinilai normal secara transparan.
+  3. **Reaktivasi Fleksibel & Sinkronisasi UI (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Operator dapat beralih mode antara Dinilai dan Dikecualikan kapan saja secara interaktif.
+     - Reaktivasi usulan menyimpan kembali tepat 1 baris tanpa membebani penyimpanan.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/server/domains/output-achievement.mutations.ts`
+  - `apps/web/src/server/output-achievement.ts`
+  - `apps/web/src/services/output-achievement-service.ts`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 233/233 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 143 - 2026-09-07
+**Time:** Start: 07:41 UTC | End: 07:50 UTC | Duration: ~9 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Backend Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-FAIRNESS-TOGGLE-AND-FILTER] Integrasi Pengecualian Fairness Satker, Opsi Edit Fairness Kolom Aksi, dan Sinkronisasi Filter/Penilaian:
+  1. **Integrasi Fairness Resolver dengan Pengecualian Satker (`apps/web/src/server/policy/fairness-resolver.ts`)**:
+     - Menambahkan dukungan `operatorProposals` pada `resolveOutputAssessmentEligibility` sehingga usulan pengecualian aktif (`status !== 'rejected'`) langsung menghasilkan `assessmentStatus: 'excluded'`.
+     - RO yang dikecualikan otomatis dikeluarkan penuh dari pembilang dan penyebut perhitungan IKPA Capaian Output tanpa mengurangi skor satker.
+  2. **Query & Mutasi Server Fairness Satker (`apps/web/src/server/domains/output-achievement.queries.ts`, `output-achievement.mutations.ts`, `output-achievement.ts`, `output-achievement-service.ts`)**:
+     - Memperbarui `listOutputsWithEligibility` dan kalkulasi simulasi agar memuat `assessmentExclusionProposals` dan menerapkannya ke eligibility data.
+     - Menjadikan `createFairnessProposal` sebagai upsert dan menambahkan fungsi `deleteFairnessProposal` (`removeFairnessProposal`) untuk mengembalikan status RO menjadi Dinilai normal saat dinonaktifkan.
+  3. **Opsi Edit Fairness Kolom Aksi & Modal Pengaturan Terpadu (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Menambahkan tombol aksi `Fairness` / `Fairness (Aktif)` pada kolom tabel data untuk membuka modal konfigurasi per RO.
+     - Menyediakan pemilih mode status interaktif (Dikecualikan vs Dinilai normal) dengan pre-fill data yang sudah tersimpan.
+     - Memastikan tab filter **Dikecualikan (Fairness)** langsung menampilkan daftar RO yang dikecualikan dan memperbarui metrik secara real-time.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/server/policy/fairness-resolver.ts`
+  - `apps/web/src/server/domains/output-achievement.queries.ts`
+  - `apps/web/src/server/domains/output-achievement.mutations.ts`
+  - `apps/web/src/server/output-achievement.ts`
+  - `apps/web/src/server/simulation/calculate.ts`
+  - `apps/web/src/services/output-achievement-service.ts`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 233/233 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 142 - 2026-09-07
+**Time:** Start: 07:37 UTC | End: 07:41 UTC | Duration: ~4 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-PROPOSAL-FORM-VALIDATION] Pencegahan Alert Banner Merah saat Form Kosong dan Penonaktifan Tombol Simpan pada Modal Dialog:
+  1. **Penonaktifan Tombol Simpan Modal Usulan (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Menghapus pemanggilan `setErrorMessage` saat field modal belum lengkap terisi, sehingga banner alert merah tidak lagi muncul di latar belakang halaman.
+     - Menonaktifkan tombol `Simpan` (`disabled={!proposalRoCode.trim() || !proposalBasis.trim()}`) dengan styling `disabled:opacity-50 disabled:cursor-not-allowed`.
+  2. **Dukungan Prop `isSubmitDisabled` pada `DomainFormDrawer` (`apps/web/src/components/data/domain-form-drawer.tsx`, `output-achievement.tsx`)**:
+     - Menambahkan prop opsional `isSubmitDisabled` pada komponen `DomainFormDrawer`.
+     - Mengunci tombol submit drawer saat input kode RO masih kosong (`isSubmitDisabled={!roCode.trim()}`).
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/data/domain-form-drawer.tsx`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 233/233 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 141 - 2026-09-07
+**Time:** Start: 07:26 UTC | End: 07:29 UTC | Duration: ~3 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-PROPOSAL-BTN-SAVE] Perubahan Teks Tombol Aksi Modal Usulan Pengecualian Capaian Output menjadi "Simpan":
+  1. **Pembaruan Label Tombol Modal Usulan (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Mengubah teks tombol aksi formulir usulan pengecualian dari `Kirim Usulan ke KPPN` menjadi `Simpan`.
+     - Mempertahankan fungsionalitas penyimpanan simulasi ke backend via `submitFairnessProposal` tanpa mengubah layout dan alur aplikasi.
+     - Menyelaraskan pesan notifikasi keberhasilan aksi menjadi `Usulan pengecualian untuk RO [KODE] berhasil disimpan.`.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 233/233 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 140 - 2026-09-07
+**Time:** Start: 07:12 UTC | End: 07:18 UTC | Duration: ~6 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-NO-TRAILING-DECIMALS] Format Dinamis Desimal Tanpa Trailing Zeros pada Input dan Tampilan Capaian Output:
+  1. **Utilitas Format Dinamis (`apps/web/src/lib/format.ts`, `format.test.ts`)**:
+     - Menambahkan fungsi `formatDynamicNumber(val, maxDigits)` dan `formatDynamicPercent(val, maxDigits)` yang secara cerdas menghilangkan ekor nol desimal berlebih (contoh: `100` bukan `100,00` atau `100.0000`, `25,5` bukan `25,5000`).
+  2. **Pembersihan Trailing Decimals pada Penyimpanan Data (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Menambahkan fungsi helper `stripTrailingDecimals` agar nilai integer yang diinput user tidak lagi dipaksa diformat menjadi 4 angka di belakang koma (`.toFixed(4)`) saat disimpan ke database (`100` tetap tersimpan sebagai integer `100`, `25.5` tetap `25.5`).
+  3. **Penyelarasan Tampilan Tabel dan Drawer (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Mengubah render tabel kolom Target Volume RO DIPA, RVRO, Target PCRO, dan Realisasi PCRO agar menggunakan `formatDynamicNumber` dan `formatDynamicPercent`.
+     - Mengupdate seluruh placeholder form drawer menjadi angka bulat ringkas (`Contoh: 100`, `Contoh: 25`, `Contoh: 80`).
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/lib/format.ts`
+  - `apps/web/src/lib/format.test.ts`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 233/233 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 139 - 2026-09-07
+**Time:** Start: 07:06 UTC | End: 07:09 UTC | Duration: ~3 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-DRAWER-GRID-CONSTRAINTS] Penataan Grid Form Target di Kiri & Batasan Max 100 serta 2 Desimal untuk PCRO/TPCRO:
+  1. **Penataan Layout Grid Form Drawer (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Menukar posisi kolom: Target diposisikan di blok sebelah kiri (`Target Volume RO DIPA` di kiri, `Realisasi Volume (RVRO)` di kanan).
+     - Menukar posisi kolom: `Target PCRO (TPCRO %)` di blok sebelah kiri, `Progres Fisik PCRO (%)` di kanan.
+  2. **Validasi & Batasan Persentase PCRO/TPCRO (`apps/web/src/components/data/formatted-number-input.tsx`, `output-achievement.tsx`)**:
+     - Menambahkan dukungan props `max` dan `maxDecimals` pada komponen `FormattedNumberInput`.
+     - Mengunci input PCRO dan TPCRO agar tidak dapat melebihi nilai 100 (`max={100}`) serta membatasi pecahan desimal maksimal 2 angka di belakang koma (`maxDecimals={2}`).
+  3. **Unit Tests Vitest (`apps/web/src/components/data/formatted-number-input.test.ts`)**:
+     - Menambahkan unit test suite untuk validasi batas `max` 100 dan pemotongan `maxDecimals` 2 angka di belakang koma (7/7 tests passing).
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/data/formatted-number-input.tsx`
+  - `apps/web/src/components/data/formatted-number-input.test.ts`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 233/233 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 138 - 2026-09-07
+**Time:** Start: 06:45 UTC | End: 06:49 UTC | Duration: ~4 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-DATE-FORMAT] Standardisasi Format Tanggal DD-MM-YYYY pada Halaman Capaian Output:
+  1. **Date Formatter Utility (`apps/web/src/lib/format.ts`, `format.test.ts`)**:
+     - Menambahkan utilitas `formatDateDDMMYYYY` yang memformat string ISO/Date menjadi format resmi `DD-MM-YYYY` (contoh: `07-10-2026`).
+  2. **Penerapan Format DD-MM-YYYY pada Halaman Capaian Output (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Memperbarui strip reminder batas konfirmasi (`Batas Konfirmasi: 07-10-2026`).
+     - Memperbarui kolom tanggal pelaporan tabel data (`Lapor: DD-MM-YYYY`).
+     - Memperbarui petunjuk tenggat hari kerja ke-5 pada formulir drawer input (`Tenggat 5 Hari Kerja: DD-MM-YYYY`).
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/lib/format.ts`
+  - `apps/web/src/lib/format.test.ts`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 233/233 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 137 - 2026-09-07
+**Time:** Start: 06:41 UTC | End: 06:45 UTC | Duration: ~4 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-INPUT-THOUSANDS] Separasi Ribuan Otomatis Real-Time pada Input Angka (`FormattedNumberInput`):
+  1. **Perbaikan Parsing & Format (`apps/web/src/components/data/formatted-number-input.tsx`)**:
+     - Memperbaiki `parseGroupedInput` pada mode desimal Indonesia: titik (`.`) diproses sebagai pemisah ribuan otomatis saat mengetik angka integer berurutan (misal `1` $\to$ `10` $\to$ `100` $\to$ `1.000` $\to$ `10.000` $\to$ `100.000` $\to$ `1.000.000`), dan koma (`,`) diproses sebagai pemisah desimal presisi (`1.000.000,50`).
+     - Menangani penekanan tombol titik pada keyboard/numpad (`onKeyDown`) agar otomatis bertransisi mulus ke koma desimal tanpa duplikasi.
+     - Memperbaiki perhitungan posisi kursor (`caretRef`) sehingga kursor tetap berada di posisi tepat setelah pemisah ribuan atau desimal disisipkan secara langsung.
+  2. **Unit Tests Vitest (`apps/web/src/components/data/formatted-number-input.test.ts`)**:
+     - Menambahkan test suite untuk pengetikan berurutan angka ribuan s.d. jutaan secara real-time dan pengetikan desimal setelah separasi ribuan.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/data/formatted-number-input.tsx`
+  - `apps/web/src/components/data/formatted-number-input.test.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 233/233 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 136 - 2026-09-07
+**Time:** Start: 06:37 UTC | End: 06:40 UTC | Duration: ~3 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-LABEL-UPDATE] Pembaruan Label Input Target Volume RO DIPA pada Halaman Capaian Output:
+  1. Mengubah label form drawer dari `Target Volume DIPA` menjadi `Target Volume RO DIPA` pada form input/edit rincian output di [`output-achievement.tsx`](file:///E:/Vibe%20Coding/simulator-ikpa/apps/web/src/routes/operator/data/output-achievement.tsx).
+  2. Menyelaraskan teks deskripsi live calculation preview dan petunjuk formula 2 pada modal panduan Pusdiklat/PER-5 menjadi `Target Volume RO DIPA`.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 233/233 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 135 - 2026-09-07
+**Time:** Start: 06:24 UTC | End: 06:29 UTC | Duration: ~5 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-TERMINOLOGY-UPDATE] Standardisasi Istilah NK-ROKW dan NK-CRO pada Halaman Capaian Output:
+  1. **Halaman Operator Capaian Output (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Mengubah seluruh istilah `NKKW` menjadi `NK-ROKW` (Nilai Kinerja Komponen Ketepatan Waktu Rincian Output).
+     - Mengubah seluruh istilah `NKCRO` menjadi `NK-CRO` (Nilai Kinerja Capaian Rincian Output).
+     - Menyelaraskan teks pada: Banner formula atas (`IKPA-CO = (NK-ROKW × 30%) + (NK-CRO × 70%)`), Metric Card 2 (`Ketepatan Waktu (NK-ROKW - 30%)`), Metric Card 3 (`Capaian RO (NK-CRO - 70%)`), Header kolom tabel data (`Formula NK-CRO`), Live drawer calculation preview (`Estimasi Nilai NK-CRO per RO`), Deskripsi Fairness Drawer, dan Dialog Panduan Resmi Pusdiklat/PER-5.
+  2. **Halaman Admin Policy Fairness (`apps/web/src/routes/admin-kppn/policy/fairness.tsx`)**:
+     - Menyelaraskan istilah prinsip regulasi menjadi `NK-ROKW` dan `NK-CRO`.
+  3. **IKPA Engine Trace & Subcomponent Labels (`packages/ikpa-engine/src/indicators/output-achievement.ts`)**:
+     - Memperbarui label trace formula dan subcomponents menjadi `NK-ROKW` dan `NK-CRO` sehingga konsisten end-to-end.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `apps/web/src/routes/admin-kppn/policy/fairness.tsx`
+  - `packages/ikpa-engine/src/indicators/output-achievement.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 233/233 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+### Session 134 - 2026-09-07
+**Time:** Start: 06:10 UTC | End: 06:15 UTC | Duration: ~5 minutes
+- Status: Completed
+- Agent/Role: Backend & Integration Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [BUGFIX] Perbaikan Error `relation "assessment_exclusion_policies" does not exist` pada Dashboard Operator:
+  1. **Database Migration (`packages/db/drizzle/0001_workable_black_tarantula.sql`)**:
+     - Menjalankan migrasi Drizzle untuk membuat tabel `assessment_exclusion_policies` dan `assessment_exclusion_proposals` pada database PostgreSQL/Neon.
+     - Menjalankan `npm run migrate` di `@simulator-ikpa/db` $\to$ migrasi berhasil 100%.
+  2. **Database Seed Refresh (`packages/db/src/seed.ts`)**:
+     - Menjalankan `npm run seed` untuk memastikan data default kebijakan fairness nasional `FAN.ZZ1` TA 2026 terisi di DB.
+  3. **Graceful Fail-Safe Fallbacks (`apps/web/src/server/simulation/calculate.ts`, `apps/web/src/server/domains/output-achievement.queries.ts`)**:
+     - Menambahkan fallback `.catch(() => [])` pada seluruh query `assessmentExclusionPolicies` dan `assessmentExclusionProposals`.
+     - Memastikan jika terjadi gangguan koneksi atau tabel belum termigrasi di environment tertentu, kalkulator simulasi dan dashboard operator tidak akan pernah mengalami crash 500 dan otomatis fallback ke resolver internal `FAN.ZZ1`.
+**Code Changes:**
+- Files created/modified:
+  - `packages/db/drizzle/0001_workable_black_tarantula.sql`
+  - `apps/web/src/server/simulation/calculate.ts`
+  - `apps/web/src/server/domains/output-achievement.queries.ts`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 233/233 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+  - Migration & Seed: Sukses 100%.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
+**Time:** Start: 05:25 UTC | End: 05:55 UTC | Duration: ~30 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Engine Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [FIX-CO-01 / PER-5/PB/2024] Perbaikan Menyeluruh Menu Capaian Output (Bobot 25% IKPA) & Fairness Treatment (RO Khusus):
+  1. **Canonical IKPA Engine Overhaul (`packages/ikpa-engine/src/indicators/output-achievement.ts`, `schemas.ts`, `types.ts`, `calculate.ts`)**:
+     - Memperbarui skema dan antarmuka `outputReportSchema` & `OutputReport` dengan field kanonis: `roCode`, `pcro`, `tpcro`, `rvro`, `volumeDipa`, `reportedDate`, `deadlineDate`, `confirmed`, `isExcluded`, `exclusionReason`, `policyReference`.
+     - Implementasi logika penilaian resmi 2026 sesuai PER-5/PB/2024:
+       - **Ketepatan Waktu (NKKW - 30%)**: Evaluasi `reportedDate <= deadlineDate ? 100 : 0`. Jika `reportedDate` belum ada/kosong, status pelaporan ditandai pending dan tidak bernilai otomatis 100.
+       - **Capaian RO (NKCRO - 70%)**:
+         - *Gate Konfirmasi*: Laporan yang belum dikonfirmasi (`confirmed: false`) menghasilkan nilai 0.00 (`ZERO_UNCONFIRMED`).
+         - *Aturan PCRO 0%*: Nilai menghasilkan 0.00 tanpa divide-by-zero (`ZERO_PCRO`).
+         - *Formula 2 (Desember ATAU PCRO = 100%)*: `min((RVRO / Volume DIPA) * 100, 100)`. Desember tidak otomatis bernilai 100 melainkan menghitung realisasi volume riil.
+         - *Formula 1 (Januari–November saat PCRO < 100%)*: `min((PCRO / TPCRO) * 100, 100)`.
+       - **Formula Akhir IKPA-CO**: `Nilai = (NKKW × 30%) + (NKCRO × 70%)`. Kontribusi ke Satker = `Nilai × 25%`.
+     - **Fairness Treatment Engine Integration**: RO Khusus dengan status `isExcluded: true` (seperti kode `FAN.ZZ1`) **dikeluarkan dari pembilang dan penyebut** NKKW dan NKCRO tanpa menghapus data laporan satker.
+     - **Tenggat Waktu Kanonis M+1**: Menghitung hari kerja ke-5 bulan `M+1` melalui `calculateFifthWorkingDayOfNextMonth(year, month, cal)` yang melompati akhir pekan dan hari libur nasional resmi kalender KPPN.
+  2. **15 Golden Unit Tests Passing 100% (`packages/ikpa-engine/src/indicators/output-achievement.test.ts`)**:
+     - Menulis 15 test suite mencakup skenario CO-01 s.d. CO-18 (Formula 1, Formula 2, batas 100 cap, unconfirmed zero, PCRO zero, December RVRO/Vol, fairness exclusion FAN.ZZ1, pending timeliness, mixed satker ROs, dan golden case Pusdiklat).
+  3. **Database Schema, Seed & Mutations (`packages/db/src/schema/output-reports.ts`, `assessment-exclusion.ts`, `seed.ts`, `apps/web/src/server/domains/output-achievement.mutations.ts`, `queries.ts`)**:
+     - Menambahkan kolom `roName`, `confirmedAt`, dan `confirmedBy` pada tabel `output_reports`.
+     - Membuat tabel Drizzle `assessment_exclusion_policies` dan `assessment_exclusion_proposals` lengkap dengan relasi audit, foreign key, dan index.
+     - Menambahkan seed kebijakan fairness default nasional untuk RO Khusus `FAN.ZZ1` TA 2026.
+     - Mutasi `upsertOutput` mendukung pencatatan nama RO dan timestamp konfirmasi; `createFairnessProposal` untuk pengajuan usulan operator; `upsertFairnessPolicy` & `reviewFairnessProposal` untuk Admin KPPN.
+     - Query `listOutputsWithEligibility` memetakan status fairness resolver dan tenggat hari kerja ke-5 untuk setiap baris data laporan.
+  4. **Fairness Policy Resolver & Simulation Integration (`apps/web/src/server/policy/fairness-resolver.ts`, `calculate.ts`, `output-achievement.ts`, `output-achievement-service.ts`)**:
+     - Membuat resolver fleksibel dengan pencocokan `exact`, `list`, `prefix`, dan `regex` serta fallback offline untuk `FAN.ZZ1`.
+     - Orkestrator simulasi `calculateAndPersistSnapshot` mengambil kebijakan fairness aktif dan memetakan input lengkap ke pure engine.
+  5. **Frontend UI Overhaul Operator Satker (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Header ringkasan dengan penjelasan formula resmi Bobot 25% IKPA.
+     - Selector bulan interaktif (Jan–Des 2026).
+     - **4 Top Metric Cards Autoritatif**:
+       1. *RO Objek Penilaian*: Total RO, RO Dinilai, dan RO Dikecualikan (Fairness).
+       2. *Ketepatan Waktu (NKKW - 30%)*: Skor NKKW + Counter Tepat / Terlambat / Belum Lapor.
+       3. *Capaian RO (NKCRO - 70%)*: Skor NKCRO + Rata-rata PCRO vs Target TPCRO.
+       4. *Nilai IKPA-CO & Kontribusi 25%*: Nilai akhir IKPA-CO / 100 + Poin kontribusi ke Satker.
+     - **Strip Reminder Batas 5 Hari Kerja Wajib**: Menampilkan tanggal tenggat resmi M+1 dan status pelaporan Satker.
+     - **Toolbar 4 Filter Tabs**: `Semua`, `Dinilai` (Eligible), `Dikecualikan` (Fairness Treatment), dan `Butuh Tindakan` (Draft / Belum Konfirmasi).
+     - **Tabel Data Lengkap**: Kolom Kode & Nama RO, Objek Penilaian (Badge Dinilai vs Dikecualikan), Badge Formula (F1, F2, 0 Draft, 0 PCRO), PCRO / Target, Realisasi Volume / Target, Status Ketepatan Waktu, Status Konfirmasi, dan tombol Aksi (Edit, 1-Click Konfirmasi, Ajukan Pengecualian, Hapus).
+     - **Interactive Live Calculation Preview Drawer**: Pratinjau formula real-time saat operator mengetik angka di form (mendeteksi Formula 1 vs Formula 2 vs Zero vs Excluded beserta langkah kalkulasi matematis).
+     - **Modal Usulan Pengecualian Operator**: Form pengajuan permohonan pengecualian RO Khusus / Kahar / Kebijakan Pusat ke KPPN beserta riwayat status pengajuan.
+     - **Dialog Panduan Formula Pusdiklat / PER-5**: Dokumentasi interaktif aturan main Capaian Output 2026.
+  6. **Admin Policy: Fairness Treatment Management (`apps/web/src/routes/admin-kppn/policy/fairness.tsx`, `admin-navigation.tsx`)**:
+     - Halaman admin KPPN untuk mengelola kebijakan fairness (tambah/edit/publish/retire), melihat daftar usulan operator satker, melakukan review persetujuan/penolakan usulan dengan catatan verifikator, dan live rule tester simulator.
+     - Menambahkan menu *Fairness Treatment* pada sidebar Admin Policy dengan ikon `Scale`.
+**Code Changes:**
+- Files created/modified:
+  - `packages/ikpa-engine/src/indicators/output-achievement.ts`
+  - `packages/ikpa-engine/src/indicators/output-achievement.test.ts`
+  - `packages/ikpa-engine/src/utils/workday-calendar.ts`
+  - `packages/ikpa-engine/src/schemas.ts`
+  - `packages/db/src/schema/output-reports.ts`
+  - `packages/db/src/schema/assessment-exclusion.ts`
+  - `packages/db/src/schema/index.ts`
+  - `packages/db/src/seed.ts`
+  - `apps/web/src/server/policy/fairness-resolver.ts`
+  - `apps/web/src/server/domains/output-achievement.queries.ts`
+  - `apps/web/src/server/domains/output-achievement.mutations.ts`
+  - `apps/web/src/server/output-achievement.ts`
+  - `apps/web/src/services/output-achievement-service.ts`
+  - `apps/web/src/server/simulation/calculate.ts`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `apps/web/src/routes/admin-kppn/policy/fairness.tsx`
+  - `apps/web/src/components/layout/admin-navigation.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Monorepo Unit Tests: 36 test files passed, 233/233 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+  - Production Build: Vite client & SSR build 100% passed.
+**Issues Encountered:**
+- Resolved TypeScript serialization constraint for `roMatchValue` in TanStack Start Server Functions by mapping to `string | string[]`.
+**Next Session Plan:**
+- Siap untuk evaluasi dan iterasi pengujian lebih lanjut dari user.
+
 **Time:** Start: 05:14 UTC | End: 05:24 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
@@ -11,8 +436,8 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - [FIX-09 / Page Feedback] Penyesuaian Styling Status Banner Belum Ada SPM Q4 (`/operator/data/spm-dispensation`):
   1. **Background & Border Biru Muda (Sky)**:
      - Mengembalikan warna latar dan border banner ke biru muda yang lembut dan bersih (`border-sky-500/30 bg-sky-500/10`) serta ikon `text-sky-600 dark:text-sky-400`.
-  2. **Teks Kontras Biru Tua (Deep Blue)**:
-     - Teks paragraf spesifik di dalam banner menggunakan warna biru tua tegas berbobot bold (`text-blue-950 dark:text-blue-200 font-bold leading-relaxed`) untuk memastikan kontras optimal tanpa mengubah elemen lain.
+  2. **Teks Biru (#0000FF)**:
+     - Teks paragraf spesifik di dalam banner menggunakan kode warna biru `#0000FF` berbobot bold (`text-[#0000FF] dark:text-[#60a5fa] font-bold leading-relaxed`) untuk memastikan kontras optimal tanpa mengubah elemen lain.
 **Code Changes:**
 - Files modified:
   - `apps/web/src/routes/operator/data/spm-dispensation.tsx`

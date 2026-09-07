@@ -108,3 +108,13 @@ export function countWorkdays(
 	}
 	return cnt;
 }
+
+export function calculateFifthWorkingDayOfNextMonth(
+	year: number,
+	reportingMonth: number,
+	cal?: Partial<WorkdayCalendarInput> | null,
+): string {
+	const anchorDate = new Date(Date.UTC(year, reportingMonth, 0));
+	const anchorIso = toIsoString(anchorDate);
+	return addWorkdays(anchorIso, 5, cal);
+}

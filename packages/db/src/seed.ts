@@ -4,6 +4,7 @@ import * as dotenv from "dotenv";
 import { eq } from "drizzle-orm";
 import { createPoolDbClient } from "./client";
 import {
+	assessmentExclusionPolicies,
 	fiscalYears,
 	kppnScopes,
 	organizations,
@@ -375,6 +376,35 @@ export async function seed() {
 			})
 			.onConflictDoNothing();
 	}
+
+	// 10. Default Fairness Treatment Policy (RO Khusus FAN.ZZ1 TA 2026)
+	console.log("  -> Seeding Fairness Treatment Policy (FAN.ZZ1)...");
+	await db
+		.insert(assessmentExclusionPolicies)
+		.values({
+			ruleSetId: ruleSet2026.id,
+			name: "Fairness RO Khusus FAN.ZZ1 TA 2026",
+			indicatorKey: "output_achievement",
+			action: "exclude_from_assessment",
+			category: "ro_khusus",
+			matchType: "exact",
+			roMatchValue: ["FAN.ZZ1"],
+			scopeType: "national",
+			fiscalYearId: fy2026.id,
+			year: 2026,
+			effectiveMonthStart: 1,
+			effectiveMonthEnd: 12,
+			basisReference: "Fairness treatment IKPA TA 2026",
+			displayReason:
+				"RO Khusus tidak menjadi objek penilaian Indikator Capaian Output",
+			allowOperatorProposal: false,
+			status: "published",
+			version: 1,
+			publishedAt: new Date(),
+			publishedBy: admin1.id,
+			createdBy: admin1.id,
+		})
+		.onConflictDoNothing();
 
 	console.log("✅ Database seed completed successfully!");
 }

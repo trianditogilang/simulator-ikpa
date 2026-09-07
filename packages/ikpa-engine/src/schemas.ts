@@ -107,15 +107,25 @@ export const upTupInputSchema = z.strictObject({
 
 export const outputReportSchema = z.strictObject({
 	id: z.string(),
+	roCode: z.string().optional(),
 	period: z.number().int().min(1).max(12),
-	target: decimalStringSchema,
-	realized: decimalStringSchema,
-	reportedDate: isoDateSchema,
+	target: decimalStringSchema.optional(),
+	realized: decimalStringSchema.optional(),
+	volumeDipa: decimalStringSchema.optional(),
+	rvro: decimalStringSchema.optional(),
+	pcro: decimalStringSchema.optional(),
+	tpcro: decimalStringSchema.optional(),
+	reportedDate: isoDateSchema.nullable().optional(),
 	deadlineDate: isoDateSchema,
+	confirmed: z.boolean().optional(),
+	isExcluded: z.boolean().optional(),
+	exclusionReason: z.string().optional(),
+	policyReference: z.string().optional(),
 });
 
 export const outputAchievementInputSchema = z.strictObject({
 	reports: z.array(outputReportSchema),
+	evalPeriod: z.number().int().min(1).max(12).optional(),
 });
 
 export const spmDispensationInputSchema = z.strictObject({

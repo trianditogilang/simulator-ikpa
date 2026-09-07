@@ -8,6 +8,7 @@ import {
 	LayoutDashboard,
 	LockKeyhole,
 	MoreHorizontal,
+	Scale,
 	TriangleAlert,
 } from "lucide-react";
 import { useUser } from "@clerk/tanstack-react-start";
@@ -49,6 +50,11 @@ const policyItems: readonly NavigationItem[] = [
 		icon: LockKeyhole,
 	},
 	{
+		label: "Fairness Treatment",
+		href: "/admin-kppn/policy/fairness",
+		icon: Scale,
+	},
+	{
 		label: "Reminder Policy",
 		href: "/admin-kppn/policy/reminders",
 		icon: LockKeyhole,
@@ -64,6 +70,7 @@ const policyItems: readonly NavigationItem[] = [
 		icon: ClipboardList,
 	},
 ];
+
 
 const secondaryItems: readonly NavigationItem[] = [
 	{ label: "Laporan Agregat", href: "/admin-kppn/reports", icon: FileText },

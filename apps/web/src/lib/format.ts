@@ -70,12 +70,54 @@ export function formatPercent(value: NumericValue): string {
 	return `${formatNumber(value)}%`;
 }
 
+/** Formats a number with up to maxFractionDigits, but omits decimal zeros if whole number. */
+export function formatDynamicNumber(
+	value: NumericValue,
+	maxFractionDigits = 2,
+): string {
+	const num = typeof value === "number" ? value : Number(value);
+	if (!Number.isFinite(num)) return "0";
+	return num.toLocaleString("id-ID", {
+		minimumFractionDigits: 0,
+		maximumFractionDigits: maxFractionDigits,
+	});
+}
+
+/** Formats percentage omitting decimal zeros if whole (e.g. 100% or 25% or 80,5%). */
+export function formatDynamicPercent(
+	value: NumericValue,
+	maxFractionDigits = 2,
+): string {
+	return `${formatDynamicNumber(value, maxFractionDigits)}%`;
+}
+
 export function formatPermille(value: NumericValue): string {
 	return `${formatNumber(value)}‰`;
 }
 
 export function formatDate(value: DateValue): string {
 	return dateFormatter.format(toValidDate(value));
+}
+
+/** Formats a date value as DD-MM-YYYY (e.g. 07-10-2026). */
+export function formatDateDDMMYYYY(value?: DateValue | null): string {
+	if (!value) return "—";
+	if (typeof value === "string") {
+		const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+		if (match) {
+			const [, y, m, d] = match;
+			return `${d}-${m}-${y}`;
+		}
+	}
+	try {
+		const d = toValidDate(value);
+		const day = String(d.getDate()).padStart(2, "0");
+		const month = String(d.getMonth() + 1).padStart(2, "0");
+		const year = d.getFullYear();
+		return `${day}-${month}-${year}`;
+	} catch {
+		return String(value);
+	}
 }
 
 export function formatTimeWIB(value: DateValue): string {

@@ -8,6 +8,13 @@
       "when": 1788250492493,
       "tag": "0000_quiet_hiroim",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788761469457,
+      "tag": "0001_workable_black_tarantula",
+      "breakpoints": true
     }
   ]
 }
