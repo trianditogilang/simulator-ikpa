@@ -102,3 +102,157 @@ describe("buildUpTupEngineInput", () => {
 		expect(kkpTransactions.length).toBe(1);
 	});
 });
+
+describe("analyzeGupPlan - 6 Specification Scenarios (Section 11)", () => {
+	it("Skenario 1 - Optimal: UP 10M, GUP 5.1M, 1 Jan -> 15 Jan 2026", () => {
+		const res = calcGupPreview({
+			...DEFAULT_UP_TUP_ASSUMPTIONS,
+			nilaiUP: "10000000",
+			nilaiRencanaGUP: "5100000",
+			tanggalGUPSebelumnya: "2026-01-01",
+			tanggalRencanaGUP: "2026-01-15",
+		}).analysis!;
+
+		expect(res.isValid).toBe(true);
+		expect(res.rawGupPercent).toBeCloseTo(51, 2);
+		expect(res.intervalDays).toBe(14);
+		expect(res.referenceMonthDays).toBe(31);
+		expect(res.annualizedGupPercent).toBeCloseTo(112.92857, 2);
+		expect(res.isOnTime).toBe(true);
+		expect(res.isMinimumAmountMet).toBe(true);
+		expect(res.isProportional).toBe(true);
+		expect(res.submissionStatus).toBe("ELIGIBLE_OPTIMAL");
+		expect(res.ikpaQualityStatus).toBe("OPTIMAL");
+		expect(res.actions[0].type).toBe("maintain");
+	});
+
+	it("Skenario 2 - Tidak Proporsional: UP 10M, GUP 6M, 1 Jan -> 25 Jan 2026", () => {
+		const res = calcGupPreview({
+			...DEFAULT_UP_TUP_ASSUMPTIONS,
+			nilaiUP: "10000000",
+			nilaiRencanaGUP: "6000000",
+			tanggalGUPSebelumnya: "2026-01-01",
+			tanggalRencanaGUP: "2026-01-25",
+		}).analysis!;
+
+		expect(res.isValid).toBe(true);
+		expect(res.rawGupPercent).toBeCloseTo(60, 2);
+		expect(res.intervalDays).toBe(24);
+		expect(res.referenceMonthDays).toBe(31);
+		expect(res.annualizedGupPercent).toBeCloseTo(77.5, 2);
+		expect(res.isOnTime).toBe(true);
+		expect(res.isMinimumAmountMet).toBe(true);
+		expect(res.isProportional).toBe(false);
+		expect(res.submissionStatus).toBe("NOT_PROPORTIONAL");
+		expect(res.ikpaQualityStatus).toBe("BELOW_OPTIMAL");
+		// Rekomendasi nominal minimum optimal dibulatkan ke atas = 7.741.936
+		expect(res.minimumAmountForOptimalAtPlannedDate).toBe(7741936);
+		// Rekomendasi tanggal optimal untuk 6M = 1 Jan + 18 hari = 19 Jan 2026
+		expect(res.latestOptimalDateForCurrentAmount).toBe("2026-01-19");
+	});
+
+	it("Skenario 3 - Terlambat: UP 10M, GUP 10M, 1 Jan -> 2 Feb 2026", () => {
+		const res = calcGupPreview({
+			...DEFAULT_UP_TUP_ASSUMPTIONS,
+			nilaiUP: "10000000",
+			nilaiRencanaGUP: "10000000",
+			tanggalGUPSebelumnya: "2026-01-01",
+			tanggalRencanaGUP: "2026-02-02",
+		}).analysis!;
+
+		expect(res.isValid).toBe(true);
+		expect(res.rawGupPercent).toBeCloseTo(100, 2);
+		expect(res.intervalDays).toBe(32);
+		expect(res.referenceMonthDays).toBe(31);
+		expect(res.annualizedGupPercent).toBeCloseTo(96.875, 2);
+		expect(res.isOnTime).toBe(false);
+		expect(res.lateDays).toBe(1);
+		expect(res.submissionStatus).toBe("LATE");
+		expect(res.ikpaQualityStatus).toBe("LATE_NOT_OPTIMAL");
+		expect(res.actions[0].type).toBe("adjust_date");
+		expect(res.actions[0].description).toMatch(/2026-02-01|1 Februari 2026/);
+	});
+
+	it("Skenario 4 - Di bawah Minimum: UP 10M, GUP 1M, 1 Jan -> 23 Jan 2026", () => {
+		const res = calcGupPreview({
+			...DEFAULT_UP_TUP_ASSUMPTIONS,
+			nilaiUP: "10000000",
+			nilaiRencanaGUP: "1000000",
+			tanggalGUPSebelumnya: "2026-01-01",
+			tanggalRencanaGUP: "2026-01-23",
+		}).analysis!;
+
+		expect(res.isValid).toBe(true);
+		expect(res.isMinimumAmountMet).toBe(false);
+		expect(res.minGupAmount).toBe(5000000);
+		expect(res.submissionStatus).toBe("BELOW_MINIMUM");
+		// Tanggal batas untuk GUP 50% = 1 Jan + 15 hari = 16 Jan 2026
+		expect(res.maxIntervalForMinimumAmount).toBe(15);
+		expect(res.latestOptimalDateForMinimumAmount).toBe("2026-01-16");
+	});
+
+	it("Skenario 5 - Data Default Screenshot: UP 18M, GUP 11M, 5 Mei -> 25 Mei 2026", () => {
+		const res = calcGupPreview({
+			...DEFAULT_UP_TUP_ASSUMPTIONS,
+			nilaiUP: "18000000",
+			nilaiRencanaGUP: "11000000",
+			tanggalGUPSebelumnya: "2026-05-05",
+			tanggalRencanaGUP: "2026-05-25",
+		}).analysis!;
+
+		expect(res.isValid).toBe(true);
+		expect(res.rawGupPercent).toBeCloseTo(61.111, 2);
+		expect(res.intervalDays).toBe(20);
+		expect(res.referenceMonthDays).toBe(31);
+		expect(res.annualizedGupPercent).toBeCloseTo(94.7222, 2);
+		expect(res.isOnTime).toBe(true);
+		expect(res.isMinimumAmountMet).toBe(true);
+		expect(res.isProportional).toBe(false);
+		expect(res.submissionStatus).toBe("NOT_PROPORTIONAL");
+		// Rekomendasi nominal minimum optimal = 11.612.904
+		expect(res.minimumAmountForOptimalAtPlannedDate).toBe(11612904);
+		// Rekomendasi tanggal optimal untuk 11M = 5 Mei + 18 hari = 23 Mei 2026
+		expect(res.latestOptimalDateForCurrentAmount).toBe("2026-05-23");
+	});
+
+	it("Skenario 6 - Februari Kabisat: UP 10M, GUP 5M, 1 Feb -> 15 Feb 2028", () => {
+		const res = calcGupPreview({
+			...DEFAULT_UP_TUP_ASSUMPTIONS,
+			nilaiUP: "10000000",
+			nilaiRencanaGUP: "5000000",
+			tanggalGUPSebelumnya: "2028-02-01",
+			tanggalRencanaGUP: "2028-02-15",
+		}).analysis!;
+
+		expect(res.isValid).toBe(true);
+		expect(res.referenceMonthDays).toBe(29);
+		expect(res.intervalDays).toBe(14);
+		expect(res.annualizedGupPercent).toBeCloseTo(103.5714, 2);
+		expect(res.isOnTime).toBe(true);
+		expect(res.isMinimumAmountMet).toBe(true);
+		expect(res.submissionStatus).toBe("ELIGIBLE_OPTIMAL");
+		expect(res.ikpaQualityStatus).toBe("OPTIMAL");
+	});
+
+	describe("Edge Cases & Validations", () => {
+		it("error jika rencana <= tanggal sebelumnya", () => {
+			const res = calcGupPreview({
+				...DEFAULT_UP_TUP_ASSUMPTIONS,
+				tanggalGUPSebelumnya: "2026-05-05",
+				tanggalRencanaGUP: "2026-05-05",
+			}).analysis!;
+			expect(res.isValid).toBe(false);
+			expect(res.validationMessage).toMatch(/setelah/);
+		});
+
+		it("error jika GUP > UP", () => {
+			const res = calcGupPreview({
+				...DEFAULT_UP_TUP_ASSUMPTIONS,
+				nilaiUP: "10000000",
+				nilaiRencanaGUP: "15000000",
+			}).analysis!;
+			expect(res.isValid).toBe(false);
+			expect(res.validationMessage).toMatch(/melebihi/);
+		});
+	});
+});

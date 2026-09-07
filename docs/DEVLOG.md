@@ -2,6 +2,71 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 153 - 2026-09-07
+**Time:** Start: 10:33 UTC | End: 10:42 UTC | Duration: ~9 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Simulation Engine Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-UP-TUP-GUP-ANALYSIS-REC] Penyempurnaan Mesin Analisis & Rekomendasi Simulasi GUP (%GUP Disebulankan · Interaktif), Pemisahan Status Kelayakan Operasional & Kualitas IKPA, Rekomendasi Aksi Nominal/Tanggal Otomatis, dan Card Hasil Analisis GUP Ponytail:
+  1. **Pure Calculation Engine & Model Status (`apps/web/src/lib/simulation/up-tup-assumptions.ts`)**:
+     - Implementasi fungsi `analyzeGupPlan` yang deterministik, transparan, dan bebas mutasi DB.
+     - Perhitungan interval hari kalender, penentuan hari bulan referensi (`referenceMonthDays`) dari tanggal SP2D sebelumnya (termasuk 29 hari untuk Februari kabisat secara dinamis), persentase GUP disebulankan (`rawGupRatio * refDays / intervalDays`), dan tanggal batas tepat waktu (+1 bulan kalender).
+     - Pemisahan status kelayakan rencana pengajuan (`submissionStatus`: `INCOMPLETE`, `BELOW_MINIMUM`, `NOT_PROPORTIONAL`, `LATE`, `ELIGIBLE_OPTIMAL`) dari status kualitas nilai IKPA (`ikpaQualityStatus`: `UNAVAILABLE`, `OPTIMAL`, `BELOW_OPTIMAL`, `LATE_NOT_OPTIMAL`).
+     - Engine rekomendasi aksi terhitung otomatis: nominal minimum optimal pada tanggal rencana `minimumAmountForOptimalAtPlannedDate` (dibulatkan ke atas / `Math.ceil`), tanggal target maksimal untuk nominal saat ini `latestOptimalDateForCurrentAmount`, dan tanggal target maksimal untuk nominal minimum `latestOptimalDateForMinimumAmount`.
+  2. **UI Card Nilai IKPA & Card Hasil Analisis GUP (`apps/web/src/components/operator/up-tup-assumption-panel.tsx`)**:
+     - Penyempurnaan Card `Nilai IKPA Kualitas GUP`: Menghilangkan singkatan ambigu, menyajikan ringkasan 1 baris konsisten, dan menampilkan margin kalender yang presisi (`Sisa waktu menuju batas: X hari` / `Melewati batas: X hari`).
+     - Pembuatan Card `HASIL ANALISIS GUP` (posisi tepat setelah card nilai dan sebelum accordion tabel simulasi 28/30/31 hari):
+       - Header dinamis dengan ikon severity (`CheckCircle2`, `AlertTriangle`, `AlertCircle`, `Info`).
+       - 3-metric summary bar: Badge Status Rencana, Status Ketepatan Waktu, dan GUP Disebulankan vs target 100%.
+       - Paragraf ringkasan penjelasan dinamis.
+       - Blok saran tindakan terstruktur (Opsi A: Pertahankan tanggal & naikkan nominal; Opsi B: Pertahankan nominal & majukan tanggal SP2D).
+       - Catatan disclaimer bahwa simulator bersifat internal satker (bukan penetapan resmi KPPN).
+       - Accordion `<details>` Dasar Perhitungan berisi trace formula lengkap.
+  3. **Penamaan Section Rute Operator UP/TUP (`apps/web/src/routes/operator/up-tup.tsx`)**:
+     - Memperbarui judul section menjadi `Simulasi %GUP Disebulankan · Interaktif` dan `aria-label="Simulasi %GUP Disebulankan"`.
+  4. **Automated Unit Tests (`apps/web/src/lib/simulation/up-tup-assumptions.test.ts`)**:
+     - Menambahkan 8 automated tests baru yang menguji seluruh 6 skenario spesifikasi (Optimal, Tidak Proporsional, Terlambat, Di Bawah Minimum, Data Default Screenshot Mei 2026, Februari Kabisat 2028) serta edge cases (GUP > UP, rencana <= sebelumnya).
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/lib/simulation/up-tup-assumptions.ts`
+  - `apps/web/src/lib/simulation/up-tup-assumptions.test.ts`
+  - `apps/web/src/components/operator/up-tup-assumption-panel.tsx`
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 248/248 tests passed (100%), 18/18 up-tup-assumptions tests passed.
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Menunggu iterasi/feedback lanjutan dari pengguna.
+**Time:** Start: 10:21 UTC | End: 10:28 UTC | Duration: ~7 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-UP-TUP-ASSUMPTION-SIMPLIFY] Penghapusan Dropdown Asumsi Opsional TUP/PTUP/GUP Nihil/Setoran/KKP pada Panel Asumsi Simulasi UP/TUP (`UpTupAssumptionPanel`):
+  1. **Penyederhanaan UI Panel Asumsi (`apps/web/src/components/operator/up-tup-assumption-panel.tsx`)**:
+     - Menghapus elemen collapsible `<details>` yang memuat form dropdown asumsi opsional `TUP / PTUP / GUP Nihil / Setoran / KKP (opsional)` (meliputi input TUP tepat, TUP terlambat, PTUP tepat, GUP Nihil, Setoran tepat, dan KKP nominal).
+     - Menjaga fokus panel pada simulasi esensial revolving GUP (Nilai UP, Nilai Rencana GUP, Tanggal GUP Sebelumnya, Tanggal Rencana SP2D GUP, preview kelayakan & saran kecepatan revolving, tabel simulasi hari disebulankan 28/30/31 hari, serta kalkulasi delta dampak skor IKPA).
+  2. **Pengujian & Pembersihan Ekspor PDF Test (`apps/web/src/server/exports/operator-pdf.test.tsx`)**:
+     - Memperbarui import statis `sanitizeForExport` untuk kecepatan eksekusi test worker.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/operator/up-tup-assumption-panel.tsx`
+  - `apps/web/src/server/exports/operator-pdf.test.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 36 test files passed, 240/240 tests passed (100%).
+  - Typecheck: 0 error across all 7 workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari user.
+
 ### Session 151 - 2026-09-07
 **Time:** Start: 09:46 UTC | End: 09:51 UTC | Duration: ~5 minutes
 - Status: Completed

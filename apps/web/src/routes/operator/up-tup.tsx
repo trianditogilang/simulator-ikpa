@@ -727,15 +727,15 @@ function UpTupPage() {
 					)}
 				</section>
 
-				{/* Panel Simulasi Rencana Sisa Tahun (Preserving Existing Format) */}
+				{/* Panel Simulasi %GUP Disebulankan (Preserving Existing Format) */}
 				<section
-					aria-label="Rencana sisa tahun"
+					aria-label="Simulasi %GUP Disebulankan"
 					className="space-y-4 rounded-2xl border border-yellow-300/80 bg-yellow-50/40 dark:bg-yellow-950/20 dark:border-yellow-800/60 p-4 sm:p-5 shadow-xs"
 				>
 					<div className="flex flex-wrap items-center justify-between gap-3 border-b border-yellow-200 dark:border-yellow-900/60 pb-3">
 						<div>
 							<h2 className="text-sm font-bold text-foreground sm:text-base">
-								Simulasi Rencana Sisa Tahun (GUP + KKP) · Interaktif
+								Simulasi %GUP Disebulankan · Interaktif
 							</h2>
 							<p className="text-xs text-muted-foreground">
 								Uji coba skenario pengajuan GUP (nominal, tanggal, frekuensi) dan porsi belanja KKP tanpa mengubah data aktual DB.
