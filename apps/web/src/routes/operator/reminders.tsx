@@ -38,6 +38,7 @@ export const Route = createFileRoute("/operator/reminders")({
 });
 
 const EVENT_NAMES: Record<string, string> = {
+	// Standard UPPERCASE keys
 	REVISI_DIPA_DEADLINE: "Batas Akhir Revisi DIPA (Semester I & II)",
 	HAL_III_RPD_UPDATE: "Batas Pemutakhiran RPD Halaman III DIPA",
 	KONTRAK_3HK: "Penyampaian Data Kontrak (3 Hari Kerja)",
@@ -45,6 +46,19 @@ const EVENT_NAMES: Record<string, string> = {
 	LPJ_BENDAHARA_MONTHLY: "Pertanggungjawaban LPJ Bendahara Bulanan",
 	CAPAIAN_OUTPUT_CONFIRM: "Konfirmasi Capaian Output (5 HK Awal Bulan)",
 	SPM_DISPENSASI_Q4: "Batas Pengajuan SPM Dispensasi Akhir Tahun",
+	// Seed & Domain snake_case keys
+	spm_ls_contract_17d: "Penyelesaian Tagihan SPM-LS Kontraktual (17 Hari Kerja)",
+	invoice_timeliness_due: "Penyelesaian Tagihan SPM-LS (17 Hari Kerja)",
+	dipa_revision_quarterly: "Batas Akhir Revisi DIPA Triwulanan",
+	up_tup_revolving_monthly: "Batas Revolving GUP (30 Hari Kalender)",
+	up_tup_revolving_due: "Batas Revolving GUP (30 Hari Kalender)",
+	output_report_monthly: "Konfirmasi Capaian Output (5 Hari Kerja)",
+	output_report_due: "Konfirmasi Capaian Output (5 Hari Kerja)",
+	spm_dispensation_q4: "Batas Pengajuan SPM Dispensasi Akhir Tahun",
+	spm_dispensation_warning: "Peringatan Rasio SPM Dispensasi Triwulan IV",
+	contract_registration_3d: "Penyampaian Data Kontrak (3 Hari Kerja)",
+	contract_registration_5d: "Pendaftaran Kontrak / Pra-DIPA (5 Hari Kerja)",
+	ikpa_weekly_digest: "Laporan Mingguan Estimasi IKPA Satker",
 };
 
 interface MergedReminderRow {
