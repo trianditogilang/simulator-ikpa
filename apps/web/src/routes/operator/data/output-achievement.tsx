@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
 	AlertCircle,
 	AlertTriangle,
-	ArrowRight,
 	Award,
 	Bell,
 	BookOpen,
@@ -274,110 +273,121 @@ function OutputAchievementPage() {
 				month: 1,
 				name: "Januari 2026",
 				monthLabel: "Januari",
+				openRange: "1 Jan 2026 – 30 Apr 2026",
 				regulerDeadline: "2026-04-30",
 				additionalDeadline: "2026-04-30",
-				status: "closed" as "open_auto" | "open_additional" | "closed",
+				status: "closed" as "open_auto" | "open_additional" | "closed" | "scheduled",
 				notes: "Relaksasi pelaporan awal tahun s.d. 30 April 2026",
 			},
 			{
 				month: 2,
 				name: "Februari 2026",
 				monthLabel: "Februari",
+				openRange: "1 Feb 2026 – 30 Apr 2026",
 				regulerDeadline: "2026-04-30",
 				additionalDeadline: "2026-04-30",
-				status: "closed" as "open_auto" | "open_additional" | "closed",
+				status: "closed" as "open_auto" | "open_additional" | "closed" | "scheduled",
 				notes: "Relaksasi pelaporan awal tahun s.d. 30 April 2026",
 			},
 			{
 				month: 3,
 				name: "Maret 2026",
 				monthLabel: "Maret",
+				openRange: "1 Mar 2026 – 30 Apr 2026",
 				regulerDeadline: "2026-04-30",
 				additionalDeadline: "2026-04-30",
-				status: "closed" as "open_auto" | "open_additional" | "closed",
+				status: "closed" as "open_auto" | "open_additional" | "closed" | "scheduled",
 				notes: "Relaksasi pelaporan awal tahun s.d. 30 April 2026",
 			},
 			{
 				month: 4,
 				name: "April 2026",
 				monthLabel: "April",
+				openRange: "1 Mei 2026 – 12 Mei 2026",
 				regulerDeadline: "2026-05-12",
 				additionalDeadline: "2026-05-31",
-				status: "closed" as "open_auto" | "open_additional" | "closed",
-				notes: "Buka sistem otomatis s.d. HK-7 Mei 2026 (12 Mei 2026)",
+				status: "closed" as "open_auto" | "open_additional" | "closed" | "scheduled",
+				notes: "Sistem Terbuka Otomatis mulai HK-1 Mei (1 Mei) s.d. HK-7 Mei (12 Mei 2026)",
 			},
 			{
 				month: 5,
 				name: "Mei 2026",
 				monthLabel: "Mei",
+				openRange: "1 Jun 2026 – 10 Jun 2026",
 				regulerDeadline: "2026-06-10",
 				additionalDeadline: "2026-06-30",
-				status: "closed" as "open_auto" | "open_additional" | "closed",
-				notes: "Buka sistem otomatis s.d. HK-7 Juni 2026 (10 Juni 2026)",
+				status: "closed" as "open_auto" | "open_additional" | "closed" | "scheduled",
+				notes: "Sistem Terbuka Otomatis mulai HK-1 Juni (1 Jun) s.d. HK-7 Juni (10 Juni 2026)",
 			},
 			{
 				month: 6,
 				name: "Juni 2026",
 				monthLabel: "Juni",
+				openRange: "1 Jul 2026 – 9 Jul 2026",
 				regulerDeadline: "2026-07-09",
 				additionalDeadline: "2026-07-31",
-				status: "closed" as "open_auto" | "open_additional" | "closed",
-				notes: "Buka sistem otomatis s.d. HK-7 Juli 2026 (9 Juli 2026)",
+				status: "closed" as "open_auto" | "open_additional" | "closed" | "scheduled",
+				notes: "Sistem Terbuka Otomatis mulai HK-1 Juli (1 Jul) s.d. HK-7 Juli (9 Juli 2026)",
 			},
 			{
 				month: 7,
 				name: "Juli 2026",
 				monthLabel: "Juli",
+				openRange: "1 Ags 2026 – 11 Ags 2026",
 				regulerDeadline: "2026-08-11",
 				additionalDeadline: "2026-08-31",
-				status: "closed" as "open_auto" | "open_additional" | "closed",
-				notes: "Buka sistem otomatis s.d. HK-7 Agustus 2026 (11 Agustus 2026)",
+				status: "closed" as "open_auto" | "open_additional" | "closed" | "scheduled",
+				notes: "Sistem Terbuka Otomatis mulai HK-1 Agustus (1 Ags) s.d. HK-7 Agustus (11 Agustus 2026)",
 			},
 			{
 				month: 8,
 				name: "Agustus 2026",
 				monthLabel: "Agustus",
+				openRange: "1 Sep 2026 – 9 Sep 2026",
 				regulerDeadline: "2026-09-09",
 				additionalDeadline: "2026-09-30",
-				status: "open_auto" as "open_auto" | "open_additional" | "closed",
-				notes:
-					"Buka sistem otomatis s.d. HK-7 September 2026 (9 September 2026)",
+				status: "open_auto" as "open_auto" | "open_additional" | "closed" | "scheduled",
+				notes: "Sistem Terbuka Otomatis mulai HK-1 September (1 Sep) s.d. HK-7 September (9 September 2026)",
 			},
 			{
 				month: 9,
 				name: "September 2026",
 				monthLabel: "September",
+				openRange: "1 Okt 2026 – 9 Okt 2026",
 				regulerDeadline: "2026-10-09",
 				additionalDeadline: "2026-10-31",
-				status: "closed" as "open_auto" | "open_additional" | "closed",
-				notes: "Buka sistem otomatis s.d. HK-7 Oktober 2026 (9 Oktober 2026)",
+				status: "scheduled" as "open_auto" | "open_additional" | "closed" | "scheduled",
+				notes: "Sistem Terbuka Otomatis mulai HK-1 Oktober (1 Okt) s.d. HK-7 Oktober (9 Oktober 2026)",
 			},
 			{
 				month: 10,
 				name: "Oktober 2026",
 				monthLabel: "Oktober",
+				openRange: "1 Nov 2026 – 10 Nov 2026",
 				regulerDeadline: "2026-11-10",
 				additionalDeadline: "2026-11-30",
-				status: "closed" as "open_auto" | "open_additional" | "closed",
-				notes: "Buka sistem otomatis s.d. HK-7 November 2026 (10 November 2026)",
+				status: "scheduled" as "open_auto" | "open_additional" | "closed" | "scheduled",
+				notes: "Sistem Terbuka Otomatis mulai HK-1 November (1 Nov) s.d. HK-7 November (10 November 2026)",
 			},
 			{
 				month: 11,
 				name: "November 2026",
 				monthLabel: "November",
+				openRange: "1 Des 2026 – 9 Des 2026",
 				regulerDeadline: "2026-12-09",
 				additionalDeadline: "2026-12-31",
-				status: "closed" as "open_auto" | "open_additional" | "closed",
-				notes: "Buka sistem otomatis s.d. HK-7 Desember 2026 (9 Desember 2026)",
+				status: "scheduled" as "open_auto" | "open_additional" | "closed" | "scheduled",
+				notes: "Sistem Terbuka Otomatis mulai HK-1 Desember (1 Des) s.d. HK-7 Desember (9 Desember 2026)",
 			},
 			{
 				month: 12,
 				name: "Desember 2026",
 				monthLabel: "Desember",
+				openRange: "1 Jan 2027 – 13 Jan 2027",
 				regulerDeadline: "2027-01-13",
 				additionalDeadline: "2027-01-31",
-				status: "closed" as "open_auto" | "open_additional" | "closed",
-				notes: "Buka sistem otomatis s.d. HK-7 Januari 2027 (13 Januari 2027)",
+				status: "scheduled" as "open_auto" | "open_additional" | "closed" | "scheduled",
+				notes: "Sistem Terbuka Otomatis mulai HK-1 Januari 2027 (1 Jan) s.d. HK-7 Januari 2027 (13 Januari 2027)",
 			},
 		];
 	}, []);
@@ -420,7 +430,7 @@ function OutputAchievementPage() {
 				opensAt: "2026-07-01",
 				closesAt: "2026-07-14",
 				status: "closed" as "scheduled" | "open" | "closed",
-				notes: "10 hari kerja di awal triwulan III (Juli)",
+				notes: "10 hari kerja di awal triwulan III - Juli",
 			},
 			{
 				quarter: 4,
@@ -430,7 +440,7 @@ function OutputAchievementPage() {
 				opensAt: "2026-10-01",
 				closesAt: "2026-10-14",
 				status: "scheduled" as "scheduled" | "open" | "closed",
-				notes: "10 hari kerja di awal triwulan IV (Oktober)",
+				notes: "10 hari kerja di awal triwulan IV - Oktober",
 			},
 		];
 
@@ -446,11 +456,21 @@ function OutputAchievementPage() {
 		});
 	}, [initialData.targetWindows]);
 
-	const activeWindow = useMemo(() => {
+	const selectedQuarter = useMemo(() => {
+		return Math.ceil(selectedMonth / 3);
+	}, [selectedMonth]);
+
+	const currentQuarterWindow = useMemo(() => {
+		return (
+			targetWindowsList.find((w) => w.quarter === selectedQuarter) ||
+			targetWindowsList[0]
+		);
+	}, [targetWindowsList, selectedQuarter]);
+
+	const upcomingScheduledWindow = useMemo(() => {
 		return (
 			targetWindowsList.find((w) => w.status === "open") ||
 			targetWindowsList.find((w) => w.status === "scheduled") ||
-			targetWindowsList[targetWindowsList.length - 1] ||
 			null
 		);
 	}, [targetWindowsList]);
@@ -1871,7 +1891,7 @@ function OutputAchievementPage() {
 							</div>
 						</div>
 
-						{/* Open Period Reminder & Guidance Banner */}
+						{/* Open Periode Reminder & Guidance Banner */}
 						<div className="rounded-2xl border border-border bg-background p-4 sm:p-5 shadow-xs space-y-3">
 							<div className="flex flex-wrap items-center justify-between gap-3">
 								<div className="flex items-center gap-3">
@@ -1881,7 +1901,7 @@ function OutputAchievementPage() {
 									<div>
 										<div className="flex items-center gap-2">
 											<p className="text-xs sm:text-sm font-bold text-foreground">
-												Open Period Realisasi Bulan{" "}
+												Open Periode Realisasi Bulan{" "}
 												{MONTH_NAMES[selectedMonth - 1]}:{" "}
 												<span className="text-primary underline">
 													{formatDateDDMMYYYY(canonicalDeadline)}
@@ -1895,22 +1915,26 @@ function OutputAchievementPage() {
 											<span
 												className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
 													currentMonthOpenPeriod.status === "open_auto"
-														? "bg-success/10 text-success"
+														? "bg-success/10 text-success border border-success/20"
 														: currentMonthOpenPeriod.status ===
 																  "open_additional"
-															? "bg-warning/10 text-warning"
-															: "bg-surface-muted text-muted-foreground"
+															? "bg-warning/10 text-warning border border-warning/20"
+															: currentMonthOpenPeriod.status === "scheduled"
+																? "bg-primary/10 text-primary border border-primary/20"
+																: "bg-surface-muted text-muted-foreground border border-border"
 												}`}
 											>
 												{currentMonthOpenPeriod.status === "open_auto"
-													? "🟢 Buka Sistem Otomatis"
+													? "🟢 Sistem Terbuka Otomatis"
 													: currentMonthOpenPeriod.status === "open_additional"
 														? "🟡 Periode Tambahan KPPN"
-														: "⚪ Ditutup"}
+														: currentMonthOpenPeriod.status === "scheduled"
+															? "⚪ Terjadwal (Buka HK-1 M+1)"
+															: "🔴 Ditutup (Lewat HK-7)"}
 											</span>
 										</div>
 										<p className="text-[11px] text-muted-foreground pt-0.5">
-											{currentMonthOpenPeriod.notes} • Periode Tambahan s.d.{" "}
+											{currentMonthOpenPeriod.notes} • Periode Tambahan KPPN s.d.{" "}
 											<strong className="text-foreground">
 												{formatDateDDMMYYYY(
 													currentMonthOpenPeriod.additionalDeadline,
@@ -1930,7 +1954,7 @@ function OutputAchievementPage() {
 										<span>
 											{isOpenPeriodMatrixOpen
 												? "Tutup Jadwal 12 Bulan"
-												: "Jadwal 12 Bulan Open Period"}
+												: "Jadwal 12 Bulan Open Periode"}
 										</span>
 									</button>
 								</div>
@@ -1944,17 +1968,15 @@ function OutputAchievementPage() {
 											<span className="flex size-4 items-center justify-center rounded-full bg-success text-success-foreground text-[10px] font-bold">
 												a
 											</span>
-											Open Period Reguler (Buka Sistem Otomatis)
+											Open Periode Reguler (Sistem Terbuka Otomatis)
 										</p>
 										<p className="text-[11px] text-muted-foreground leading-relaxed">
-											Awal bulan berikutnya s.d.{" "}
-											<strong>Hari Kerja ke-7 (HK-7)</strong> bulan berikutnya.
-											Sistem terbuka otomatis untuk seluruh satker tanpa syarat
-											dispensasi.
+											Sistem Terbuka Otomatis untuk <strong>Pengisian Realisasi Kinerja Capaian Output</strong> mulai Hari Kerja pertama (HK-1) awal bulan berikutnya s.d.{" "}
+											<strong>Hari Kerja ke-7 (HK-7)</strong> bulan berikutnya (M+1). Seluruh satker dapat mengisi dan melaporkan data realisasi tanpa syarat dispensasi.
 										</p>
 									</div>
 									<p className="text-[10px] text-muted-foreground pt-1">
-										Jadwal Bulan {MONTH_NAMES[selectedMonth - 1]}:{" "}
+										Jadwal Pelaporan Bulan {MONTH_NAMES[selectedMonth - 1]}:{" "}
 										<strong className="text-foreground">
 											{formatDateDDMMYYYY(canonicalDeadline)}
 										</strong>
@@ -1964,40 +1986,45 @@ function OutputAchievementPage() {
 									<div className="space-y-1">
 										<div className="flex items-center justify-between">
 											<p className="font-bold text-primary flex items-center gap-1.5">
-												<span className="flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-													b
-												</span>
 												Pemutakhiran Target Triwulanan (10 HK Awal TW)
 											</p>
 											<span
-												className={`rounded-full px-2 py-0.2 text-[9px] font-bold uppercase ${
-													activeWindow?.status === "open"
+												className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${
+													currentQuarterWindow?.status === "open"
 														? "bg-success/10 text-success border border-success/20"
-														: activeWindow?.status === "scheduled"
+														: currentQuarterWindow?.status === "scheduled"
 															? "bg-primary/10 text-primary border border-primary/20"
 															: "bg-surface-muted text-muted-foreground border border-border"
 												}`}
 											>
-												{activeWindow?.status === "open"
+												{currentQuarterWindow?.status === "open"
 													? "Terbuka"
-													: activeWindow?.status === "scheduled"
+													: currentQuarterWindow?.status === "scheduled"
 														? "Terjadwal"
 														: "Ditutup"}
 											</span>
 										</div>
 										<p className="text-[11px] text-muted-foreground leading-relaxed">
-											{activeWindow
-												? `${activeWindow.name}: ${activeWindow.periodText} (${activeWindow.notes})`
+											{currentQuarterWindow
+												? `${currentQuarterWindow.name}: ${currentQuarterWindow.periodText} (${currentQuarterWindow.notes})`
 												: "Pemutakhiran target proyeksi 12 bulan dilakukan 10 hari kerja di awal triwulan."}
 										</p>
 									</div>
-									<div className="pt-1">
+									<div className="flex flex-wrap items-center justify-between gap-1 pt-1 text-[10px] text-muted-foreground">
+										<span>
+											Jadwal Terkini TA {initialData.year}:{" "}
+											<strong className="text-foreground">
+												{upcomingScheduledWindow
+													? `${upcomingScheduledWindow.label} (${upcomingScheduledWindow.periodText})`
+													: "Selesai"}
+											</strong>
+										</span>
 										<a
 											href="/operator/reminders"
 											className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-semibold"
 										>
 											<Bell className="size-3" />
-											<span>Atur Reminder di Reminder Center</span>
+											<span>Reminder Center</span>
 										</a>
 									</div>
 								</div>
@@ -2030,7 +2057,7 @@ function OutputAchievementPage() {
 							</div>
 						</div>
 
-						{/* 12-Month Open Period Matrix Dropdown Panel */}
+						{/* 12-Month Open Periode Matrix Dropdown Panel */}
 						{isOpenPeriodMatrixOpen && (
 							<div className="rounded-2xl border border-primary/20 bg-surface p-4 shadow-sm space-y-3">
 								<div className="flex items-center justify-between">
@@ -2038,7 +2065,7 @@ function OutputAchievementPage() {
 										<Calendar className="size-4.5 text-primary" />
 										<h4 className="text-xs sm:text-sm font-bold text-foreground">
 											Jadwal Batas Akhir Periode Buka Sistem Pelaporan Nasional
-											(Open Period TA {initialData.year})
+											(Open Periode TA {initialData.year})
 										</h4>
 									</div>
 									<button
@@ -2061,12 +2088,11 @@ function OutputAchievementPage() {
 													Periode Pelaporan Data Realisasi
 												</th>
 												<th className="px-3 py-2.5">
-													Batas Akhir Open Period Reguler (Buka Sistem Otomatis)
+													Batas Akhir Open Periode Reguler (Sistem Terbuka Otomatis HK-1 s.d. HK-7 M+1)
 												</th>
 												<th className="px-3 py-2.5 text-center">
 													Status Akses
 												</th>
-												<th className="py-2.5 pl-2 pr-3 text-right">Aksi</th>
 											</tr>
 										</thead>
 										<tbody className="divide-y divide-border/60">
@@ -2094,36 +2120,30 @@ function OutputAchievementPage() {
 													</td>
 													<td className="px-3 py-2.5 font-semibold text-primary">
 														{formatDateDDMMYYYY(item.regulerDeadline)}
+														<span className="text-[10px] text-muted-foreground block font-normal">
+															{item.openRange}
+														</span>
 													</td>
 													<td className="px-3 py-2.5 text-center">
 														<span
 															className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
 																item.status === "open_auto"
-																	? "bg-success/10 text-success"
+																	? "bg-success/10 text-success border border-success/20"
 																	: item.status === "open_additional"
-																		? "bg-warning/10 text-warning"
-																		: "bg-surface-muted text-muted-foreground"
+																		? "bg-warning/10 text-warning border border-warning/20"
+																		: item.status === "scheduled"
+																			? "bg-primary/10 text-primary border border-primary/20"
+																			: "bg-surface-muted text-muted-foreground border border-border"
 															}`}
 														>
 															{item.status === "open_auto"
-																? "Buka Otomatis"
+																? "🟢 Sistem Terbuka Otomatis"
 																: item.status === "open_additional"
-																	? "Tambahan KPPN"
-																	: "Ditutup"}
+																	? "🟡 Periode Tambahan KPPN"
+																	: item.status === "scheduled"
+																		? "⚪ Terjadwal (Buka HK-1 M+1)"
+																		: "🔴 Ditutup (Lewat HK-7)"}
 														</span>
-													</td>
-													<td className="py-2.5 pl-2 pr-3 text-right">
-														<button
-															type="button"
-															onClick={() => {
-																setSelectedMonth(item.month);
-																setIsOpenPeriodMatrixOpen(false);
-															}}
-															className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-semibold text-primary hover:bg-surface-muted"
-														>
-															<span>Buka Bulan</span>
-															<ArrowRight className="size-3" />
-														</button>
 													</td>
 												</tr>
 											))}
