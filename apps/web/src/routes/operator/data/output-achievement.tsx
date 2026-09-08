@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
 	AlertCircle,
 	AlertTriangle,
-	Award,
 	Bell,
 	BookOpen,
 	Calendar,
@@ -1810,84 +1809,99 @@ function OutputAchievementPage() {
 							</div>
 						</div>
 
-						{/* 4 Cards Scoring Strip */}
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
+						{/* 5 Cards Scoring Strip */}
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+							{/* Card 1: RO Objek Penilaian */}
+							<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
 								<div className="flex items-center justify-between text-muted-foreground">
 									<span className="text-xs font-semibold">
 										RO Objek Penilaian
 									</span>
 									<Target className="size-4 text-primary" />
 								</div>
-								<div className="space-y-0.5 mt-2">
-									<p className="text-2xl font-bold tracking-tight text-foreground">
-										{displayedScores.roLabel}
-									</p>
-									<p className="text-[11px] text-muted-foreground font-medium">
-										{displayedScores.roSub}
-									</p>
-								</div>
+								<p className="text-2xl font-bold text-foreground sm:text-3xl">
+									{displayedScores.roLabel}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									{displayedScores.roSub}
+								</p>
 							</div>
 
-							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
+							{/* Card 2: Ketepatan Waktu (NK-ROKW 30%) */}
+							<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
 								<div className="flex items-center justify-between text-muted-foreground">
 									<span className="text-xs font-semibold">
-										Ketepatan Waktu (NK-ROKW 30%)
+										Ketepatan Waktu (30%)
 									</span>
 									<Clock className="size-4 text-warning" />
 								</div>
-								<div className="space-y-0.5 mt-2">
-									<p className="text-2xl font-bold tracking-tight text-foreground flex items-baseline gap-1">
-										<span>{displayedScores.nkkw}</span>
-										<span className="text-xs font-normal text-muted-foreground">
-											/ 100
-										</span>
+								<div className="flex items-baseline gap-1">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl">
+										{displayedScores.nkkw}
 									</p>
-									<p className="text-[11px] text-muted-foreground font-medium">
-										{displayedScores.nkkwSub}
-									</p>
+									<span className="text-xs text-muted-foreground">/ 100</span>
 								</div>
+								<p className="text-[11px] text-muted-foreground">
+									{displayedScores.nkkwSub}
+								</p>
 							</div>
 
-							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
+							{/* Card 3: Capaian RO (NK-CRO 70%) */}
+							<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
 								<div className="flex items-center justify-between text-muted-foreground">
 									<span className="text-xs font-semibold">
-										Capaian RO (NK-CRO 70%)
+										Capaian RO (70%)
 									</span>
 									<Percent className="size-4 text-success" />
 								</div>
-								<div className="space-y-0.5 mt-2">
-									<p className="text-2xl font-bold tracking-tight text-foreground flex items-baseline gap-1">
-										<span>{displayedScores.nkcro}</span>
-										<span className="text-xs font-normal text-muted-foreground">
-											/ 100
-										</span>
+								<div className="flex items-baseline gap-1">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl">
+										{displayedScores.nkcro}
 									</p>
-									<p className="text-[11px] text-muted-foreground font-medium">
-										{displayedScores.nkcroSub}
-									</p>
+									<span className="text-xs text-muted-foreground">/ 100</span>
 								</div>
+								<p className="text-[11px] text-muted-foreground">
+									{displayedScores.nkcroSub}
+								</p>
 							</div>
 
-							<div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
-								<div className="flex items-center justify-between text-primary">
-									<span className="text-xs font-bold">
-										Nilai IKPA-CO & Kontribusi
+							{/* Card 4 (2 paling kanan): Nilai IKPA Capaian Output */}
+							<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+								<div className="flex items-center justify-between text-muted-foreground">
+									<span className="text-xs font-semibold">
+										Nilai IKPA Capaian Output
 									</span>
-									<Award className="size-4 text-primary" />
+									<ShieldCheck className="size-4 text-primary" />
 								</div>
-								<div className="space-y-0.5 mt-2">
-									<p className="text-2xl font-extrabold tracking-tight text-primary flex items-baseline gap-1">
-										<span>{displayedScores.finalScore}</span>
-										<span className="text-xs font-normal text-muted-foreground">
-											/ 100
-										</span>
-									</p>
-									<p className="text-[11px] font-semibold text-foreground">
-										Kontribusi: +{displayedScores.weightedContribution} poin ke
-										Satker
-									</p>
+								<p className="text-2xl font-extrabold text-primary sm:text-3xl">
+									{displayedScores.finalScore !== "—"
+										? Math.min(
+												100,
+												Math.max(0, Number(displayedScores.finalScore)),
+											).toFixed(2)
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									(30% × NK-ROKW) + (70% × NK-CRO)
+								</p>
+							</div>
+
+							{/* Card 5 (paling kanan): Nilai Akhir (25%) */}
+							<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
+								<div className="flex items-center justify-between text-muted-foreground">
+									<span className="text-xs font-semibold">
+										Nilai Akhir (25%)
+									</span>
+									<Sparkles className="size-4 text-success" />
 								</div>
+								<p className="text-2xl font-extrabold text-success sm:text-3xl">
+									{displayedScores.weightedContribution !== "—"
+										? `${displayedScores.weightedContribution} pts`
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									Bobot 25% terhadap total IKPA
+								</p>
 							</div>
 						</div>
 

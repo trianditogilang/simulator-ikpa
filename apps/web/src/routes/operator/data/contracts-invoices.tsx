@@ -880,7 +880,13 @@ function ContractsInvoicesPage() {
 							</div>
 							<div className="flex items-baseline gap-2">
 								<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-									{contractSummary.final.score ?? "—"}
+									{contractSummary.final.score !== null &&
+									contractSummary.final.score !== undefined
+										? Math.min(
+												100,
+												Math.max(0, Number(contractSummary.final.score)),
+											).toFixed(2)
+										: "—"}
 								</p>
 								<span
 									className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
@@ -897,11 +903,11 @@ function ContractsInvoicesPage() {
 							</p>
 						</div>
 
-						{/* Card 5 (paling kanan): Kontribusi IKPA (10%) */}
+						{/* Card 5 (paling kanan): Nilai Akhir (10%) */}
 						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
 							<div className="flex items-center justify-between text-muted-foreground">
 								<span className="text-xs font-semibold text-success truncate">
-									Kontribusi IKPA (10%)
+									Nilai Akhir (10%)
 								</span>
 								<Sparkles className="size-4 text-success" />
 							</div>
@@ -911,7 +917,7 @@ function ContractsInvoicesPage() {
 									: "—"}
 							</p>
 							<p className="text-[11px] text-muted-foreground truncate">
-								Maksimal kontribusi: 10.00 poin
+								Bobot 10% terhadap total IKPA
 							</p>
 						</div>
 					</div>
@@ -999,7 +1005,13 @@ function ContractsInvoicesPage() {
 							</div>
 							<div className="flex items-baseline gap-2">
 								<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-									{tagihanSummary.score ?? "—"}
+									{tagihanSummary.score !== null &&
+									tagihanSummary.score !== undefined
+										? Math.min(
+												100,
+												Math.max(0, Number(tagihanSummary.score)),
+											).toFixed(2)
+										: "—"}
 								</p>
 								<span
 									className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
@@ -1018,11 +1030,11 @@ function ContractsInvoicesPage() {
 							</p>
 						</div>
 
-						{/* Card 5 (paling kanan): Kontribusi IKPA (10%) */}
+						{/* Card 5 (paling kanan): Nilai Akhir (10%) */}
 						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
 							<div className="flex items-center justify-between text-muted-foreground">
 								<span className="text-xs font-semibold text-success truncate">
-									Kontribusi IKPA (10%)
+									Nilai Akhir (10%)
 								</span>
 								<Sparkles className="size-4 text-success" />
 							</div>
@@ -1032,7 +1044,7 @@ function ContractsInvoicesPage() {
 									: "—"}
 							</p>
 							<p className="text-[11px] text-muted-foreground truncate">
-								Maksimal kontribusi: 10.00 poin
+								Bobot 10% terhadap total IKPA
 							</p>
 						</div>
 					</div>

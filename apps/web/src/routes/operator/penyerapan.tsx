@@ -554,7 +554,7 @@ function PenyerapanPage() {
 							<ShieldCheck className="size-4 text-primary" />
 						</div>
 						<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-							{score.score !== null ? formatPercent(score.score) : isBlu ? "Dikecualikan" : "—"}
+							{score.score !== null ? formatPercent(Math.min(100, Math.max(0, score.score))) : isBlu ? "Dikecualikan" : "—"}
 						</p>
 						<p className="text-[11px] text-muted-foreground">
 							{isBlu
@@ -563,23 +563,23 @@ function PenyerapanPage() {
 						</p>
 					</div>
 
-					{/* Card 5: Kontribusi Nilai Akhir IKPA (Rightmost) */}
+					{/* Card 5: Nilai Akhir IKPA (Rightmost) */}
 					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">
-								Kontribusi IKPA (20%)
+								Nilai Akhir (20%)
 							</span>
 							<Sparkles className="size-4 text-success" />
 						</div>
 						<p className="text-2xl font-extrabold text-success sm:text-3xl">
 							{score.score !== null && !isBlu
-								? `${((score.score * 20) / 100).toFixed(2)} pts`
+								? `${((Math.min(100, Math.max(0, score.score)) * 20) / 100).toFixed(2)} pts`
 								: isBlu
 									? "0.00 pts"
 									: "—"}
 						</p>
 						<p className="text-[11px] text-muted-foreground">
-							Maksimal kontribusi: 20.00 poin
+							Bobot 20% terhadap total IKPA
 						</p>
 					</div>
 				</div>

@@ -17,6 +17,7 @@ import {
 	Plus,
 	ShieldAlert,
 	ShieldCheck,
+	Sparkles,
 	Trash2,
 	TrendingDown,
 } from "lucide-react";
@@ -389,12 +390,12 @@ function SpmDispensationPage() {
 					</div>
 				)}
 
-				{/* 4 Top Summary Metric Cards */}
-				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+				{/* 5 Top Summary Metric Cards */}
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
 					{/* Card 1: Total SPM Q4 */}
-					<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-medium">Total SPM Q4</span>
+							<span className="text-xs font-semibold">Total SPM Q4</span>
 							<FileText className="size-4 text-muted-foreground" />
 						</div>
 						<p className="text-2xl font-bold text-foreground sm:text-3xl">
@@ -406,9 +407,9 @@ function SpmDispensationPage() {
 					</div>
 
 					{/* Card 2: SPM Dispensasi */}
-					<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-medium">SPM Dispensasi</span>
+							<span className="text-xs font-semibold">SPM Dispensasi</span>
 							<AlertTriangle
 								className={`size-4 ${
 									dispensationCount > 0 ? "text-danger" : "text-success"
@@ -423,14 +424,14 @@ function SpmDispensationPage() {
 							{dispensationCount}
 						</p>
 						<p className="text-[11px] text-muted-foreground">
-							Pembilang · diajukan dengan dispensasi
+							Pembilang · diajukan dispensasi
 						</p>
 					</div>
 
-					{/* Card 3: Rasio Permil */}
-					<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1">
+					{/* Card 3: Rasio Dispensasi */}
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-medium">Rasio Dispensasi</span>
+							<span className="text-xs font-semibold">Rasio Dispensasi</span>
 							<TrendingDown className="size-4 text-primary" />
 						</div>
 						<p className="text-2xl font-bold text-foreground sm:text-3xl">
@@ -441,33 +442,39 @@ function SpmDispensationPage() {
 						</p>
 					</div>
 
-					{/* Card 4: Pengurang IKPA (Paling Kanan) */}
-					<div
-						className={`rounded-2xl border p-4 shadow-xs space-y-1 ${
-							deductionNum > 0
-								? "border-danger/30 bg-danger/5"
-								: "border-success/30 bg-success/5"
-						}`}
-					>
-						<div className="flex items-center justify-between">
-							<span className="text-xs font-medium text-muted-foreground">
-								Pengurang IKPA
+					{/* Card 4 (2 paling kanan): Nilai IKPA Dispensasi SPM */}
+					<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+						<div className="flex items-center justify-between text-muted-foreground">
+							<span className="text-xs font-semibold">
+								Nilai IKPA Dispensasi SPM
 							</span>
-							{deductionNum > 0 ? (
-								<ShieldAlert className="size-4 text-danger" />
-							) : (
-								<ShieldCheck className="size-4 text-success" />
-							)}
+							<ShieldCheck className="size-4 text-primary" />
 						</div>
-						<p
-							className={`text-2xl font-extrabold sm:text-3xl ${
-								deductionNum > 0 ? "text-danger" : "text-success"
-							}`}
-						>
-							{deductionNum > 0 ? `−${calc.deduction}` : "0,00"} Poin
+						<p className="text-2xl font-extrabold text-primary sm:text-3xl">
+							{deductionNum === 0
+								? "100.00"
+								: Math.max(0, 100 - deductionNum * 20).toFixed(2)}
 						</p>
-						<p className="text-[11px] text-muted-foreground truncate">
-							Nilai IKPA akhir = nilai 7 indikator − {calc.deduction}
+						<p className="text-[11px] text-muted-foreground">
+							{deductionNum === 0
+								? "Nihil dispensasi (Nilai maksimal)"
+								: `Potongan ${calc.deduction} poin IKPA`}
+						</p>
+					</div>
+
+					{/* Card 5 (paling kanan): Nilai Akhir (Pengurang 5%) */}
+					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
+						<div className="flex items-center justify-between text-muted-foreground">
+							<span className="text-xs font-semibold">
+								Nilai Akhir (Pengurang 5%)
+							</span>
+							<Sparkles className="size-4 text-success" />
+						</div>
+						<p className="text-2xl font-extrabold text-success sm:text-3xl">
+							{deductionNum > 0 ? `−${calc.deduction} pts` : "0.00 pts"}
+						</p>
+						<p className="text-[11px] text-muted-foreground">
+							Pengurang Nilai Total IKPA Satker
 						</p>
 					</div>
 				</div>

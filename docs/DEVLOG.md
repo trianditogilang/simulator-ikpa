@@ -2,6 +2,53 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 185 - 2026-09-08
+**Time:** Start: 10:45 UTC | End: 10:56 UTC | Duration: ~11 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng
+**Tasks Completed:**
+- [UI-INDICATORS-HEADER-SCORE-CARDS-STANDARDIZATION] Standardisasi 2 Header Score Card Paling Kanan Seluruh 8 Menu Indikator IKPA (Nilai IKPA Indikator & Nilai Akhir Bobot %) Selaras Gaya Visual Revisi DIPA:
+  1. **Revisi DIPA (`apps/web/src/routes/operator/data/budget-revisions.tsx`)**:
+     - Mengubah judul card paling kanan menjadi `Nilai Akhir (10%)` (border-success/20 bg-success/5 text-success font-extrabold & Sparkles icon).
+  2. **Deviasi Halaman III DIPA (`apps/web/src/routes/operator/deviasi.tsx`)**:
+     - Card ke-2 dari kanan: `Nilai IKPA Deviasi Hal III` (border-primary/20 bg-background text-primary font-extrabold, nilai maksimal 100 via `Math.min(100, Math.max(0, actualScoreObj.score))`).
+     - Card paling kanan: Mengubah judul menjadi `Nilai Akhir (15%)` dan subtitle `Bobot 15% terhadap total IKPA`.
+  3. **Penyerapan Anggaran (`apps/web/src/routes/operator/penyerapan.tsx`)**:
+     - Card ke-2 dari kanan: `Nilai IKPA Penyerapan` (border-primary/20 bg-background text-primary font-extrabold, nilai maksimal 100).
+     - Card paling kanan: Mengubah judul menjadi `Nilai Akhir (20%)` dan subtitle `Bobot 20% terhadap total IKPA`.
+  4. **Belanja Kontraktual & Penyelesaian Tagihan (`apps/web/src/routes/operator/data/contracts-invoices.tsx`)**:
+     - **Tab Kontrak**: Card ke-2 dari kanan `Nilai IKPA Kontraktual` (border-primary/20 bg-background text-primary font-extrabold, max 100), Card paling kanan diubah menjadi `Nilai Akhir (10%)`.
+     - **Tab Tagihan**: Card ke-2 dari kanan `Nilai IKPA Tagihan` (border-primary/20 bg-background text-primary font-extrabold, max 100), Card paling kanan diubah menjadi `Nilai Akhir (10%)`.
+  5. **Pengelolaan UP / TUP & KKP (`apps/web/src/routes/operator/up-tup.tsx`)**:
+     - Menstandarisasi card ke-3 (2nd from right) menjadi `Nilai IKPA UP/TUP & KKP` dengan gaya ponitail standar (border-primary/20 bg-background text-primary font-extrabold & icon ShieldCheck).
+     - Menstandarisasi card ke-4 (rightmost) menjadi `Nilai Akhir (10%)` (border-success/20 bg-success/5 text-success font-extrabold & icon Sparkles).
+     - Menghapus import ikon `Wallet` yang sudah tidak terpakai.
+  6. **Capaian Output (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Mengembangkan header scoring strip menjadi layout 5 card selaras indikator lainnya: Card 1 (RO Objek Penilaian), Card 2 (Ketepatan Waktu 30%), Card 3 (Capaian RO 70%), Card 4 (Nilai IKPA Capaian Output, border-primary/20 bg-background text-primary font-extrabold & ShieldCheck, max 100), Card 5 (Nilai Akhir (25%), border-success/20 bg-success/5 text-success font-extrabold & Sparkles).
+     - Menghapus import ikon `Award` yang sudah tidak terpakai.
+  7. **Dispensasi SPM (`apps/web/src/routes/operator/data/spm-dispensation.tsx`)**:
+     - Mengembangkan summary scoring strip menjadi layout 5 card: Card 1 (Total SPM Q4), Card 2 (SPM Dispensasi), Card 3 (Rasio Dispensasi), Card 4 (Nilai IKPA Dispensasi SPM, border-primary/20 bg-background text-primary font-extrabold & ShieldCheck, max 100), Card 5 (Nilai Akhir (Pengurang 5%), border-success/20 bg-success/5 text-success font-extrabold & Sparkles).
+     - Mengimpor icon `Sparkles`.
+  8. **Verifikasi Monorepo**:
+     - `npm run typecheck` -> 0 errors lintas 7 workspace packages.
+     - `npm test` & `npx vitest run` -> 38 test files / 271 unit tests lulus 100% (108/108 tests di apps/web).
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/budget-revisions.tsx`
+  - `apps/web/src/routes/operator/deviasi.tsx`
+  - `apps/web/src/routes/operator/penyerapan.tsx`
+  - `apps/web/src/routes/operator/data/contracts-invoices.tsx`
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `apps/web/src/routes/operator/data/spm-dispensation.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `npm test` & `vitest` -> 271/271 tests passed across monorepo (108/108 in apps/web).
+
 ### Session 184 - 2026-09-08
 **Time:** Start: 10:40 UTC | End: 10:43 UTC | Duration: ~3 minutes
 - Status: Completed

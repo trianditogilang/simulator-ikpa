@@ -925,7 +925,7 @@ function DeviasiPage() {
 							</p>
 						</div>
 
-						{/* Card 4: Nilai IKPA Deviasi */}
+						{/* Card 4: Nilai IKPA Deviasi (2nd from right) */}
 						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
 							<div className="flex items-center justify-between text-muted-foreground">
 								<span className="text-xs font-semibold">
@@ -935,7 +935,7 @@ function DeviasiPage() {
 							</div>
 							<p className="text-2xl font-extrabold text-primary sm:text-3xl">
 								{actualScoreObj.score !== null
-									? formatPercent(actualScoreObj.score)
+									? formatPercent(Math.min(100, Math.max(0, actualScoreObj.score)))
 									: "—"}
 							</p>
 							<p className="text-[11px] text-muted-foreground">
@@ -946,11 +946,11 @@ function DeviasiPage() {
 							</p>
 						</div>
 
-						{/* Card 5: Kontribusi Nilai Akhir IKPA */}
+						{/* Card 5: Nilai Akhir IKPA (Rightmost) */}
 						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
 							<div className="flex items-center justify-between text-muted-foreground">
 								<span className="text-xs font-semibold">
-									Kontribusi IKPA (15%)
+									Nilai Akhir (15%)
 								</span>
 								<Sparkles className="size-4 text-success" />
 							</div>
@@ -960,7 +960,7 @@ function DeviasiPage() {
 									: "—"}
 							</p>
 							<p className="text-[11px] text-muted-foreground">
-								Maksimal kontribusi: 15.00 poin
+								Bobot 15% terhadap total IKPA
 							</p>
 						</div>
 					</div>

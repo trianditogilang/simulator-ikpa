@@ -736,11 +736,11 @@ function BudgetRevisionsPage() {
 						</p>
 					</div>
 
-					{/* Card 4: Kontribusi Nilai Akhir IKPA (Rightmost) */}
+					{/* Card 4: Nilai Akhir IKPA (Rightmost) */}
 					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">
-								Kontribusi IKPA (10%)
+								Nilai Akhir (10%)
 							</span>
 							<Sparkles className="size-4 text-success" />
 						</div>
