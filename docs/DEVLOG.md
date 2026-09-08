@@ -2,6 +2,27 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 187 - 2026-09-08
+**Time:** Start: 11:27 UTC | End: 11:31 UTC | Duration: ~4 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, emil-design-eng
+**Tasks Completed:**
+- [UI-OPERATOR-NAV-REMOVE-REPORTS-MENU] Penghapusan Menu 'Laporan & Ekspor' pada Navigasi Operator Satker (`OperatorNavigation`):
+  1. Menghapus entri `{ label: "Laporan & ekspor", href: "/operator/reports", icon: FileText }` dari `lainnyaItems` di `apps/web/src/components/layout/operator-navigation.tsx`.
+  2. Memastikan menu lain (Riwayat & perbandingan, Panduan IKPA, Pengaturan, dsb.) tetap utuh tanpa perubahan.
+  3. Verifikasi: `npm run typecheck` 0 error lintas 7 workspace packages, `npx vitest run` 16 files / 108 tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/layout/operator-navigation.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `npx vitest run` -> 108/108 tests passed in apps/web.
+
+
 ### Session 186 - 2026-09-08
 **Time:** Start: 11:15 UTC | End: 11:25 UTC | Duration: ~10 minutes
 - Status: Completed

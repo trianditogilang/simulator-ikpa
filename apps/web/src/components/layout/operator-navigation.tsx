@@ -96,7 +96,6 @@ const indicatorItems: readonly NavigationItem[] = [
 
 const lainnyaItems: readonly NavigationItem[] = [
 	{ label: "Riwayat & perbandingan", href: "/operator/history", icon: History },
-	{ label: "Laporan & ekspor", href: "/operator/reports", icon: FileText },
 	{ label: "Panduan IKPA", href: "/operator/guides", icon: BookOpen },
 	{ label: "Pengaturan", href: "/operator/settings", icon: Settings },
 ];
