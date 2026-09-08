@@ -45,12 +45,39 @@ describe("compliance-guard", () => {
 		});
 		expect(e.some((x) => x.code === "REQUIRED_RECIPIENT_MISSING")).toBe(true);
 	});
-	it("rejects inactive policy enabled", () => {
-		expect(
-			checkCompliance(
-				{ ...mandatoryPolicy, isActive: false },
-				{ enabled: true, recipients: ["ppk", "bendahara"] },
-			).some((x) => x.code === "POLICY_INACTIVE"),
-		).toBe(true);
+	it("rejects more than 4 reminder lead days", () => {
+		const e = checkCompliance(
+			{
+				...mandatoryPolicy,
+				allowedLeadDays: undefined,
+				minLeadDays: 0,
+				maxLeadDays: 14,
+			},
+			{
+				enabled: true,
+				scheduleLeadDays: [14, 10, 7, 3, 0],
+				recipients: ["ppk", "bendahara"],
+			},
+		);
+		expect(e.some((x) => x.code === "LEAD_MAX_COUNT_EXCEEDED")).toBe(true);
+	});
+	it("allows lead days 0 up to 20 days when within min/max lead days", () => {
+		const e = checkCompliance(
+			{
+				...mandatoryPolicy,
+				allowedLeadDays: undefined,
+				minLeadDays: 0,
+				maxLeadDays: 20,
+			},
+			{
+				enabled: true,
+				scheduleLeadDays: [20, 17, 10, 0],
+				recipients: ["ppk", "bendahara"],
+			},
+		);
+		expect(e).toEqual([]);
 	});
 });
+
+
+

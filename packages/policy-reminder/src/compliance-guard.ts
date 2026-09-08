@@ -51,18 +51,25 @@ export function checkCompliance(
 		});
 	}
 
-	// allowed lead days
+	// allowed lead days: 0 s.d. 20 hari
+	const minDays = 0;
+	const maxDays = Math.max(policy.maxLeadDays ?? 20, 20);
 	const allowed =
 		policy.allowedLeadDays ??
-		(policy.minLeadDays !== undefined && policy.maxLeadDays !== undefined
-			? Array.from(
-					{ length: policy.maxLeadDays - policy.minLeadDays + 1 },
-					(_, i) => policy.minLeadDays! + i,
-				)
-			: []);
+		Array.from(
+			{ length: maxDays - minDays + 1 },
+			(_, i) => minDays + i,
+		);
 	if (config.scheduleLeadDays) {
+		if (config.scheduleLeadDays.length > 4) {
+			errors.push({
+				code: "LEAD_MAX_COUNT_EXCEEDED",
+				field: "scheduleLeadDays",
+				message: "Isian reminder maksimal 4 kali pengingat.",
+			});
+		}
 		for (const d of config.scheduleLeadDays) {
-			if (!allowed.includes(d)) {
+			if (allowed.length > 0 && !allowed.includes(d)) {
 				errors.push({
 					code: "LEAD_NOT_ALLOWED",
 					field: "scheduleLeadDays",

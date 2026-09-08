@@ -53,26 +53,47 @@ export async function upsertReminderConfig(
 	const data = upsertSchema.parse(input);
 	await assertFy(db, access, orgId, data.fiscalYearId);
 
-	const [policy] = await db
+	let [policy] = await db
 		.select()
 		.from(reminderPolicies)
 		.where(eq(reminderPolicies.id, data.reminderPolicyId))
 		.limit(1);
+
+	if (!policy) {
+		const [byEvent] = await db
+			.select()
+			.from(reminderPolicies)
+			.where(eq(reminderPolicies.eventType, data.reminderPolicyId))
+			.limit(1);
+		if (byEvent) {
+			policy = byEvent;
+			data.reminderPolicyId = byEvent.id;
+		}
+	}
+
 	if (!policy) throw new Error("Policy tidak ditemukan.");
 	if (!policy.isActive)
 		throw new Error("Policy tidak aktif, tidak dapat dikonfigurasi.");
 
+	const minLeadDays = 0;
+	const maxLeadDays = Math.max(policy.maxLeadDays ?? 20, 20);
+
 	// compliance guard
 	const scheduleLeadDays = (data.scheduleJson as { leadDays?: number[] })
 		?.leadDays;
+
+	if (scheduleLeadDays && scheduleLeadDays.length > 4) {
+		throw new Error("Isian reminder maksimal 4 kali pengingat.");
+	}
+
 	const errors = checkCompliance(
 		{
 			id: policy.id,
 			eventType: policy.eventType,
 			category: policy.category as never,
 			dayType: policy.dayType as never,
-			minLeadDays: policy.minLeadDays,
-			maxLeadDays: policy.maxLeadDays,
+			minLeadDays,
+			maxLeadDays,
 			requiredRecipientsJson: policy.requiredRecipientsJson as string[],
 			allowDisable: policy.allowDisable,
 			allowRecipientOverride: policy.allowRecipientOverride,

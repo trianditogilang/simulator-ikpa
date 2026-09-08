@@ -3,23 +3,41 @@ import {
 	resetOperatorReminderConfigFn,
 	updateOperatorReminderConfigFn,
 } from "@/server/reminders";
+import type {
+	ActiveReminderEvent,
+	ReminderDeliveryLogItem,
+	ReminderRecipientItem,
+} from "@/server/reminders/active-events.queries";
+
+export type {
+	ActiveReminderEvent,
+	ReminderDeliveryLogItem,
+	ReminderRecipientItem,
+};
 
 export interface ReminderPolicyItem {
 	id: string;
 	eventType: string;
-	category: string;
-	dayType: string;
+	indicatorKey?: string;
+	indicatorLabel?: string;
+	category: "mandatory" | "recommended" | "optional" | string;
+	dayType: "workday" | "calendar_day" | "schedule" | string;
 	minLeadDays: number;
 	maxLeadDays: number;
+	defaultLeadDays?: number[];
+	requiredRecipients?: string[];
 	allowDisable: boolean;
 	allowRecipientOverride: boolean;
 	isActive: boolean;
+	description?: string;
 }
 
 export interface ReminderConfigItem {
 	id: string;
 	reminderPolicyId: string;
 	enabled: boolean;
+	scheduleLeadDays?: number[];
+	additionalRecipients?: string[];
 	customMessage?: string | null;
 	timezone: string;
 }
@@ -35,18 +53,45 @@ export interface ReminderPreviewItem {
 	}>;
 }
 
+export interface OperatorRemindersSummaryStats {
+	totalActiveEvents: number;
+	urgentEventsCount: number;
+	warningEventsCount: number;
+	safeEventsCount: number;
+	completedEventsCount: number;
+	totalPoliciesCount: number;
+	mandatoryPoliciesCount: number;
+	activePoliciesCount: number;
+	scheduledDeliveriesCount: number;
+	sentDeliveriesCount: number;
+	failedDeliveriesCount: number;
+}
+
 export interface OperatorRemindersData {
 	fiscalYearId: string;
 	year: number;
+	organizationName?: string;
+	satkerCode?: string;
+	events: ActiveReminderEvent[];
 	policies: ReminderPolicyItem[];
 	configs: ReminderConfigItem[];
 	previews: ReminderPreviewItem[];
+	recipients: ReminderRecipientItem[];
+	deliveries: ReminderDeliveryLogItem[];
+	stats: OperatorRemindersSummaryStats;
+	providerStatus: {
+		isProductionReady: boolean;
+		mode: "sandbox_pending" | "production";
+		message: string;
+	};
 }
 
 export async function fetchOperatorReminders(
 	orgId?: string,
 ): Promise<OperatorRemindersData> {
-	return listOperatorRemindersFn({ data: orgId ? { orgId } : undefined });
+	return listOperatorRemindersFn({
+		data: orgId ? { orgId } : undefined,
+	}) as unknown as Promise<OperatorRemindersData>;
 }
 
 export async function saveReminderConfig(input: {

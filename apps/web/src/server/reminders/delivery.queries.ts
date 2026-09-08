@@ -1,4 +1,7 @@
-import { assertAdminKppnScope } from "@simulator-ikpa/access-control";
+import {
+	assertAdminKppnScope,
+	assertOperatorOrgScope,
+} from "@simulator-ikpa/access-control";
 import type { AccessResolution } from "@simulator-ikpa/contracts";
 import type { DbClient } from "@simulator-ikpa/db";
 import {
@@ -73,6 +76,21 @@ export async function listDeliveriesForAdmin(
 		pageSize,
 		totalPages: Math.ceil(totalRows.length / pageSize),
 	};
+}
+
+export async function listDeliveriesForOperator(
+	db: DbClient,
+	access: AccessResolution,
+	orgId: string,
+	limit = 50,
+) {
+	assertOperatorOrgScope(access, orgId);
+	return db
+		.select()
+		.from(notificationDeliveries)
+		.where(eq(notificationDeliveries.orgId, orgId))
+		.orderBy(desc(notificationDeliveries.scheduledFor))
+		.limit(limit);
 }
 
 export async function getDeliveryForAdmin(

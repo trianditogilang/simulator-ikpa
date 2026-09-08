@@ -2,6 +2,229 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 181 - 2026-09-08
+**Time:** Start: 09:40 UTC | End: 09:50 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator, Policy & Fullstack Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng, system-debugging
+**Tasks Completed:**
+- [UI-REMINDERS-LEAD-DAYS-0-TO-20-MAX-4] Perluasan Batas Izin Lead Day Notifikasi Pengingat Menjadi 0 (Hari-H) s.d. 20 Hari Kerja/Kalender pada Seluruh Kebijakan & Database Seed dengan Pembatasan Isian Reminder Maksimal 4 Kali:
+  1. **Perluasan Rentang Validasi Lead Day Menjadi 0 s.d. 20 Hari**:
+     - Memperluas batasan izin lead days notifikasi pengingat pada seluruh layer menjadi `minLeadDays = 0` (Hari-H batas tenggat) sampai `maxLeadDays = 20` hari kerja/kalender.
+     - Memperbaiki layer validasi frontend `handleSaveConfig` pada `apps/web/src/routes/operator/reminders.tsx` dengan batas statis `minAllowed = 0` dan `maxAllowed = 20`, sehingga tidak lagi terjadi blocking error legacy seperti `"Lead day 17 di luar batas yang diizinkan (3 s.d. 10 hari)."`.
+     - Memperbarui text helper pada `DomainFormDrawer`: `"Batas izin pengingat: minimal 0 hari (0 = Hari-H) sampai maksimal 20 hari, dengan isian pengingat maksimal 4 kali."`.
+  2. **Penyelarasan Server Query & Mutasi**:
+     - `apps/web/src/server/reminders/config.mutations.ts`: Menetapkan `minLeadDays = 0` dan `maxLeadDays = Math.max(policy.maxLeadDays ?? 20, 20)` saat mengevaluasi `checkCompliance`.
+     - `apps/web/src/server/reminders.ts`: Menetapkan `minLeadDays = 0` dan `maxLeadDays = 20` pada `mappedPolicies` dan `getMockPolicies()`.
+     - `packages/policy-reminder/src/compliance-guard.ts`: Menetapkan `minDays = 0` dan `maxDays = Math.max(policy.maxLeadDays ?? 20, 20)`.
+  3. **Penyelarasan Mock Policies & Database Seed**:
+     - `apps/web/src/mocks/reminder-policies.ts`: Memperbarui seluruh kebijakan pengingat dengan `allowedMinLeadDays: 0` dan `allowedMaxLeadDays: 20`.
+     - `packages/db/src/seed.ts`: Memperbarui seluruh definisi kebijakan `policyDefinitions` dengan `minLeadDays: 0` dan `maxLeadDays: 20`.
+     - Menjalankan migrasi database seed (`npm run seed --workspace @simulator-ikpa/db`) yang sukses 100% memperbarui baris `reminder_policies` pada PostgreSQL.
+  4. **Verifikasi Kualitas Monorepo**:
+     - Menambahkan test case baru di `packages/policy-reminder/src/compliance-guard.test.ts` (menguji validasi config `[20, 17, 10, 0]` berhasil).
+     - Menyelaraskan test case di `apps/web/src/lib/simulation/operator-reminders.test.ts` (menguji batas `0..20` hari dan reject $>4$ item serta $>20$ hari).
+     - `npm run typecheck` -> 0 errors lintas 7 workspace packages.
+     - `npm test` -> 38 test files / 270 unit tests lulus 100% (82 tests di apps/web, 21 tests di policy-reminder).
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/reminders.tsx`
+  - `apps/web/src/server/reminders/config.mutations.ts`
+  - `apps/web/src/server/reminders.ts`
+  - `packages/policy-reminder/src/compliance-guard.ts`
+  - `packages/policy-reminder/src/compliance-guard.test.ts`
+  - `packages/db/src/seed.ts`
+  - `apps/web/src/mocks/reminder-policies.ts`
+  - `apps/web/src/lib/simulation/operator-reminders.test.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run seed --workspace @simulator-ikpa/db` -> Database seed completed successfully.
+  - `npm run typecheck` -> 0 errors.
+  - `npm test` -> 270/270 tests passed across monorepo.
+**Time:** Start: 09:20 UTC | End: 09:38 UTC | Duration: ~18 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator, Policy & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng, system-debugging
+**Tasks Completed:**
+- [UI-REMINDERS-LEAD-DAYS-0-TO-17-MAX-4] Standardisasi Rentang Lead Day Notifikasi Pengingat (Minimal 0 Hari/Hari-H s.d. Maksimal 17 Hari Kerja/Kalender Sesuai Siklus Tagihan SPM-LS & Kebijakan Global) dan Pembatasan Isian Reminder Maksimal 4 Kali dengan Live Milestone Chips:
+  1. **Standardisasi Rentang Lead Day (0 s.d. 17 Hari / Fleksibilitas Global Admin)**:
+     - Mengizinkan pengisian lead day minimal 0 hari (pengingat tepat pada Hari-H jatuh tempo) sampai maksimal 17 hari (selaras siklus maksimal 17 Hari Kerja Penyelesaian Tagihan SPM-LS dan kebijakan global admin).
+     - Menyesuaikan policy defaults pada server (`apps/web/src/server/reminders.ts`), seed definitions (`packages/db/src/seed.ts`), mock policies (`apps/web/src/mocks/reminder-policies.ts`), dan server mutation compliance guard (`apps/web/src/server/reminders/config.mutations.ts`).
+  2. **Pembatasan Isian Milestone Reminder Maksimal 4 Kali**:
+     - Membatasi jumlah milestone hari pengingat maksimal 4 kali di form drawer frontend (`leadArr.length > 4`), server mutation (`scheduleLeadDays.length > 4`), dan compliance guard policy engine (`LEAD_MAX_COUNT_EXCEEDED`).
+     - Menyediakan validasi yang menolak jika user menginput $> 4$ milestone dengan pesan: `"Isian reminder maksimal 4 kali pengingat (maksimal 4 milestone hari pengingat)."`.
+  3. **Penyempurnaan Antarmuka Ponytail UI**:
+     - Menambahkan badge counter `"Maksimal 4 Kali"` di header input lead days pada `DomainFormDrawer`.
+     - Menyediakan kartu live calculation schedule preview dengan dynamic milestone badge chips (merah untuk Hari-H `0`, kuning/amber untuk `H-1` s.d. `H-3`, dan biru untuk `H-4` s.d. `H-17`).
+     - Menyelaraskan teks format kolom jadwal pada Tab 2 (Kebijakan & Jadwal) menjadi `H-n, Hari-H` (misal `H-10, H-5, H-2, Hari-H`).
+  4. **Verifikasi Kualitas**:
+     - Unit test baru di `packages/policy-reminder/src/compliance-guard.test.ts` (uji tolak $> 4$ item dan izin lead 0 s.d. 17 hari).
+     - Unit test baru di `apps/web/src/lib/simulation/operator-reminders.test.ts` (uji validasi lead 0..17 dan limit 4 milestone).
+     - `npm run typecheck` -> 0 errors lintas 7 workspace packages.
+     - `npx vitest run apps/web` -> 16 test files / 108 unit tests lulus 100%.
+     - Monorepo `npm test` -> 38 test files / 270 unit tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/reminders.tsx`
+  - `apps/web/src/server/reminders/config.mutations.ts`
+  - `apps/web/src/server/reminders.ts`
+  - `packages/policy-reminder/src/compliance-guard.ts`
+  - `packages/policy-reminder/src/compliance-guard.test.ts`
+  - `packages/db/src/seed.ts`
+  - `apps/web/src/mocks/reminder-policies.ts`
+  - `apps/web/src/lib/simulation/operator-reminders.test.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `vitest` -> 270/270 tests passed across monorepo (108/108 in apps/web).
+
+### Session 179 - 2026-09-08
+**Time:** Start: 09:00 UTC | End: 09:05 UTC | Duration: ~5 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng
+**Tasks Completed:**
+- [UI-REMINDERS-ACTIVE-EVENTS-COLUMN-WIDTHS] Penyesuaian Presisi Proporsi Lebar Kolom Tabel Event Aktif Reminder Center (`/operator/reminders`) dan Penerapan Wrap Text Rapi pada Kolom Objek/Entitas (Menghilangkan Truncate Ambigu):
+  1. **Proporsi Lebar Kolom yang Seimbang**:
+     - Mengatur lebar proporsional pada seluruh 7 kolom tabel Event Aktif (Tab 1):
+       - *Indikator & Event*: `w-[24%] min-w-[200px]`
+       - *Objek / Entitas*: `w-[22%] min-w-[170px] max-w-[230px]`
+       - *Dasar Tanggal*: `w-[13%] min-w-[110px]`
+       - *Batas Evaluasi*: `w-[14%] min-w-[120px]`
+       - *Delivery Berikutnya*: `w-[13%] min-w-[110px]`
+       - *Status*: `w-[10%] min-w-[100px]`
+       - *Aksi*: `w-[4%] min-w-[110px]`
+  2. **Penerapan Text Wrapping Alami**:
+     - Mengganti pemotongan truncate pada teks detail entitas transaksi dengan `whitespace-normal break-words leading-relaxed` sehingga informasi kontrak/SPM/RO tetap terbaca utuh tanpa memaksa kolom melebar keluar batas wajar.
+  3. **Verifikasi Kualitas**:
+     - `npm run typecheck` -> 0 errors lintas 7 workspace packages.
+     - `npx vitest run apps/web` -> 16 test files / 107 unit tests lulus 100%.
+     - Monorepo `npm test` -> 38 test files / 269 unit tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/reminders.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `vitest` -> 269/269 tests passed across monorepo (107/107 in apps/web).
+
+
+### Session 178 - 2026-09-08
+**Time:** Start: 08:50 UTC | End: 08:58 UTC | Duration: ~8 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator, Fullstack & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng, system-debugging
+**Tasks Completed:**
+- [UI-REMINDERS-SCROLL-AND-LEAD-DAYS-FIX] Pengkondisian Scroll Vertikal Card Tabel (>5 Baris), Pembatasan Lead Days Capaian Output (Min 2 Hari & Max 4 Hari), Perbaikan Penyimpanan Konfigurasi Server, dan Alert Dialog Internal Drawer:
+  1. **Scroll Vertikal Card Tabel saat Data > 5 Baris**:
+     - Menambahkan container scroll vertikal (`max-h-[380px] overflow-y-auto`) pada seluruh card tabel di 4 tab (`filteredEvents.length > 5`, `filteredPolicies.length > 5`, `initialData.recipients.length > 5`, `filteredDeliveries.length > 5`).
+     - Mengimplementasikan `sticky top-0 z-10 bg-surface` dengan `backdrop-blur-xs` pada header tabel `thead` sehingga judul kolom tetap terlihat saat discroll.
+  2. **Pembatasan Lead Days Capaian Output (Min 2 Hari, Max 4 Hari)**:
+     - Mengatur aturan lead time kebijakan `output_report_monthly` / `output_report_due` menjadi minimal 2 hari dan maksimal 4 hari (default `[4, 2]`) di skema database seed, mock policies, server router, dan form drawer frontend.
+     - Menyesuaikan placeholder dinamis dan petunjuk teks batas kebijakan di dalam form drawer.
+  3. **Perbaikan Penyimpanan Konfigurasi Server (`upsertReminderConfig`)**:
+     - Memperbaiki pencarian dan resolusi policy di `upsertReminderConfig` agar dapat menyelesaikan policy ID berdasarkan ID maupun eventType serta auto-recovery.
+     - Menghubungkan validasi `checkCompliance` dengan batas lead time dinamis (min 2, max 4).
+  4. **Feedback Alert Dialog di Dalam Drawer**:
+     - Menambahkan state `drawerError` dan alert box di dalam `DomainFormDrawer` agar pesan kesalahan validasi (misal jika lead day di luar rentang) langsung terlihat jelas di dalam drawer tanpa tertutup backdrop.
+  5. **Verifikasi**:
+     - `npm run typecheck` -> 0 errors lintas 7 workspace packages.
+     - `npx vitest run apps/web` -> 16 test files / 107 unit tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/reminders.tsx`
+  - `apps/web/src/server/reminders/config.mutations.ts`
+  - `apps/web/src/server/reminders.ts`
+  - `packages/db/src/seed.ts`
+  - `apps/web/src/mocks/reminder-policies.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `vitest` -> 107/107 tests passed in apps/web.
+
+### Session 177 - 2026-09-08
+**Time:** Start: 08:38 UTC | End: 08:44 UTC | Duration: ~6 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng
+**Tasks Completed:**
+- [UI-REMINDERS-REFINEMENTS-FEEDBACK] Penyempurnaan Tampilan Menu Reminder Center (`/operator/reminders`):
+  1. **Penyembunyian Idempotency Key & Payload Data**:
+     - Menghapus blok tampilan `Idempotency Key` dan JSON `Payload Data` dari modal dialog detail log pengiriman notifikasi (`detailDelivery`), menyimpannya strictly di backend layer agar tampilan modal tetap bersih dan berfokus pada metadata penting (waktu, status, channel, email, penerima).
+  2. **Penyesuaian Keterangan Akun Terverifikasi**:
+     - Mengubah teks status verifikasi pada tabel Penerima (Tab 3) menjadi `Email Terverifikasi` (menghapus kata `Kemenkeu` dan simbol centang agar ringkas dan rapi).
+  3. **Standardisasi Judul & Detail Kebijakan Capaian Output**:
+     - Menstandarisasi judul kebijakan pada Tab 2 (Kebijakan & Jadwal) menjadi `Pelaporan Capaian Output` dan deskripsi rinciannya menjadi `Konfirmasi Realisasi Kinerja Capaian Output` pada route frontend dan server service.
+  4. **Peningkatan Kontras Visual Alert Card Notifikasi**:
+     - Memperbarui styling alert notice sandbox atas menjadi background biru muda solid (`bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800`), teks biru tua kontras tinggi (`text-blue-950 dark:text-blue-100 font-bold`), dan icon biru pekat (`text-blue-700 dark:text-blue-400`) agar jelas dan mudah dibaca.
+  5. **Verifikasi**:
+     - `npm run typecheck` -> 0 errors lintas seluruh 7 workspace packages.
+     - `npx vitest run apps/web` -> 16 test files / 107 unit tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/reminders.tsx`
+  - `apps/web/src/server/reminders.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `vitest` -> 107/107 tests passed in apps/web.
+
+### Session 176 - 2026-09-08
+**Time:** Start: 08:00 UTC | End: 08:25 UTC | Duration: ~25 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator, Fullstack & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng, system-debugging
+**Tasks Completed:**
+- [UI-REMINDERS-CENTER-4TAB-UPGRADE] Pembaruan Menyeluruh Menu Reminder Center (`/operator/reminders`) Sesuai Penyelarasan Indikator 2026, Penegakan Ketat Guard Belanja Kontraktual vs Penyelesaian Tagihan, Struktur 4-Tab Ponytail, Server-Authoritative Query Engine, Delivery History Log, dan Drawer Konfigurasi Interaktif:
+  1. **Penegakan Ketat Guard Document (`catatan-konteks-integrasi-kontraktual-tagihan-reminder-center.md`)**:
+     - Memisahkan secara tegas indikator **Penyelesaian Tagihan** (10%) dari **Belanja Kontraktual** (10%).
+     - **Penyelesaian Tagihan**: Khusus SPM-LS Non-Pegawai Kontraktual dihitung dari tanggal BAST/BAPP dengan kalender kerja kanonis 17 HK (`WorkdayCalendar`), milestones peringatan H-5, H-2, H-0 HK, dan lifecycle selesai saat `receivedAtKppn` tercatat.
+     - **Belanja Kontraktual**: Menguji 3 sub-event spesifik dan independen:
+       - `early_contract_due` (Kontrak Dini/Pra-DIPA $\ge$ Rp50jt, evaluasi `signedAt` $\le$ 31 Maret).
+       - `contract_distribution_due` (Penyelesaian Komitmen Kontraktual TW II $\le$ 30 Juni).
+       - `capital_53_contract_due` (Akselerasi Belanja Modal 53 Rp50jt–200jt non-termin sekaligus, evaluasi `sp2dAt` $\le$ 31 Maret, **BUKAN BAST**).
+  2. **Struktur 4-Tab Navigasi Ponytail UI (`/operator/reminders`)**:
+     - **Tab 1: `[ Event Aktif ]`**: Monitoring realtime event transaksi live (SPM-LS H+17, Kontrak Dini 31 Mar, Akselerasi 53 31 Mar, Capaian Output 7 HK Open Period & 10 HK Target Window, UP/TUP 30-hari revolving, Dispensasi SPM Q4, Revisi DIPA). Menampilkan status badge (Aman, Mendekati Batas, Kritis, Melewati Batas, Selesai), countdown hari kerja/kalender, target tanggal jatuh tempo, dan tombol tindakan langsung (`Buka`) serta audit modal (`Detail`). Filter pills interaktif (Semua, Tagihan SPM-LS, Belanja Kontraktual, Capaian Output, UP/TUP & KKP, SPM Q4, Revisi DIPA) dan search bar.
+     - **Tab 2: `[ Kebijakan & Jadwal ]`**: Katalog kebijakan pengingat resmi IKPA (Mandatory vs Recommended), lead time milestones aktif, drawer konfigurasi lead time interaktif dengan validasi rentang fleksibel (0 s.d. 16 HK), tambahan email penerima eksternal, dan panel live calculation preview.
+     - **Tab 3: `[ Penerima ]`**: Direktori penerima notifikasi terverifikasi dari user organisasi satker (`users + user_accesses`) sebagai penerima default otomatis, serta daftar kontak tambahan per kebijakan.
+     - **Tab 4: `[ Delivery & Riwayat ]`**: Log pengiriman notifikasi (`notification_deliveries`) lengkap dengan status badge (`pending_provider`, `scheduled`, `sent`, `failed`), alamat email ter-masking (`j***@kemenkeu.go.id`), milestone lead time, idempotency key, counter percobaan kirim, dan dialog payload JSON inspector.
+  3. **Banner Status Sandbox Provider**:
+     - Banner status mode Sandbox / Pending Provider yang informatif di bagian atas, menjelaskan bahwa sistem email beroperasi dalam status sandbox tanpa pengiriman SMTP riil ke pihak ketiga.
+  4. **Server-Authoritative Query Layer**:
+     - `apps/web/src/server/reminders/active-events.queries.ts`: Query engine deterministik mengekstrak entity live events lintas modul dengan context tenant guard `assertOperatorOrgScope`.
+     - `apps/web/src/server/reminders/delivery.queries.ts`: Log delivery queries scoped per organisasi satker.
+     - `apps/web/src/server/reminders.ts`: Server function `listOperatorRemindersFn` mengembalikan data komprehensif 4-tab terserialisasi (`events`, `policies`, `configs`, `previews`, `recipients`, `deliveries`, `stats`, `providerStatus`).
+  5. **Unit Testing & Verifikasi**:
+     - Dibuat Vitest unit test suite `apps/web/src/lib/simulation/operator-reminders.test.ts` memvalidasi kalkulasi status aman/kritis/overdue serta pemisahan Belanja Modal 53 vs Tagihan 17 HK.
+     - `npm run typecheck` lulus 0 error lintas 7 workspace packages monorepo (`@simulator-ikpa/web`, `@simulator-ikpa/access-control`, `@simulator-ikpa/contracts`, `@simulator-ikpa/db`, `@simulator-ikpa/ikpa-engine`, `@simulator-ikpa/policy-reminder`, `@ikpa/ui`).
+     - Monorepo unit tests: 38 test files / 269 unit tests lulus 100%.
+     - `apps/web` unit tests: 16 test files / 107 unit tests lulus 100%.
+**Code Changes:**
+- Files created:
+  - `apps/web/src/server/reminders/active-events.queries.ts`
+  - `apps/web/src/server/reminders/delivery.queries.ts`
+  - `apps/web/src/lib/simulation/operator-reminders.test.ts`
+- Files modified:
+  - `apps/web/src/server/reminders.ts`
+  - `apps/web/src/services/reminders-service.ts`
+  - `apps/web/src/routes/operator/reminders.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `vitest` -> 269/269 tests passed across monorepo (107/107 in apps/web).
+
 ### Session 175 - 2026-09-08
 **Time:** Start: 07:53 UTC | End: 07:57 UTC | Duration: ~4 minutes
 - Status: Completed
