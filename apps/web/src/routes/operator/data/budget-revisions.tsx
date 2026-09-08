@@ -11,6 +11,7 @@ import {
 	SlidersHorizontal,
 	Sparkles,
 	Trash2,
+	TrendingUp,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
@@ -886,6 +887,70 @@ function BudgetRevisionsPage() {
 						totalCount={filteredRevisions.length}
 					/>
 				</div>
+
+				{/* Strategy Assistance Panel */}
+				<section
+					aria-label="Strategi Optimalisasi Nilai IKPA - Revisi DIPA"
+					className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4"
+				>
+					<div className="flex items-center gap-2.5">
+						<div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+							<TrendingUp className="size-4" />
+						</div>
+						<div>
+							<h2 className="text-base font-bold text-foreground">
+								Strategi Optimalisasi Nilai IKPA - Revisi DIPA
+							</h2>
+							<p className="text-xs text-muted-foreground">
+								Rekomendasi taktis dan panduan operasional satker untuk memaksimalkan nilai indikator Revisi DIPA (Bobot 10%).
+							</p>
+						</div>
+					</div>
+
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+						<div className="p-4 rounded-xl border border-border bg-background space-y-2 flex flex-col justify-between">
+							<div className="space-y-1.5">
+								<span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+									1
+								</span>
+								<h3 className="font-bold text-foreground">
+									Reviu DIPA secara Periodik &amp; Rutin
+								</h3>
+								<p className="text-muted-foreground leading-relaxed text-[11px]">
+									Melakukan reviu DIPA secara periodik (minimal triwulanan, disarankan setiap bulan) guna melihat kesesuaian alokasi Program, Kegiatan, dan Output dalam DIPA dengan kebutuhan riil satker K/L.
+								</p>
+							</div>
+						</div>
+
+						<div className="p-4 rounded-xl border border-border bg-background space-y-2 flex flex-col justify-between">
+							<div className="space-y-1.5">
+								<span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+									2
+								</span>
+								<h3 className="font-bold text-foreground">
+									Konsolidasi &amp; Batas Waktu Internal
+								</h3>
+								<p className="text-muted-foreground leading-relaxed text-[11px]">
+									Melakukan konsolidasi dalam revisi anggaran dan menetapkan batas waktu revisi anggaran secara internal sehingga frekuensi revisi anggaran dapat diminimalisasi (maksimal 1 kali per semester).
+								</p>
+							</div>
+						</div>
+
+						<div className="p-4 rounded-xl border border-border bg-background space-y-2 flex flex-col justify-between">
+							<div className="space-y-1.5">
+								<span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+									3
+								</span>
+								<h3 className="font-bold text-foreground">
+									Percepatan Pembukaan Catatan DIPA (Blokir)
+								</h3>
+								<p className="text-muted-foreground leading-relaxed text-[11px]">
+									Mempersiapkan dokumen yang diperlukan sedini mungkin apabila masih terdapat alokasi anggaran yang diberikan catatan dalam DIPA (tanda blokir).
+								</p>
+							</div>
+						</div>
+					</div>
+				</section>
 
 				{/* Drawer 1: Form Atur Pagu Awal Tahun Anggaran (51, 52, 53, 57) */}
 				<DomainFormDrawer

@@ -1518,6 +1518,138 @@ function ContractsInvoicesPage() {
 					/>
 				)}
 
+				{/* Strategy Assistance Panel for Belanja Kontraktual */}
+				{!isTagihanTab && (
+					<section
+						aria-label="Strategi Optimalisasi Nilai IKPA - Belanja Kontraktual"
+						className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4"
+					>
+						<div className="flex items-center gap-2.5">
+							<div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+								<TrendingUp className="size-4" />
+							</div>
+							<div>
+								<h2 className="text-base font-bold text-foreground">
+									Strategi Optimalisasi Nilai IKPA - Belanja Kontraktual
+								</h2>
+								<p className="text-xs text-muted-foreground">
+									Langkah strategis akselerasi pengelolaan dan pendaftaran komitmen kontrak satker (Bobot 10%).
+								</p>
+							</div>
+						</div>
+
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+							<div className="p-4 rounded-xl border border-border bg-background space-y-2 flex flex-col justify-between">
+								<div className="space-y-1.5">
+									<span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+										1
+									</span>
+									<h3 className="font-bold text-foreground">
+										Pengadaan Dini Sebelum Awal Tahun
+									</h3>
+									<p className="text-muted-foreground leading-relaxed text-[11px]">
+										Mengupayakan proses Pengadaan Barang/Jasa (PBJ) dilaksanakan sebelum tahun anggaran (pra-DIPA), sehingga kontrak dapat ditandatangani dan pekerjaan dapat dilaksanakan di awal tahun anggaran.
+									</p>
+								</div>
+							</div>
+
+							<div className="p-4 rounded-xl border border-border bg-background space-y-2 flex flex-col justify-between">
+								<div className="space-y-1.5">
+									<span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+										2
+									</span>
+									<h3 className="font-bold text-foreground">
+										Akselerasi Pengadaan ≤ Rp200 Juta (TW I)
+									</h3>
+									<p className="text-muted-foreground leading-relaxed text-[11px]">
+										Memastikan pengadaan barang/jasa yang sifatnya sekaligus dan nilainya sampai dengan Rp200 juta diselesaikan pembayarannya pada Triwulan I.
+									</p>
+								</div>
+							</div>
+
+							<div className="p-4 rounded-xl border border-border bg-background space-y-2 flex flex-col justify-between">
+								<div className="space-y-1.5">
+									<span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+										3
+									</span>
+									<h3 className="font-bold text-foreground">
+										Penyusunan &amp; Pengumuman RUP Segera
+									</h3>
+									<p className="text-muted-foreground leading-relaxed text-[11px]">
+										Segera menyusun dan mengumumkan RUP di awal tahun sesuai dengan rencana kegiatan yang akan dilaksanakan awal tahun anggaran.
+									</p>
+								</div>
+							</div>
+
+							<div className="p-4 rounded-xl border border-border bg-background space-y-2 flex flex-col justify-between">
+								<div className="space-y-1.5">
+									<span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+										4
+									</span>
+									<h3 className="font-bold text-foreground">
+										Pendaftaran Kontrak Semester I
+									</h3>
+									<p className="text-muted-foreground leading-relaxed text-[11px]">
+										Memastikan seluruh pengadaan barang dan jasa yang dimungkinkan dapat ditandatangani dan didaftarkan ke KPPN paling lambat Semester I.
+									</p>
+								</div>
+							</div>
+						</div>
+					</section>
+				)}
+
+				{/* Strategy Assistance Panel for Penyelesaian Tagihan */}
+				{isTagihanTab && (
+					<section
+						aria-label="Strategi Optimalisasi Nilai IKPA - Penyelesaian Tagihan"
+						className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4"
+					>
+						<div className="flex items-center gap-2.5">
+							<div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+								<TrendingUp className="size-4" />
+							</div>
+							<div>
+								<h2 className="text-base font-bold text-foreground">
+									Strategi Optimalisasi Nilai IKPA - Penyelesaian Tagihan
+								</h2>
+								<p className="text-xs text-muted-foreground">
+									Langkah strategis percepatan penyampaian SPM-LS non-pegawai ke KPPN tanpa melewati batas waktu (Bobot 10%).
+								</p>
+							</div>
+						</div>
+
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+							<div className="p-4 rounded-xl border border-border bg-background space-y-2 flex flex-col justify-between">
+								<div className="space-y-1.5">
+									<span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+										1
+									</span>
+									<h3 className="font-bold text-foreground">
+										Segera Selesaikan Pembayaran Pekerjaan Selesai
+									</h3>
+									<p className="text-muted-foreground leading-relaxed text-[11px]">
+										Segera menyelesaikan pembayaran dan tidak menunda proses penyelesaian tagihan yang pekerjaannya telah selesai (termasuk pekerjaan termin/bertahap).
+									</p>
+								</div>
+							</div>
+
+							<div className="p-4 rounded-xl border border-border bg-background space-y-2 flex flex-col justify-between">
+								<div className="space-y-1.5">
+									<span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+										2
+									</span>
+									<h3 className="font-bold text-foreground">
+										Kepatuhan Batas Waktu 17 Hari Kerja
+									</h3>
+									<p className="text-muted-foreground leading-relaxed text-[11px]">
+										Memperhatikan dan mematuhi ketentuan penyelesaian tagihan dalam 17 hari kerja sejak timbulnya hak tagih (BAST/BAPP) kepada negara.
+									</p>
+								</div>
+							</div>
+						</div>
+					</section>
+				)}
+
 				{/* Drawer 1: Form Tambah / Ubah Kontrak */}
 				<DomainFormDrawer
 					isOpen={isContractDrawerOpen}
