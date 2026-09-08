@@ -596,13 +596,28 @@ function OutputAchievementPage() {
 
 		// Fallback to system engine calculation
 		const rawNkkw =
-			engineResult.subComponents?.find((s) => s.key === "timeliness")?.score ??
-			"—";
+			engineResult.subComponents?.find((s) => s.key === "timeliness")?.score;
+		const formattedNkkw =
+			typeof rawNkkw === "number"
+				? Math.min(100, Math.max(0, rawNkkw)).toFixed(2)
+				: "—";
 		const rawNkcro =
-			engineResult.subComponents?.find((s) => s.key === "achievement")?.score ??
-			"—";
-		const rawFinal = engineResult.score ?? "—";
-		const rawWeighted = engineResult.weightedContribution ?? "—";
+			engineResult.subComponents?.find((s) => s.key === "achievement")?.score;
+		const formattedNkcro =
+			typeof rawNkcro === "number"
+				? Math.min(100, Math.max(0, rawNkcro)).toFixed(2)
+				: "—";
+		const rawFinal = engineResult.score;
+		const formattedFinal =
+			typeof rawFinal === "number"
+				? Math.min(100, Math.max(0, rawFinal)).toFixed(2)
+				: "—";
+		const rawWeighted =
+			typeof rawFinal === "number"
+				? Math.min(25, Math.max(0, rawFinal * 0.25)).toFixed(2)
+				: typeof engineResult.weightedContribution === "number"
+					? Math.min(25, Math.max(0, engineResult.weightedContribution)).toFixed(2)
+					: "—";
 
 		return {
 			isManual: false,
@@ -612,11 +627,11 @@ function OutputAchievementPage() {
 				excludedCount > 0
 					? `${excludedCount} RO Dikecualikan`
 					: "100% RO Eligible Dinilai",
-			nkkw: rawNkkw,
+			nkkw: formattedNkkw,
 			nkkwSub: `${timelyCount} Tepat · ${lateCount} Terlambat · ${pendingTimelinessCount} Belum`,
-			nkcro: rawNkcro,
+			nkcro: formattedNkcro,
 			nkcroSub: `Rata-rata PCRO: ${formatDynamicPercent(avgPcro)}`,
-			finalScore: rawFinal,
+			finalScore: formattedFinal,
 			weightedContribution: rawWeighted,
 		};
 	}, [
@@ -1812,96 +1827,108 @@ function OutputAchievementPage() {
 						{/* 5 Cards Scoring Strip */}
 						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
 							{/* Card 1: RO Objek Penilaian */}
-							<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+							<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-muted-foreground">
 									<span className="text-xs font-semibold">
 										RO Objek Penilaian
 									</span>
 									<Target className="size-4 text-primary" />
 								</div>
-								<p className="text-2xl font-bold text-foreground sm:text-3xl">
-									{displayedScores.roLabel}
-								</p>
-								<p className="text-[11px] text-muted-foreground">
-									{displayedScores.roSub}
-								</p>
+								<div className="space-y-0.5">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl">
+										{displayedScores.roLabel}
+									</p>
+									<p className="text-[11px] text-muted-foreground">
+										{displayedScores.roSub}
+									</p>
+								</div>
 							</div>
 
 							{/* Card 2: Ketepatan Waktu (NK-ROKW 30%) */}
-							<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+							<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-muted-foreground">
 									<span className="text-xs font-semibold">
 										Ketepatan Waktu (30%)
 									</span>
 									<Clock className="size-4 text-warning" />
 								</div>
-								<div className="flex items-baseline gap-1">
-									<p className="text-2xl font-bold text-foreground sm:text-3xl">
-										{displayedScores.nkkw}
+								<div className="space-y-0.5">
+									<div className="flex items-baseline gap-1">
+										<p className="text-2xl font-bold text-foreground sm:text-3xl">
+											{displayedScores.nkkw}
+										</p>
+										<span className="text-xs text-muted-foreground">/ 100</span>
+									</div>
+									<p className="text-[11px] text-muted-foreground">
+										{displayedScores.nkkwSub}
 									</p>
-									<span className="text-xs text-muted-foreground">/ 100</span>
 								</div>
-								<p className="text-[11px] text-muted-foreground">
-									{displayedScores.nkkwSub}
-								</p>
 							</div>
 
 							{/* Card 3: Capaian RO (NK-CRO 70%) */}
-							<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+							<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-muted-foreground">
 									<span className="text-xs font-semibold">
 										Capaian RO (70%)
 									</span>
 									<Percent className="size-4 text-success" />
 								</div>
-								<div className="flex items-baseline gap-1">
-									<p className="text-2xl font-bold text-foreground sm:text-3xl">
-										{displayedScores.nkcro}
+								<div className="space-y-0.5">
+									<div className="flex items-baseline gap-1">
+										<p className="text-2xl font-bold text-foreground sm:text-3xl">
+											{displayedScores.nkcro}
+										</p>
+										<span className="text-xs text-muted-foreground">/ 100</span>
+									</div>
+									<p className="text-[11px] text-muted-foreground">
+										{displayedScores.nkcroSub}
 									</p>
-									<span className="text-xs text-muted-foreground">/ 100</span>
 								</div>
-								<p className="text-[11px] text-muted-foreground">
-									{displayedScores.nkcroSub}
-								</p>
 							</div>
 
 							{/* Card 4 (2 paling kanan): Nilai IKPA Capaian Output */}
-							<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+							<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-muted-foreground">
 									<span className="text-xs font-semibold">
 										Nilai IKPA Capaian Output
 									</span>
 									<ShieldCheck className="size-4 text-primary" />
 								</div>
-								<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-									{displayedScores.finalScore !== "—"
-										? Math.min(
-												100,
-												Math.max(0, Number(displayedScores.finalScore)),
-											).toFixed(2)
-										: "—"}
-								</p>
-								<p className="text-[11px] text-muted-foreground">
-									(30% × NK-ROKW) + (70% × NK-CRO)
-								</p>
+								<div className="space-y-0.5">
+									<p className="text-2xl font-extrabold text-primary sm:text-3xl">
+										{displayedScores.finalScore !== "—"
+											? Math.min(
+													100,
+													Math.max(0, Number(displayedScores.finalScore)),
+												).toFixed(2)
+											: "—"}
+									</p>
+									<p className="text-[11px] text-muted-foreground">
+										(30% × NK-ROKW) + (70% × NK-CRO)
+									</p>
+								</div>
 							</div>
 
 							{/* Card 5 (paling kanan): Nilai Akhir (25%) */}
-							<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
+							<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-muted-foreground">
 									<span className="text-xs font-semibold">
 										Nilai Akhir (25%)
 									</span>
 									<Sparkles className="size-4 text-success" />
 								</div>
-								<p className="text-2xl font-extrabold text-success sm:text-3xl">
-									{displayedScores.weightedContribution !== "—"
-										? `${displayedScores.weightedContribution} pts`
-										: "—"}
-								</p>
-								<p className="text-[11px] text-muted-foreground">
-									Bobot 25% terhadap total IKPA
-								</p>
+								<div className="space-y-0.5">
+									<p className="text-2xl font-extrabold text-success sm:text-3xl">
+										{displayedScores.finalScore !== "—"
+											? `${(Math.min(100, Math.max(0, Number(displayedScores.finalScore))) * 0.25).toFixed(2)} pts`
+											: displayedScores.weightedContribution !== "—"
+												? `${Math.min(25, Math.max(0, Number(displayedScores.weightedContribution))).toFixed(2)} pts`
+												: "—"}
+									</p>
+									<p className="text-[11px] text-muted-foreground">
+										Bobot 25% terhadap total IKPA
+									</p>
+								</div>
 							</div>
 						</div>
 

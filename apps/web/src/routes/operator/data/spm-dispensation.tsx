@@ -393,21 +393,23 @@ function SpmDispensationPage() {
 				{/* 5 Top Summary Metric Cards */}
 				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
 					{/* Card 1: Total SPM Q4 */}
-					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">Total SPM Q4</span>
 							<FileText className="size-4 text-muted-foreground" />
 						</div>
-						<p className="text-2xl font-bold text-foreground sm:text-3xl">
-							{totalQ4}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Penyebut · seluruh SPM terbit Okt–Des
-						</p>
+						<div className="space-y-0.5">
+							<p className="text-2xl font-bold text-foreground sm:text-3xl">
+								{totalQ4}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Penyebut · seluruh SPM terbit Okt–Des
+							</p>
+						</div>
 					</div>
 
 					{/* Card 2: SPM Dispensasi */}
-					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">SPM Dispensasi</span>
 							<AlertTriangle
@@ -416,66 +418,74 @@ function SpmDispensationPage() {
 								}`}
 							/>
 						</div>
-						<p
-							className={`text-2xl font-bold sm:text-3xl ${
-								dispensationCount > 0 ? "text-danger" : "text-success"
-							}`}
-						>
-							{dispensationCount}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Pembilang · diajukan dispensasi
-						</p>
+						<div className="space-y-0.5">
+							<p
+								className={`text-2xl font-bold sm:text-3xl ${
+									dispensationCount > 0 ? "text-danger" : "text-success"
+								}`}
+							>
+								{dispensationCount}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Pembilang · diajukan dispensasi
+							</p>
+						</div>
 					</div>
 
 					{/* Card 3: Rasio Dispensasi */}
-					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">Rasio Dispensasi</span>
 							<TrendingDown className="size-4 text-primary" />
 						</div>
-						<p className="text-2xl font-bold text-foreground sm:text-3xl">
-							{formatNumber(ratioNum)}‰
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Kategori {calc.category} · per 1.000 SPM Q4
-						</p>
+						<div className="space-y-0.5">
+							<p className="text-2xl font-bold text-foreground sm:text-3xl">
+								{formatNumber(ratioNum)}‰
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Kategori {calc.category} · per 1.000 SPM Q4
+							</p>
+						</div>
 					</div>
 
 					{/* Card 4 (2 paling kanan): Nilai IKPA Dispensasi SPM */}
-					<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">
 								Nilai IKPA Dispensasi SPM
 							</span>
 							<ShieldCheck className="size-4 text-primary" />
 						</div>
-						<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-							{deductionNum === 0
-								? "100.00"
-								: Math.max(0, 100 - deductionNum * 20).toFixed(2)}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							{deductionNum === 0
-								? "Nihil dispensasi (Nilai maksimal)"
-								: `Potongan ${calc.deduction} poin IKPA`}
-						</p>
+						<div className="space-y-0.5">
+							<p className="text-2xl font-extrabold text-primary sm:text-3xl">
+								{deductionNum === 0
+									? "100.00"
+									: Math.max(0, 100 - deductionNum * 20).toFixed(2)}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								{deductionNum === 0
+									? "Nihil dispensasi (Nilai maksimal)"
+									: `Potongan ${calc.deduction} poin IKPA`}
+							</p>
+						</div>
 					</div>
 
 					{/* Card 5 (paling kanan): Nilai Akhir (Pengurang 5%) */}
-					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">
 								Nilai Akhir (Pengurang 5%)
 							</span>
 							<Sparkles className="size-4 text-success" />
 						</div>
-						<p className="text-2xl font-extrabold text-success sm:text-3xl">
-							{deductionNum > 0 ? `−${calc.deduction} pts` : "0.00 pts"}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Pengurang Nilai Total IKPA Satker
-						</p>
+						<div className="space-y-0.5">
+							<p className="text-2xl font-extrabold text-success sm:text-3xl">
+								{deductionNum > 0 ? `−${calc.deduction} pts` : "0.00 pts"}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Pengurang Nilai Total IKPA Satker
+							</p>
+						</div>
 					</div>
 				</div>
 

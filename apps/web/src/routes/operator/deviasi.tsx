@@ -854,25 +854,25 @@ function DeviasiPage() {
 					{/* 5 Score Cards in Balanced Horizontal Grid */}
 					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
 						{/* Card 1: Total RPD vs Realisasi Kumulatif */}
-						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
 								<span className="text-xs font-semibold">
 									Total s.d. {MONTH_NAMES[evalMonth - 1]}
 								</span>
 								<Coins className="size-4 text-primary" />
 							</div>
-							<div className="space-y-0.5 pt-0.5 text-xs font-semibold text-foreground">
-								<p className="truncate" title={`Realisasi: ${formatRupiah(totalRealizedTrail)}`}>
+							<div className="space-y-0.5 text-xs font-semibold text-foreground">
+								<p>
 									Real: <span className="font-bold">{formatRupiah(totalRealizedTrail)}</span>
 								</p>
-								<p className="truncate text-muted-foreground text-[11px]" title={`Target RPD: ${formatRupiah(totalPlannedTrail)}`}>
+								<p className="text-muted-foreground text-[11px]">
 									RPD: {formatRupiah(totalPlannedTrail)}
 								</p>
 							</div>
 						</div>
 
 						{/* Card 2: Rata-rata Deviasi Kumulatif */}
-						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
 								<span className="text-xs font-semibold">
 									Rata-rata Deviasi
@@ -889,79 +889,93 @@ function DeviasiPage() {
 									}`}
 								/>
 							</div>
-							<p
-								className={`text-2xl font-bold sm:text-3xl ${
-									actualScoreObj.avgDeviation !== null &&
-									actualScoreObj.avgDeviation > 10
-										? "text-danger"
-										: actualScoreObj.avgDeviation !== null &&
-											  actualScoreObj.avgDeviation > 5
-											? "text-warning"
-											: "text-foreground"
-								}`}
-							>
-								{actualScoreObj.avgDeviation !== null
-									? formatPercent(actualScoreObj.avgDeviation)
-									: "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
-								Ambang batas toleransi: <strong>≤ 5.00%</strong>
-							</p>
+							<div className="space-y-0.5">
+								<p
+									className={`text-2xl font-bold sm:text-3xl ${
+										actualScoreObj.avgDeviation !== null &&
+										actualScoreObj.avgDeviation > 10
+											? "text-danger"
+											: actualScoreObj.avgDeviation !== null &&
+												  actualScoreObj.avgDeviation > 5
+												? "text-warning"
+												: "text-foreground"
+									}`}
+								>
+									{actualScoreObj.avgDeviation !== null
+										? formatPercent(actualScoreObj.avgDeviation)
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									Ambang batas: ≤ 5.00%
+								</p>
+							</div>
 						</div>
 
 						{/* Card 3: Pembagi n Bulan Berjalan */}
-						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
 								<span className="text-xs font-semibold">
 									Objek Penilaian (n)
 								</span>
 								<Calendar className="size-4 text-primary" />
 							</div>
-							<p className="text-2xl font-bold text-foreground sm:text-3xl">
-								n = {actualScoreObj.monthsCount} Bulan
-							</p>
-							<p className="text-[11px] text-muted-foreground">
-								Januari s.d. {MONTH_NAMES[evalMonth - 1]}
-							</p>
+							<div className="space-y-0.5">
+								<p className="text-2xl font-bold text-foreground sm:text-3xl">
+									n = {actualScoreObj.monthsCount} Bulan
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									Januari s.d. {MONTH_NAMES[evalMonth - 1]}
+								</p>
+							</div>
 						</div>
 
 						{/* Card 4: Nilai IKPA Deviasi (2nd from right) */}
-						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
 								<span className="text-xs font-semibold">
 									Nilai IKPA Deviasi Hal III
 								</span>
 								<ShieldCheck className="size-4 text-primary" />
 							</div>
-							<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-								{actualScoreObj.score !== null
-									? formatPercent(Math.min(100, Math.max(0, actualScoreObj.score)))
-									: "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
-								{actualScoreObj.avgDeviation !== null &&
-								actualScoreObj.avgDeviation <= 5
-									? "Maksimal (Rata-rata ≤ 5%)"
-									: "100 − Rata-rata Deviasi"}
-							</p>
+							<div className="space-y-0.5">
+								<p className="text-2xl font-extrabold text-primary sm:text-3xl">
+									{actualScoreObj.score !== null
+										? Math.min(
+												100,
+												Math.max(0, actualScoreObj.score),
+											).toFixed(2)
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									{actualScoreObj.avgDeviation !== null &&
+									actualScoreObj.avgDeviation <= 5
+										? "Maksimal (Rata-rata ≤ 5%)"
+										: "100 − Rata-rata Deviasi"}
+								</p>
+							</div>
 						</div>
 
 						{/* Card 5: Nilai Akhir IKPA (Rightmost) */}
-						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
 								<span className="text-xs font-semibold">
 									Nilai Akhir (15%)
 								</span>
 								<Sparkles className="size-4 text-success" />
 							</div>
-							<p className="text-2xl font-extrabold text-success sm:text-3xl">
-								{actualScoreObj.contribution !== null
-									? `${actualScoreObj.contribution.toFixed(2)} pts`
-									: "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
-								Bobot 15% terhadap total IKPA
-							</p>
+							<div className="space-y-0.5">
+								<p className="text-2xl font-extrabold text-success sm:text-3xl">
+									{actualScoreObj.contribution !== null
+										? `${Math.min(
+												15,
+												Math.max(0, actualScoreObj.contribution),
+											).toFixed(2)} pts`
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									Bobot 15% terhadap total IKPA
+								</p>
+							</div>
 						</div>
 					</div>
 				</div>

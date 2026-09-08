@@ -693,65 +693,71 @@ function BudgetRevisionsPage() {
 				{/* Score Cards in Balanced Grid */}
 				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
 					{/* Card 1: NKRA Semester I */}
-					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">NKRA Semester I</span>
 							<Calendar className="size-4 text-primary" />
 						</div>
-						<p className="text-2xl font-bold text-foreground sm:text-3xl">
-							{skor.nkraS1}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							{s1} objek terhitung · {semesterStatus(s1)}
-						</p>
+						<div className="space-y-0.5">
+							<p className="text-2xl font-bold text-foreground sm:text-3xl">
+								{Number(skor.nkraS1).toFixed(2)}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								{s1} objek terhitung · {semesterStatus(s1)}
+							</p>
+						</div>
 					</div>
 
 					{/* Card 2: NKRA Semester II */}
-					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">NKRA Semester II</span>
 							<Calendar className="size-4 text-primary" />
 						</div>
-						<p className="text-2xl font-bold text-foreground sm:text-3xl">
-							{skor.nkraS2}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							{s2} objek terhitung · {semesterStatus(s2)}
-						</p>
+						<div className="space-y-0.5">
+							<p className="text-2xl font-bold text-foreground sm:text-3xl">
+								{Number(skor.nkraS2).toFixed(2)}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								{s2} objek terhitung · {semesterStatus(s2)}
+							</p>
+						</div>
 					</div>
 
 					{/* Card 3: Nilai IKPA Revisi DIPA (2nd from right) */}
-					<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">
 								Nilai IKPA Revisi DIPA
 							</span>
 							<ShieldCheck className="size-4 text-primary" />
 						</div>
-						<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-							{skor.annual}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Rata-rata: (Semester I + II) / 2
-						</p>
+						<div className="space-y-0.5">
+							<p className="text-2xl font-extrabold text-primary sm:text-3xl">
+								{Math.min(100, Math.max(0, Number(skor.annual))).toFixed(2)}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Rata-rata: (Semester I + II) / 2
+							</p>
+						</div>
 					</div>
 
 					{/* Card 4: Nilai Akhir IKPA (Rightmost) */}
-					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">
 								Nilai Akhir (10%)
 							</span>
 							<Sparkles className="size-4 text-success" />
 						</div>
-						<p className="text-2xl font-extrabold text-success sm:text-3xl">
-							{skor.contribution.toFixed(2)} pts
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							{skor.contribution > 10
-								? `Bobot 10% + Insentif Revisi (+${(skor.contribution - 10).toFixed(2)} pts)`
-								: "Bobot 10% terhadap total IKPA"}
-						</p>
+						<div className="space-y-0.5">
+							<p className="text-2xl font-extrabold text-success sm:text-3xl">
+								{Math.min(10, Math.max(0, skor.contribution)).toFixed(2)} pts
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Bobot 10% terhadap total IKPA
+							</p>
+						</div>
 					</div>
 				</div>
 

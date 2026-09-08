@@ -793,92 +793,87 @@ function ContractsInvoicesPage() {
 				)}
 
 				{/* 5-Card Score Grid for Belanja Kontraktual */}
+				{/* 5-Card Score Grid for Belanja Kontraktual */}
 				{!isTagihanTab && (
 					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
 						{/* Card 1: Pra DIPA (40%) */}
-						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold truncate" title="Pra DIPA (40%)">
+								<span className="text-xs font-semibold">
 									Pra DIPA (40%)
 								</span>
 								<Calendar className="size-4 text-primary" />
 							</div>
-							<div className="flex items-baseline gap-2">
-								<p className="text-2xl font-bold text-foreground sm:text-3xl">
-									{contractSummary.kd.score ?? "—"}
+							<div className="space-y-0.5">
+								<div className="flex items-baseline gap-2">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl">
+										{contractSummary.kd.score !== null ? Number(contractSummary.kd.score).toFixed(2) : "—"}
+									</p>
+									<span className="text-[11px] font-semibold text-muted-foreground">
+										{contractSummary.kd.denominatorCount} Kontrak
+									</span>
+								</div>
+								<p className="text-[11px] text-muted-foreground">
+									{contractSummary.kd.praDipaCount} Pra-DIPA · {contractSummary.kd.q1Count} TW I
 								</p>
-								<span className="text-[11px] font-semibold text-muted-foreground">
-									{contractSummary.kd.denominatorCount} Kontrak
-								</span>
 							</div>
-							<p
-								className="text-[11px] text-muted-foreground truncate"
-								title={`${contractSummary.kd.praDipaCount} Pra-DIPA (120) · ${contractSummary.kd.q1Count} TW I (110)`}
-							>
-								{contractSummary.kd.praDipaCount} Pra-DIPA (120) · {contractSummary.kd.q1Count} TW I (110)
-							</p>
 						</div>
 
 						{/* Card 2: Akselerasi 53 (40%) */}
-						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold truncate" title="Akselerasi 53 (40%)">
+								<span className="text-xs font-semibold">
 									Akselerasi 53 (40%)
 								</span>
 								<Clock className="size-4 text-primary" />
 							</div>
-							<div className="flex items-baseline gap-2">
-								<p className="text-2xl font-bold text-foreground sm:text-3xl">
-									{contractSummary.ak53.score ?? "—"}
+							<div className="space-y-0.5">
+								<div className="flex items-baseline gap-2">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl">
+										{contractSummary.ak53.score !== null ? Number(contractSummary.ak53.score).toFixed(2) : "—"}
+									</p>
+									<span className="text-[11px] font-semibold text-muted-foreground">
+										{contractSummary.ak53.completedCount} Selesai
+									</span>
+								</div>
+								<p className="text-[11px] text-muted-foreground">
+									{contractSummary.ak53.tw1Count} TW I · {contractSummary.ak53.tw2Count} TW II
 								</p>
-								<span className="text-[11px] font-semibold text-muted-foreground">
-									{contractSummary.ak53.completedCount} Selesai
-								</span>
 							</div>
-							<p
-								className="text-[11px] text-muted-foreground truncate"
-								title={`${contractSummary.ak53.tw1Count} TW I · ${contractSummary.ak53.tw2Count} TW II · ${contractSummary.ak53.tw3Count} TW III`}
-							>
-								{contractSummary.ak53.tw1Count} TW I · {contractSummary.ak53.tw2Count} TW II · {contractSummary.ak53.tw3Count} TW III
-							</p>
 						</div>
 
 						{/* Card 3: Distribusi Akselerasi Kontrak (20%) */}
-						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span
-									className="text-xs font-semibold truncate"
-									title="Distribusi Akselerasi Kontrak (20%)"
-								>
-									Distribusi Akselerasi Kontrak (20%)
+								<span className="text-xs font-semibold">
+									Distribusi Akselerasi (20%)
 								</span>
 								<TrendingUp className="size-4 text-primary" />
 							</div>
-							<div className="flex items-baseline gap-2">
-								<p className="text-2xl font-bold text-foreground sm:text-3xl">
-									{contractSummary.dak.score ?? "—"}
+							<div className="space-y-0.5">
+								<div className="flex items-baseline gap-2">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl">
+										{contractSummary.dak.score !== null ? Number(contractSummary.dak.score).toFixed(2) : "—"}
+									</p>
+									<span className="text-[11px] font-semibold text-primary">
+										Rasio {contractSummary.dak.ratio.toFixed(1)}%
+									</span>
+								</div>
+								<p className="text-[11px] text-muted-foreground">
+									{contractSummary.dak.countQ2} dari {contractSummary.dak.totalEligible} kontrak TW II
 								</p>
-								<span className="text-[11px] font-semibold text-primary">
-									Rasio {contractSummary.dak.ratio.toFixed(1)}%
-								</span>
 							</div>
-							<p
-								className="text-[11px] text-muted-foreground truncate"
-								title={`${contractSummary.dak.countQ2} dari ${contractSummary.dak.totalEligible} kontrak s.d. 30 Juni`}
-							>
-								{contractSummary.dak.countQ2} dari {contractSummary.dak.totalEligible} kontrak s.d. 30 Juni
-							</p>
 						</div>
 
 						{/* Card 4 (2 paling kanan): Nilai IKPA Belanja Kontraktual */}
-						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold text-foreground truncate">
+								<span className="text-xs font-semibold text-foreground">
 									Nilai IKPA Kontraktual
 								</span>
 								<ShieldCheck className="size-4 text-primary" />
 							</div>
-							<div className="flex items-baseline gap-2">
+							<div className="space-y-0.5">
 								<p className="text-2xl font-extrabold text-primary sm:text-3xl">
 									{contractSummary.final.score !== null &&
 									contractSummary.final.score !== undefined
@@ -888,37 +883,36 @@ function ContractsInvoicesPage() {
 											).toFixed(2)
 										: "—"}
 								</p>
-								<span
-									className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
-										contractSummary.final.status === "complete"
-											? "bg-success/10 text-success"
-											: "bg-warning/10 text-warning"
-									}`}
-								>
-									{contractSummary.final.statusLabel}
-								</span>
+								<p className="text-[11px] text-muted-foreground">
+									Skor komposit 3 subkomponen
+								</p>
 							</div>
-							<p className="text-[11px] text-muted-foreground truncate">
-								Skor komposit 3 subkomponen
-							</p>
 						</div>
 
 						{/* Card 5 (paling kanan): Nilai Akhir (10%) */}
-						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold text-success truncate">
+								<span className="text-xs font-semibold text-success">
 									Nilai Akhir (10%)
 								</span>
 								<Sparkles className="size-4 text-success" />
 							</div>
-							<p className="text-2xl font-extrabold text-success sm:text-3xl">
-								{contractSummary.final.weightedContribution
-									? `${contractSummary.final.weightedContribution} pts`
-									: "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground truncate">
-								Bobot 10% terhadap total IKPA
-							</p>
+							<div className="space-y-0.5">
+								<p className="text-2xl font-extrabold text-success sm:text-3xl">
+									{contractSummary.final.weightedContribution
+										? `${Math.min(
+												10,
+												Math.max(
+													0,
+													Number(contractSummary.final.weightedContribution),
+												),
+											).toFixed(2)} pts`
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									Bobot 10% terhadap total IKPA
+								</p>
+							</div>
 						</div>
 					</div>
 				)}
@@ -927,83 +921,89 @@ function ContractsInvoicesPage() {
 				{isTagihanTab && (
 					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
 						{/* Card 1: SPM Tepat Waktu */}
-						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold truncate" title="SPM Tepat Waktu (≤ 17 HK)">
+								<span className="text-xs font-semibold">
 									SPM Tepat Waktu
 								</span>
 								<CheckCircle2 className="size-4 text-success" />
 							</div>
-							<div className="flex items-baseline gap-2">
-								<p className="text-2xl font-bold text-foreground sm:text-3xl">
-									{tagihanSummary.onTimeCount}
+							<div className="space-y-0.5">
+								<div className="flex items-baseline gap-2">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl">
+										{tagihanSummary.onTimeCount}
+									</p>
+									<span className="text-[11px] font-semibold text-muted-foreground">
+										/ {tagihanSummary.eligibleCount} Eligible
+									</span>
+								</div>
+								<p className="text-[11px] text-muted-foreground">
+									Maks. 17 HK sejak BAST/BAPP
 								</p>
-								<span className="text-[11px] font-semibold text-muted-foreground">
-									/ {tagihanSummary.eligibleCount} Eligible
-								</span>
 							</div>
-							<p className="text-[11px] text-muted-foreground truncate">
-								Maks. 17 HK sejak BAST/BAPP
-							</p>
 						</div>
 
 						{/* Card 2: SPM Terlambat */}
-						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold truncate" title="SPM Terlambat (> 17 HK)">
+								<span className="text-xs font-semibold">
 									SPM Terlambat
 								</span>
 								<Clock className="size-4 text-danger" />
 							</div>
-							<div className="flex items-baseline gap-2">
-								<p className="text-2xl font-bold text-danger sm:text-3xl">
-									{tagihanSummary.lateCount}
+							<div className="space-y-0.5">
+								<div className="flex items-baseline gap-2">
+									<p className="text-2xl font-bold text-danger sm:text-3xl">
+										{tagihanSummary.lateCount}
+									</p>
+									<span className="text-[11px] font-semibold text-muted-foreground">
+										Berkas
+									</span>
+								</div>
+								<p className="text-[11px] text-muted-foreground">
+									{tagihanSummary.lateCount > 0
+										? "Mengurangi persentase skor"
+										: "Nihil berkas terlambat"}
 								</p>
-								<span className="text-[11px] font-semibold text-muted-foreground">
-									Berkas
-								</span>
 							</div>
-							<p className="text-[11px] text-muted-foreground truncate">
-								{tagihanSummary.lateCount > 0
-									? "Mengurangi persentase skor"
-									: "Nihil berkas terlambat"}
-							</p>
 						</div>
 
 						{/* Card 3: Menunggu Konversi */}
-						<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold truncate" title="Menunggu Konversi KPPN">
+								<span className="text-xs font-semibold">
 									Menunggu Konversi
 								</span>
 								<TrendingUp className="size-4 text-primary" />
 							</div>
-							<div className="flex items-baseline gap-2">
-								<p className="text-2xl font-bold text-foreground sm:text-3xl">
-									{tagihanSummary.pendingCount}
+							<div className="space-y-0.5">
+								<div className="flex items-baseline gap-2">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl">
+										{tagihanSummary.pendingCount}
+									</p>
+									<span className="text-[11px] font-semibold text-muted-foreground">
+										{tagihanSummary.riskyCount > 0
+											? `${tagihanSummary.riskyCount} Berisiko`
+											: "Proses"}
+									</span>
+								</div>
+								<p className="text-[11px] text-muted-foreground">
+									{tagihanSummary.pegawaiCount > 0
+										? `+${tagihanSummary.pegawaiCount} Belanja Pegawai (Dikecualikan)`
+										: "Belum masuk penilaian final"}
 								</p>
-								<span className="text-[11px] font-semibold text-muted-foreground">
-									{tagihanSummary.riskyCount > 0
-										? `${tagihanSummary.riskyCount} Berisiko`
-										: "Proses"}
-								</span>
 							</div>
-							<p className="text-[11px] text-muted-foreground truncate">
-								{tagihanSummary.pegawaiCount > 0
-									? `+${tagihanSummary.pegawaiCount} Belanja Pegawai (Dikecualikan)`
-									: "Belum masuk penilaian final"}
-							</p>
 						</div>
 
 						{/* Card 4 (2 paling kanan): Nilai IKPA Tagihan */}
-						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold text-foreground truncate">
+								<span className="text-xs font-semibold text-foreground">
 									Nilai IKPA Tagihan
 								</span>
 								<ShieldCheck className="size-4 text-primary" />
 							</div>
-							<div className="flex items-baseline gap-2">
+							<div className="space-y-0.5">
 								<p className="text-2xl font-extrabold text-primary sm:text-3xl">
 									{tagihanSummary.score !== null &&
 									tagihanSummary.score !== undefined
@@ -1013,39 +1013,36 @@ function ContractsInvoicesPage() {
 											).toFixed(2)
 										: "—"}
 								</p>
-								<span
-									className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
-										tagihanSummary.status === "complete"
-											? "bg-success/10 text-success"
-											: tagihanSummary.status === "warning"
-												? "bg-warning/10 text-warning"
-												: "bg-surface-muted text-muted-foreground"
-									}`}
-								>
-									{tagihanSummary.statusLabel}
-								</span>
+								<p className="text-[11px] text-muted-foreground">
+									(SPM Tepat Waktu ÷ Total Eligible) × 100
+								</p>
 							</div>
-							<p className="text-[11px] text-muted-foreground truncate">
-								(SPM Tepat Waktu ÷ Total Eligible) × 100
-							</p>
 						</div>
 
 						{/* Card 5 (paling kanan): Nilai Akhir (10%) */}
-						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
+						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold text-success truncate">
+								<span className="text-xs font-semibold text-success">
 									Nilai Akhir (10%)
 								</span>
 								<Sparkles className="size-4 text-success" />
 							</div>
-							<p className="text-2xl font-extrabold text-success sm:text-3xl">
-								{tagihanSummary.weightedContribution
-									? `${tagihanSummary.weightedContribution} pts`
-									: "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground truncate">
-								Bobot 10% terhadap total IKPA
-							</p>
+							<div className="space-y-0.5">
+								<p className="text-2xl font-extrabold text-success sm:text-3xl">
+									{tagihanSummary.weightedContribution
+										? `${Math.min(
+												10,
+												Math.max(
+													0,
+													Number(tagihanSummary.weightedContribution),
+												),
+											).toFixed(2)} pts`
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									Bobot 10% terhadap total IKPA
+								</p>
+							</div>
 						</div>
 					</div>
 				)}

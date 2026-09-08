@@ -486,23 +486,30 @@ function PenyerapanPage() {
 				{/* 5 Key Metric Cards in Balanced Horizontal Grid */}
 				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
 					{/* Card 1: Skor Aktual Terkunci */}
-					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">Skor Aktual</span>
 							<span className="text-emerald-700 bg-emerald-50 font-semibold px-1.5 py-0.5 rounded-md text-[10px]">
 								Terkunci 🔒
 							</span>
 						</div>
-						<p className="text-2xl font-bold text-foreground sm:text-3xl">
-							{actualScore.score !== null ? formatPercent(actualScore.score) : "—"}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Realisasi s.d. {MONTH_NAMES[currentMonth - 1]}
-						</p>
+						<div className="space-y-0.5">
+							<p className="text-2xl font-bold text-foreground sm:text-3xl">
+								{actualScore.score !== null
+									? Math.min(
+											100,
+											Math.max(0, actualScore.score),
+										).toFixed(2)
+									: "—"}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Realisasi s.d. {MONTH_NAMES[currentMonth - 1]}
+							</p>
+						</div>
 					</div>
 
 					{/* Card 2: Dampak Rencana */}
-					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">Dampak Rencana</span>
 							{hasPlan ? (
@@ -513,74 +520,86 @@ function PenyerapanPage() {
 								<span className="text-muted-foreground text-[10px]">Belum ada rencana</span>
 							)}
 						</div>
-						<p
-							className={`text-2xl font-bold sm:text-3xl ${
-								planDelta !== null && planDelta > 0
-									? "text-emerald-600"
-									: planDelta !== null && planDelta < 0
-										? "text-rose-600"
-										: "text-foreground"
-							}`}
-						>
-							{planDelta !== null
-								? `${planDelta > 0 ? "+" : ""}${formatPercent(planDelta)}`
-								: "—"}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Selisih terhadap nilai akhir
-						</p>
+						<div className="space-y-0.5">
+							<p
+								className={`text-2xl font-bold sm:text-3xl ${
+									planDelta !== null && planDelta > 0
+										? "text-emerald-600"
+										: planDelta !== null && planDelta < 0
+											? "text-rose-600"
+											: "text-foreground"
+								}`}
+							>
+								{planDelta !== null
+									? `${planDelta > 0 ? "+" : ""}${planDelta.toFixed(2)}`
+									: "—"}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Selisih terhadap nilai akhir
+							</p>
+						</div>
 					</div>
 
 					{/* Card 3: Target Jarak ke 100 */}
-					<div className="rounded-xl border border-border bg-background p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">Jarak ke 100</span>
 							<Target className="size-4 text-primary" />
 						</div>
-						<p className="text-2xl font-bold text-foreground sm:text-3xl">
-							{gap !== null ? formatPercent(gap) : "—"}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Kebutuhan menuju nilai optimal
-						</p>
+						<div className="space-y-0.5">
+							<p className="text-2xl font-bold text-foreground sm:text-3xl">
+								{gap !== null ? gap.toFixed(2) : "—"}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Kebutuhan menuju nilai optimal
+							</p>
+						</div>
 					</div>
 
 					{/* Card 4: Nilai IKPA Penyerapan (2nd from right) */}
-					<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">
 								Nilai IKPA Penyerapan
 							</span>
 							<ShieldCheck className="size-4 text-primary" />
 						</div>
-						<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-							{score.score !== null ? formatPercent(Math.min(100, Math.max(0, score.score))) : isBlu ? "Dikecualikan" : "—"}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							{isBlu
-								? "Satker BLU (Dikecualikan)"
-								: `Rata-rata s.d. Triwulan ${evaluatedQuartersCount} dari 4`}
-						</p>
+						<div className="space-y-0.5">
+							<p className="text-2xl font-extrabold text-primary sm:text-3xl">
+								{score.score !== null
+									? Math.min(100, Math.max(0, score.score)).toFixed(2)
+									: isBlu
+										? "Dikecualikan"
+										: "—"}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								{isBlu
+									? "Satker BLU (Dikecualikan)"
+									: `Rata-rata s.d. Triwulan ${evaluatedQuartersCount} dari 4`}
+							</p>
+						</div>
 					</div>
 
 					{/* Card 5: Nilai Akhir IKPA (Rightmost) */}
-					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs space-y-1">
+					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">
 								Nilai Akhir (20%)
 							</span>
 							<Sparkles className="size-4 text-success" />
 						</div>
-						<p className="text-2xl font-extrabold text-success sm:text-3xl">
-							{score.score !== null && !isBlu
-								? `${((Math.min(100, Math.max(0, score.score)) * 20) / 100).toFixed(2)} pts`
-								: isBlu
-									? "0.00 pts"
-									: "—"}
-						</p>
-						<p className="text-[11px] text-muted-foreground">
-							Bobot 20% terhadap total IKPA
-						</p>
+						<div className="space-y-0.5">
+							<p className="text-2xl font-extrabold text-success sm:text-3xl">
+								{score.score !== null && !isBlu
+									? `${((Math.min(100, Math.max(0, score.score)) * 20) / 100).toFixed(2)} pts`
+									: isBlu
+										? "0.00 pts"
+										: "—"}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Bobot 20% terhadap total IKPA
+							</p>
+						</div>
 					</div>
 				</div>
 
