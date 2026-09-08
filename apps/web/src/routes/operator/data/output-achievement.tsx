@@ -2064,8 +2064,7 @@ function OutputAchievementPage() {
 									<div className="flex items-center gap-2">
 										<Calendar className="size-4.5 text-primary" />
 										<h4 className="text-xs sm:text-sm font-bold text-foreground">
-											Jadwal Batas Akhir Periode Buka Sistem Pelaporan Nasional
-											(Open Periode TA {initialData.year})
+											Jadwal Batas Akhir Periode Pengisian Realisasi Kinerja (TA {initialData.year})
 										</h4>
 									</div>
 									<button
@@ -2088,7 +2087,7 @@ function OutputAchievementPage() {
 													Periode Pelaporan Data Realisasi
 												</th>
 												<th className="px-3 py-2.5">
-													Batas Akhir Open Periode Reguler (Sistem Terbuka Otomatis HK-1 s.d. HK-7 M+1)
+													Batas Akhir Open Periode
 												</th>
 												<th className="px-3 py-2.5 text-center">
 													Status Akses
@@ -2287,120 +2286,79 @@ function OutputAchievementPage() {
 										capaian output berdasarkan kriteria kepatuhan dan kewajaran:
 									</p>
 									<div className="space-y-1.5 pt-1">
-										<div className="flex items-start justify-between gap-3 p-2 rounded-lg bg-background border border-border/80 text-[11px]">
-											<div className="flex items-start gap-2">
-												<span className="font-mono font-bold text-primary shrink-0">
-													01
-												</span>
-												<span className="text-foreground font-medium">
-													% Realisasi Anggaran &gt; 0% namun PCRO 0%
-												</span>
-											</div>
-											<span className="shrink-0 px-2 py-0.5 text-[10px] font-semibold rounded-md bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">
-												Wajib Diperbaiki
-											</span>
-										</div>
-
-										<div className="flex items-start justify-between gap-3 p-2 rounded-lg bg-background border border-border/80 text-[11px]">
-											<div className="flex items-start gap-2">
-												<span className="font-mono font-bold text-primary shrink-0">
-													02
-												</span>
-												<span className="text-foreground font-medium">
-													PCRO &lt; % Realisasi Anggaran
-												</span>
-											</div>
-											<span className="shrink-0 px-2 py-0.5 text-[10px] font-semibold rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-												Wajib Konfirmasi, Bisa Diperbaiki
-											</span>
-										</div>
-
-										<div className="flex items-start justify-between gap-3 p-2 rounded-lg bg-background border border-border/80 text-[11px]">
-											<div className="flex items-start gap-2">
-												<span className="font-mono font-bold text-primary shrink-0">
-													03
-												</span>
-												<span className="text-foreground font-medium">
-													PCRO 100% namun RVRO 0
-												</span>
-											</div>
-											<span className="shrink-0 px-2 py-0.5 text-[10px] font-semibold rounded-md bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">
-												Wajib Diperbaiki
-											</span>
-										</div>
-
-										<div className="flex items-start justify-between gap-3 p-2 rounded-lg bg-background border border-border/80 text-[11px]">
-											<div className="flex items-start gap-2">
-												<span className="font-mono font-bold text-primary shrink-0">
-													04
-												</span>
-												<span className="text-foreground font-medium">
-													PCRO 100% namun RVRO &lt; Target/Volume RO pada DIPA
-												</span>
-											</div>
-											<span className="shrink-0 px-2 py-0.5 text-[10px] font-semibold rounded-md bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">
-												Wajib Diperbaiki
-											</span>
-										</div>
-
-										<div className="flex items-start justify-between gap-3 p-2 rounded-lg bg-background border border-border/80 text-[11px]">
-											<div className="flex items-start gap-2">
-												<span className="font-mono font-bold text-primary shrink-0">
-													05
-												</span>
-												<span className="text-foreground font-medium">
-													Terdapat RVRO yang dilaporkan namun Realisasi Anggaran
-													masih 0
-												</span>
-											</div>
-											<span className="shrink-0 px-2 py-0.5 text-[10px] font-semibold rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-												Wajib Konfirmasi, Bisa Diperbaiki
-											</span>
-										</div>
-
-										<div className="flex items-start justify-between gap-3 p-2 rounded-lg bg-background border border-border/80 text-[11px]">
-											<div className="flex items-start gap-2">
-												<span className="font-mono font-bold text-primary shrink-0">
-													06
-												</span>
-												<span className="text-foreground font-medium">
-													RVRO diisi menggunakan desimal sedangkan Satuan tidak
-													memungkinkan
+										{[
+											{
+												code: "01",
+												rule: "% Realisasi Anggaran > 0% namun PCRO 0%",
+												status: "Wajib Diperbaiki",
+												type: "danger",
+											},
+											{
+												code: "02",
+												rule: "PCRO < % Realisasi Anggaran",
+												status: "Wajib Konfirmasi, Bisa Diperbaiki",
+												type: "warning",
+											},
+											{
+												code: "03",
+												rule: "PCRO 100% namun RVRO 0",
+												status: "Wajib Diperbaiki",
+												type: "danger",
+											},
+											{
+												code: "04",
+												rule: "PCRO 100% namun RVRO < Target/Volume RO pada DIPA",
+												status: "Wajib Diperbaiki",
+												type: "danger",
+											},
+											{
+												code: "05",
+												rule: "Terdapat RVRO yang dilaporkan namun Realisasi Anggaran masih 0",
+												status: "Wajib Konfirmasi, Bisa Diperbaiki",
+												type: "warning",
+											},
+											{
+												code: "06",
+												rule: "RVRO diisi menggunakan desimal sedangkan Satuan tidak memungkinkan",
+												status: "Wajib Diperbaiki",
+												type: "danger",
+											},
+											{
+												code: "07",
+												rule: "RVRO > Target/Volume RO pada DIPA",
+												status: "Wajib Konfirmasi, Bisa Diperbaiki",
+												type: "warning",
+											},
+											{
+												code: "08",
+												rule: "RVRO >= Target/Volume RO pada DIPA, namun PCRO < 100%",
+												status: "Wajib Konfirmasi, Bisa Diperbaiki",
+												type: "warning",
+											},
+										].map((item) => (
+											<div
+												key={item.code}
+												className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-lg bg-background border border-border/80 text-[11px]"
+											>
+												<div className="flex items-start gap-2 min-w-0">
+													<span className="font-mono font-bold text-primary shrink-0">
+														{item.code}
+													</span>
+													<span className="text-foreground font-medium break-words">
+														{item.rule}
+													</span>
+												</div>
+												<span
+													className={`self-start sm:self-auto shrink-0 px-2 py-0.5 text-[10px] font-semibold rounded-md border whitespace-normal ${
+														item.type === "danger"
+															? "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20"
+															: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
+													}`}
+												>
+													{item.status}
 												</span>
 											</div>
-											<span className="shrink-0 px-2 py-0.5 text-[10px] font-semibold rounded-md bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">
-												Wajib Diperbaiki
-											</span>
-										</div>
-
-										<div className="flex items-start justify-between gap-3 p-2 rounded-lg bg-background border border-border/80 text-[11px]">
-											<div className="flex items-start gap-2">
-												<span className="font-mono font-bold text-primary shrink-0">
-													07
-												</span>
-												<span className="text-foreground font-medium">
-													RVRO &gt; Target/Volume RO pada DIPA
-												</span>
-											</div>
-											<span className="shrink-0 px-2 py-0.5 text-[10px] font-semibold rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-												Wajib Konfirmasi, Bisa Diperbaiki
-											</span>
-										</div>
-
-										<div className="flex items-start justify-between gap-3 p-2 rounded-lg bg-background border border-border/80 text-[11px]">
-											<div className="flex items-start gap-2">
-												<span className="font-mono font-bold text-primary shrink-0">
-													08
-												</span>
-												<span className="text-foreground font-medium">
-													RVRO &gt;= Target/Volume RO pada DIPA, namun PCRO &lt;
-													100%
-												</span>
-											</div>
-											<span className="shrink-0 px-2 py-0.5 text-[10px] font-semibold rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-												Wajib Konfirmasi, Bisa Diperbaiki
-											</span>
-										</div>
+										))}
 									</div>
 								</div>
 							</div>
