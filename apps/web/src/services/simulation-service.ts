@@ -1,4 +1,14 @@
-import { listSnapshotsFn, runSimulationFn } from "@/server/simulation";
+import {
+	type ActualSnapshotItem,
+	type HistoryPageData,
+	type SavedScenarioItem,
+	deleteScenarioFn,
+	duplicateScenarioFn,
+	listSnapshotsFn,
+	runSimulationFn,
+} from "@/server/simulation";
+
+export type { ActualSnapshotItem, HistoryPageData, SavedScenarioItem };
 
 export interface IndicatorScoreBreakdown {
 	code: string;
@@ -38,6 +48,7 @@ export async function executeSimulation(input: {
 	period?: { kind: "month" | "quarter" | "semester" | "year"; value: number };
 	simulationType?: "actual" | "forecast" | "scenario";
 	targetScore?: string;
+	parentSnapshotId?: string;
 	overrides?: Record<string, string>;
 	assumptions?: {
 		upTup?: {
@@ -60,10 +71,33 @@ export async function executeSimulation(input: {
 	return runSimulationFn({ data: input });
 }
 
+export async function fetchHistoryData(
+	orgId?: string,
+	year?: number,
+): Promise<HistoryPageData> {
+	return listSnapshotsFn({ data: { orgId, year } }) as Promise<HistoryPageData>;
+}
+
 export async function fetchSnapshots(orgId?: string): Promise<{
 	snapshots: ScoreSnapshotRecord[];
 }> {
-	return (await listSnapshotsFn({ data: orgId ? { orgId } : undefined })) as unknown as {
-		snapshots: ScoreSnapshotRecord[];
-	};
+	const data = (await listSnapshotsFn({
+		data: orgId ? { orgId } : undefined,
+	})) as HistoryPageData;
+	return { snapshots: (data.snapshots as ScoreSnapshotRecord[]) || [] };
+}
+
+export async function deleteScenario(
+	scenarioId: string,
+	orgId?: string,
+): Promise<{ success: boolean }> {
+	return deleteScenarioFn({ data: { scenarioId, orgId } });
+}
+
+export async function duplicateScenario(
+	scenarioId: string,
+	newName?: string,
+	orgId?: string,
+): Promise<{ success: boolean; newSimulationId?: string }> {
+	return duplicateScenarioFn({ data: { scenarioId, newName, orgId } });
 }

@@ -1,16 +1,19 @@
-﻿export interface IndicatorScoreItem {
+export interface IndicatorScoreItem {
 	id: string;
 	code: string;
 	name: string;
 	weight: number;
-	rawScore: number;
+	rawScore: number | null;
 	weightedScore: number;
 	status: "complete" | "warning" | "danger" | "incomplete";
 	statusLabel: string;
-	deltaPoints: number;
+	deltaPoints: number | null;
+	deltaDescription?: string;
 	summary: string;
 	isDeduction?: boolean;
 	isEstimated?: boolean;
+	isPriority1?: boolean;
+	route?: string;
 }
 
 export interface PriorityActionItem {
@@ -20,11 +23,12 @@ export interface PriorityActionItem {
 	title: string;
 	urgency: "high" | "medium" | "low";
 	urgencyLabel: string;
-	deadlineDays: number;
-	deadlineDate: string;
+	deadlineDays?: number | null;
+	deadlineDate?: string | null;
 	impactPoints: number;
 	route: string;
 	domain: string;
+	domainLabel?: string;
 }
 
 export interface NearestDeadlineItem {
@@ -35,6 +39,8 @@ export interface NearestDeadlineItem {
 	workDaysLeft: number;
 	status: "warning" | "danger" | "safe";
 	route: string;
+	indicatorLabel?: string;
+	otherDeadlinesCount?: number;
 }
 
 export interface CompletenessItem {
@@ -43,30 +49,41 @@ export interface CompletenessItem {
 	isComplete: boolean;
 	label: string;
 	missingCount?: number;
+	detail?: string;
 	route: string;
 }
 
 export interface OperatorDashboardData {
-	totalScore: number;
+	totalScore: number | null;
 	targetScore: number;
-	gapScore: number;
+	gapScore: number | null;
+	deltaFromPreviousPeriod?: number | null;
+	previousPeriodLabel?: string | null;
 	dataStatus: "complete" | "estimated" | "incomplete";
 	ruleSetVersion: string;
 	lastUpdated: string;
 	nearestDeadline: NearestDeadlineItem | null;
+	otherDeadlinesCount?: number;
 	indicators: IndicatorScoreItem[];
 	priorityActions: PriorityActionItem[];
 	completeness: CompletenessItem[];
+	firstIncompleteRoute?: string | null;
 	scoreHistory: { month: string; score: number; target: number }[];
+	activePeriodMonth?: number;
+	activeYear?: number;
 }
 
 export const mockOperatorDashboardNormal: OperatorDashboardData = {
-	totalScore: 94.2,
+	totalScore: 91.25,
 	targetScore: 95.0,
-	gapScore: -0.8,
-	dataStatus: "estimated",
-	ruleSetVersion: "2026.1",
+	gapScore: -3.75,
+	deltaFromPreviousPeriod: 0.85,
+	previousPeriodLabel: "Jul",
+	dataStatus: "complete",
+	ruleSetVersion: "PER-5/PB/2024",
 	lastUpdated: "31 Agu 2026, 15.00 WIB",
+	activePeriodMonth: 8,
+	activeYear: 2026,
 	nearestDeadline: {
 		id: "dead-01",
 		title: "Penyelesaian Tagihan BAST K-001",
@@ -74,7 +91,9 @@ export const mockOperatorDashboardNormal: OperatorDashboardData = {
 		dueDate: "04 September 2026",
 		workDaysLeft: 2,
 		status: "warning",
-		route: "/operator/data/contracts-invoices",
+		route: "/operator/data/contracts-invoices?tab=invoices",
+		indicatorLabel: "Penyelesaian Tagihan",
+		otherDeadlinesCount: 3,
 	},
 	indicators: [
 		{
@@ -87,19 +106,23 @@ export const mockOperatorDashboardNormal: OperatorDashboardData = {
 			status: "complete",
 			statusLabel: "Sempurna",
 			deltaPoints: 0.0,
+			deltaDescription: "Tetap vs Jul",
 			summary: "1 revisi triwulan ini",
+			route: "/operator/data/budget-revisions",
 		},
 		{
 			id: "ind-2",
 			code: "deviasi_rpd",
-			name: "Deviasi Hal III DIPA",
+			name: "Deviasi Halaman III",
 			weight: 15,
 			rawScore: 92.0,
 			weightedScore: 13.8,
 			status: "complete",
 			statusLabel: "Baik",
 			deltaPoints: 1.2,
+			deltaDescription: "+1.20 vs Jul",
 			summary: "Rata-rata deviasi 6.2%",
+			route: "/operator/deviasi",
 		},
 		{
 			id: "ind-3",
@@ -111,7 +134,10 @@ export const mockOperatorDashboardNormal: OperatorDashboardData = {
 			status: "warning",
 			statusLabel: "Perlu Perhatian",
 			deltaPoints: -1.5,
+			deltaDescription: "-1.50 vs Jul",
 			summary: "Akun 52 di bawah target",
+			isPriority1: true,
+			route: "/operator/penyerapan",
 		},
 		{
 			id: "ind-4",
@@ -123,7 +149,9 @@ export const mockOperatorDashboardNormal: OperatorDashboardData = {
 			status: "complete",
 			statusLabel: "Baik",
 			deltaPoints: 0.0,
+			deltaDescription: "Tetap vs Jul",
 			summary: "14 kontrak tepat waktu",
+			route: "/operator/data/contracts-invoices?tab=contracts",
 		},
 		{
 			id: "ind-5",
@@ -135,19 +163,23 @@ export const mockOperatorDashboardNormal: OperatorDashboardData = {
 			status: "warning",
 			statusLabel: "Mendekati Batas",
 			deltaPoints: -2.0,
+			deltaDescription: "-2.00 vs Jul",
 			summary: "13/15 SPM tepat waktu",
+			route: "/operator/data/contracts-invoices?tab=invoices",
 		},
 		{
 			id: "ind-6",
 			code: "up_tup",
-			name: "Pengelolaan UP/TUP",
+			name: "UP/TUP & KKP",
 			weight: 10,
 			rawScore: 96.0,
 			weightedScore: 9.6,
 			status: "complete",
 			statusLabel: "Sangat Baik",
 			deltaPoints: 0.5,
+			deltaDescription: "+0.50 vs Jul",
 			summary: "GUP tertib & KKP 100%",
+			route: "/operator/up-tup",
 		},
 		{
 			id: "ind-7",
@@ -159,61 +191,68 @@ export const mockOperatorDashboardNormal: OperatorDashboardData = {
 			status: "complete",
 			statusLabel: "Baik",
 			deltaPoints: 1.0,
+			deltaDescription: "+1.00 vs Jul",
 			summary: "18/20 RO terkonfirmasi",
+			route: "/operator/data/output-achievement",
 		},
 		{
 			id: "ind-8",
 			code: "dispensasi",
 			name: "Dispensasi SPM",
 			weight: 0,
-			rawScore: 0.75,
-			weightedScore: -0.75,
+			rawScore: 0.0,
+			weightedScore: 0.0,
 			status: "complete",
-			statusLabel: "Pengurang",
-			deltaPoints: -0.75,
-			summary: "24 SPM dispensasi Q4",
+			statusLabel: "Tanpa Pengurang",
+			deltaPoints: 0.0,
+			deltaDescription: "Tetap vs Jul",
+			summary: "Tidak ada dispensasi SPM",
+			route: "/operator/data/spm-dispensation",
 			isDeduction: true,
 		},
 	],
 	priorityActions: [
 		{
 			id: "act-1",
-			indicatorId: "ind-5",
-			indicatorName: "Penyelesaian Tagihan",
-			title: "Proses SPM Tagihan BAST Kontrak K-001",
-			urgency: "high",
-			urgencyLabel: "2 hari kerja tersisa",
-			deadlineDays: 2,
-			deadlineDate: "04 Sep 2026",
-			impactPoints: 0.89,
-			route: "/operator/data/contracts-invoices",
-			domain: "Tagihan",
-		},
-		{
-			id: "act-2",
 			indicatorId: "ind-3",
 			indicatorName: "Penyerapan Anggaran",
 			title: "Percepat Realisasi Belanja Barang Akun 52",
+			urgency: "high",
+			urgencyLabel: "Tinggi",
+			deadlineDays: null,
+			deadlineDate: null,
+			impactPoints: 2.32,
+			route: "/operator/penyerapan",
+			domain: "Penyerapan Anggaran",
+			domainLabel: "Penyerapan Anggaran",
+		},
+		{
+			id: "act-2",
+			indicatorId: "ind-5",
+			indicatorName: "Penyelesaian Tagihan",
+			title: "Proses SPM Tagihan BAST Kontrak K-001",
 			urgency: "medium",
-			urgencyLabel: "Target Triwulan III",
-			deadlineDays: 14,
-			deadlineDate: "15 Sep 2026",
-			impactPoints: 0.65,
-			route: "/operator/data/rpd-realization",
-			domain: "RPD & Realisasi",
+			urgencyLabel: "Sedang",
+			deadlineDays: 2,
+			deadlineDate: "04 Sep 2026",
+			impactPoints: 1.33,
+			route: "/operator/data/contracts-invoices?tab=invoices",
+			domain: "Penyelesaian Tagihan",
+			domainLabel: "Penyelesaian Tagihan",
 		},
 		{
 			id: "act-3",
 			indicatorId: "ind-7",
 			indicatorName: "Capaian Output",
 			title: "Konfirmasi Laporan Capaian 2 Rincian Output",
-			urgency: "medium",
-			urgencyLabel: "5 hari kerja awal bulan",
+			urgency: "low",
+			urgencyLabel: "Rendah",
 			deadlineDays: 5,
 			deadlineDate: "07 Sep 2026",
-			impactPoints: 0.5,
+			impactPoints: 2.5,
 			route: "/operator/data/output-achievement",
 			domain: "Capaian Output",
+			domainLabel: "Capaian Output",
 		},
 	],
 	completeness: [
@@ -229,33 +268,32 @@ export const mockOperatorDashboardNormal: OperatorDashboardData = {
 			domain: "RPD & Realisasi",
 			isComplete: true,
 			label: "Lengkap",
-			route: "/operator/data/rpd-realization",
+			route: "/operator/deviasi",
 		},
 		{
 			id: "c-3",
 			domain: "Kontrak & Tagihan",
 			isComplete: true,
 			label: "Lengkap",
-			route: "/operator/data/contracts-invoices",
+			route: "/operator/data/contracts-invoices?tab=contracts",
 		},
 		{
 			id: "c-4",
 			domain: "UP/TUP & KKP",
 			isComplete: true,
 			label: "Lengkap",
-			route: "/operator/data/up-tup-kkp",
+			route: "/operator/up-tup",
 		},
 		{
 			id: "c-5",
 			domain: "Capaian Output",
-			isComplete: false,
-			label: "2 RO Belum Konfirmasi",
-			missingCount: 2,
+			isComplete: true,
+			label: "Lengkap",
 			route: "/operator/data/output-achievement",
 		},
 		{
 			id: "c-6",
-			domain: "SPM Dispensasi",
+			domain: "Dispensasi SPM",
 			isComplete: true,
 			label: "Lengkap",
 			route: "/operator/data/spm-dispensation",
@@ -284,13 +322,15 @@ export const mockOperatorDashboardRisky: OperatorDashboardData = {
 		dueDate: "25 Agustus 2026",
 		workDaysLeft: 0,
 		status: "danger",
-		route: "/operator/data/contracts-invoices",
+		route: "/operator/data/contracts-invoices?tab=invoices",
+		indicatorLabel: "Penyelesaian Tagihan",
 	},
 };
 
 export const mockOperatorDashboardIncomplete: OperatorDashboardData = {
 	...mockOperatorDashboardNormal,
-	totalScore: 0,
+	totalScore: null,
+	gapScore: null,
 	dataStatus: "incomplete",
 	nearestDeadline: null,
 	priorityActions: [],

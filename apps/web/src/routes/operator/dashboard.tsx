@@ -1,12 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Calendar, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useActiveContext } from "@/components/layout/active-context";
 import { OperatorShell } from "@/components/layout/operator-shell";
+import { DataCompletenessBanner } from "@/components/operator/data-completeness-banner";
 import { DeadlinePanel } from "@/components/operator/deadline-panel";
 import { IndicatorCard } from "@/components/operator/indicator-card";
 import { RecommendationList } from "@/components/operator/recommendation-list";
 import { ScoreCard } from "@/components/operator/score-card";
-import { fetchOperatorDashboard } from "@/services/dashboard-service";
-import { executeSimulation } from "@/services/simulation-service";
+import {
+	type DashboardResponseData,
+	fetchOperatorDashboard,
+} from "@/services/dashboard-service";
 
 export const Route = createFileRoute("/operator/dashboard")({
 	loader: async ({ context }) => {
@@ -17,56 +22,168 @@ export const Route = createFileRoute("/operator/dashboard")({
 				? (context.access.activeOrganizationId ?? undefined)
 				: undefined;
 
-		return fetchOperatorDashboard(activeOrgId);
+		return {
+			initialData: await fetchOperatorDashboard(activeOrgId),
+			activeOrgId,
+		};
 	},
 	component: OperatorDashboardPage,
 });
 
-const INDICATOR_ROUTES: Record<string, string> = {
-	REVISI_DIPA: "/operator/data/budget-revisions",
-	DEV_HAL_III: "/operator/deviasi",
-	PENYERAPAN: "/operator/penyerapan",
-	BELANJA_KONTRAKTUAL: "/operator/data/contracts-invoices?tab=contracts",
-	TAGIHAN: "/operator/data/contracts-invoices?tab=spm",
-	UP_TUP: "/operator/up-tup",
-	CAPAIAN_OUTPUT: "/operator/data/output-achievement",
-	SPM_DISPENSASI: "/operator/data/spm-dispensation",
-};
+const MONTH_LONG_NAMES = [
+	"Januari",
+	"Februari",
+	"Maret",
+	"April",
+	"Mei",
+	"Juni",
+	"Juli",
+	"Agustus",
+	"September",
+	"Oktober",
+	"November",
+	"Desember",
+];
 
 function OperatorDashboardPage() {
-	const data = Route.useLoaderData();
-	const [isSaving, setIsSaving] = useState(false);
-	const [saveMessage, setSaveMessage] = useState<string | null>(null);
-	const [saveError, setSaveError] = useState<string | null>(null);
+	const { initialData, activeOrgId } = Route.useLoaderData();
+	const navigate = useNavigate();
+	const activeContext = useActiveContext();
+
+	const contextMonth =
+		activeContext?.context.period.kind === "month"
+			? activeContext.context.period.value
+			: initialData.activePeriodMonth ?? 8;
+
+	const [selectedMonth, setSelectedMonth] = useState<number>(contextMonth);
+	const [data, setData] = useState<DashboardResponseData>(initialData);
+	const [isLoadingMonth, setIsLoadingMonth] = useState(false);
+
+	// Client-side memory cache for visited months
+	const cacheRef = useRef<Record<number, DashboardResponseData>>({
+		[initialData.activePeriodMonth ?? 8]: initialData,
+	});
+
+	// Sync when context month changes
+	useEffect(() => {
+		if (contextMonth !== selectedMonth) {
+			setSelectedMonth(contextMonth);
+			if (cacheRef.current[contextMonth]) {
+				setData(cacheRef.current[contextMonth]);
+			} else {
+				setIsLoadingMonth(true);
+				fetchOperatorDashboard(activeOrgId, contextMonth)
+					.then((res) => {
+						cacheRef.current[contextMonth] = res;
+						setData(res);
+					})
+					.catch(() => {})
+					.finally(() => setIsLoadingMonth(false));
+			}
+		}
+	}, [contextMonth, activeOrgId, selectedMonth]);
+
+	const handleMonthChange = (newMonth: number) => {
+		setSelectedMonth(newMonth);
+		activeContext?.setPeriod({ kind: "month", value: newMonth });
+
+		if (cacheRef.current[newMonth]) {
+			setData(cacheRef.current[newMonth]);
+			return;
+		}
+
+		setIsLoadingMonth(true);
+		fetchOperatorDashboard(activeOrgId, newMonth)
+			.then((res) => {
+				cacheRef.current[newMonth] = res;
+				setData(res);
+			})
+			.catch(() => {})
+			.finally(() => setIsLoadingMonth(false));
+	};
+
+	const activeMonth = selectedMonth;
+	const fyContext = activeContext?.context.fiscalYear;
+	const activeYear: number =
+		typeof fyContext === "number"
+			? fyContext
+			: fyContext && typeof fyContext === "object" && "year" in (fyContext as any)
+				? Number((fyContext as any).year)
+				: Number(data.activeYear ?? 2026);
+	const activePeriodLabel = `${MONTH_LONG_NAMES[activeMonth - 1] || `Bulan ${activeMonth}`} ${activeYear}`;
 
 	const topActions = data.priorityActions.slice(0, 5);
 
-	const handleSaveScenario = async () => {
-		setIsSaving(true);
-		setSaveMessage(null);
-		setSaveError(null);
-		try {
-			await executeSimulation({
-				simulationType: "scenario",
-				period: { kind: "month", value: new Date().getMonth() + 1 },
-				simulationName: `Skenario IKPA Dashboard - ${new Date().toLocaleDateString("id-ID")}`,
-			});
-			setSaveMessage(
-				"Skenario IKPA (8 indikator + rekomendasi) berhasil disimpan. Lihat di Riwayat & perbandingan.",
-			);
-		} catch (err: unknown) {
-			setSaveError(
-				err instanceof Error ? err.message : "Gagal menyimpan skenario IKPA.",
-			);
-		} finally {
-			setIsSaving(false);
+	// Contextual button label & route
+	const contextActionRoute =
+		data.firstIncompleteRoute ||
+		(topActions.length > 0 ? topActions[0].route : "/operator/data/budget-revisions");
+
+	const contextActionLabel = data.firstIncompleteRoute
+		? "Lengkapi Data"
+		: topActions.length > 0
+			? `Buka ${topActions[0].domainLabel || topActions[0].indicatorName}`
+			: "Buka Revisi DIPA";
+
+	const handleNavigate = (route: string) => {
+		if (route.startsWith("http")) {
+			window.location.href = route;
+			return;
 		}
+		navigate({ to: route as never });
 	};
 
 	return (
 		<OperatorShell currentPath="/operator/dashboard">
 			<div className="space-y-6">
 				<h1 className="sr-only">Dashboard IKPA Operator Satker</h1>
+
+				{/* Top Bar: Active Period Selector */}
+				<div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/80 bg-surface/60 px-4 py-3 shadow-2xs backdrop-blur-xs">
+					<div className="flex items-center gap-3">
+						<div className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+							<Calendar className="h-4 w-4" />
+						</div>
+						<div>
+							<div className="flex items-center gap-2">
+								<span className="text-xs font-semibold text-foreground">
+									Periode Evaluasi Kumulatif
+								</span>
+								<span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+									YTD
+								</span>
+							</div>
+							<p className="text-[11px] text-muted-foreground">
+								Menampilkan akumulasi data realisasi &amp; proyeksi s.d. akhir {activePeriodLabel}
+							</p>
+						</div>
+					</div>
+
+					<div className="flex items-center gap-2">
+						{isLoadingMonth && (
+							<Loader2 className="h-4 w-4 animate-spin text-primary" />
+						)}
+						<label
+							htmlFor="dashboard-month-select"
+							className="text-xs font-medium text-muted-foreground"
+						>
+							Pilih Bulan:
+						</label>
+						<select
+							id="dashboard-month-select"
+							value={activeMonth}
+							disabled={isLoadingMonth}
+							onChange={(e) => handleMonthChange(Number(e.target.value))}
+							className="h-9 cursor-pointer rounded-lg border border-border bg-background px-3 text-xs font-semibold text-foreground shadow-2xs transition focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none disabled:opacity-60"
+						>
+							{MONTH_LONG_NAMES.map((name, idx) => (
+								<option key={name} value={idx + 1}>
+									Bulan {idx + 1} — {name} {activeYear}
+								</option>
+							))}
+						</select>
+					</div>
+				</div>
 
 				{/* Top Grid: KPI Score Card & Nearest Deadline */}
 				<div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
@@ -75,42 +192,33 @@ function OperatorDashboardPage() {
 							totalScore={data.totalScore}
 							targetScore={data.targetScore}
 							gapScore={data.gapScore}
+							deltaFromPreviousPeriod={data.deltaFromPreviousPeriod}
+							previousPeriodLabel={data.previousPeriodLabel}
 							dataStatus={data.dataStatus}
 							ruleSetVersion={data.ruleSetVersion}
 							lastUpdated={data.lastUpdated}
-							onSimulateClick={() => {
-								window.location.href = "/operator/simulation";
-							}}
-							onInputClick={() => {
-								window.location.href = "/operator/data/budget-revisions";
-							}}
-							onSaveScenarioClick={handleSaveScenario}
-							isSavingScenario={isSaving}
+							contextActionLabel={contextActionLabel}
+							onContextActionClick={() => handleNavigate(contextActionRoute)}
+							onHistoryClick={() => handleNavigate("/operator/history")}
 						/>
-						{saveMessage ? (
-							<p className="mt-2 rounded-lg border border-success/30 bg-success/5 px-3 py-2 text-xs text-success">
-								{saveMessage}{" "}
-								<a href="/operator/history" className="font-semibold underline underline-offset-4">
-									Buka Riwayat
-								</a>
-							</p>
-						) : null}
-						{saveError ? (
-							<p className="mt-2 rounded-lg border border-danger/30 bg-danger/5 px-3 py-2 text-xs text-danger">
-								{saveError}
-							</p>
-						) : null}
 					</div>
 
 					<div className="lg:col-span-4">
 						<DeadlinePanel
 							deadline={data.nearestDeadline}
-							onActionClick={(route) => {
-								window.location.href = route;
-							}}
+							otherDeadlinesCount={data.otherDeadlinesCount}
+							onActionClick={handleNavigate}
+							onViewAllDeadlinesClick={() => handleNavigate("/operator/reminders")}
 						/>
 					</div>
 				</div>
+
+				{/* Data Completeness Banner (if incomplete) */}
+				<DataCompletenessBanner
+					completeness={data.completeness}
+					activePeriodLabel={activePeriodLabel}
+					onFixDataClick={handleNavigate}
+				/>
 
 				{/* 8 Indicators Grid */}
 				<div>
@@ -120,11 +228,11 @@ function OperatorDashboardPage() {
 								8 Indikator IKPA
 							</h2>
 							<p className="text-xs text-muted-foreground">
-								7 berbobot + SPM Dispensasi sebagai pengurang
+								7 berbobot (100%) + SPM Dispensasi sebagai pengurang total
 							</p>
 						</div>
-						<span className="text-xs font-semibold text-primary">
-							Tahun Anggaran 2026
+						<span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+							Tahun Anggaran {activeYear}
 						</span>
 					</div>
 
@@ -133,26 +241,17 @@ function OperatorDashboardPage() {
 							<IndicatorCard
 								key={ind.id}
 								indicator={ind}
-								onClick={() => {
-									const route =
-										INDICATOR_ROUTES[ind.code] || "/operator/simulation";
-									window.location.href = route;
-								}}
+								onDetailClick={handleNavigate}
 							/>
 						))}
 					</div>
 				</div>
 
-				{/* Recommendations & Action Plan */}
+				{/* Priority Actions & Recommendations */}
 				<RecommendationList
 					actions={topActions}
 					totalCount={data.priorityActions.length}
-					onSeeAllClick={() => {
-						window.location.href = "/operator/analysis";
-					}}
-					onActionClick={(route) => {
-						window.location.href = route;
-					}}
+					onActionClick={handleNavigate}
 				/>
 			</div>
 		</OperatorShell>

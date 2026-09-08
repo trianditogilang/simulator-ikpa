@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "npm run dev --workspace apps/web",
     "generate-routes": "npm run generate-routes --workspace apps/web",
+    "seed": "npm run seed --workspace @simulator-ikpa/db",
     "build": "npm run build --workspace apps/web",
     "preview": "npm run preview --workspace apps/web",
     "typecheck": "npm run typecheck --workspaces --if-present",

@@ -95,9 +95,9 @@ const indicatorItems: readonly NavigationItem[] = [
 // tapi tak di-link dari sidebar — analysis dijangkau via "Lihat semua" Dashboard (CORR-05).
 
 const lainnyaItems: readonly NavigationItem[] = [
-	{ label: "Riwayat & perbandingan", href: "/operator/history", icon: History },
+	{ label: "Riwayat & Skenario", href: "/operator/history", icon: History },
 	{ label: "Panduan IKPA", href: "/operator/guides", icon: BookOpen },
-	{ label: "Pengaturan", href: "/operator/settings", icon: Settings },
+	{ label: "Pengaturan Satker", href: "/operator/settings", icon: Settings },
 ];
 
 const mobileItems: readonly NavigationItem[] = [

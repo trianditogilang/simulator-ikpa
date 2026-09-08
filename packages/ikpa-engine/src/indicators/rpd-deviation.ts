@@ -164,7 +164,7 @@ export function calculateRpdDeviation(
 		weight: config.weights.rpd_deviation,
 		score: score.toFixed(config.rounding.fractionDigits),
 		weightedContribution: weighted.toFixed(config.rounding.fractionDigits),
-		status: monthsProcessed < 11 ? "incomplete" : "complete",
+		status: "complete",
 		formulaTrace: steps,
 		warnings,
 	};

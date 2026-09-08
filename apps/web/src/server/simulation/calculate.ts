@@ -494,6 +494,7 @@ export async function calculateAndPersistSnapshot(
 					exclusionReason: eligibility.exclusionReason ?? undefined,
 				};
 			}),
+			evalPeriod: params.period.kind === "month" ? params.period.value : undefined,
 		},
 
 
@@ -523,6 +524,57 @@ export async function calculateAndPersistSnapshot(
 	const inputHash = hashInput(engineInput);
 	const periodEnd = `${fy.year}-${String(params.period.value).padStart(2, "0")}-01`;
 
+	// Idempotency: for actual simulations, check if identical snapshot already exists
+	if (params.simulationType === "actual") {
+		const existing = await db
+			.select({
+				snapshot: scoreSnapshots,
+				simulation: simulations,
+			})
+			.from(scoreSnapshots)
+			.innerJoin(simulations, eq(scoreSnapshots.simulationId, simulations.id))
+			.where(
+				and(
+					eq(simulations.fiscalYearId, fy.id),
+					eq(simulations.type, "actual"),
+					eq(scoreSnapshots.periodEnd, periodEnd),
+					eq(scoreSnapshots.inputHash, inputHash),
+					isNull(simulations.deletedAt),
+				),
+			)
+			.limit(1);
+
+		if (existing.length > 0) {
+			return {
+				simulation: existing[0].simulation,
+				snapshot: existing[0].snapshot,
+				output,
+				inputHash,
+				domainCounts: {
+					dipa: revisionRows.length,
+					rpd: rpdRows.length,
+					real: realRows.length,
+					contract: contractRows.length,
+					spmLs: spmLsRows.length,
+					upTup: upTupRows.length,
+					output: outputRows.length,
+					spmQ4: spmQ4Rows.length,
+				},
+			};
+		}
+	}
+
+	// Validation: scenario requires at least 1 override or assumption
+	if (params.simulationType === "scenario") {
+		const hasOverrides = params.overrides && Object.keys(params.overrides).length > 0;
+		const hasAssumptions = Boolean(params.assumptions?.upTup || params.assumptions?.dispensasi);
+		if (!hasOverrides && !hasAssumptions) {
+			throw new Error(
+				"Belum ada asumsi yang berubah. Skenario hanya dapat disimpan setelah Anda mengubah minimal satu asumsi.",
+			);
+		}
+	}
+
 	// ponytail: neon-http driver does not support transactions (throws "No transactions support in neon-http driver");
 	// sequential inserts are sufficient for dashboard read path; use Pool driver only if strict atomicity needed
 	const doPersist = async (tx: DbClient) => {
@@ -530,7 +582,7 @@ export async function calculateAndPersistSnapshot(
 			.insert(simulations)
 			.values({
 				fiscalYearId: fy.id,
-				name: params.simulationName ?? `${params.simulationType}-${Date.now()}`,
+				name: params.simulationName ?? `${params.simulationType === "actual" ? "Aktual" : params.simulationType === "scenario" ? "Skenario" : "Proyeksi"} Bulan ${params.period.value} - ${new Date().toLocaleTimeString("id-ID")}`,
 				type: params.simulationType,
 				targetScore: params.targetScore ?? null,
 				createdBy: meta.actorId,
@@ -571,7 +623,22 @@ export async function calculateAndPersistSnapshot(
 			})
 			.returning();
 
-		return { simulation, snapshot, output, inputHash };
+		return {
+			simulation,
+			snapshot,
+			output,
+			inputHash,
+			domainCounts: {
+				dipa: revisionRows.length,
+				rpd: rpdRows.length,
+				real: realRows.length,
+				contract: contractRows.length,
+				spmLs: spmLsRows.length,
+				upTup: upTupRows.length,
+				output: outputRows.length,
+				spmQ4: spmQ4Rows.length,
+			},
+		};
 	};
 
 	return doPersist(db as DbClient);

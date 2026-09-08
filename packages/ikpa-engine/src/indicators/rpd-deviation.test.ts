@@ -17,7 +17,7 @@ test("RPD Deviation golden test - below 5%", () => {
 
 	const result = calculateRpdDeviation(input, default2026RuleSet);
 
-	expect(result.status).toBe("incomplete"); // Because only 1 month
+	expect(result.status).toBe("complete");
 	expect(result.score).toBe("100.00");
 });
 
@@ -35,7 +35,7 @@ test("RPD Deviation golden test - above 5%", () => {
 
 	const result = calculateRpdDeviation(input, default2026RuleSet);
 
-	expect(result.status).toBe("incomplete");
+	expect(result.status).toBe("complete");
 	expect(result.score).toBe("50.00");
 });
 

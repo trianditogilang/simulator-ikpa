@@ -1,15 +1,19 @@
-﻿import type { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 import type { NearestDeadlineItem } from "@/mocks/operator-dashboard";
 
 export interface DeadlinePanelProps extends ComponentProps<"div"> {
 	deadline: NearestDeadlineItem | null;
+	otherDeadlinesCount?: number;
 	onActionClick?: (route: string) => void;
+	onViewAllDeadlinesClick?: () => void;
 }
 
 export function DeadlinePanel({
 	deadline,
+	otherDeadlinesCount = 0,
 	onActionClick,
+	onViewAllDeadlinesClick,
 	className,
 	...props
 }: DeadlinePanelProps) {
@@ -18,22 +22,24 @@ export function DeadlinePanel({
 			<div
 				{...props}
 				className={twMerge(
-					"flex h-full flex-col items-center justify-center rounded-2xl border border-border bg-background p-5 text-center shadow-xs sm:p-6",
+					"flex h-full min-h-[190px] flex-col items-center justify-center rounded-2xl border border-border bg-background p-5 text-center shadow-xs sm:p-6",
 					className,
 				)}
 				data-slot="deadline-panel"
 			>
 				<span className="text-xs font-semibold text-success">
-					Tidak Ada Deadline Mendekat
+					Tidak Ada Tenggat Mendekat
 				</span>
-				<p className="mt-1 text-xs text-muted-foreground">
-					Semua tagihan dan kewajiban pelaporan dalam status aman.
+				<p className="mt-1 text-xs text-muted-foreground max-w-xs">
+					Semua tagihan dan kewajiban pelaporan dalam status aman untuk periode ini.
 				</p>
 			</div>
 		);
 	}
 
 	const isUrgent = deadline.status === "danger" || deadline.workDaysLeft <= 2;
+	const countOther = deadline.otherDeadlinesCount ?? otherDeadlinesCount;
+	const buttonLabel = `Buka ${deadline.indicatorLabel || "Indikator"}`;
 
 	return (
 		<div
@@ -60,36 +66,57 @@ export function DeadlinePanel({
 					>
 						{deadline.workDaysLeft === 0
 							? "Hari Ini!"
-							: `${deadline.workDaysLeft} Hari Kerja Lagi`}
+							: `${deadline.workDaysLeft} Hari Lagi`}
 					</span>
 				</div>
 
 				<div className="mt-3">
-					<h3 className="text-base font-semibold text-foreground">
+					<h3 className="text-sm font-semibold text-foreground sm:text-base line-clamp-2">
 						{deadline.title}
 					</h3>
-					<p className="mt-1 text-xs text-muted-foreground">
+					<p className="mt-1 text-xs text-muted-foreground line-clamp-2">
 						{deadline.event} · Jatuh Tempo: {deadline.dueDate}
 					</p>
 				</div>
 			</div>
 
-			<div className="mt-4 border-t border-border/60 pt-3">
+			<div className="mt-4 space-y-2 border-t border-border/60 pt-3">
 				{onActionClick ? (
 					<button
 						type="button"
 						onClick={() => onActionClick(deadline.route)}
 						className="w-full rounded-xl bg-primary py-2 text-center text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary-hover"
 					>
-						Buka Data Tagihan
+						{buttonLabel}
 					</button>
 				) : (
 					<a
 						href={deadline.route}
 						className="block w-full rounded-xl bg-primary py-2 text-center text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary-hover"
 					>
-						Buka Data Tagihan
+						{buttonLabel}
 					</a>
+				)}
+
+				{countOther > 0 && (
+					<div className="text-center">
+						{onViewAllDeadlinesClick ? (
+							<button
+								type="button"
+								onClick={onViewAllDeadlinesClick}
+								className="text-[11px] font-medium text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
+							>
+								Lihat {countOther} tenggat lainnya →
+							</button>
+						) : (
+							<a
+								href="/operator/reminders"
+								className="text-[11px] font-medium text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
+							>
+								Lihat {countOther} tenggat lainnya →
+							</a>
+						)}
+					</div>
 				)}
 			</div>
 		</div>

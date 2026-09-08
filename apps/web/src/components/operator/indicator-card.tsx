@@ -1,11 +1,12 @@
-﻿import type { ComponentProps } from "react";
+import { ArrowRight } from "lucide-react";
+import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 import { formatNumber, formatPointDelta } from "@/lib/format";
 import type { IndicatorScoreItem } from "@/mocks/operator-dashboard";
 
 export interface IndicatorCardProps extends ComponentProps<"div"> {
 	indicator: IndicatorScoreItem;
-	onDetailClick?: (indicatorId: string) => void;
+	onDetailClick?: (route: string) => void;
 }
 
 export function IndicatorCard({
@@ -15,12 +16,33 @@ export function IndicatorCard({
 	...props
 }: IndicatorCardProps) {
 	const isDeduction = indicator.isDeduction;
+	const isScoreUnavailable =
+		indicator.status === "incomplete" || indicator.rawScore === null;
+	const route = indicator.route || "/operator/dashboard";
+
+	const handleClick = () => {
+		if (onDetailClick) {
+			onDetailClick(route);
+		}
+	};
 
 	return (
 		<div
 			{...props}
+			onClick={(e) => {
+				if ((e.target as HTMLElement).closest("a, button")) return;
+				handleClick();
+			}}
+			role="button"
+			tabIndex={0}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					handleClick();
+				}
+			}}
 			className={twMerge(
-				"group flex flex-col justify-between rounded-2xl border bg-background p-4 shadow-xs transition hover:shadow-sm sm:p-5",
+				"group relative flex cursor-pointer flex-col justify-between rounded-2xl border bg-background p-4 shadow-xs transition duration-200 hover:shadow-sm sm:p-5",
 				isDeduction
 					? "border-danger/30 bg-danger/[0.02]"
 					: "border-border hover:border-primary/40",
@@ -29,17 +51,19 @@ export function IndicatorCard({
 			data-slot="indicator-card"
 		>
 			<div>
-				<div className="flex items-center justify-between">
-					<span
-						className={twMerge(
-							"rounded-md px-2 py-0.5 text-xs font-semibold",
-							isDeduction
-								? "bg-danger/10 text-danger"
-								: "bg-surface-muted text-foreground",
-						)}
-					>
-						{isDeduction ? "Faktor Pengurang" : `Bobot ${indicator.weight}%`}
-					</span>
+				<div className="flex flex-wrap items-center justify-between gap-1.5">
+					<div className="flex items-center gap-1.5">
+						<span
+							className={twMerge(
+								"rounded-md px-2 py-0.5 text-xs font-semibold",
+								isDeduction
+									? "bg-danger/10 text-danger"
+									: "bg-surface-muted text-foreground",
+							)}
+						>
+							{isDeduction ? "Faktor Pengurang" : `Bobot ${indicator.weight}%`}
+						</span>
+					</div>
 
 					<span
 						className={twMerge(
@@ -51,16 +75,25 @@ export function IndicatorCard({
 						)}
 					>
 						{indicator.statusLabel}
-						{indicator.isEstimated ? " · Estimasi" : null}
 					</span>
 				</div>
 
 				<div className="mt-3">
-					<h3 className="text-sm font-semibold text-foreground">
-						{indicator.name}
-					</h3>
+					<a
+						href={route}
+						onClick={(e) => {
+							if (onDetailClick) {
+								e.preventDefault();
+								handleClick();
+							}
+						}}
+						className="group/title flex items-center justify-between text-sm font-bold text-foreground transition group-hover:text-primary"
+					>
+						<span className="line-clamp-1">{indicator.name}</span>
+						<ArrowRight className="size-4 shrink-0 opacity-0 -translate-x-1 transition duration-200 group-hover:opacity-100 group-hover:translate-x-0" />
+					</a>
 					<p className="mt-1 text-xs text-muted-foreground line-clamp-1">
-						{indicator.summary}
+						{indicator.deltaDescription || indicator.summary}
 					</p>
 				</div>
 			</div>
@@ -74,7 +107,9 @@ export function IndicatorCard({
 						<p className="text-lg font-bold text-foreground">
 							{isDeduction
 								? formatPointDelta(indicator.weightedScore)
-								: formatNumber(indicator.weightedScore)}
+								: isScoreUnavailable
+									? "—"
+									: formatNumber(indicator.weightedScore)}
 						</p>
 					</div>
 
@@ -84,21 +119,13 @@ export function IndicatorCard({
 								Nilai Asli
 							</span>
 							<p className="text-xs font-semibold text-foreground">
-								{formatNumber(indicator.rawScore)}
+								{isScoreUnavailable
+									? "—"
+									: formatNumber(indicator.rawScore ?? 0)}
 							</p>
 						</div>
 					)}
 				</div>
-
-				{onDetailClick && (
-					<button
-						type="button"
-						onClick={() => onDetailClick(indicator.id)}
-						className="mt-2 w-full rounded-lg bg-surface py-1 text-center text-[11px] font-semibold text-primary transition hover:bg-surface-muted group-hover:bg-primary/5"
-					>
-						Buka Detail
-					</button>
-				)}
 			</div>
 		</div>
 	);

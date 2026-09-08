@@ -1,6 +1,7 @@
-﻿import type { ComponentProps } from "react";
+import { ArrowRight } from "lucide-react";
+import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
-import { formatPointDelta } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 import type { PriorityActionItem } from "@/mocks/operator-dashboard";
 
 export interface RecommendationListProps extends ComponentProps<"div"> {
@@ -32,11 +33,13 @@ export function RecommendationList({
 					Tidak Ada Tindakan Kritis Saat Ini
 				</p>
 				<p className="mt-1 text-xs text-muted-foreground">
-					Kinerja pelaksanaan anggaran berjalan sesuai target.
+					Kinerja pelaksanaan anggaran berjalan optimal sesuai target IKPA.
 				</p>
 			</div>
 		);
 	}
+
+	const displayActions = actions.slice(0, 5);
 
 	return (
 		<div
@@ -44,28 +47,35 @@ export function RecommendationList({
 			className={twMerge("space-y-3", className)}
 			data-slot="recommendation-list"
 		>
-			<div className="flex items-center justify-between">
-				<h3 className="text-sm font-semibold text-foreground">
-					Tindakan Prioritas untuk Satker
-				</h3>
-				{totalCount !== undefined && onSeeAllClick && totalCount > actions.length ? (
+			<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+				<div>
+					<h3 className="text-sm font-bold text-foreground sm:text-base">
+						Tindakan Prioritas untuk Satker
+					</h3>
+					<p className="text-[11px] text-muted-foreground">
+						Ruang perbaikan adalah estimasi maksimum bila gap indikator ditutup; hasil aktual bergantung pada kelengkapan dan validitas data.
+					</p>
+				</div>
+				{totalCount !== undefined && onSeeAllClick && totalCount > displayActions.length ? (
 					<button
 						type="button"
 						onClick={onSeeAllClick}
-						className="text-xs font-semibold text-primary underline-offset-4 hover:underline"
+						className="shrink-0 text-xs font-semibold text-primary underline-offset-4 hover:underline"
 					>
 						Lihat semua ({totalCount})
 					</button>
 				) : (
-					<span className="text-xs text-muted-foreground">
-						{actions.length} Rekomendasi
+					<span className="shrink-0 text-xs text-muted-foreground">
+						{displayActions.length} Prioritas
 					</span>
 				)}
 			</div>
 
 			<div className="space-y-2.5">
-				{actions.map((act, index) => {
+				{displayActions.map((act, index) => {
 					const isHigh = act.urgency === "high";
+					const targetRoute = act.route || "/operator/dashboard";
+					const buttonLabel = `Buka ${act.domainLabel || act.indicatorName || "Indikator"}`;
 
 					return (
 						<div
@@ -93,34 +103,44 @@ export function RecommendationList({
 										{act.title}
 									</h4>
 									<div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-										<span className="font-medium text-primary">
+										<span className="font-semibold text-primary">
 											{act.indicatorName}
 										</span>
 										<span>·</span>
-										<span>{act.urgencyLabel}</span>
+										<span>Urgensi {act.urgencyLabel}</span>
 										<span>·</span>
 										<span className="font-semibold text-success">
-											Potensi Dampak: {formatPointDelta(act.impactPoints)}
+											Ruang perbaikan: hingga +{formatNumber(act.impactPoints)} poin
 										</span>
+										{act.deadlineDate ? (
+											<>
+												<span>·</span>
+												<span>Batas: {act.deadlineDate}</span>
+											</>
+										) : null}
 									</div>
 								</div>
 							</div>
 
-							<div className="shrink-0">
+							<div className="shrink-0 self-end sm:self-center">
 								{onActionClick ? (
 									<button
 										type="button"
-										onClick={() => onActionClick(act.route)}
-										className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/40 hover:bg-surface-muted hover:text-primary"
+										onClick={() => onActionClick(targetRoute)}
+										title={buttonLabel}
+										aria-label={buttonLabel}
+										className="flex size-8 items-center justify-center rounded-lg border border-border bg-surface text-muted-foreground transition hover:border-primary/40 hover:bg-surface-muted hover:text-primary"
 									>
-										Buka {act.domain}
+										<ArrowRight className="size-4" />
 									</button>
 								) : (
 									<a
-										href={act.route}
-										className="inline-block rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/40 hover:bg-surface-muted hover:text-primary"
+										href={targetRoute}
+										title={buttonLabel}
+										aria-label={buttonLabel}
+										className="flex size-8 items-center justify-center rounded-lg border border-border bg-surface text-muted-foreground transition hover:border-primary/40 hover:bg-surface-muted hover:text-primary"
 									>
-										Buka {act.domain}
+										<ArrowRight className="size-4" />
 									</a>
 								)}
 							</div>

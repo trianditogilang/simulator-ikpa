@@ -1,41 +1,44 @@
-﻿import type { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 import { twMerge } from "tailwind-merge";
 import { formatNumber, formatPointDelta } from "@/lib/format";
 
 export interface ScoreCardProps extends ComponentProps<"div"> {
-	totalScore: number;
+	totalScore: number | null;
 	targetScore: number;
-	gapScore: number;
+	gapScore: number | null;
+	deltaFromPreviousPeriod?: number | null;
+	previousPeriodLabel?: string | null;
 	dataStatus: "complete" | "estimated" | "incomplete";
 	ruleSetVersion: string;
 	lastUpdated?: string;
-	onSimulateClick?: () => void;
-	onInputClick?: () => void;
-	onSaveScenarioClick?: () => void;
-	isSavingScenario?: boolean;
+	onHistoryClick?: () => void;
+	contextActionLabel?: string;
+	onContextActionClick?: () => void;
 }
 
 export function ScoreCard({
 	totalScore,
 	targetScore,
 	gapScore,
+	deltaFromPreviousPeriod,
+	previousPeriodLabel,
 	dataStatus,
 	ruleSetVersion,
 	lastUpdated,
-	onSimulateClick,
-	onInputClick,
-	onSaveScenarioClick,
-	isSavingScenario,
+	onHistoryClick,
+	contextActionLabel = "Lengkapi Data",
+	onContextActionClick,
 	className,
 	...props
 }: ScoreCardProps) {
-	const isGapNegative = gapScore < 0;
+	const isGapNegative = gapScore !== null && gapScore < 0;
+	const isScoreUnavailable = dataStatus === "incomplete" || totalScore === null;
 
 	return (
 		<div
 			{...props}
 			className={twMerge(
-				"relative flex flex-col justify-between rounded-2xl border border-border bg-background p-5 shadow-sm sm:p-6",
+				"relative flex flex-col justify-between rounded-2xl border border-border bg-background p-5 shadow-xs sm:p-6",
 				className,
 			)}
 			data-slot="score-card"
@@ -73,12 +76,36 @@ export function ScoreCard({
 
 				<div className="my-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div className="rounded-xl bg-surface p-4">
-						<span className="text-xs font-medium text-muted-foreground">
-							Nilai Simulasi IKPA
-						</span>
+						<div className="flex items-center justify-between">
+							<span className="text-xs font-medium text-muted-foreground">
+								Nilai Total IKPA
+							</span>
+							{deltaFromPreviousPeriod !== undefined &&
+							deltaFromPreviousPeriod !== null ? (
+								<span
+									className={twMerge(
+										"text-[11px] font-semibold",
+										deltaFromPreviousPeriod > 0
+											? "text-success"
+											: deltaFromPreviousPeriod < 0
+												? "text-danger"
+												: "text-muted-foreground",
+									)}
+								>
+									{deltaFromPreviousPeriod > 0 ? "↑ +" : deltaFromPreviousPeriod < 0 ? "↓ " : ""}
+									{deltaFromPreviousPeriod === 0
+										? `Tetap vs ${previousPeriodLabel || "periode lalu"}`
+										: `${deltaFromPreviousPeriod.toFixed(2)} vs ${previousPeriodLabel || "periode lalu"}`}
+								</span>
+							) : (
+								<span className="text-[10px] text-muted-foreground">
+									Belum ada pembanding
+								</span>
+							)}
+						</div>
 						<div className="mt-1 flex items-baseline gap-2">
 							<span className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-								{dataStatus === "incomplete" ? "—" : formatNumber(totalScore)}
+								{isScoreUnavailable ? "—" : formatNumber(totalScore)}
 							</span>
 							<span className="text-xs text-muted-foreground">/ 100</span>
 						</div>
@@ -101,7 +128,9 @@ export function ScoreCard({
 									isGapNegative ? "text-danger" : "text-success",
 								)}
 							>
-								{dataStatus === "incomplete" ? "—" : formatPointDelta(gapScore)}
+								{isScoreUnavailable || gapScore === null
+									? "—"
+									: formatPointDelta(gapScore)}
 							</span>
 						</div>
 					</div>
@@ -110,36 +139,31 @@ export function ScoreCard({
 
 			<div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/80 pt-4">
 				<p className="text-[11px] text-muted-foreground sm:max-w-md">
-					*Hasil perhitungan merupakan simulasi internal Satker, bukan nilai
-					resmi OMSPAN/KPPN.
+					*Hasil perhitungan merupakan rangkuman langsung 8 indikator IKPA,
+					bukan nilai resmi OMSPAN/KPPN.
 				</p>
-				<div className="flex items-center gap-2">
-					{onSaveScenarioClick && (
+				<div className="flex flex-wrap items-center gap-2">
+					{onContextActionClick && (
 						<button
 							type="button"
-							onClick={onSaveScenarioClick}
-							disabled={isSavingScenario}
-							className="rounded-lg border border-primary/40 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/10 disabled:opacity-50"
+							onClick={onContextActionClick}
+							className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition hover:border-primary/50 hover:bg-primary/10"
+							title="Indikator prioritas rekomendasi sistem untuk dioptimasi"
 						>
-							{isSavingScenario ? "Menyimpan…" : "Simpan skenario IKPA"}
+							<span className="text-[10px] font-bold uppercase tracking-wider text-primary/70">
+								Prioritas:
+							</span>
+							{contextActionLabel}
+							<span aria-hidden="true">&rarr;</span>
 						</button>
 					)}
-					{onInputClick && (
+					{onHistoryClick && (
 						<button
 							type="button"
-							onClick={onInputClick}
-							className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-surface-muted"
+							onClick={onHistoryClick}
+							className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground shadow-2xs transition hover:border-border-strong hover:bg-surface-muted"
 						>
-							Input Data
-						</button>
-					)}
-					{onSimulateClick && (
-						<button
-							type="button"
-							onClick={onSimulateClick}
-							className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary-hover"
-						>
-							Buka Simulasi
+							Buka Riwayat &amp; Skenario
 						</button>
 					)}
 				</div>

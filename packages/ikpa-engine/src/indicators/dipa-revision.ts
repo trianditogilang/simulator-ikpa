@@ -76,17 +76,18 @@ export function calculateDipaRevision(
 		result: scoreS2.toString(),
 	});
 
-	const annualScore = (scoreS1 + scoreS2) / 2;
+	const rawAnnual = (scoreS1 + scoreS2) / 2;
+	const annualScore = Math.min(100, Math.max(0, rawAnnual));
 	steps.push({
 		step: stepCount++,
 		label: "Nilai Revisi DIPA Tahunan",
-		formula: "(Nilai S1 + Nilai S2) / 2",
+		formula: "(Nilai S1 + Nilai S2) / 2 (maks. 100)",
 		inputs: { nilai_s1: scoreS1.toString(), nilai_s2: scoreS2.toString() },
 		result: annualScore.toString(),
 	});
 
 	const weight = parseFloat(config.weights.dipa_revision);
-	const weighted = (annualScore * weight) / 100;
+	const weighted = Math.min(weight, Math.max(0, (annualScore * weight) / 100));
 	steps.push({
 		step: stepCount++,
 		label: "Nilai Tertimbang",
