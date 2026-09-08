@@ -198,7 +198,7 @@ export function getMonthNameIndonesian(monthZeroIndexed: number): string {
 	return names[monthZeroIndexed] ?? "";
 }
 
-import { formatDateDDMMYYYY } from "@/lib/format";
+import { formatDateDDMMYYYY } from "../format";
 
 export function formatDateIndonesian(s?: string | null): string {
 	if (!s) return "—";

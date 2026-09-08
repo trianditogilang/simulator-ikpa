@@ -210,7 +210,7 @@ export function mergeWithAssumptions(
 	};
 }
 
-import { formatDateDDMMYYYY } from "@/lib/format";
+import { formatDateDDMMYYYY } from "../format";
 
 export interface GupReminder {
 	id: string;
