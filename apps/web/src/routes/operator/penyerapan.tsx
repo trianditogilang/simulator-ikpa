@@ -860,12 +860,12 @@ function PenyerapanPage() {
 
 				{/* Strategy Assistance Panel */}
 				<section
-					aria-label="Bantuan Strategi"
+					aria-label="Strategi Optimalisasi Nilai IKPA - Penyerapan Anggaran"
 					className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4"
 				>
 					<div>
 						<h2 className="text-base font-bold text-foreground">
-							Bantuan Strategi Pencapaian Target
+							Strategi Optimalisasi Nilai IKPA - Penyerapan Anggaran
 						</h2>
 						<p className="mt-0.5 text-xs text-muted-foreground">
 							Rekomendasi taktis untuk mengoptimalkan nilai IKPA Penyerapan Anggaran

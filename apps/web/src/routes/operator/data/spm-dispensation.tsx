@@ -745,7 +745,7 @@ function SpmDispensationPage() {
 						<div className="flex items-center justify-between">
 							<div className="flex items-center gap-2 text-foreground font-bold text-sm">
 								<Lightbulb className="size-4 text-amber-500" />
-								<h2>Agar Nilai IKPA Tidak Dipotong</h2>
+								<h2>Strategi Optimalisasi Nilai IKPA - Dispensasi SPM</h2>
 							</div>
 							<span className="rounded-md bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
 								Target: 0,00 Poin

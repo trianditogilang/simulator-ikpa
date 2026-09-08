@@ -2,6 +2,55 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 184 - 2026-09-08
+**Time:** Start: 10:40 UTC | End: 10:43 UTC | Duration: ~3 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng
+**Tasks Completed:**
+- [UI-FEEDBACK-CO-FORMULA-PARENTHESIS] Penambahan Tanda Kurung pada Formula 1 NK-CRO `(PCRO/ TPCRO) x 100%` pada Tab Panduan PER-5 Halaman Capaian Output (`apps/web/src/routes/operator/data/output-achievement.tsx`):
+  1. Mengubah teks kode blok Formula 1 menjadi `(PCRO/ TPCRO) x 100%` agar seragam dan simetris dengan Formula 2 `(RVRO/ TRVRO) x 100%`.
+  2. `npm run typecheck` -> 0 errors.
+  3. `vitest` -> 108/108 unit tests pass di `apps/web` (38 test files / 271 unit tests monorepo).
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `vitest` -> 108/108 tests passed in apps/web.
+
+### Session 183 - 2026-09-08
+**Time:** Start: 10:15 UTC | End: 10:22 UTC | Duration: ~7 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng
+**Tasks Completed:**
+- [UI-FEEDBACK-STRATEGY-TITLES-AND-CO-FORMULAS] Penyesuaian Judul Strategi Optimalisasi pada Menu Penyerapan Anggaran & Dispensasi SPM serta Penyelarasan Formula NK-CRO (Formula 1: `PCRO/ TPCRO x 100%` & Formula 2: `(RVRO/ TRVRO) x 100%`) pada Panduan Capaian Output:
+  1. **Halaman Penyerapan Anggaran (`apps/web/src/routes/operator/penyerapan.tsx`)**:
+     - Mengubah judul `<h2>` dari `"Bantuan Strategi Pencapaian Target"` menjadi `"Strategi Optimalisasi Nilai IKPA - Penyerapan Anggaran"`.
+  2. **Halaman Dispensasi SPM (`apps/web/src/routes/operator/data/spm-dispensation.tsx`)**:
+     - Mengubah judul `<h2>` dari `"Agar Nilai IKPA Tidak Dipotong"` menjadi `"Strategi Optimalisasi Nilai IKPA - Dispensasi SPM"`.
+  3. **Tab Panduan PER-5 Capaian Output (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
+     - Mengubah formula code blok Formula 1 menjadi `PCRO/ TPCRO x 100%`.
+     - Mengubah formula code blok Formula 2 menjadi `(RVRO/ TRVRO) x 100%`.
+  4. **Verifikasi Monorepo**:
+     - `npm run typecheck` -> 0 errors lintas 7 workspace packages.
+     - `npm test` & `vitest` -> 38 test files / 271 unit tests lulus 100% (108 tests di apps/web).
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/penyerapan.tsx`
+  - `apps/web/src/routes/operator/data/spm-dispensation.tsx`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `npm test` & `vitest` -> 271/271 tests passed across monorepo (108/108 in apps/web).
+
 ### Session 182 - 2026-09-08
 **Time:** Start: 09:55 UTC | End: 10:05 UTC | Duration: ~10 minutes
 - Status: Completed

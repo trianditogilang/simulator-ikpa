@@ -2241,7 +2241,7 @@ function OutputAchievementPage() {
 												Formula 1 (Jan–Nov & PCRO &lt; 100%)
 											</span>
 											<code className="block rounded bg-surface p-2 font-mono text-primary font-bold text-center">
-												min((PCRO / TPCRO) × 100, 100)
+												(PCRO/ TPCRO) x 100%
 											</code>
 											<div className="text-[11px] text-muted-foreground space-y-1 pt-1 leading-relaxed">
 												<p>
@@ -2257,7 +2257,7 @@ function OutputAchievementPage() {
 												Formula 2 (Desember atau PCRO = 100%)
 											</span>
 											<code className="block rounded bg-surface p-2 font-mono text-primary font-bold text-center">
-												min((RVRO / TRVRO) × 100, 100)
+												(RVRO/ TRVRO) x 100%
 											</code>
 											<div className="text-[11px] text-muted-foreground space-y-1 pt-1 leading-relaxed">
 												<p>
