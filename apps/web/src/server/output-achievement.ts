@@ -14,8 +14,13 @@ import {
 	deleteFairnessProposal,
 	reviewFairnessProposal,
 	softDeleteOutput,
+	submitOutputReport,
+	submitTargetPlan,
 	upsertFairnessPolicy,
 	upsertOutput,
+	upsertRoBudgetRealization,
+	upsertTargetPlan,
+	upsertTargetUpdateWindow,
 } from "./domains/output-achievement.mutations";
 import {
 	listAllFairnessProposals,
@@ -92,54 +97,150 @@ export const listOutputReportsFn = createServerFn({ method: "GET" })
 				fiscalYearId: "fy-mock-2026",
 				year: 2026,
 				outputs: [],
+				targetPlans: [],
+				targetWindows: [],
+				budgetRealizations: [],
 				publishedPolicies: [],
 				holidays: [],
 			};
 		}
 
 		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
-		if (!fy) {
-			throw new Error("Tahun anggaran 2026 tidak ditemukan.");
-		}
+		if (!fy) throw new Error("Tahun Anggaran 2026 belum aktif.");
 
-		const result = await listOutputsWithEligibility(
-			db,
-			access,
-			targetOrgId,
-			fy.id,
-		);
+		const res = await listOutputsWithEligibility(db, access, targetOrgId, fy.id);
 
 		return {
-			fiscalYearId: fy.id,
-			year: fy.year,
-			outputs: result.reports,
-			publishedPolicies: result.publishedPolicies,
-			proposals: result.proposals,
-			holidays: result.holidays,
+			fiscalYearId: res.fiscalYearId,
+			year: res.year,
+			outputs: res.reports,
+			targetPlans: res.targetPlans,
+			targetWindows: res.targetWindows,
+			budgetRealizations: res.budgetRealizations,
+			publishedPolicies: res.publishedPolicies,
+			holidays: res.holidays,
 		};
 	});
 
-export const upsertOutputReportFn = createServerFn({ method: "POST" })
-	.validator(
-		(data: {
-			orgId?: string;
-			roCode: string;
-			roName?: string | null;
-			month: number;
-			rvro: string;
-			volumeDipa: string;
-			pcro: string;
-			tpcro: string;
-			reportedAt?: string | null;
-			confirmed?: boolean;
-		}) => data,
-	)
+export const upsertTargetPlanFn = createServerFn({ method: "POST" })
+	.validator((data: Record<string, unknown>) => data)
+	.handler(async ({ data }) => {
+		const auth = await getServerAuthSession();
+		const orgId = data.orgId as string | undefined;
+		const access = await getAccessResolutionForSession(auth, orgId);
+
+		const targetOrgId =
+			orgId ||
+			(access.status === "operator_single_scope" ||
+			access.status === "operator_multiple_scopes"
+				? access.activeOrganizationId
+				: null);
+
+		if (!targetOrgId) throw new Error("Satuan Kerja aktif tidak ditemukan.");
+		assertOperatorOrgScope(access, targetOrgId);
+
+		const db = getDatabase();
+		if (!db) return { success: true };
+
+		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
+		if (!fy) throw new Error("Tahun Anggaran 2026 belum aktif.");
+
+		return upsertTargetPlan(
+			db,
+			access,
+			targetOrgId,
+			{ ...data, fiscalYearId: fy.id },
+			{ actorId: auth.userId || "anonymous-actor" },
+		);
+	});
+
+export const submitTargetPlanFn = createServerFn({ method: "POST" })
+	.validator((data: { targetPlanId: string; orgId?: string }) => data)
 	.handler(async ({ data }) => {
 		const auth = await getServerAuthSession();
 		const access = await getAccessResolutionForSession(auth, data.orgId);
 
 		const targetOrgId =
 			data.orgId ||
+			(access.status === "operator_single_scope" ||
+			access.status === "operator_multiple_scopes"
+				? access.activeOrganizationId
+				: null);
+
+		if (!targetOrgId) throw new Error("Satuan Kerja aktif tidak ditemukan.");
+		assertOperatorOrgScope(access, targetOrgId);
+
+		const db = getDatabase();
+		if (!db) return { success: true };
+
+		return submitTargetPlan(
+			db,
+			access,
+			targetOrgId,
+			data.targetPlanId,
+			{ actorId: auth.userId || "anonymous-actor" },
+		);
+	});
+
+export const upsertTargetUpdateWindowFn = createServerFn({ method: "POST" })
+	.validator((data: Record<string, unknown>) => data)
+	.handler(async ({ data }) => {
+		const auth = await getServerAuthSession();
+		const access = await getAccessResolutionForSession(auth);
+		assertAdminKppnScope(access);
+
+		const db = getDatabase();
+		if (!db) return { success: true };
+
+		return upsertTargetUpdateWindow(
+			db,
+			access,
+			data,
+			{ actorId: auth.userId || "admin-actor" },
+		);
+	});
+
+export const upsertRoBudgetRealizationFn = createServerFn({ method: "POST" })
+	.validator((data: Record<string, unknown>) => data)
+	.handler(async ({ data }) => {
+		const auth = await getServerAuthSession();
+		const orgId = data.orgId as string | undefined;
+		const access = await getAccessResolutionForSession(auth, orgId);
+
+		const targetOrgId =
+			orgId ||
+			(access.status === "operator_single_scope" ||
+			access.status === "operator_multiple_scopes"
+				? access.activeOrganizationId
+				: null);
+
+		if (!targetOrgId) throw new Error("Satuan Kerja aktif tidak ditemukan.");
+		assertOperatorOrgScope(access, targetOrgId);
+
+		const db = getDatabase();
+		if (!db) return { success: true };
+
+		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
+		if (!fy) throw new Error("Tahun Anggaran 2026 belum aktif.");
+
+		return upsertRoBudgetRealization(
+			db,
+			access,
+			targetOrgId,
+			{ ...data, fiscalYearId: fy.id },
+			{ actorId: auth.userId || "anonymous-actor" },
+		);
+	});
+
+export const upsertOutputReportFn = createServerFn({ method: "POST" })
+	.validator((data: Record<string, unknown>) => data)
+	.handler(async ({ data }) => {
+		const auth = await getServerAuthSession();
+		const orgId = data.orgId as string | undefined;
+		const access = await getAccessResolutionForSession(auth, orgId);
+
+		const targetOrgId =
+			orgId ||
 			(access.status === "operator_single_scope" ||
 			access.status === "operator_multiple_scopes"
 				? access.activeOrganizationId
@@ -157,40 +258,47 @@ export const upsertOutputReportFn = createServerFn({ method: "POST" })
 		}
 
 		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
-		if (!fy) {
-			throw new Error("Tahun anggaran 2026 tidak ditemukan.");
-		}
+		if (!fy) throw new Error("Tahun Anggaran 2026 belum aktif.");
 
-		const result = await upsertOutput(
+		return upsertOutput(
 			db,
 			access,
 			targetOrgId,
-			{
-				fiscalYearId: fy.id,
-				roCode: data.roCode,
-				roName: data.roName,
-				month: data.month,
-				rvro: data.rvro,
-				volumeDipa: data.volumeDipa,
-				pcro: data.pcro,
-				tpcro: data.tpcro,
-				reportedAt: data.reportedAt,
-				confirmed: data.confirmed,
-			},
-			{
-				actorId:
-					access.status === "operator_single_scope" ||
-					access.status === "operator_multiple_scopes"
-						? access.userId
-						: targetOrgId,
-			},
+			{ ...data, fiscalYearId: fy.id },
+			{ actorId: auth.userId || "anonymous-actor" },
 		);
+	});
 
-		return { success: true, output: result };
+export const submitOutputReportFn = createServerFn({ method: "POST" })
+	.validator((data: { outputId: string; orgId?: string }) => data)
+	.handler(async ({ data }) => {
+		const auth = await getServerAuthSession();
+		const access = await getAccessResolutionForSession(auth, data.orgId);
+
+		const targetOrgId =
+			data.orgId ||
+			(access.status === "operator_single_scope" ||
+			access.status === "operator_multiple_scopes"
+				? access.activeOrganizationId
+				: null);
+
+		if (!targetOrgId) throw new Error("Satuan Kerja aktif tidak ditemukan.");
+		assertOperatorOrgScope(access, targetOrgId);
+
+		const db = getDatabase();
+		if (!db) return { success: true };
+
+		return submitOutputReport(
+			db,
+			access,
+			targetOrgId,
+			data.outputId,
+			{ actorId: auth.userId || "anonymous-actor" },
+		);
 	});
 
 export const confirmOutputReportFn = createServerFn({ method: "POST" })
-	.validator((data: { orgId?: string; outputId: string }) => data)
+	.validator((data: { outputId: string; orgId?: string }) => data)
 	.handler(async ({ data }) => {
 		const auth = await getServerAuthSession();
 		const access = await getAccessResolutionForSession(auth, data.orgId);
@@ -213,25 +321,17 @@ export const confirmOutputReportFn = createServerFn({ method: "POST" })
 			return { success: true };
 		}
 
-		const result = await confirmOutput(
+		return confirmOutput(
 			db,
 			access,
 			targetOrgId,
 			data.outputId,
-			{
-				actorId:
-					access.status === "operator_single_scope" ||
-					access.status === "operator_multiple_scopes"
-						? access.userId
-						: targetOrgId,
-			},
+			{ actorId: auth.userId || "anonymous-actor" },
 		);
-
-		return { success: true, confirmed: result };
 	});
 
 export const deleteOutputReportFn = createServerFn({ method: "POST" })
-	.validator((data: { orgId?: string; outputId: string }) => data)
+	.validator((data: { outputId: string; orgId?: string }) => data)
 	.handler(async ({ data }) => {
 		const auth = await getServerAuthSession();
 		const access = await getAccessResolutionForSession(auth, data.orgId);
@@ -254,96 +354,49 @@ export const deleteOutputReportFn = createServerFn({ method: "POST" })
 			return { success: true };
 		}
 
-		const result = await softDeleteOutput(
+		return softDeleteOutput(
 			db,
 			access,
 			targetOrgId,
 			data.outputId,
-			{
-				actorId:
-					access.status === "operator_single_scope" ||
-					access.status === "operator_multiple_scopes"
-						? access.userId
-						: targetOrgId,
-			},
+			{ actorId: auth.userId || "anonymous-actor" },
 		);
-
-		return { success: true, deleted: result };
 	});
 
 export const createFairnessProposalFn = createServerFn({ method: "POST" })
-	.validator(
-		(data: {
-			orgId?: string;
-			roCode: string;
-			month?: number | null;
-			category?: string;
-			basisReference: string;
-			operatorNote?: string | null;
-			attachmentRef?: string | null;
-		}) => data,
-	)
+	.validator((data: Record<string, unknown>) => data)
 	.handler(async ({ data }) => {
 		const auth = await getServerAuthSession();
-		const access = await getAccessResolutionForSession(auth, data.orgId);
+		const orgId = data.orgId as string | undefined;
+		const access = await getAccessResolutionForSession(auth, orgId);
 
 		const targetOrgId =
-			data.orgId ||
+			orgId ||
 			(access.status === "operator_single_scope" ||
 			access.status === "operator_multiple_scopes"
 				? access.activeOrganizationId
 				: null);
 
-		if (!targetOrgId) {
-			throw new Error("Satuan Kerja aktif tidak ditemukan.");
-		}
-
+		if (!targetOrgId) throw new Error("Satuan Kerja aktif tidak ditemukan.");
 		assertOperatorOrgScope(access, targetOrgId);
 
 		const db = getDatabase();
-		if (!db) {
-			return { success: true };
-		}
+		if (!db) return { success: true };
 
 		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
-		if (!fy) {
-			throw new Error("Tahun anggaran 2026 tidak ditemukan.");
-		}
+		if (!fy) throw new Error("Tahun Anggaran 2026 belum aktif.");
 
-		const result = await createFairnessProposal(
+		return createFairnessProposal(
 			db,
 			access,
 			targetOrgId,
-			{
-				fiscalYearId: fy.id,
-				roCode: data.roCode,
-				month: data.month,
-				category: data.category ?? "ro_khusus",
-				basisReference: data.basisReference,
-				operatorNote: data.operatorNote,
-				attachmentRef: data.attachmentRef,
-			},
-			{
-				actorId:
-					access.status === "operator_single_scope" ||
-					access.status === "operator_multiple_scopes"
-						? access.userId
-						: targetOrgId,
-			},
+			{ ...data, fiscalYearId: fy.id },
+			{ actorId: auth.userId || "anonymous-actor" },
 		);
-
-		return { success: true, proposal: result };
 	});
 
 export const deleteFairnessProposalFn = createServerFn({ method: "POST" })
-	.validator(
-		(data: {
-			orgId?: string;
-			proposalId?: string;
-			roCode?: string;
-			month?: number | null;
-		}) => data,
-	)
+	.validator((data: { proposalId?: string; roCode?: string; month?: number | null; orgId?: string }) => data)
 	.handler(async ({ data }) => {
 		const auth = await getServerAuthSession();
 		const access = await getAccessResolutionForSession(auth, data.orgId);
@@ -355,51 +408,26 @@ export const deleteFairnessProposalFn = createServerFn({ method: "POST" })
 				? access.activeOrganizationId
 				: null);
 
-		if (!targetOrgId) {
-			throw new Error("Satuan Kerja aktif tidak ditemukan.");
-		}
-
+		if (!targetOrgId) throw new Error("Satuan Kerja aktif tidak ditemukan.");
 		assertOperatorOrgScope(access, targetOrgId);
 
 		const db = getDatabase();
-		if (!db) {
-			return { success: true };
-		}
+		if (!db) return { success: true };
 
-		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
-		if (!fy) {
-			throw new Error("Tahun anggaran 2026 tidak ditemukan.");
-		}
-
-		const result = await deleteFairnessProposal(
+		return deleteFairnessProposal(
 			db,
 			access,
 			targetOrgId,
-			{
-				proposalId: data.proposalId,
-				roCode: data.roCode,
-				month: data.month,
-				fiscalYearId: fy.id,
-			},
-			{
-				actorId:
-					access.status === "operator_single_scope" ||
-					access.status === "operator_multiple_scopes"
-						? access.userId
-						: targetOrgId,
-			},
+			{ proposalId: data.proposalId, roCode: data.roCode, month: data.month },
+			{ actorId: auth.userId || "anonymous-actor" },
 		);
-
-		return { success: true, deleted: result };
 	});
 
 export const listFairnessPoliciesFn = createServerFn({ method: "GET" })
 	.validator((data?: { year?: number }) => data)
 	.handler(async ({ data }) => {
 		const db = getDatabase();
-		if (!db) {
-			return [];
-		}
+		if (!db) return [];
 		return listFairnessPolicies(db, data?.year ?? 2026);
 	});
 
@@ -416,96 +444,53 @@ export const listFairnessProposalsFn = createServerFn({ method: "GET" })
 				? access.activeOrganizationId
 				: null);
 
-		if (!targetOrgId) {
-			throw new Error("Satuan Kerja aktif tidak ditemukan.");
-		}
-
+		if (!targetOrgId) throw new Error("Satuan Kerja aktif tidak ditemukan.");
 		assertOperatorOrgScope(access, targetOrgId);
 
 		const db = getDatabase();
-		if (!db) {
-			return [];
-		}
+		if (!db) return [];
 
 		const fy = await getOrInitFiscalYear(db, targetOrgId, 2026);
-		if (!fy) {
-			return [];
-		}
+		if (!fy) return [];
 
 		return listFairnessProposals(db, access, targetOrgId, fy.id);
 	});
 
 export const upsertFairnessPolicyFn = createServerFn({ method: "POST" })
-	.validator(
-		(data: {
-			id?: string;
-			name: string;
-			indicatorKey?: string;
-			action?: string;
-			category?: string;
-			matchType: "exact" | "list" | "prefix" | "regex";
-			roMatchValue: string | string[];
-			scopeType?: "national" | "kppn" | "organization";
-			scopeId?: string | null;
-			year?: number;
-			effectiveMonthStart?: number;
-			effectiveMonthEnd?: number;
-			basisReference: string;
-			displayReason: string;
-			internalNote?: string | null;
-			allowOperatorProposal?: boolean;
-			status?: "draft" | "published" | "retired" | "expired";
-		}) => data,
-	)
+	.validator((data: Record<string, unknown>) => data)
 	.handler(async ({ data }) => {
 		const auth = await getServerAuthSession();
 		const access = await getAccessResolutionForSession(auth);
-		const adminCtx = assertAdminKppnScope(access);
+		assertAdminKppnScope(access);
 
 		const db = getDatabase();
-		if (!db) {
-			return { success: true };
-		}
+		if (!db) return { success: true };
 
-		const result = await upsertFairnessPolicy(
+		return upsertFairnessPolicy(
 			db,
 			access,
 			data,
-			{ actorId: adminCtx.userId },
+			{ actorId: auth.userId || "admin-actor" },
 		);
-
-		return { success: true, policy: result };
 	});
 
 export const reviewFairnessProposalFn = createServerFn({ method: "POST" })
-	.validator(
-		(data: {
-			proposalId: string;
-			status: "approved" | "rejected";
-			reviewNote?: string;
-			resolvedPolicyId?: string;
-		}) => data,
-	)
+	.validator((data: Record<string, unknown>) => data)
 	.handler(async ({ data }) => {
 		const auth = await getServerAuthSession();
 		const access = await getAccessResolutionForSession(auth);
-		const adminCtx = assertAdminKppnScope(access);
+		assertAdminKppnScope(access);
 
 		const db = getDatabase();
-		if (!db) {
-			return { success: true };
-		}
+		if (!db) return { success: true };
 
-		const result = await reviewFairnessProposal(
+		return reviewFairnessProposal(
 			db,
 			access,
 			data,
-			{ actorId: adminCtx.userId },
+			{ actorId: auth.userId || "admin-actor" },
 		);
-
-		return { success: true, proposal: result };
 	});
-
 
 export const listAllFairnessProposalsFn = createServerFn({ method: "GET" })
 	.handler(async () => {
@@ -514,10 +499,7 @@ export const listAllFairnessProposalsFn = createServerFn({ method: "GET" })
 		assertAdminKppnScope(access);
 
 		const db = getDatabase();
-		if (!db) {
-			return [];
-		}
+		if (!db) return [];
 
 		return listAllFairnessProposals(db);
 	});
-

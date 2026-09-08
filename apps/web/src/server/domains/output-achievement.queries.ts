@@ -6,11 +6,19 @@ import {
 	assessmentExclusionProposals,
 	fiscalYears,
 	outputReports,
+	outputTargetPlans,
+	roBudgetRealizations,
+	targetUpdateWindows,
 	workdays,
 } from "@simulator-ikpa/db/schema";
-
-import { calculateFifthWorkingDayOfNextMonth } from "@simulator-ikpa/ikpa-engine";
-import { and, eq, isNull } from "drizzle-orm";
+import {
+	calculateFifthWorkingDayOfNextMonth,
+	evaluateOutputAnomaly,
+	validateOutputRecord,
+	type OutputValidationResult,
+	type AnomalyEvaluationResult,
+} from "@simulator-ikpa/ikpa-engine";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { resolveOutputAssessmentEligibility } from "../policy/fairness-resolver";
 
 async function assertFy(
@@ -55,7 +63,15 @@ export async function listOutputsWithEligibility(
 ) {
 	const fy = await assertFy(db, access, orgId, fiscalYearId);
 
-	const [reports, workdayRows, policies, proposals] = await Promise.all([
+	const [
+		reports,
+		workdayRows,
+		policies,
+		proposals,
+		targetPlans,
+		targetWindows,
+		budgetReals,
+	] = await Promise.all([
 		db
 			.select()
 			.from(outputReports)
@@ -86,6 +102,32 @@ export async function listOutputsWithEligibility(
 				),
 			)
 			.catch(() => []),
+		db
+			.select()
+			.from(outputTargetPlans)
+			.where(
+				and(
+					eq(outputTargetPlans.fiscalYearId, fiscalYearId),
+					isNull(outputTargetPlans.deletedAt),
+				),
+			)
+			.orderBy(desc(outputTargetPlans.version))
+			.catch(() => []),
+		db
+			.select()
+			.from(targetUpdateWindows)
+			.where(eq(targetUpdateWindows.fiscalYearId, fiscalYearId))
+			.catch(() => []),
+		db
+			.select()
+			.from(roBudgetRealizations)
+			.where(
+				and(
+					eq(roBudgetRealizations.fiscalYearId, fiscalYearId),
+					eq(roBudgetRealizations.organizationId, orgId),
+				),
+			)
+			.catch(() => []),
 	]);
 
 	const holidays = workdayRows
@@ -96,7 +138,48 @@ export async function listOutputsWithEligibility(
 		.map((w) => w.date as string);
 	const cal = { holidays, workdays: workdayOverrides };
 
-	const mapped = reports.map((r) => {
+	// Map Target Plans
+	const mappedTargetPlans = targetPlans.map((t) => {
+		const monthlyTargets = Array.isArray(t.monthlyTargetsJson)
+			? (t.monthlyTargetsJson as Array<{
+					month: number;
+					targetRvro: number;
+					targetPcro: number;
+					targetRvroCumulative: number;
+					targetPcroCumulative: number;
+					rpdCumulative?: number;
+				}>)
+			: [];
+
+		const totalRvro = monthlyTargets.reduce((s, m) => s + (Number(m.targetRvro) || 0), 0);
+		const totalPcro = monthlyTargets.reduce((s, m) => s + (Number(m.targetPcro) || 0), 0);
+
+		return {
+			id: t.id,
+			roCode: t.roCode,
+			roName: t.roName ?? undefined,
+			unit: t.unit,
+			unitAllowsDecimal: t.unitAllowsDecimal,
+			maxDecimalPlaces: t.maxDecimalPlaces,
+			isPriorityNational: t.isPriorityNational,
+			volumeDipa: t.volumeDipa as string,
+			budgetAmountRo: t.budgetAmountRo ? (t.budgetAmountRo as string) : undefined,
+			measurementMethod: t.measurementMethod ?? undefined,
+			version: t.version,
+			status: t.status as "draft" | "submitted" | "active" | "superseded",
+			effectiveMonthStart: t.effectiveMonthStart,
+			effectiveMonthEnd: t.effectiveMonthEnd,
+			monthlyTargets,
+			totalRvro,
+			totalPcro,
+			changeReason: t.changeReason ?? undefined,
+			submittedAt: t.submittedAt ? new Date(t.submittedAt).toISOString() : null,
+			activatedAt: t.activatedAt ? new Date(t.activatedAt).toISOString() : null,
+		};
+	});
+
+	// Map Output Reports with Target & PPA linkage + Validation Engine 00-08
+	const mappedReports = reports.map((r) => {
 		const eligibility = resolveOutputAssessmentEligibility({
 			roCode: r.roCode,
 			periodMonth: r.month,
@@ -112,18 +195,112 @@ export async function listOutputsWithEligibility(
 			cal,
 		);
 
+		// Find active target plan for this RO
+		const activeTarget = mappedTargetPlans.find(
+			(t) => t.roCode.toUpperCase() === r.roCode.toUpperCase() && (t.status === "active" || t.status === "submitted"),
+		) || mappedTargetPlans.find((t) => t.roCode.toUpperCase() === r.roCode.toUpperCase());
+
+		const monthTarget = activeTarget?.monthlyTargets.find((m) => m.month === r.month);
+		const targetPcroCumulative = monthTarget?.targetPcroCumulative ?? Number(r.tpcro);
+		const targetRvroCumulative = monthTarget?.targetRvroCumulative ?? Number(r.rvro);
+
+		// Find PPA Realization for this RO and month
+		const ppaRecord = budgetReals.find(
+			(b) => b.roCode.toUpperCase() === r.roCode.toUpperCase() && b.month === r.month,
+		);
+
+		const ppaCumulative = ppaRecord ? Number(ppaRecord.ppaCumulative) : null;
+		const hasPpaData = ppaRecord !== undefined;
+
+		// Execute Validation Engine 00-08
+		const validationResults: OutputValidationResult[] = validateOutputRecord({
+			fiscalYear: fy.year,
+			organizationId: orgId,
+			roCode: r.roCode,
+			month: r.month,
+			isPriorityNational: activeTarget?.isPriorityNational ?? false,
+			unit: activeTarget?.unit ?? "Layanan",
+			unitAllowsDecimal: activeTarget?.unitAllowsDecimal ?? false,
+			volumeDipa: Number(r.volumeDipa),
+			pcroCumulative: Number(r.pcro),
+			tpcroCumulative: targetPcroCumulative,
+			rvroCumulative: Number(r.rvro),
+			ppaCumulative,
+			hasPpaData,
+			confirmed: r.confirmed,
+			fairnessStatus: eligibility.assessmentStatus,
+			evidenceStatus: !!r.evidenceDocumentUrl,
+		});
+
+		// Anomaly Detection
+		const anomaly: AnomalyEvaluationResult = evaluateOutputAnomaly({
+			roCode: r.roCode,
+			month: r.month,
+			isPriorityNational: activeTarget?.isPriorityNational ?? false,
+			volumeDipa: Number(r.volumeDipa),
+			pcroCumulative: Number(r.pcro),
+			tpcroCumulative: targetPcroCumulative,
+			rvroCumulative: Number(r.rvro),
+			ppaCumulative,
+		});
+
+		// Compute Lifecycle Status
+		let computedStatus = r.status || (r.confirmed ? "confirmed" : r.reportedAt ? "submitted" : "draft");
+		const hasBlocking = validationResults.some((v) => v.status === "failed" && v.severity === "blocking");
+		const hasConfirmation = validationResults.some((v) => v.status === "failed" && v.severity === "confirmation_required");
+
+		if (r.confirmed) {
+			computedStatus = "confirmed";
+		} else if (r.reportedAt) {
+			computedStatus = "submitted";
+		} else if (hasBlocking) {
+			computedStatus = "validation_failed";
+		} else if (hasConfirmation && !r.operatorNote) {
+			computedStatus = "validation_confirmation_required";
+		} else {
+			computedStatus = "ready_to_submit";
+		}
+
 		return {
 			id: r.id,
 			roCode: r.roCode,
-			roName: r.roName ?? undefined,
+			roName: r.roName ?? activeTarget?.roName ?? undefined,
 			month: r.month,
 			rvro: r.rvro as string,
 			volumeDipa: r.volumeDipa as string,
 			pcro: r.pcro as string,
 			tpcro: r.tpcro as string,
+			rvroIncremental: r.rvroIncremental ? (r.rvroIncremental as string) : undefined,
+			pcroIncremental: r.pcroIncremental ? (r.pcroIncremental as string) : undefined,
+			evidenceDocumentUrl: r.evidenceDocumentUrl ?? undefined,
+			achievementReference: r.achievementReference ?? undefined,
+			operatorNote: r.operatorNote ?? undefined,
+			ppkValidationNote: r.ppkValidationNote ?? undefined,
 			reportedAt: r.reportedAt
 				? new Date(r.reportedAt).toISOString()
 				: null,
+			status: computedStatus,
+			validationResults,
+			anomaly,
+			targetInfo: {
+				unit: activeTarget?.unit ?? "Layanan",
+				unitAllowsDecimal: activeTarget?.unitAllowsDecimal ?? false,
+				isPriorityNational: activeTarget?.isPriorityNational ?? false,
+				targetPcroCumulative,
+				targetRvroCumulative,
+				targetVersion: activeTarget?.version ?? 1,
+			},
+			budgetInfo: ppaRecord
+				? {
+						budgetAmountRo: ppaRecord.budgetAmountRo as string,
+						realizedAmountMonthly: ppaRecord.realizedAmountMonthly as string,
+						realizedAmountCumulative: ppaRecord.realizedAmountCumulative as string,
+						ppaMonthly: ppaRecord.ppaMonthly as string,
+						ppaCumulative: ppaRecord.ppaCumulative as string,
+						sourceType: ppaRecord.sourceType,
+						verificationStatus: ppaRecord.verificationStatus,
+					}
+				: undefined,
 			confirmed: r.confirmed,
 			confirmedAt: r.confirmedAt
 				? new Date(r.confirmedAt).toISOString()
@@ -142,10 +319,23 @@ export async function listOutputsWithEligibility(
 				: String(p.roMatchValue ?? "")) as string | string[],
 	}));
 
+	const mappedWindows = targetWindows.map((w) => ({
+		id: w.id,
+		quarter: w.quarter,
+		opensAt: new Date(w.opensAt).toISOString(),
+		closesAt: new Date(w.closesAt).toISOString(),
+		dayType: w.dayType,
+		sourceReference: w.sourceReference ?? undefined,
+		status: w.status as "scheduled" | "open" | "closed",
+	}));
+
 	return {
 		fiscalYearId,
 		year: fy.year,
-		reports: mapped,
+		reports: mappedReports,
+		targetPlans: mappedTargetPlans,
+		targetWindows: mappedWindows,
+		budgetRealizations: budgetReals,
 		publishedPolicies: mappedPolicies,
 		proposals,
 		holidays,
@@ -205,6 +395,3 @@ export async function listAllFairnessProposals(
 		.where(eq(assessmentExclusionProposals.indicatorKey, "output_achievement"))
 		.catch(() => []);
 }
-
-
-

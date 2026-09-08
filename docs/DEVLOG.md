@@ -2,6 +2,172 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 167 - 2026-09-08
+**Time:** Start: 02:50 UTC | End: 02:56 UTC | Duration: ~6 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, emil-design-eng
+**Tasks Completed:**
+- [UI-HEADER-REMOVE-REDUNDANT-YEAR-PERIOD-SELECTOR] Penghapusan Opsi Dropdown Tahun dan Periode yang Redundan pada Header Shell (`ActiveContextHeader` & `ContextHeader`):
+  1. **Penyederhanaan Header**:
+     - Memperbarui `ContextHeader` di `packages/ui/src/components/context-header.tsx` dengan menambahkan properti `showContextSelector?: boolean` (default `false`) dan membungkus rendering `<ContextSelector />` secara kondisional `{showContextSelector && <ContextSelector ... />}`.
+     - Memperbarui `ActiveContextHeader` di `apps/web/src/components/layout/active-context.tsx` agar merender `<ContextHeader context={mergedContext} />` secara bersih tanpa memunculkan dropdown Tahun dan Periode yang redundan di bagian atas antarmuka.
+  2. **Integritas Konteks & Scope**:
+     - Seluruh fungsionalitas context provider (`ActiveContextProvider`, `useActiveContext`), scope satker/KPPN, access badge, dan rule set badge tetap utuh dan berfungsi penuh tanpa perubahan pada state management.
+  3. **Verifikasi**:
+     - `npm run typecheck` -> Exit code 0 lintas 7 package monorepo.
+     - `npm run test` -> 160/160 tests passed 100% across all packages.
+**Code Changes:**
+- Files modified:
+  - `packages/ui/src/components/context-header.tsx`
+  - `apps/web/src/components/layout/active-context.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> Passed with 0 errors.
+  - `npm run test` -> Passed 100% (160 tests).
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari pengguna.
+
+### Session 166 - 2026-09-08
+**Time:** Start: 02:30 UTC | End: 02:45 UTC | Duration: ~15 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UI-CO-TAB-SIMPLIFICATION-AND-INLINE-VALIDATION] Penyederhanaan Tab Navigasi Capaian Output Menjadi 4 Tab & Integrasi Penuh Validasi Engine Rules 00–08 + Konfirmasi PPK ke Dalam Tab Realisasi Kinerja Bulanan:
+  1. **Penghapusan Tab Redundan**:
+     - Menghapus tab "Riwayat & Ekspor" secara penuh sesuai page feedback pengguna.
+     - Menghapus tab standalone "Validasi & Konfirmasi PPK".
+     - Menetapkan struktur navigasi 4 tab bersih dan fokus:
+       1. **Ringkasan & Anomali**
+       2. **Target Kinerja 12 Bulan** (dengan badge jumlah target plan aktif)
+       3. **Realisasi Kinerja Bulanan** (dengan badge total RO & highlight badge warning jika butuh aksi)
+       4. **Fairness Treatment** (dengan badge jumlah RO yang dikecualikan)
+  2. **Integrasi Validasi Engine (Rules 00–08) & Konfirmasi PPK ke Tab Realisasi**:
+     - **Status Strip Real-Time**: 4 kartu metrik status di atas tabel realisasi bulanan: Total RO Bulan Ini, Valid Rules 00–08 (Hijau), Butuh Aksi / Konfirmasi (Kuning/Merah), dan Terkonfirmasi PPK (Biru).
+     - **Filter Pills**: Semua, Valid, Butuh Aksi / Konfirmasi, Terkonfirmasi, Dikecualikan.
+     - **Live Validation & PPK Panel di Drawer Input/Edit**:
+       - Live Calculation Preview (estimasi nilai NK-CRO, formula step, PPA realisasi anggaran).
+       - Live Validation Engine Status Box yang mengevaluasi Rules 00–08 secara dinamis saat user mengisi input form di drawer (`liveBlockingErrors` & `liveConfirmationRequired`).
+       - Guard submit: Form terkunci (`isSubmitDisabled`) jika terdapat blocking issue (misal Rule 01 atau Rule 04) sehingga data cacat tidak dapat disimpan.
+       - Panel Review & Konfirmasi PPK: Input textarea catatan review/justifikasi PPK (`formPpkValidationNote`) dan checkbox konfirmasi pengesahan data realisasi output oleh PPK (`formConfirmed`).
+       - Tombol simpan ganda: "Simpan Draft" vs "Simpan & Konfirmasi" / "Simpan & Kirim".
+  3. **Verifikasi**:
+     - Typecheck passing 0 error across all 7 workspace packages.
+     - Vitest passing 160/160 tests across monorepo.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `apps/web/src/services/output-achievement-service.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> Exit code 0 across monorepo.
+  - `npm run test` -> 160/160 tests passed across all packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback lanjutan pengguna.
+
+### Session 165 - 2026-09-08
+**Time:** Start: 02:15 UTC | End: 02:20 UTC | Duration: ~5 minutes
+- Status: Completed
+- Agent/Role: System Debugging & Fullstack Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [FIX-DB-MIGRATION-OUTPUT-REPORTS-ORGANIZATION-ID] Penyelarasan Skema PostgreSQL Database & Eksekusi Migrasi Drizzle:
+  1. **Root Cause Analysis**:
+     - Error `column "organization_id" does not exist` muncul saat membuka `/operator/dashboard` karena query `calculateAndPersistSnapshot` melakukan `select().from(outputReports)` dengan kolom baru `organization_id`, `status`, `validation_results_json`, dsb. yang baru didefinisikan pada Drizzle schema namun belum dieksekusi migrasinya ke database PostgreSQL / Neon remote.
+  2. **Eksekusi Migrasi & Sinkronisasi DB**:
+     - Menjalankan `drizzle-kit generate` yang menghasilkan migration file `drizzle/0002_parallel_epoch.sql` mencakup pembuatan tabel `output_target_plans`, `ro_budget_realizations`, `target_update_windows`, serta penambahan kolom `organization_id` dan atribut validasi pada `output_reports`.
+     - Menjalankan `drizzle-kit migrate` yang berhasil mengaplikasikan seluruh migrasi ke database PostgreSQL.
+     - Menjalankan `npm run seed` untuk memastikan data inisial, policy reminder, dan dummy data Capaian Output terisi dengan konsisten.
+  3. **Verifikasi**:
+     - 160/160 unit tests monorepo lulus 100%.
+     - Typecheck 0 error lintas seluruh 7 workspace packages.
+**Code Changes:**
+- Files modified/created:
+  - `packages/db/drizzle/0002_parallel_epoch.sql`
+  - `packages/db/drizzle/meta/0002_snapshot.json`
+  - `packages/db/drizzle/meta/_journal.json`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Drizzle Migration: `[✓] migrations applied successfully!`
+  - Database Seed: `✅ Database seed completed successfully!`
+  - Unit Tests: 160/160 tests passed across monorepo.
+  - Typecheck: 0 error across all workspace packages.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk pengujian UI lanjutan dan feedback user.
+
+### Session 164 - 2026-09-08
+**Time:** Start: 02:00 UTC | End: 02:15 UTC | Duration: ~15 minutes
+- Status: Completed
+- Agent/Role: Fullstack Operator & Engine Agent
+- Model: Gemini 3.7 Flash
+**Tasks Completed:**
+- [UPGRADE-CAPAIAN-OUTPUT-MODULE] Upgrade Komprehensif Modul Indikator Capaian Output (Bobot 25% IKPA) Sesuai Spesifikasi Resmi & Best-Practice Ponytail UI:
+  1. **Pemisahan Model Target Kinerja Fisik & Realisasi Bulanan**:
+     - Tabel `outputTargetPlans`: Rencana fisik 12 bulan per RO, versioning, status siklus (`draft` -> `submitted` -> `active` -> `superseded`), validasi unit (integer vs desimal), flag prioritas nasional (PN), dan kumulatif otomatis.
+     - Tabel `targetUpdateWindows`: Jadwal pembukaan pemutakhiran target triwulanan (Q1-Q4) berbasis hari kalender/kerja yang dikelola terpusat oleh Admin KPPN.
+     - Tabel `roBudgetRealizations`: Realisasi anggaran level RO untuk penghitungan PPA Bulanan dan PPA Kumulatif.
+     - Tabel `outputReports`: Pencatatan realisasi bulanan dengan timestamp kanonis `reportedAt` saat dikirim, pelacakan konfirmasi PPK, status validasi otomatis, dan integrasi catatan operator/PPK.
+  2. **Mesin Validasi Komprehensif (Rule 00 s.d. 08 & Deteksi Anomali PCRO-PPA)**:
+     - Rule 00: Validasi integritas dasar laporan.
+     - Rule 01: Validasi target fisik triwulanan/bulanan.
+     - Rule 02: Validasi konsistensi unit dan bilangan bulat/desimal.
+     - Rule 03: Validasi kewajaran PCRO terhadap PPA (+/-5% untuk PN, +/-20% untuk Non-PN).
+     - Rule 04: Validasi pembatasan PCRO 100% pada progres parsial/tahap awal.
+     - Rule 05: Validasi kenaikan bertahap bulanan (tidak boleh melonjak drastis tanpa justifikasi).
+     - Rule 06: Validasi kelengkapan dokumen pendukung/eviden.
+     - Rule 07: Validasi status konfirmasi PPK sebelum dihitung final.
+     - Rule 08: Validasi kepatuhan batas waktu pelaporan hari kerja ke-5 bulan M+1.
+     - Klasifikasi status kepatuhan: `valid`, `blocking`, `confirmation_required`, `correctable`, dan `not_evaluable`.
+  3. **Fairness Treatment Lifecycle**:
+     - Pengecualian RO Khusus / Keadaan Kahar / Kebijakan Pusat dengan simulasi preview dampak nilai IKPA Satker.
+     - Manajemen usulan fairness satker terintegrasi dengan persetujuan kebijakan Admin KPPN.
+  4. **Antarmuka 6-Tab Ponytail UI (`/operator/data/output-achievement`)**:
+     - Tab 1: Ringkasan & Anomali (4 Score Cards, Deteksi Anomali Gap PCRO vs PPA, Strip Reminder 5HK).
+     - Tab 2: Target Kinerja 12 Bulan (Matriks Target Tahunan, Form Target Per RO, Status Window Pemutakhiran).
+     - Tab 3: Realisasi Kinerja Bulanan (Pencatatan Realisasi RVRO/PCRO/TPCRO, Form Drawer dengan Real-time Preview Formula 1 vs Formula 2).
+     - Tab 4: Validasi & Konfirmasi PPK (Matriks Hasil Evaluasi Rule 00-08 & Action Review PPK).
+     - Tab 5: Fairness Treatment (Simulasi Dampak Pengecualian RO Khusus & Form Pengajuan Usulan Satker).
+     - Tab 6: Riwayat & Ekspor (Rekap Bulanan, Audit Log, dan Ekspor Data).
+  5. **Verifikasi & Automated Tests**:
+     - 93/93 tests di `@simulator-ikpa/ikpa-engine` (termasuk 12 output-validation tests dan 15 output-achievement tests).
+     - 160/160 unit tests monorepo lulus 100%.
+     - Typecheck 0 error lintas seluruh workspace packages monorepo.
+**Code Changes:**
+- Files modified/created:
+  - `docs/implementation-review/08-capaian-output.md`
+  - `packages/db/src/schema/output-reports.ts`
+  - `packages/db/src/schema/assessment-exclusion.ts`
+  - `packages/db/src/schema/index.ts`
+  - `packages/db/src/seed.ts`
+  - `packages/ikpa-engine/src/indicators/output-validation.ts`
+  - `packages/ikpa-engine/src/indicators/output-validation.test.ts`
+  - `packages/ikpa-engine/src/index.ts`
+  - `apps/web/src/server/domains/output-achievement.queries.ts`
+  - `apps/web/src/server/domains/output-achievement.mutations.ts`
+  - `apps/web/src/server/output-achievement.ts`
+  - `apps/web/src/services/output-achievement-service.ts`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - Unit Tests: 160/160 tests passed across monorepo.
+  - Typecheck: 0 error across all workspace packages.
+**Issues Encountered:**
+- Drizzle schema `jsonb` column serialization error pada TanStack Start `createServerFn` diselesaikan dengan mendefinisikan tipe konkret `MonthlyTargetRecord[]` dan `OutputValidationResultRecord[]` via `$type<...>()`.
+**Next Session Plan:**
+- Siap untuk evaluasi dan iterasi lanjutan dari user.
+
 ### Session 163 - 2026-09-07
 **Time:** Start: 16:47 UTC | End: 16:58 UTC | Duration: ~11 minutes
 - Status: Completed

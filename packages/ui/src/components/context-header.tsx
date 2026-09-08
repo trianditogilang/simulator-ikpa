@@ -12,6 +12,7 @@ export type ContextHeaderProps = Omit<ComponentProps<"header">, "children"> & {
 	periodOptions?: readonly FiscalPeriod[];
 	onYearChange?: (year: number) => void;
 	onPeriodChange?: (period: FiscalPeriod) => void;
+	showContextSelector?: boolean;
 };
 
 function isOperatorAccess(access: GlobalContext["access"]): boolean {
@@ -48,6 +49,7 @@ export function ContextHeader({
 	periodOptions,
 	onYearChange,
 	onPeriodChange,
+	showContextSelector = false,
 	className,
 	...props
 }: ContextHeaderProps) {
@@ -167,15 +169,17 @@ export function ContextHeader({
 						)}
 					</div>
 				</div>
-				<ContextSelector
-					year={context.fiscalYear.year}
-					period={context.period}
-					yearOptions={yearOptions}
-					periodOptions={periodOptions}
-					onYearChange={onYearChange}
-					onPeriodChange={onPeriodChange}
-					className="md:shrink-0"
-				/>
+				{showContextSelector && (
+					<ContextSelector
+						year={context.fiscalYear.year}
+						period={context.period}
+						yearOptions={yearOptions}
+						periodOptions={periodOptions}
+						onYearChange={onYearChange}
+						onPeriodChange={onPeriodChange}
+						className="md:shrink-0"
+					/>
+				)}
 			</div>
 		</header>
 	);

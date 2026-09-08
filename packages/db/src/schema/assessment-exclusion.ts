@@ -25,7 +25,7 @@ export const assessmentExclusionPolicies = pgTable(
 		action: text("action").default("exclude_from_assessment").notNull(),
 		category: text("category").default("ro_khusus").notNull(),
 		matchType: text("match_type").default("exact").notNull(), // exact | list | prefix | regex
-		roMatchValue: jsonb("ro_match_value").notNull(), // ['FAN.ZZ1'] etc
+		roMatchValue: jsonb("ro_match_value").$type<string | string[]>().notNull(), // ['FAN.ZZ1'] etc
 		scopeType: text("scope_type").default("national").notNull(), // national | kppn | organization
 		scopeId: uuid("scope_id"),
 		fiscalYearId: uuid("fiscal_year_id").references(() => fiscalYears.id, {

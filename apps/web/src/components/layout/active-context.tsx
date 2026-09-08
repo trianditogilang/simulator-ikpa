@@ -137,14 +137,7 @@ export function ActiveContextHeader() {
 		[value.context, fetchedRuleSet, fetchedFiscalYear],
 	);
 
-	return (
-		<ContextHeader
-			context={mergedContext}
-			yearOptions={value.yearOptions}
-			periodOptions={value.periodOptions}
-			onPeriodChange={value.setPeriod}
-		/>
-	);
+	return <ContextHeader context={mergedContext} />;
 }
 
 export function useActiveContext() {

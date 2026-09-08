@@ -8,8 +8,13 @@ import {
 	listFairnessProposalsFn,
 	listOutputReportsFn,
 	reviewFairnessProposalFn,
+	submitOutputReportFn,
+	submitTargetPlanFn,
 	upsertFairnessPolicyFn,
 	upsertOutputReportFn,
+	upsertRoBudgetRealizationFn,
+	upsertTargetPlanFn,
+	upsertTargetUpdateWindowFn,
 } from "@/server/output-achievement";
 
 export interface OutputEligibility {
@@ -22,6 +27,79 @@ export interface OutputEligibility {
 	resolverVersion: string;
 }
 
+export interface ValidationResultItem {
+	ruleCode: string;
+	ruleName: string;
+	category: string;
+	status: "valid" | "blocking" | "confirmation_required" | "correctable" | "not_evaluable";
+	message: string;
+	details?: Record<string, unknown>;
+}
+
+export interface AnomalyResultItem {
+	hasAnomaly: boolean;
+	gap: number;
+	threshold: number;
+	pcro: number;
+	ppa: number;
+	isPriorityNational: boolean;
+	message: string;
+	recommendation: string;
+}
+
+export interface MonthlyTargetItem {
+	month: number;
+	targetRvro: number;
+	targetPcro: number;
+	cumulativeTargetRvro: number;
+	cumulativeTargetPcro: number;
+}
+
+export interface OutputTargetPlanRecord {
+	id: string;
+	orgId: string;
+	fiscalYearId: string;
+	roCode: string;
+	roName?: string | null;
+	volumeDipa: string;
+	unit?: string | null;
+	isIntegerUnit?: boolean;
+	isPriorityNational?: boolean;
+	version: number;
+	quarter?: number | null;
+	status: "draft" | "submitted" | "active" | "superseded";
+	monthlyTargets: MonthlyTargetItem[];
+	submittedAt?: Date | string | null;
+	createdAt?: Date | string;
+	updatedAt?: Date | string;
+}
+
+export interface TargetUpdateWindowRecord {
+	id: string;
+	year: number;
+	quarter: number;
+	opensAt: Date | string;
+	closesAt: Date | string;
+	status: "scheduled" | "open" | "closed";
+	notes?: string | null;
+}
+
+export interface RoBudgetRealizationRecord {
+	id: string;
+	orgId: string;
+	fiscalYearId: string;
+	roCode: string;
+	roName?: string | null;
+	month: number;
+	budgetAllocation: string;
+	realizationAmount: string;
+	ppaPercentage: string;
+	cumulativeRealization: string;
+	cumulativePpaPercentage: string;
+	sourceType?: "manual" | "om_span" | "sakti_csv" | string;
+	verified?: boolean;
+}
+
 export interface OutputReportRecord {
 	id: string;
 	roCode: string;
@@ -31,11 +109,23 @@ export interface OutputReportRecord {
 	volumeDipa: string;
 	pcro: string;
 	tpcro: string;
+	rvroIncremental?: string | null;
+	pcroIncremental?: string | null;
 	reportedAt?: Date | string | null;
 	confirmed: boolean;
 	confirmedAt?: Date | string | null;
+	status?: "draft" | "submitted" | "confirmed" | "rejected";
 	eligibility?: OutputEligibility;
 	deadlineDate?: string;
+	validationResultsJson?: unknown;
+	validationResults?: ValidationResultItem[];
+	anomalyResult?: AnomalyResultItem;
+	ppaMonthly?: number;
+	ppaCumulative?: number;
+	evidenceDocumentUrl?: string | null;
+	achievementReference?: string | null;
+	operatorNote?: string | null;
+	ppkValidationNote?: string | null;
 }
 
 export interface FairnessPolicy {
@@ -84,6 +174,9 @@ export interface OutputAchievementData {
 	fiscalYearId: string;
 	year: number;
 	outputs: OutputReportRecord[];
+	targetPlans?: OutputTargetPlanRecord[];
+	targetWindows?: TargetUpdateWindowRecord[];
+	budgetRealizations?: RoBudgetRealizationRecord[];
 	publishedPolicies?: FairnessPolicy[];
 	holidays?: string[];
 }
@@ -95,6 +188,7 @@ export async function fetchOutputReports(
 }
 
 export async function saveOutputReport(input: {
+	id?: string;
 	orgId?: string;
 	roCode: string;
 	roName?: string | null;
@@ -103,10 +197,21 @@ export async function saveOutputReport(input: {
 	volumeDipa: string;
 	pcro: string;
 	tpcro: string;
+	rvroIncremental?: string | null;
+	pcroIncremental?: string | null;
 	reportedAt?: string | null;
 	confirmed?: boolean;
+	status?: "draft" | "submitted" | "confirmed" | "rejected";
+	evidenceDocumentUrl?: string | null;
+	achievementReference?: string | null;
+	operatorNote?: string | null;
+	ppkValidationNote?: string | null;
 }) {
 	return upsertOutputReportFn({ data: input });
+}
+
+export async function submitOutputReportRecord(outputId: string, orgId?: string) {
+	return submitOutputReportFn({ data: { outputId, orgId } });
 }
 
 export async function verifyOutputReport(outputId: string, orgId?: string) {
@@ -115,6 +220,52 @@ export async function verifyOutputReport(outputId: string, orgId?: string) {
 
 export async function removeOutputReport(outputId: string, orgId?: string) {
 	return deleteOutputReportFn({ data: { outputId, orgId } });
+}
+
+export async function saveTargetPlan(input: {
+	id?: string;
+	orgId?: string;
+	roCode: string;
+	roName?: string | null;
+	volumeDipa: string;
+	unit?: string;
+	isIntegerUnit?: boolean;
+	isPriorityNational?: boolean;
+	version?: number;
+	quarter?: number;
+	monthlyTargets: MonthlyTargetItem[];
+}) {
+	return upsertTargetPlanFn({ data: input });
+}
+
+export async function submitTargetPlanRecord(targetPlanId: string, orgId?: string) {
+	return submitTargetPlanFn({ data: { targetPlanId, orgId } });
+}
+
+export async function saveTargetUpdateWindow(input: {
+	id?: string;
+	year: number;
+	quarter: number;
+	opensAt: string;
+	closesAt: string;
+	status?: "scheduled" | "open" | "closed";
+	notes?: string | null;
+}) {
+	return upsertTargetUpdateWindowFn({ data: input });
+}
+
+export async function saveRoBudgetRealization(input: {
+	id?: string;
+	orgId?: string;
+	roCode: string;
+	roName?: string | null;
+	month: number;
+	budgetAllocation: string;
+	realizationAmount: string;
+	sourceType?: "manual" | "om_span" | "sakti_csv" | string;
+	verified?: boolean;
+}) {
+	return upsertRoBudgetRealizationFn({ data: input });
 }
 
 export async function submitFairnessProposal(input: {

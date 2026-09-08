@@ -15,6 +15,13 @@
       "when": 1788761469457,
       "tag": "0001_workable_black_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788808575258,
+      "tag": "0002_parallel_epoch",
+      "breakpoints": true
     }
   ]
 }

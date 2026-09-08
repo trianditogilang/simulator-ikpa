@@ -4,6 +4,7 @@ export * from "./indicators/contractual";
 export * from "./indicators/dipa-revision";
 export * from "./indicators/invoice-timeliness";
 export * from "./indicators/output-achievement";
+export * from "./indicators/output-validation";
 export * from "./indicators/rpd-deviation";
 export * from "./indicators/spm-dispensation";
 export * from "./indicators/up-tup";
@@ -12,3 +13,4 @@ export * from "./rule-set";
 export * from "./schemas";
 export * from "./types";
 export * from "./utils/workday-calendar";
+

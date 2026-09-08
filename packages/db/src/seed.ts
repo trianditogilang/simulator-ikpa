@@ -9,8 +9,12 @@ import {
 	kppnScopes,
 	organizations,
 	orgReminderConfigs,
+	outputReports,
+	outputTargetPlans,
 	reminderPolicies,
+	roBudgetRealizations,
 	ruleSets,
+	targetUpdateWindows,
 	userAccesses,
 	users,
 	workdays,
@@ -240,20 +244,38 @@ export async function seed() {
 		},
 		{
 			ruleSetId: ruleSet2026.id,
+			eventType: "output_target_update_due",
+			indicatorKey: "output_achievement",
+			category: "mandatory" as const,
+			deadlineFormula: {
+				type: "target_window_close",
+				description: "Batas pemutakhiran target kinerja rincian output triwulanan",
+			},
+			dayType: "workday" as const,
+			minLeadDays: 0,
+			maxLeadDays: 10,
+			defaultScheduleJson: { leadDays: [10, 3, 0], sendHour: 9 },
+			requiredRecipientsJson: ["ppk", "kpa", "operator_sakun"],
+			allowDisable: false,
+			allowRecipientOverride: true,
+			isActive: true,
+		},
+		{
+			ruleSetId: ruleSet2026.id,
 			eventType: "output_report_monthly",
 			indicatorKey: "output_achievement",
-			category: "recommended" as const,
+			category: "mandatory" as const,
 			deadlineFormula: {
 				type: "workdays_after_month_end",
 				workdays: 5,
-				description: "Batas pelaporan capaian output H+5 hari kerja",
+				description: "Batas pelaporan realisasi capaian output H+5 hari kerja bulan berikutnya",
 			},
 			dayType: "workday" as const,
-			minLeadDays: 2,
+			minLeadDays: 0,
 			maxLeadDays: 5,
-			defaultScheduleJson: { leadDays: [5, 2], sendHour: 9 },
-			requiredRecipientsJson: ["operator_sakun"],
-			allowDisable: true,
+			defaultScheduleJson: { leadDays: [5, 2, 0], sendHour: 9 },
+			requiredRecipientsJson: ["operator_sakun", "ppk"],
+			allowDisable: false,
 			allowRecipientOverride: true,
 			isActive: true,
 		},
@@ -405,6 +427,485 @@ export async function seed() {
 			createdBy: admin1.id,
 		})
 		.onConflictDoNothing();
+
+	// 11. Target Update Windows 2026
+	console.log("  -> Seeding Target Update Windows 2026...");
+	const windows = [
+		{
+			fiscalYearId: fy2026.id,
+			quarter: 1,
+			opensAt: new Date("2026-01-01T00:00:00Z"),
+			closesAt: new Date("2026-01-31T23:59:59Z"),
+			status: "closed" as const,
+			sourceReference: "Jendela pemutakhiran awal tahun TA 2026",
+		},
+		{
+			fiscalYearId: fy2026.id,
+			quarter: 2,
+			opensAt: new Date("2026-04-01T00:00:00Z"),
+			closesAt: new Date("2026-04-15T23:59:59Z"),
+			status: "open" as const,
+			sourceReference: "Jendela pemutakhiran Triwulan II TA 2026",
+		},
+		{
+			fiscalYearId: fy2026.id,
+			quarter: 3,
+			opensAt: new Date("2026-07-01T00:00:00Z"),
+			closesAt: new Date("2026-07-15T23:59:59Z"),
+			status: "scheduled" as const,
+			sourceReference: "Jendela pemutakhiran Triwulan III TA 2026",
+		},
+		{
+			fiscalYearId: fy2026.id,
+			quarter: 4,
+			opensAt: new Date("2026-10-01T00:00:00Z"),
+			closesAt: new Date("2026-10-15T23:59:59Z"),
+			status: "scheduled" as const,
+			sourceReference: "Jendela pemutakhiran Triwulan IV TA 2026",
+		},
+	];
+
+	for (const w of windows) {
+		await db
+			.insert(targetUpdateWindows)
+			.values({ ...w, createdBy: admin1.id })
+			.onConflictDoUpdate({
+				target: [targetUpdateWindows.fiscalYearId, targetUpdateWindows.quarter],
+				set: {
+					opensAt: w.opensAt,
+					closesAt: w.closesAt,
+					status: w.status,
+					sourceReference: w.sourceReference,
+					updatedAt: new Date(),
+				},
+			});
+	}
+
+	// 12. Output Target Plans (RO 001, RO 002, RO 003)
+	console.log("  -> Seeding Output Target Plans...");
+	const ro1Targets = Array.from({ length: 12 }, (_, i) => ({
+		month: i + 1,
+		targetRvro: 1,
+		targetPcro: 8.33,
+		cumulativeTargetRvro: i + 1,
+		cumulativeTargetPcro: Math.min(100, Math.round((i + 1) * 8.333 * 100) / 100),
+	}));
+	ro1Targets[11].cumulativeTargetPcro = 100;
+
+	const ro2PcroDist = [5, 5, 10, 10, 10, 15, 10, 10, 10, 10, 5, 0];
+	let ro2CumPcro = 0;
+	const ro2Targets = Array.from({ length: 12 }, (_, i) => {
+		ro2CumPcro += ro2PcroDist[i];
+		return {
+			month: i + 1,
+			targetRvro: i === 11 ? 1 : 0,
+			targetPcro: ro2PcroDist[i],
+			cumulativeTargetRvro: i === 11 ? 1 : 0,
+			cumulativeTargetPcro: Math.min(100, ro2CumPcro),
+		};
+	});
+
+	const ro3Targets = Array.from({ length: 12 }, (_, i) => {
+		const isQEnd = (i + 1) % 3 === 0;
+		return {
+			month: i + 1,
+			targetRvro: isQEnd ? 1 : 0,
+			targetPcro: isQEnd ? 25 : 0,
+			cumulativeTargetRvro: Math.floor((i + 1) / 3),
+			cumulativeTargetPcro: Math.floor((i + 1) / 3) * 25,
+		};
+	});
+
+	const targetPlansData = [
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.AAA.001",
+			roName: "Layanan Perkantoran dan Operasional Satker",
+			volumeDipa: "12",
+			unit: "Layanan",
+			unitAllowsDecimal: false,
+			isPriorityNational: false,
+			version: 1,
+			status: "active" as const,
+			monthlyTargetsJson: ro1Targets,
+			submittedAt: new Date("2026-01-15T08:00:00Z"),
+			createdBy: operator1.id,
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.BBA.002",
+			roName: "Pembangunan Fasilitas Sarana Gedung Kantor",
+			volumeDipa: "1",
+			unit: "Gedung",
+			unitAllowsDecimal: false,
+			isPriorityNational: true,
+			version: 1,
+			status: "active" as const,
+			monthlyTargetsJson: ro2Targets,
+			submittedAt: new Date("2026-01-15T08:00:00Z"),
+			createdBy: operator1.id,
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.CCA.003",
+			roName: "Pengelolaan Data dan Evaluasi Kinerja Anggaran",
+			volumeDipa: "4",
+			unit: "Laporan",
+			unitAllowsDecimal: false,
+			isPriorityNational: false,
+			version: 1,
+			status: "active" as const,
+			monthlyTargetsJson: ro3Targets,
+			submittedAt: new Date("2026-01-15T08:00:00Z"),
+			createdBy: operator1.id,
+		},
+	];
+
+	for (const tp of targetPlansData) {
+		await db
+			.insert(outputTargetPlans)
+			.values(tp)
+			.onConflictDoNothing();
+	}
+
+	// 13. RO Budget Realizations (PPA Level RO)
+	console.log("  -> Seeding RO Budget Realizations (PPA)...");
+	const budgetRealizationsData = [
+		// RO 1
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.AAA.001",
+			month: 1,
+			budgetAmountRo: "120000000",
+			realizedAmountMonthly: "10000000",
+			ppaMonthly: "8.3300",
+			realizedAmountCumulative: "10000000",
+			ppaCumulative: "8.3300",
+			sourceType: "import_omspan",
+			verificationStatus: "verified",
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.AAA.001",
+			month: 2,
+			budgetAmountRo: "120000000",
+			realizedAmountMonthly: "10000000",
+			ppaMonthly: "8.3300",
+			realizedAmountCumulative: "20000000",
+			ppaCumulative: "16.6700",
+			sourceType: "import_omspan",
+			verificationStatus: "verified",
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.AAA.001",
+			month: 3,
+			budgetAmountRo: "120000000",
+			realizedAmountMonthly: "10000000",
+			ppaMonthly: "8.3300",
+			realizedAmountCumulative: "30000000",
+			ppaCumulative: "25.0000",
+			sourceType: "import_omspan",
+			verificationStatus: "verified",
+		},
+		// RO 2 (Priority National)
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.BBA.002",
+			month: 1,
+			budgetAmountRo: "500000000",
+			realizedAmountMonthly: "25000000",
+			ppaMonthly: "5.0000",
+			realizedAmountCumulative: "25000000",
+			ppaCumulative: "5.0000",
+			sourceType: "import_omspan",
+			verificationStatus: "verified",
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.BBA.002",
+			month: 2,
+			budgetAmountRo: "500000000",
+			realizedAmountMonthly: "25000000",
+			ppaMonthly: "5.0000",
+			realizedAmountCumulative: "50000000",
+			ppaCumulative: "10.0000",
+			sourceType: "import_omspan",
+			verificationStatus: "verified",
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.BBA.002",
+			month: 3,
+			budgetAmountRo: "500000000",
+			realizedAmountMonthly: "50000000",
+			ppaMonthly: "10.0000",
+			realizedAmountCumulative: "100000000",
+			ppaCumulative: "20.0000",
+			sourceType: "import_omspan",
+			verificationStatus: "verified",
+		},
+		// RO 3
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.CCA.003",
+			month: 1,
+			budgetAmountRo: "60000000",
+			realizedAmountMonthly: "0",
+			ppaMonthly: "0.0000",
+			realizedAmountCumulative: "0",
+			ppaCumulative: "0.0000",
+			sourceType: "import_omspan",
+			verificationStatus: "verified",
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.CCA.003",
+			month: 2,
+			budgetAmountRo: "60000000",
+			realizedAmountMonthly: "0",
+			ppaMonthly: "0.0000",
+			realizedAmountCumulative: "0",
+			ppaCumulative: "0.0000",
+			sourceType: "import_omspan",
+			verificationStatus: "verified",
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.CCA.003",
+			month: 3,
+			budgetAmountRo: "60000000",
+			realizedAmountMonthly: "15000000",
+			ppaMonthly: "25.0000",
+			realizedAmountCumulative: "15000000",
+			ppaCumulative: "25.0000",
+			sourceType: "import_omspan",
+			verificationStatus: "verified",
+		},
+	];
+
+	for (const br of budgetRealizationsData) {
+		await db
+			.insert(roBudgetRealizations)
+			.values(br)
+			.onConflictDoUpdate({
+				target: [
+					roBudgetRealizations.fiscalYearId,
+					roBudgetRealizations.roCode,
+					roBudgetRealizations.month,
+				],
+				set: {
+					budgetAmountRo: br.budgetAmountRo,
+					realizedAmountMonthly: br.realizedAmountMonthly,
+					ppaMonthly: br.ppaMonthly,
+					realizedAmountCumulative: br.realizedAmountCumulative,
+					ppaCumulative: br.ppaCumulative,
+					sourceType: br.sourceType,
+					verificationStatus: br.verificationStatus,
+					updatedAt: new Date(),
+				},
+			});
+	}
+
+	// 14. Monthly Output Reports (Realisasi Kinerja)
+	console.log("  -> Seeding Output Reports (Realisasi)...");
+	const outputReportsData = [
+		// RO 1
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.AAA.001",
+			roName: "Layanan Perkantoran dan Operasional Satker",
+			month: 1,
+			volumeDipa: "12",
+			rvro: "1",
+			pcro: "8.33",
+			tpcro: "8.33",
+			rvroIncremental: "1",
+			pcroIncremental: "8.33",
+			reportedAt: new Date("2026-02-04T08:30:00Z"),
+			confirmed: true,
+			confirmedAt: new Date("2026-02-04T09:00:00Z"),
+			status: "confirmed" as const,
+			evidenceDocumentUrl: "https://drive.google.com/sample-bast-ro1-m1",
+			achievementReference: "BAST No. 001/LP/01/2026",
+			createdBy: operator1.id,
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.AAA.001",
+			roName: "Layanan Perkantoran dan Operasional Satker",
+			month: 2,
+			volumeDipa: "12",
+			rvro: "2",
+			pcro: "16.67",
+			tpcro: "16.67",
+			rvroIncremental: "1",
+			pcroIncremental: "8.34",
+			reportedAt: new Date("2026-03-05T08:30:00Z"),
+			confirmed: true,
+			confirmedAt: new Date("2026-03-05T09:00:00Z"),
+			status: "confirmed" as const,
+			evidenceDocumentUrl: "https://drive.google.com/sample-bast-ro1-m2",
+			achievementReference: "BAST No. 002/LP/02/2026",
+			createdBy: operator1.id,
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.AAA.001",
+			roName: "Layanan Perkantoran dan Operasional Satker",
+			month: 3,
+			volumeDipa: "12",
+			rvro: "3",
+			pcro: "25.00",
+			tpcro: "25.00",
+			rvroIncremental: "1",
+			pcroIncremental: "8.33",
+			reportedAt: new Date("2026-04-03T08:30:00Z"),
+			confirmed: false,
+			status: "submitted" as const,
+			evidenceDocumentUrl: "https://drive.google.com/sample-bast-ro1-m3",
+			achievementReference: "BAST No. 003/LP/03/2026",
+			createdBy: operator1.id,
+		},
+		// RO 2 (Priority National)
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.BBA.002",
+			roName: "Pembangunan Fasilitas Sarana Gedung Kantor",
+			month: 1,
+			volumeDipa: "1",
+			rvro: "0",
+			pcro: "5.00",
+			tpcro: "5.00",
+			rvroIncremental: "0",
+			pcroIncremental: "5.00",
+			reportedAt: new Date("2026-02-05T10:00:00Z"),
+			confirmed: true,
+			confirmedAt: new Date("2026-02-05T11:00:00Z"),
+			status: "confirmed" as const,
+			evidenceDocumentUrl: "https://drive.google.com/sample-bast-ro2-m1",
+			achievementReference: "Laporan Kemajuan Fisik MK TW1 M1",
+			createdBy: operator1.id,
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.BBA.002",
+			roName: "Pembangunan Fasilitas Sarana Gedung Kantor",
+			month: 2,
+			volumeDipa: "1",
+			rvro: "0",
+			pcro: "10.00",
+			tpcro: "10.00",
+			rvroIncremental: "0",
+			pcroIncremental: "5.00",
+			reportedAt: new Date("2026-03-06T10:00:00Z"),
+			confirmed: true,
+			confirmedAt: new Date("2026-03-06T11:00:00Z"),
+			status: "confirmed" as const,
+			evidenceDocumentUrl: "https://drive.google.com/sample-bast-ro2-m2",
+			achievementReference: "Laporan Kemajuan Fisik MK TW1 M2",
+			createdBy: operator1.id,
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.BBA.002",
+			roName: "Pembangunan Fasilitas Sarana Gedung Kantor",
+			month: 3,
+			volumeDipa: "1",
+			rvro: "0",
+			pcro: "20.00",
+			tpcro: "20.00",
+			rvroIncremental: "0",
+			pcroIncremental: "10.00",
+			reportedAt: new Date("2026-04-06T10:00:00Z"),
+			confirmed: false,
+			status: "submitted" as const,
+			evidenceDocumentUrl: "https://drive.google.com/sample-bast-ro2-m3",
+			achievementReference: "Laporan Kemajuan Fisik MK TW1 M3",
+			createdBy: operator1.id,
+		},
+		// RO 3
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.CCA.003",
+			roName: "Pengelolaan Data dan Evaluasi Kinerja Anggaran",
+			month: 1,
+			volumeDipa: "4",
+			rvro: "0",
+			pcro: "0.00",
+			tpcro: "0.00",
+			rvroIncremental: "0",
+			pcroIncremental: "0.00",
+			reportedAt: new Date("2026-02-04T11:00:00Z"),
+			confirmed: true,
+			confirmedAt: new Date("2026-02-04T11:30:00Z"),
+			status: "confirmed" as const,
+			createdBy: operator1.id,
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.CCA.003",
+			roName: "Pengelolaan Data dan Evaluasi Kinerja Anggaran",
+			month: 2,
+			volumeDipa: "4",
+			rvro: "0",
+			pcro: "0.00",
+			tpcro: "0.00",
+			rvroIncremental: "0",
+			pcroIncremental: "0.00",
+			reportedAt: new Date("2026-03-05T11:00:00Z"),
+			confirmed: true,
+			confirmedAt: new Date("2026-03-05T11:30:00Z"),
+			status: "confirmed" as const,
+			createdBy: operator1.id,
+		},
+		{
+			organizationId: org.id,
+			fiscalYearId: fy2026.id,
+			roCode: "5241.CCA.003",
+			roName: "Pengelolaan Data dan Evaluasi Kinerja Anggaran",
+			month: 3,
+			volumeDipa: "4",
+			rvro: "1",
+			pcro: "25.00",
+			tpcro: "25.00",
+			rvroIncremental: "1",
+			pcroIncremental: "25.00",
+			reportedAt: new Date("2026-04-05T11:00:00Z"),
+			confirmed: false,
+			status: "submitted" as const,
+			evidenceDocumentUrl: "https://drive.google.com/sample-laporan-q1",
+			achievementReference: "Laporan Capaian Kinerja Triwulan I TA 2026",
+			createdBy: operator1.id,
+		},
+	];
+
+	for (const rep of outputReportsData) {
+		await db
+			.insert(outputReports)
+			.values(rep)
+			.onConflictDoNothing();
+	}
 
 	console.log("✅ Database seed completed successfully!");
 }

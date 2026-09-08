@@ -1,228 +1,432 @@
 # 08 — Capaian Output (bobot 25%)
 
-**Anchor:** `00-system-overview.md`, `01-dashboard.md` | **Tanggal:** 2026-09-07
+**Anchor:** `00-system-overview.md`, `01-dashboard.md` | **Tanggal:** 2026-09-08
 **Mode:** INSPECT → TRACE → DOCUMENT. Tanpa vonis regulasi, tanpa ubahan code/docs operasional.
-**Catatan instruksi:** dokumen `08-capaian-output.md` versi lama dianggap usang; file ini direplace penuh dari trace implementasi aktual (FIX-CO-01) dengan template identik `07-uptup_kkp.md`.
 
 ## 1. Module Purpose
 
-Menilai ketepatan pelaporan (30% = NK-ROKW) + capaian RO (70% = NK-CRO) per RO bulanan dengan dual-formula + fairness treatment. Satu permukaan utama `/operator/data/output-achievement` (selector pills bulan, 4 kartu kanonis Ponytail, strip reminder 5 Hari Kerja wajib, tabel RO 7 kolom + 4 tab filter, drawer CRUD dengan live preview formula, modal fairness/proposal satker, modal panduan PER-5/Pusdiklat) + permukaan admin `/admin-kppn/policy/fairness`. Tanpa workspace what-if terpisah; simulasi/forecast belum memakai asumsi Output. Indikator berbobot terbesar (25 poin) — satu-satunya dengan Formel F1/F2 + gate konfirmasi + PCRO-0 + deadline kanonis kalender kerja + filter dikecualikan.
+Halaman `/operator/data/output-achievement` mengelola data pelaporan Rincian Output (RO) bulanan (Januari s.d. Desember) dan menghitung nilai kinerja Indikator Capaian Output (IKPA-CO) yang merupakan indikator dengan bobot terbesar dalam IKPA (bobot 25%) berdasarkan PER-5/PB/2024 dan Petunjuk Teknis IKPA TA 2026.
+
+Indikator ini mengevaluasi dua subkomponen utama:
+1. **Ketepatan Waktu Pelaporan RO (NK-ROKW, bobot 30%)**: Menilai kedisiplinan satker dalam melaporkan data capaian output paling lambat pada hari kerja ke-5 bulan berikutnya ($5\text{ HK M+1}$).
+2. **Capaian Rincian Output (NK-CRO, bobot 70%)**: Menilai tingkat capaian keluaran fisik dan progres pelaksanaan anggaran per RO menggunakan mekanisme *Dual-Formula*:
+   - **Formula 1 (Januari–November & $\text{PCRO} < 100\%$)**: $\min\left(\frac{\text{PCRO}}{\text{TPCRO}} \times 100, 100\right)$
+   - **Formula 2 (Desember atau $\text{PCRO} \ge 100\%$)**: $\min\left(\frac{\text{RVRO}}{\text{Target Volume RO DIPA}} \times 100, 100\right)$
+
+Modul ini juga mengintegrasikan perlakuan keadilan (*Fairness Treatment* / Pengecualian Penilaian) untuk RO Khusus (seperti penugasan strategis pusat `FAN.ZZ1`, keadaan kahar, atau kebijakan khusus Kemenkeu/KPPN) di mana RO yang dikecualikan dikeluarkan penuh dari pembilang dan penyebut kedua subkomponen tanpa menghapus data historis transaksi.
 
 ## 2. Implementation Status
 
 | Aspek | Status |
 |---|---|
-| CRUD RO (kode/nama/bulan/RVRO/volumeDipa/PCRO/TPCRO/tanggal lapor/konfirmasi) + upsert scoped + soft-delete + audit | IMPLEMENTED |
-| Engine 30/70 + Formula 1 (PCRO/TPCRO) / Formula 2 (RVRO/Volume) + Zero-PCRO + Confirmed-gate + Fairness + bobot 25 | IMPLEMENTED (§7–9) |
-| Ketepatan waktu kanonis 5 HK (kalender kerja + libur nasional) | IMPLEMENTED (`calculateFifthWorkingDayOfNextMonth`, §10) |
-| Filter konfirmasi & fairness di skor (draft=0; excluded dikeluarkan pembilang & penyebut) | IMPLEMENTED |
-| PCRO/TPCRO & RVRO/volume dipakai sesuai periode & PCRO | IMPLEMENTED (F1 vs F2) |
-| Strip 5 HK wajib per bulan + badge Tepat/Terlambat/Belum + saran + rincian Tepat/Terlambat/Menunggu | IMPLEMENTED |
-| Fairness satker (proposal per RO/bulan + admin policy + resolver) | IMPLEMENTED |
-| Dashboard 1 baris + rekomendasi | IMPLEMENTED |
-| Riwayat perbandingan | IMPLEMENTED (via snapshot umum) |
-| Export (sheet RO + ringkasan) | IMPLEMENTED |
-| Reminder 5 HK terjadwal | PARTIAL (strip kanonis + seed `output_report_monthly` recommended + skeleton scheduler; tanpa jadwal H-5/H-2 terkirim) |
-| Panduan formula PER-5/Pusdiklat | IMPLEMENTED (modal + golden case) |
+| CRUD Laporan RO (Kode/Nama RO, Bulan, Target Volume DIPA, RVRO, PCRO, TPCRO, Tanggal Lapor, Status Konfirmasi) | IMPLEMENTED |
+| Validasi Integer Murni (Volume DIPA & RVRO) dan Format Dinamis Tanpa Trailing Zeros | IMPLEMENTED |
+| Engine Dual-Formula 2026 (Formula 1 PCRO/TPCRO vs Formula 2 RVRO/Volume DIPA) | IMPLEMENTED (§7–9) |
+| Aturan Khusus PCRO = 0% $\rightarrow 0.00$ & Scope Gate Konfirmasi (Draft $\rightarrow 0.00$) | IMPLEMENTED |
+| Ketepatan Waktu Kanonis 5 Hari Kerja M+1 (`calculateFifthWorkingDayOfNextMonth` + Kalender Libur Nasional) | IMPLEMENTED (§7, §10) |
+| Pengecualian Penilaian (Fairness Treatment: Operator Proposal & Admin Policy Resolver) | IMPLEMENTED (§7, §12) |
+| Idempotent Upsert & Clean Delete Deaktivasi Usulan Fairness Satker | IMPLEMENTED |
+| UI Ponytail: 4 Top Score Cards, Strip Reminder 5 HK Kanonis, 4 Filter Tabs, Tabel Interaktif | IMPLEMENTED |
+| Form Drawer Input dengan Grid Target (Kiri) vs Realisasi (Kanan) & Real-Time Live Preview Formula | IMPLEMENTED |
+| Modal Usulan Pengecualian (Fairness) & Modal Panduan Formula Pusdiklat PER-5 | IMPLEMENTED |
+| Admin Fairness Policy Management & Review Usulan Satker (`/admin-kppn/policy/fairness`) | IMPLEMENTED |
+| Dashboard Integration (Kartu Capaian Output, Rekomendasi Taktis, Snapshot Engine) | IMPLEMENTED |
+| Export Excel (Sheet Capaian Output per RO + Sheet Ringkasan 8 Indikator) & PDF Report | IMPLEMENTED |
+| Reminder Terjadwal Otomatis (Scheduler Cron H-5/H-2 Terkirim) | PARTIAL (Strip kanonis & seed policy ada, cron worker skeleton) |
 
 ## 3. Source Code Map
 
 | Lapisan | File |
 |---|---|
-| Engine | `packages/ikpa-engine/src/indicators/output-achievement.ts` (`calculateOutputAchievement`, evalPeriod, Fairness, Zero-PCRO, F1/F2, 30/70, pending-warning) |
-| Skema engine | `packages/ikpa-engine/src/schemas.ts:108-129` (`outputReportSchema{id,roCode?,period 1–12,pcro/tpcro/rvro/volumeDipa?,reportedDate nullable,deadlineDate,confirmed?,isExcluded?}`, `outputAchievementInputSchema{reports[],evalPeriod?}`) + `workday-calendar.ts:112-120` (`calculateFifthWorkingDayOfNextMonth`, `isWorkday`, `addWorkdays`) |
-| Aturan | `packages/ikpa-engine/src/rule-set.ts:159-168,221-234` (bobot 25; `rounding half_up 2`; warna `OUT-004` di `assumptionWarnings`) |
-| Mapping DB→Engine | `apps/web/src/server/simulation/calculate.ts:452-486` (`resolveOutputAssessmentEligibility` + `calculateFifthWorkingDayOfNextMonth(year,month,{holidays,workdays})` → `reportedDate/reportedAtISO`, `deadlineDate`, `confirmed`, `isExcluded`) |
-| Resolver fairness | `apps/web/src/server/policy/fairness-resolver.ts` (`matchRoCode{exact,list,prefix,regex}`, `resolveOutputAssessmentEligibility` + fallback `FAN.ZZ1`) |
-| UI halaman | `apps/web/src/routes/operator/data/output-achievement.tsx` (~1680 baris; pills 12 bulan, 4 kartu, strip kanonis, 4 tab filter `all/evaluated/excluded/action_needed`, `DomainDataTable` 8 kolom, `DomainFormDrawer` + `liveDrawerPreview`, modal Fairness + modal Panduan) |
-| Service/API | `apps/web/src/services/output-achievement-service.ts` (`fetchOutputReports/save/verify/remove` + `submit/removeFairnessProposal/fetchFairness*`); `apps/web/src/server/output-achievement.ts` (9 ServerFn: `listOutputReportsFn/upsert/confirm/delete` + `create/deleteFairness*` + `listFairnessPolicies/Proposals/review/listAll` + FY2026 auto-init + fallback) + `server/domains/output-achievement.{queries,mutations}.ts` |
-| Schema DB | `packages/db/src/schema/output-reports.ts` (`output_reports{roCode,roName?,month,rvro/volumeDipa 18,4,pcro/tpcro 8,4,reportedAt?,confirmed,confirmedAt/By,…}`) ; `assessment-exclusion.ts` (`assessment_exclusion_policies{matchType,roMatchValue jsonb,scopeType,year,1–12,basisReference,…status}` + `assessment_exclusion_proposals{orgId,fyId,roCode,month?,category,basisReference,operatorNote,status}`) |
-| Seed | `packages/db/src/seed.ts:241-259` (`output_report_monthly` recommended, `workdays_after_month_end:5`, lead `[5,2]`); `:380-407` (policy `FAN.ZZ1` nasional published) + `workdays` 17 libur nasional 2026 |
-| Dashboard | `server/dashboard.ts`, `dashboard.tsx:25-34` (`CAPAIAN_OUTPUT → /operator/data/output-achievement`) |
-| Admin | `apps/web/src/routes/admin-kppn/policy/fairness.tsx` + `server/domains/output-achievement.mutations.ts:421-576` (`upsertFairnessPolicy/reviewFairnessProposal`) |
+| Engine Kalkulasi | `packages/ikpa-engine/src/indicators/output-achievement.ts` (`calculateOutputAchievement`, evaluasi period, Dual-Formula F1/F2, PCRO 0%, Gate Konfirmasi, Fairness Resolver, Bobot 30/70, DecimalCalc string arithmetic) |
+| Skema Engine & Kalender Kerja | `packages/ikpa-engine/src/schemas.ts:108-129` (`outputReportSchema`, `outputAchievementInputSchema`), `packages/ikpa-engine/src/utils/workday-calendar.ts` (`calculateFifthWorkingDayOfNextMonth`, `isWorkday`, `addWorkdays`, `countWorkdays`) |
+| Rule Set & Bobot | `packages/ikpa-engine/src/rule-set.ts:159-168,221-234` (Bobot `output_achievement = 25`, subkomponen 30/70, rounding `half_up 2`) |
+| Mapping DB $\rightarrow$ Engine | `apps/web/src/server/simulation/calculate.ts:452-486` (Integrasi snapshot simulasi, resolve eligibility, mapping deadline kanonis 5 HK, reportedAt ISO date, confirmed status) |
+| Resolver Kebijakan Fairness | `apps/web/src/server/policy/fairness-resolver.ts` (`resolveOutputAssessmentEligibility`, `matchRoCode` exact/list/prefix/regex, prioritas usulan operator vs policy KPPN/Pusat vs fallback `FAN.ZZ1`) |
+| UI Halaman Operator | `apps/web/src/routes/operator/data/output-achievement.tsx` (Pills selector 12 bulan, 4 Ponytail metric cards, canonical reminder strip 5 HK, 4 filter tabs, `DomainDataTable` 8 kolom, `DomainFormDrawer` grid target/realisasi + live preview formula, modal fairness, modal panduan Pusdiklat) |
+| Komponen Input & Formatter | `apps/web/src/components/data/formatted-number-input.tsx` (Separasi ribuan real-time, `allowDecimal={false}` untuk integer murni), `apps/web/src/lib/format.ts` (`stripTrailingDecimals`, `formatDynamicNumber`, `formatDynamicPercent`, `formatDateDDMMYYYY`) |
+| Service Frontend | `apps/web/src/services/output-achievement-service.ts` (`fetchOutputReports`, `saveOutputReport`, `verifyOutputReport`, `removeOutputReport`, `submitFairnessProposal`, `removeFairnessProposal`, `fetchFairnessProposals`, `fetchFairnessPolicies`) |
+| Server Functions (ServerFn) | `apps/web/src/server/output-achievement.ts` (9 ServerFn: `listOutputReportsFn`, `upsertOutputReportFn`, `confirmOutputReportFn`, `deleteOutputReportFn`, `createFairnessProposalFn`, `deleteFairnessProposalFn`, `listFairnessPoliciesFn`, `listFairnessProposalsFn`, `upsertFairnessPolicyFn`, `reviewFairnessProposalFn`, `listAllFairnessProposalsFn`) |
+| Domain Queries & Mutations | `apps/web/src/server/domains/output-achievement.queries.ts` (`listOutputsWithEligibility`, `listFairnessPolicies`, `listFairnessProposals`), `apps/web/src/server/domains/output-achievement.mutations.ts` (`upsertOutput`, `confirmOutput`, `softDeleteOutput`, `createFairnessProposal`, `deleteFairnessProposal`, `upsertFairnessPolicy`, `reviewFairnessProposal` + Zod + integer checks + audit logs) |
+| Skema Database | `packages/db/src/schema/output-reports.ts` (`output_reports`), `packages/db/src/schema/assessment-exclusion.ts` (`assessment_exclusion_policies`, `assessment_exclusion_proposals`), `packages/db/src/schema/workdays.ts` (`workdays`) |
+| Database Seed | `packages/db/src/seed.ts:241-259` (Reminder policy `output_report_monthly` lead [5,2]), `:299-337` (17 Hari Libur Nasional 2026), `:380-407` (Fairness policy `FAN.ZZ1` nasional) |
+| Halaman Admin Fairness | `apps/web/src/routes/admin-kppn/policy/fairness.tsx` (CRUD Kebijakan Fairness KPPN/Nasional & Review Usulan Satker) |
+| Dashboard & Integrasi | `apps/web/src/server/dashboard.ts:53-61,135-168`, `apps/web/src/routes/operator/dashboard.tsx` (`CAPAIAN_OUTPUT` $\rightarrow$ `/operator/data/output-achievement`) |
+| Export & History | `apps/web/src/server/exports/operator-xlsx.ts` (Sheet Capaian Output mentah + Sheet Ringkasan 8 Indikator), `apps/web/src/server/exports/operator-pdf.tsx`, `apps/web/src/routes/operator/history.tsx` |
+| Automated Tests | `packages/ikpa-engine/src/indicators/output-achievement.test.ts` (18 unit tests: Golden Pusdiklat 95.56, F1/F2, Cap 100, PCRO 0%, Draft Gate, Fairness Excluded, Kalender 5 HK), `packages/ikpa-engine/src/utils/workday-calendar.test.ts`, `apps/web/src/components/data/formatted-number-input.test.ts`, `apps/web/src/lib/format.test.ts` |
 
 ## 4. User Flow
 
-**Pills bulan (state lokal halaman):** 12 pills Januari–Desember (`selectedMonth = new Date().getMonth()+1`) → loader `fetchOutputReports` + `fetchFairnessProposals` → `monthData = outputs.filter(m==selectedMonth)` → engine lokal `calculateOutputAchievement(reports, evalPeriod=selectedMonth)` → 4 kartu.
-**4 kartu Ponytail:** (1) RO Objek Penilaian `evaluated/total` + `excluded` purple, (2) NK-ROKW 30% `nkkwScore` + `timely/late/pending`, (3) NK-CRO 70% + avg PCRO/TPCRO display, (4) IKPA-CO & Kontribusi `finalScore` + `weightedContribution`.
-**Strip Reminder kanonis:** `canonicalDeadline = calculateFifthWorkingDayOfNextMonth(year, selectedMonth, {holidays})` (EOM + 5 workdays loncat weekend+libur) → panel biru/kuning `Batas Konfirmasi Bulan X: DD-MM-YYYY (Hari Kerja ke-5 M+1)` + badge Tepat/Terlambat/Menunggu.
-**Tabel + 4 tab filter:** `all/evaluated/excluded/action_needed` + search `roCode/roName` → kolom: Kode & Nama RO | Objek Penilaian `Dinilai/Dikecualikan` | Formula NK-CRO `Draft/0(PCRO 0%)/Formula1/Formula2/—` | PCRO/Target | RVRO/Volume | Ketepatan `Tepat(100)/Terlambat(0)/Belum(—)/—` | Status Konfirmasi | Aksi `Edit/Konfirmasi/Fairness/Hapus` → `DomainDataTable`.
-**Drawer (Create/Edit):** `roCode` upper, `month` select, `roName?`, `volumeDipa` integer, `rvro` integer, `tpcro` 0–100 max 2 desimal, `pcro` 0–100 max 2 desimal, `reportedDate` type=date + tombol Hari Ini, `confirmed` checkbox + `liveDrawerPreview` card (badge EXCLUDED/UNCONFIRMED/ZERO_PCRO/FORMULA_1/FORMULA_2 + step `min((x/y)*100,100)` + skor + deskripsi). `handleSaveOutput` → `stripTrailingDecimals` + `Math.round(vol/rv)` + `saveOutputReport` → `router.invalidate()`. `Konfirmasi` → `verifyOutputReport(id)`; `Hapus` → `confirm()` → `removeOutputReport`.
-**Fairness Modal:** selector `Dikecualikan/Dinilai` → kode, bulan (null=sepanjang tahun), kategori `ro_khusus/keadaan_kahar/kebijakan_pusat`, basis, catatan, attachment → `submitFairnessProposal` (upsert idempotent per `(org,fy,roCode)` + purge duplikat) atau `removeFairnessProposal` (nonaktif = hapus bersih) → list proposal di bawah. Dampak fairness: `excluded` RO tidak masuk pembilang & penyebut NK-ROKW & NK-CRO (tetap tampil di tabel purple).
-**Panduan:** tombol `Panduan Formula (PER-5)` → modal Pusdiklat §4.3 golden case.
+1. **Akses Menu**: Operator membuka menu `Capaian Output` di sidebar $\rightarrow$ diarahkan ke `/operator/data/output-achievement` (terproteksi scope satker dan tahun anggaran aktif).
+2. **Pemilihan Periode Bulan**: Operator memilih salah satu dari 12 pills bulan (`Januari` s.d. `Desember`, default: bulan kalender saat ini). Pilihan bulan langsung menyaring data transaksi lokal dan mengevaluasi kalkulasi engine untuk bulan tersebut (`evalPeriod = selectedMonth`).
+3. **4 Top Metric Cards (Ponytail Style)**:
+   - **Card 1 (Kiri)**: `Objek Penilaian RO` $\rightarrow$ Jumlah RO Dinilai dari Total RO bulan terpilih + badge ungu jumlah RO Dikecualikan (*Fairness*).
+   - **Card 2**: `Ketepatan Waktu (NK-ROKW - 30%)` $\rightarrow$ Skor NK-ROKW bulan berjalan dengan rincian jumlah RO Tepat Waktu, Terlambat, dan Menunggu Lapor.
+   - **Card 3**: `Capaian RO (NK-CRO - 70%)` $\rightarrow$ Skor rata-rata NK-CRO bulan berjalan beserta indikator rata-rata PCRO vs rata-rata TPCRO.
+   - **Card 4 (Kanan)**: `IKPA Capaian Output & Kontribusi` $\rightarrow$ Nilai Akhir IKPA-CO (skala 100) dan Poin Kontribusi IKPA (maksimal 25.00 pts).
+4. **Strip Reminder 5 Hari Kerja Kanonis**:
+   - Menghitung tanggal batas kanonis secara dinamis: `calculateFifthWorkingDayOfNextMonth(year, selectedMonth, holidays)` (contoh: untuk periode Juli 2026 $\rightarrow$ batas adalah Jumat, 07-08-2026).
+   - Menampilkan status agregat satker (Tepat Waktu, Terlambat, Menunggu Konfirmasi, atau Belum Lapor) dan panduan aksi tindak lanjut.
+5. **4 Tab Filter & Tabel Data (`DomainDataTable`)**:
+   - Filter Tabs: `Semua`, `Dinilai (Normal)`, `Dikecualikan (Fairness)`, `Butuh Tindakan (Draft / Belum Lapor)`.
+   - Pencarian real-time berdasarkan Kode RO atau Nama RO.
+   - Kolom Tabel: (1) No., (2) Kode & Nama RO, (3) Objek Penilaian, (4) Formula NK-CRO, (5) PCRO / Target, (6) RVRO / Volume, (7) Ketepatan Lapor, (8) Status Konfirmasi, (9) Aksi (`Edit`, `Konfirmasi`, `Fairness`, `Hapus`).
+6. **Form Drawer Tambah/Ubah Data RO (`DomainFormDrawer`)**:
+   - Tombol `+ Catat Capaian RO` atau klik ikon pensil Edit pada baris tabel.
+   - Layout Grid 2-Kolom:
+     - **Kolom Kiri (Target)**: `Target Volume RO DIPA` (`FormattedNumberInput` integer murni tanpa desimal) dan `Target PCRO (TPCRO)` (desimal max 100, max 2 desimal).
+     - **Kolom Kanan (Realisasi & Progres)**: `Realisasi Volume (RVRO)` (integer murni $\le \text{Volume DIPA}$) dan `Progres Capaian RO (PCRO)` (desimal max 100, max 2 desimal).
+   - Date picker `Tanggal Pelaporan` berformat `DD-MM-YYYY` dengan tombol quick action `Hari Ini`.
+   - Checkbox `Konfirmasi Laporan Capaian Output`.
+   - **Live Drawer Formula Preview Card**: Preview real-time formula yang akan diterapkan (`ZERO_UNCONFIRMED`, `ZERO_PCRO`, `FORMULA_1`, `FORMULA_2`, atau `EXCLUDED`), rincian rasio matematis, estimasi skor NK-CRO, dan dampak ketepatan waktu.
+   - Tombol `Simpan Data` terkunci (`isSubmitDisabled`) jika Kode RO kosong atau field wajib belum lengkap.
+   - Penyimpanan memicu `upsertOutputReportFn` $\rightarrow$ `router.invalidate()` $\rightarrow$ banner feedback hijau 4 detik.
+7. **Modal Usulan Pengecualian (*Fairness Treatment*)**:
+   - Klik tombol `Fairness` pada baris tabel atau tombol kelola usulan.
+   - Toggle status: `Dikecualikan (Fairness)` vs `Dinilai (Normal)`.
+   - Form: Kode RO, Periode Bulan (Spesifik Bulan atau Sepanjang Tahun), Kategori Usulan (`ro_khusus`, `keadaan_kahar`, `kebijakan_pusat`), Dasar Kebijakan, Catatan Penjelasan, dan Tautan Dokumen Pendukung.
+   - Tombol `Simpan`: Melakukan *idempotent upsert* pada tabel proposal; jika dinonaktifkan kembali ke "Dinilai", record usulan dihapus bersih (*clean delete*) sehingga tabel database tetap ramping.
+8. **Modal Panduan Formula (PER-5/Pusdiklat)**:
+   - Tombol `Panduan Formula (PER-5)` membuka dialog modal berisi penjelasan resmi subkomponen 30/70, syarat aktivasi Formula 1 vs Formula 2, aturan PCRO 0%, dan tabel contoh kasus resmi Pusdiklat.
 
 ## 5. Input Inventory
 
 | Input | Type | Required | Default | Validation | Source | Digunakan Calculation? |
 |---|---|---|---|---|---|---|
-| `roCode` | text 1–32 | Ya | `""`→upper | trim, Zod min1 max32 | drawer | TIDAK (id) — dipakai `matchRoCode` untuk fairness |
-| `roName` | text 0–255 | Tidak | null | max255 | drawer | TIDAK (display) |
-| `month` | select 1–12 | Ya | `selectedMonth` | int 1–12 | pills + drawer | YA (`period`; Des → F2 paksa §7) |
-| `volumeDipa` | integer string 18,0 | Ya | `100` | FE `allowDecimal false` + BE integer + `rv≤vol`; TPCRO kosong→0 | drawer | YA (F2 `rvro/volumeDipa`) |
-| `rvro` | integer string 18,0 | Ya | `""→0` | sama + `0≤rv≤vol` | drawer | YA (F2) |
-| `pcro` | decimal 8,2 | Ya | `""→0` | 0–100, max 2 desimal, max 100 | drawer | YA (F1 `pcro/tpcro`; gate F2 `pcro≥100`) |
-| `tpcro` | decimal 8,2 | Ya | `80` | sama | drawer | YA (F1) |
-| `reportedDate` | date `YYYY-MM-DD` | Tidak | `today` / `""` | `z.iso.datetime offset` nullable; FE date picker | drawer | YA (`reportedDate ≤ deadlineDate`; null→pending) |
-| `confirmed` | checkbox | Tidak | false | boolean | drawer + tombol Konfirmasi | YA (gate → 0) |
-| Fairness `category/basis/…` | select/text | Ya (basis) | `ro_khusus` / `Fairness treatment…` | Zod 1–255/1000/500; `roCode` upper | modal fairness | YA (via `isExcluded`) |
-| `search`/`activeTabFilter` | text/enum | Tidak | — | client | toolbar | TIDAK (filter tampil) |
+| `roCode` | text (1–32) | Ya | `""` (auto-uppercase) | Trim, Zod `min(1).max(32)` | Drawer Form / Modal Fairness | YA (ID unik & pencocokan aturan Fairness) |
+| `roName` | text (0–255) | Tidak | `null` | Zod `max(255).optional()` | Drawer Form | TIDAK (Tampilan display) |
+| `month` | number (1–12) | Ya | `selectedMonth` | Zod `int().min(1).max(12)` | Selector Pills & Drawer Form | YA (Penentu periode evaluasi & syarat Formula 2) |
+| `volumeDipa` | numeric string (integer) | Ya | `"100"` | FE: `allowDecimal={false}`, BE: integer murni `dec4`, $>0$ | Drawer Form | YA (Penyebut Formula 2) |
+| `rvro` | numeric string (integer) | Ya | `"0"` | FE: `allowDecimal={false}`, BE: integer murni, $0 \le \text{rvro} \le \text{volumeDipa}$ | Drawer Form | YA (Pembilang Formula 2) |
+| `pcro` | numeric string (decimal) | Ya | `"0"` | FE: max 100, max 2 desimal, BE: `dec84`, $0 \le \text{pcro} \le 100$ | Drawer Form | YA (Pembilang Formula 1, gate Formula 2 jika $\ge 100\%$, gate PCRO 0%) |
+| `tpcro` | numeric string (decimal) | Ya | `"80"` | FE: max 100, max 2 desimal, BE: `dec84`, $0 \le \text{tpcro} \le 100$ | Drawer Form | YA (Penyebut Formula 1) |
+| `reportedDate` / `reportedAt` | date (`YYYY-MM-DD` / ISO) | Tidak | `today` / `null` | Zod `iso.datetime offset nullable`, FE Date Picker `DD-MM-YYYY` | Drawer Form | YA (Penentu ketepatan waktu $\le \text{deadlineDate}$) |
+| `confirmed` | boolean | Tidak | `false` | Zod `boolean().optional()`, Checkbox / Tombol Konfirmasi | Drawer Form / Tombol Aksi Tabel | YA (Gate konfirmasi: jika `false` capaian $0.00$) |
+| `fairnessProposal.category` | select enum | Ya | `"ro_khusus"` | Enum: `ro_khusus`, `keadaan_kahar`, `kebijakan_pusat` | Modal Fairness | YA (Kategori pengecualian) |
+| `fairnessProposal.basisReference` | text | Ya | `"Fairness treatment IKPA TA 2026"` | Zod `min(1).max(255)` | Modal Fairness | YA (Trace dasar hukum pengecualian) |
+| `fairnessProposal.operatorNote` | textarea | Tidak | `""` | Zod `max(1000).optional()` | Modal Fairness | YA (Alasan display pengecualian) |
+| `search` | text | Tidak | `""` | Client string matching `roCode` / `roName` | Toolbar Tabel | TIDAK (Filter tampilan tabel) |
+| `activeTabFilter` | enum | Ya | `"all"` | Enum: `all`, `evaluated`, `excluded`, `action_needed` | Filter Tabs UI | TIDAK (Filter tampilan tabel) |
 
 ## 6. Validation Rules
 
-- BE (`output-achievement.mutations.ts:17-35,63-72`): `dec4` & `dec84` regex `^-?(?:0\|[1-9]\d*)(?:\.\d{1,4})?$` (negatif lolos regex ditolak range), `RVRO 0..volume` + `Number.isInteger(rv/vol)`, `PCRO/TPCRO 0..100` (parseFloat). Upsert unik `(fyId,roCode,month)` (update bila ada). `reportedAt`转为 `Date` bila ada; `confirmed` → set `confirmedAt/By`. Fairness proposal Zod `roCode 1–32`, `basisReference 1–255`, `month? 1–12 nullable`.
-- FE: `FormattedNumberInput` `allowDecimal false` untuk volume/RVRO (reject titik/koma), `maxDecimals 2` + `max 100` untuk PCRO/TPCRO; `stripTrailingDecimals` buang `.00` sebelum simpan; `handleSaveOutput` guard `!roCode.trim()` tanpa banner; `isSubmitDisabled={!roCode.trim()}` di drawer; proposal modal disable Simpan bila kosong. Live preview clamp display `Math.min(ratio,100).toFixed(2)` (mirror engine tanpa DecimalCalc).
-- Scope FY + audit (`writeAudit` create/update/confirm/delete_output + create/update/delete_proposal + policy). Tanpa cek: duplikat lintas FY, tanggal lapor ≤ deadline (dinilai 0 bukan ditolak), volume 0 khusus (warning bukan error).
+- **Frontend (`FormattedNumberInput` & Drawer Form)**:
+  - Input `Target Volume RO DIPA` dan `Realisasi Volume (RVRO)` menggunakan `allowDecimal={false}` yang secara aktif menolak pengetikan karakter desimal (titik/koma) via `onKeyDown`, mengatur `inputMode="numeric"`, dan membersihkan fraksi desimal.
+  - Input `PCRO` dan `TPCRO` dibatasi secara otomatis maksimal bernilai `100` dan maksimal `2` digit di belakang koma (`maxDecimals={2}`).
+  - Utilitas `stripTrailingDecimals` secara otomatis membersihkan angka desimal tak perlu (misal `100.00` disimpan dan ditampilkan menjadi `100`).
+  - Separasi ribuan titik (`.`) diterapkan secara dinamis saat mengetik angka (`1.000` $\rightarrow$ `10.000` $\rightarrow$ `100.000`).
+  - Tombol `Simpan Data` terkunci (`isSubmitDisabled`) jika Kode RO kosong atau field wajib belum terisi.
+- **Backend (`output-achievement.mutations.ts:17-73`)**:
+  - Regex desimal ketat: `dec4 = /^-?(?:0|[1-9]\d*)(?:\.\d{1,4})?$/` dan `dec84 = /^-?(?:0|[1-9]\d*)(?:\.\d{1,4})?$/`.
+  - Validasi integer murni: `if (!Number.isInteger(rv)) throw new Error("RVRO harus berupa bilangan bulat.")` dan `if (!Number.isInteger(vol)) throw new Error("Target Volume RO DIPA harus berupa bilangan bulat.")`.
+  - Validasi rentang angka: $0 \le \text{RVRO} \le \text{Volume DIPA}$, $0 \le \text{PCRO} \le 100$, dan $0 \le \text{TPCRO} \le 100$.
+  - Keunikan record: Dikelola secara scoped per `(fiscalYearId, roCode, month)` melalui mekanisme update jika record sudah ada atau insert jika belum ada.
+  - Audit Trail: Seluruh mutasi (`create_output`, `update_output`, `confirm_output`, `delete_output`, `create_proposal`, `delete_proposal`) mencatat payload sebelum dan sesudah secara *tamper-proof* di `audit_logs`.
+- **Fairness Lifecycle (`output-achievement.mutations.ts:245-385`)**:
+  - `createFairnessProposal` melakukan *idempotent upsert* per `(organizationId, fiscalYearId, roCode)` dan membersihkan baris duplikat/orphan.
+  - `deleteFairnessProposal` (`removeFairnessProposal`) menghapus bersih data usulan saat dinonaktifkan kembali ke "Dinilai (Normal)".
 
 ## 7. Business Rules
 
-**Rule ID:** OUT-BR-001 — Ketepatan kanonis 5 Hari Kerja M+1 (string-compare)
-`isTimely = reportedDate ≤ deadlineDate` (ISO `YYYY-MM-DD`, `output-achievement.ts:89`) → 100 else 0. `deadlineDate = calculateFifthWorkingDayOfNextMonth(fy.year, month, {holidays,workdays})` (`workday-calendar.ts:112-120`: `addWorkdays(EOM,5)` loncat Sat/Sun + `holidays[]` + override `workdays[]`). `reportedDate` null → tak masuk `timelinessTotal` & `validTimelinessCount`; `hasPendingTimeliness=true` → status `warning` (bukan `incomplete`). Praktik: null tidak lagi fallback `YYYY-MM-05` → tidak selalu tepat.
+**Rule ID:** OUT-BR-001 — Ketepatan Waktu Pelaporan Kanonis 5 Hari Kerja M+1
+- **Trigger**: Perhitungan subkomponen NK-ROKW pada engine `calculateOutputAchievement`.
+- **Input**: `report.reportedDate`, `report.deadlineDate` (dihitung dari `calculateFifthWorkingDayOfNextMonth(year, month, holidays)`).
+- **Condition**:
+  - Jika `reportedDate` terisi: Perbandingan string ISO `reportedDate <= deadlineDate`. Jika terpenuhi bernilai $100$, jika lewat bernilai $0$.
+  - Jika `reportedDate` null/kosong: Tidak dihitung ke dalam pembagi `validTimelinessCount`, dan memicu flag `hasPendingTimeliness = true` sehingga status indikator menjadi `warning`.
+- **Processing**: $\text{NK-ROKW} = \frac{\sum \text{Nilai Ketepatan Waktu}}{\text{Jumlah RO yang Menyampaikan Laporan}}$ (dibulatkan 2 desimal `HALF_UP`).
+- **Ref**: `packages/ikpa-engine/src/indicators/output-achievement.ts:87-117`, `packages/ikpa-engine/src/utils/workday-calendar.ts:112-120`.
 
-**Rule ID:** OUT-BR-002 — Formula 1 (Jan–Nov & PCRO < 100%): `min((PCRO/TPCRO)*100,100)`
-Bila `confirmed && pcro!="0" && period!=12 && pcro <100` → `ratio=pcro/tpcro*100`, cap 100, round half-up 4→2 (`:164-181`). `tpcro ≤0` → warning `TPCRO_MUST_BE_GT_ZERO…` + capaian 0.00 (tanpa throw). Satu-satunya jalur PCRO/TPCRO dipakai.
+**Rule ID:** OUT-BR-002 — Formula 1 Capaian RO (Januari–November & $\text{PCRO} < 100\%$)
+- **Trigger**: Evaluasi capaian RO pada periode bulan 1 s.d. 11 ketika nilai PCRO belum mencapai 100%.
+- **Condition**: `report.confirmed === true && pcro !== "0" && period !== 12 && pcro < 100`.
+- **Processing**: $\text{Capaian RO} = \min\left(\frac{\text{PCRO}}{\text{TPCRO}} \times 100, 100\right)$ (dibulatkan 2 desimal `HALF_UP`). Jika $\text{TPCRO} \le 0$ saat $\text{PCRO} > 0$, menghasilkan nilai $0.00$ dengan peringatan `TPCRO_MUST_BE_GT_ZERO_WHEN_PCRO_GT_ZERO`.
+- **Output**: Skor capaian RO per rincian output (skala 0 s.d. 100).
+- **Ref**: `packages/ikpa-engine/src/indicators/output-achievement.ts:164-182`.
 
-**Rule ID:** OUT-BR-003 — Formula 2 (Desember atau PCRO ≥100%): `min((RVRO/VolumeDIPA)*100,100)`
-Bila `confirmed && pcro!="0" && (period==12 || pcro≥100)` → pakai volume (`:144-162`). `volumeDipa ≤0` → warning `VOLUME_DIPA…` + 0.00. Tidak ada asumsi 100 otomatis — Des dihitung nyata (CO-04 `2/4→50`). Semua capaian cap 100.
+**Rule ID:** OUT-BR-003 — Formula 2 Capaian RO (Desember atau $\text{PCRO} \ge 100\%$)
+- **Trigger**: Evaluasi capaian RO pada periode Desember (bulan 12) ATAU ketika nilai PCRO sudah mencapai $\ge 100\%$ pada bulan Januari–November.
+- **Condition**: `report.confirmed === true && pcro !== "0" && (period === 12 || pcro >= 100)`.
+- **Processing**: $\text{Capaian RO} = \min\left(\frac{\text{RVRO}}{\text{Target Volume RO DIPA}} \times 100, 100\right)$ (dibulatkan 2 desimal `HALF_UP`). Jika $\text{Volume DIPA} \le 0$, menghasilkan nilai $0.00$ dengan peringatan `VOLUME_DIPA_MUST_BE_GT_ZERO`.
+- **Output**: Skor capaian RO per rincian output berbasis realisasi fisik (skala 0 s.d. 100).
+- **Ref**: `packages/ikpa-engine/src/indicators/output-achievement.ts:144-163`.
 
-**Rule ID:** OUT-BR-004 — Aturan khusus PCRO = 0% → 0.00 tanpa divide
-`DecimalCalc.eq(pcro,"0")` → 0.00 langsung (`:140-143`), bahkan bila `tpcro=0` tidak warning F1. Mencegah 0/0.
+**Rule ID:** OUT-BR-004 — Aturan Khusus $\text{PCRO} = 0\%$
+- **Trigger**: Pelaporan RO dengan nilai progres capaian $\text{PCRO} = 0\%$.
+- **Condition**: `report.confirmed === true && DecimalCalc.eq(pcro, "0")`.
+- **Processing**: Menghasilkan nilai capaian $\text{Capaian RO} = 0.00$ secara langsung (`ZERO_PCRO`) tanpa melakukan pembagian numerik (mencegah error pembagian $0/0$).
+- **Output**: Skor capaian $0.00$.
+- **Ref**: `packages/ikpa-engine/src/indicators/output-achievement.ts:140-143`.
 
-**Rule ID:** OUT-BR-005 — Gate konfirmasi → 0.00 capaian per RO
-`!confirmed` → `ZERO_UNCONFIRMED` 0.00 (`:136-139`). Berlaku untuk ketepatan (tetap dinilai bila ada tanggal) vs capaian (0 walau RVRO/PCRO bagus). Dishared drawer & tabel badge `0 (Draft)`.
+**Rule ID:** OUT-BR-005 — Scope Gate Konfirmasi Capaian Output
+- **Trigger**: RO yang belum dikonfirmasi oleh Pejabat Pembuat Komitmen / Operator Satker (`confirmed === false` atau null).
+- **Condition**: `!report.confirmed`.
+- **Processing**: Menghasilkan nilai capaian $\text{Capaian RO} = 0.00$ secara langsung (`ZERO_UNCONFIRMED: Laporan belum dikonfirmasi -> 0`). Nilai ketepatan waktu tetap dinilai jika tanggal lapor telah diisi.
+- **Output**: Skor capaian $0.00$.
+- **Ref**: `packages/ikpa-engine/src/indicators/output-achievement.ts:136-139`.
 
-**Rule ID:** OUT-BR-006 — Fairness treatment excluded dari pembilang & penyebut
-Loop reports filtered `evalPeriod` → `if isExcluded {excludedRoCount++; trace "Dikecualikan"; continue}` (`:68-82`) → `includedRoCount` saja masuk `achievementTotal` & `timelinessTotal`. `includedRoCount==0` → `null/incomplete` + warning `Seluruh … dikecualikan` (`:202-216`). Resolver (`fairness-resolver.ts:87-198`): prioritas 1 proposal aktif org (skip rejected/cancelled, match org+kode+bulan), 2 policy published nasional/kppn/org + `effectiveMonthStart–End` + `matchRoCode`, 3 fallback hardcode `FAN.ZZ1` → `included` default.
+**Rule ID:** OUT-BR-006 — Perlakuan Keadilan (*Fairness Treatment* / Pengecualian Objek Penilaian)
+- **Trigger**: RO yang memiliki status pengecualian aktif (`isExcluded === true`).
+- **Processing**: RO tersebut dilewati penuh (`continue`) dan **dikeluarkan dari pembilang maupun penyebut** pada perhitungan NK-ROKW dan NK-CRO. Data tetap disimpan dan ditampilkan di UI dengan penanda visual khusus (*Purple Tag*).
+- **Fallback / Empty Guard**: Jika seluruh RO pada periode tersebut berstatus dikecualikan (`includedRoCount === 0`), engine mengembalikan `{ score: null, weightedContribution: null, status: "incomplete" }` disertai peringatan informatif.
+- **Ref**: `packages/ikpa-engine/src/indicators/output-achievement.ts:68-82,202-216`, `apps/web/src/server/policy/fairness-resolver.ts:87-198`.
 
-**Rule ID:** OUT-BR-007 — Agregat 30/70 per periode bulan (evalPeriod)
-`avgTimeliness = timelinessTotal/validTimelinessCount` (0 bila tak ada yang lapor → 0.00), `avgAchievement = achievementTotal/includedRoCount`, `score = 0.3*avgT + 0.7*avgC` round half-up 2, `weighted = score*25/100` (`:219-296`). `subComponents[timeliness 30, achievement 70]` (`weightedContribution` per komponen). Status: `incomplete` bila kosong / excluded semua ; `warning` bila `hasPendingTimeliness` true else `complete` (`:321`). Full trace per RO + 3 agregat + final.
+**Rule ID:** OUT-BR-007 — Pembobotan Subkomponen 30/70 dan Nilai Akhir IKPA-CO
+- **Processing**:
+  - $\text{Komponen Ketepatan Waktu (30\%)} = \text{roundHalfUp}(\text{NK-ROKW} \times 0.30, 2)$
+  - $\text{Komponen Capaian RO (70\%)} = \text{roundHalfUp}(\text{NK-CRO} \times 0.70, 2)$
+  - $\text{Nilai Akhir IKPA-CO} = \text{Komponen Ketepatan} + \text{Komponen Capaian}$ (skala 0 s.d. 100)
+  - $\text{Poin Kontribusi IKPA} = \text{roundHalfUp}\left(\frac{\text{Nilai Akhir}}{100} \times 25, 2\right)$ (maksimal 25.00 poin).
+- **Ref**: `packages/ikpa-engine/src/indicators/output-achievement.ts:262-297`.
 
-**Rule ID:** OUT-BR-008 — Periode & filter evaluasi
-`input.evalPeriod` → `reportsToEvaluate = reports.filter(r.period==evalPeriod)` (`:34-37`); kosong → `null/incomplete` spesifik bulan (`:39-52`). Dashboard & mapping `calculate.ts` tidak pakai `evalPeriod` — semua FY dihitung sebagai `outputAchievement.reports` (agregat FY). Pills halaman = `evalPeriod` lokal.
+**Rule ID:** OUT-BR-008 — Penilaian Berdasarkan Periode Evaluasi Bulan (`evalPeriod`)
+- **Trigger**: Pemanggilan engine dengan parameter `evalPeriod` (1 s.d. 12).
+- **Processing**: Engine hanya memfilter dan mengevaluasi laporan yang memiliki `period === evalPeriod`. Jika periode tidak memiliki data, mengembalikan status `incomplete`. (Dashboard menggunakan agregasi seluruh laporan tahun anggaran).
+- **Ref**: `packages/ikpa-engine/src/indicators/output-achievement.ts:33-52`.
 
 ## 8. Calculation Logic
 
-Input (`schemas.ts:108-129`): `reports[{id,roCode?,period,target?/volumeDipa,realized?/rvro,pcro?,tpcro?,reportedDate nullable,deadlineDate,confirmed?,isExcluded?,…}]` + `evalPeriod?`. Server bangun `reports[]` dari `outputReports` + `workdays` kalender (holiday-aware deadline) + `resolveOutputAssessmentEligibility` (published policies + operator proposals + orgId). Engine langkah: (1) kosong→incomplete, (2) filter evalPeriod, (3) loop per RO: cek excluded → lanjut; hitung ketepatan (null→pending), hitung capaian (ZERO_UNCONFIRMED/ZERO_PCRO/F1/F2 dengan DecimalCalc presisi), (4) excluded-only→incomplete, (5) avg NKKW/NK-CRO, (6) final 30/70 + tertimbang + subComponents + warnings. FE mirror sama via `calculateOutputAchievement` lokal untuk 4 kartu & live preview (tanpa round presisi DecimalCalc untuk preview). Jejak `formulaTrace` 2×N + 3.
+Engine Capaian Output (`packages/ikpa-engine/src/indicators/output-achievement.ts`) dieksekusi secara murni (*pure function*) menggunakan aritmetika string presisi tinggi `DecimalCalc` tanpa terkena pembulatan floating point JavaScript:
+1. **Pemeriksaan Data Masukan**: Memastikan array laporan tersedia dan tidak kosong.
+2. **Penyaringan Periode Evaluasi**: Menyaring laporan sesuai parameter `evalPeriod` (jika diberikan).
+3. **Iterasi Penilaian per RO**:
+   - Memeriksa flag `isExcluded`: Jika ya, catat jejak audit pengecualian dan lewati.
+   - Evaluasi Ketepatan Waktu: Bandingkan `reportedDate` terhadap `deadlineDate` ($5\text{ HK M+1}$).
+   - Evaluasi Capaian RO:
+     - Jika `!confirmed` $\rightarrow 0.00$
+     - Jika $\text{PCRO} = 0\%$ $\rightarrow 0.00$
+     - Jika $\text{Bulan} = 12$ atau $\text{PCRO} \ge 100\%$ $\rightarrow$ Formula 2 $\min\left(\frac{\text{RVRO}}{\text{Volume}} \times 100, 100\right)$
+     - Selainnya (Bulan 1–11 & $\text{PCRO} < 100\%$) $\rightarrow$ Formula 1 $\min\left(\frac{\text{PCRO}}{\text{TPCRO}} \times 100, 100\right)$.
+4. **Agregasi Rata-Rata**: Menghitung rata-rata aritmetika NK-ROKW (dibagi jumlah RO yang menyampaikan tanggal lapor) dan NK-CRO (dibagi jumlah seluruh RO yang dinilai).
+5. **Kalkulasi Skor Tertimbang**: Mengalikan subkomponen dengan bobot resmi $30\%$ dan $70\%$, lalu mengonversinya ke kontribusi IKPA bobot $25\%$.
 
 ## 9. Formula & Variables
 
-Persis code: `tepat_i = reportedDate? (reportedDate ≤ deadlineDate ? 100 : 0) : pending`; `avgT = Σtepat_i / n_validTimeliness` (0 bila 0); `capai_i = !confirmed?0 : pcro==0?0 : (period==12||pcro≥100)? min(rvro/volumeDipa*100,100) : min(pcro/tpcro*100,100)` (cap 100, round4→2, tpcro/vol ≤0 → 0 + warning); `avgC = Σcapai_i / n_included`; `score = 0.3*avgT + 0.7*avgC` (round 2); `weighted = score*25/100`. Deadline `YYYY-MM-DD` string-compare (`deadlineDate = EOM +5 workdays, holiday-aware`). `DecimalCalc` string-arithmetic (satu-satunya indikator pakai DecimalCalc aman, tanpa float).
+Persis implementasi kode sumber (`packages/ikpa-engine/src/indicators/output-achievement.ts`):
+
+$$\text{Tepat}_i = \begin{cases} 100, & \text{jika } \text{reportedDate}_i \le \text{deadlineDate}_i \\ 0, & \text{jika } \text{reportedDate}_i > \text{deadlineDate}_i \end{cases}$$
+
+$$\text{NK-ROKW} = \frac{\sum_{i=1}^{n_{\text{lapor}}} \text{Tepat}_i}{n_{\text{lapor}}}$$
+
+$$\text{Capaian}_i = \begin{cases} 0.00, & \text{jika } \text{confirmed}_i = \text{false} \\ 0.00, & \text{jika } \text{PCRO}_i = 0\% \\ \min\left(\frac{\text{RVRO}_i}{\text{VolumeDIPA}_i} \times 100, 100\right), & \text{jika } \text{periode}_i = 12 \lor \text{PCRO}_i \ge 100\% \\ \min\left(\frac{\text{PCRO}_i}{\text{TPCRO}_i} \times 100, 100\right), & \text{jika } \text{periode}_i \in [1..11] \land \text{PCRO}_i < 100\% \end{cases}$$
+
+$$\text{NK-CRO} = \frac{\sum_{i=1}^{n_{\text{dinilai}}} \text{Capaian}_i}{n_{\text{dinilai}}}$$
+
+$$\text{Skor IKPA-CO} = (\text{NK-ROKW} \times 30\%) + (\text{NK-CRO} \times 70\%)$$
+
+$$\text{Kontribusi IKPA} = \frac{\text{Skor IKPA-CO}}{100} \times 25$$
 
 ## 10. Threshold / Weight / Period / Rounding
 
-- Bobot 25 (terbesar 7 indikator; total 100). Sub 30/70 hardcode `"0.30"/"0.70"` cap di engine (bukan rule set).
-- Threshold: ketepatan deadline string `≤` inklusif; capaian cap 100; PCRO gate `≥100` masuk F2; Desember paksa F2.
-- Periode: per baris `month` 1–12; filter `evalPeriod` tunggal (pills) → `includedRoCount` penyebut; Dashboard tanpa filter (FY aggregate). Efektif fairness `effectiveMonthStart–End` 1–12 terkait periode.
-- Kalender: workday Mon–Fri, `holidays[]` 17 nasional 2026 + DB `workdays`, `addWorkdays(EOM,5)` (UTC, tanpa timezone WIB khusus).
-- Rounding: `DecimalCalc.roundHalfUp(4)→roundHalfUp(2)` capaian; avg & final `roundHalfUp(2)`; kontribusi `roundHalfUp(2)`; trace 2 desimal. Live drawer `toFixed(2)` float mirror.
-- Nol: tanpa baris / excluded semua → `null/incomplete`; tanpa lapor → `avgT 0.00` + `warning` (bukan incomplete); volume/tpcro 0 → warning + 0 bukan skip; semua pending → `0.00/0.00 → 0.00` warning.
+- **Bobot Indikator**: $25\%$ terhadap total nilai IKPA (bobot terbesar dari 7 indikator IKPA 2026).
+- **Bobot Subkomponen**: $30\%$ untuk Ketepatan Waktu Pelaporan (NK-ROKW) dan $70\%$ untuk Capaian Rincian Output (NK-CRO).
+- **Batas Cap Maksimal**: Capaian per RO dibatasi maksimal $100.00$; Skor Akhir IKPA-CO dibatasi maksimal $100.00$; Poin Kontribusi maksimal $25.00$ poin.
+- **Periode Batas Waktu (*Deadline*)**: Hari Kerja ke-5 bulan berikutnya ($5\text{ HK M+1}$), dihitung secara dinamis dari akhir bulan pelaporan dengan melompati hari Sabtu, Minggu, dan seluruh hari libur nasional resmi KPPN TA 2026 (`calculateFifthWorkingDayOfNextMonth`).
+- **Aturan Pembulatan**: Pembulatan setengah ke atas (`HALF_UP`) dengan presisi 2 angka di belakang koma untuk skor subkomponen, skor akhir, dan poin kontribusi.
+- **Toleransi Zero Denominator**: Jika TPCRO $\le 0$ atau Volume DIPA $\le 0$, engine tidak melempar exception/crash, melainkan menghasilkan nilai $0.00$ dan menyematkan pesan peringatan terstruktur pada `warnings`.
 
-## 11. Calculation Examples (engine aktual)
+## 11. Calculation Examples (engine aktual, `default2026RuleSet`)
 
-### Normal Case — Golden Pusdiklat 95.56 (CO-12/CO-18)
-3 RO Juli `confirmed` tepat `reported 2026-08-05 ≤ 2026-08-07`: RO1 `100/100→F2 100`, RO2 `100/100→F2 100`, RO3 `34/42→F1 80.95` → `avgT=100`, `avgC=(100+100+80.95)/3=93.65` → `score=0.3*100+0.7*93.65=95.56`, weighted `23.89`, sub 100.00/93.65 (`output-achievement.test.ts:442-493`).
+### Normal Case — Golden Test Pusdiklat (Nilai 95.56, Kontribusi 23.89)
+Satker memiliki 3 RO pada periode Juli 2026, seluruhnya berstatus terkonfirmasi dan dilaporkan tepat waktu pada `05-08-2026` (batas waktu $5\text{ HK}$: `07-08-2026`):
+- **RO 1 (001)**: $\text{PCRO} = 100\%$, $\text{Volume} = 100$, $\text{RVRO} = 100 \rightarrow$ Menggunakan Formula 2: $\frac{100}{100} \times 100 = 100.00$
+- **RO 2 (002)**: $\text{PCRO} = 100\%$, $\text{Volume} = 50$, $\text{RVRO} = 50 \rightarrow$ Menggunakan Formula 2: $\frac{50}{50} \times 100 = 100.00$
+- **RO 3 (003)**: $\text{PCRO} = 34\%$, $\text{TPCRO} = 42\% \rightarrow$ Menggunakan Formula 1: $\frac{34}{42} \times 100 = 80.9523 \rightarrow 80.95$
+- **Agregasi**:
+  - $\text{NK-ROKW} = \frac{100 + 100 + 100}{3} = 100.00$
+  - $\text{NK-CRO} = \frac{100 + 100 + 80.95}{3} = 93.65$
+  - $\text{Skor Akhir} = (100.00 \times 0.30) + (93.65 \times 0.70) = 30.00 + 65.56 = 95.56$
+  - $\text{Kontribusi IKPA} = \frac{95.56}{100} \times 25 = 23.89\text{ poin}$.
 
 ### Boundary Case
-`reported==deadline` → tepat (≤). `pcro==100` non-Des → F2 (CO-03 `2/2→100`). `pcro>100` float → F2. `RVRO/volume=150%` → cap 100 (CO-08 `15/10→100`). Des `FAN?` tidak otomatis 100 — `2/4→50` (CO-04). `rv==vol==0` tidak ada; `vol≤0` → 0+warning. `pcro==0 && tpcro==0` → 0 aman (CO-06).
+1. **Lapor Tepat pada Batas Hari Kerja ke-5**: `reportedDate = 2026-08-07` dan `deadlineDate = 2026-08-07` $\rightarrow$ Evaluasi `reportedDate <= deadlineDate` bernilai `true` $\rightarrow$ Nilai Ketepatan Waktu = $100$.
+2. **Aktivasi Formula 2 pada Bulan Non-Desember**: Pada bulan Oktober, RO dengan $\text{PCRO} = 100\%$ otomatis beralih dari Formula 1 ke Formula 2 berbasis rasio RVRO terhadap Volume DIPA.
+3. **Realisasi Melebihi Target Volume DIPA**: $\text{RVRO} = 150$, $\text{Volume DIPA} = 100 \rightarrow$ Rasio $150\%$ di-cap maksimal menjadi $100.00$.
+4. **Desember dengan Capaian Parsial**: Pada bulan Desember, RO dengan $\text{RVRO} = 2$ dan $\text{Volume DIPA} = 4$ menghasilkan $\text{Capaian} = \frac{2}{4} \times 100 = 50.00$ (tidak diasumsikan 100 otomatis).
 
 ### Edge/Invalid Case
-(a) Kosong → null/incomplete + `Tidak ada data…`. (b) `evalPeriod` tanpa data → null/incomplete `Tidak ada … untuk periode bulan X`. (c) Semua `isExcluded` (FAN.ZZ1×N) → null/incomplete `Seluruh (N) RO … dikecualikan`. (d) `!confirmed` → capai 0.00 walau RVRO 100 (CO-05 `30.00`). (e) `reportedDate null` → pending: `avgT` 0.00 + warning (CO-11) — tidak lagi selalu tepat. (f) Terlambat 1 hari `08>07` → NKKW 50.00 (CO-09/10 `85.00`). (g) Fairness 4×100 + 1×FAN excluded → NKKW 100/NK-CRO 100 vs bila not excluded → 80.00 (CO-13/14). (h) `tpcro 0` + `pcro 25` → warning `TPCRO_MUST_BE_GT_ZERO` + 0 (CO-07).
+1. **Laporan Belum Dikonfirmasi (Draft)**: RO dengan $\text{RVRO} = 100$ dan $\text{Volume} = 100$, dilaporkan tepat waktu tetapi `confirmed = false` $\rightarrow \text{NK-ROKW} = 100.00$, $\text{NK-CRO} = 0.00 \rightarrow \text{Skor Akhir} = 30.00$.
+2. **Progres Capaian $\text{PCRO} = 0\%$**: RO terkonfirmasi dengan $\text{PCRO} = 0\%$ dan $\text{TPCRO} = 0\% \rightarrow$ Langsung dievaluasi sebagai `ZERO_PCRO` bernilai $0.00$ tanpa warning deviasi nol.
+3. **Pengecualian Keadilan (*Fairness*)**: Dari 5 RO, 4 RO bernilai 100 dan 1 RO `FAN.ZZ1` bernilai 0 tetapi dikecualikan $\rightarrow$ Penyebut menjadi 4, sehingga $\text{NK-ROKW} = 100.00$ dan $\text{NK-CRO} = 100.00$ (tanpa tereduksi menjadi 80.00).
+4. **Seluruh RO Dikecualikan**: Jika seluruh RO pada bulan tersebut berstatus `isExcluded` $\rightarrow$ Engine mengembalikan `{ score: null, status: "incomplete" }` dengan peringatan informatif.
+5. **Keterlambatan Pelaporan 1 Hari**: Laporan disampaikan pada `08-08-2026` melewati batas `07-08-2026` $\rightarrow \text{Ketepatan Waktu} = 0$, sehingga mereduksi NK-ROKW secara proporsional.
 
 ## 12. Data Model & Persistence
 
-`output_reports{id uuid PK, fiscalYearId→fiscal_years, roCode text 1–32, roName text?, month smallint 1–12, rvro numeric18,4 NOT NULL, volumeDipa numeric18,4, pcro 8,4, tpcro 8,4, reportedAt timestamptz?, confirmed bool default false, confirmedAt/By?, createdBy?, deletedAt, createdAt, updatedAt}` + index `fiscalYearId`, `(roCode,month)`, `confirmed`, `deletedAt`. Unik logika `(fy,roCode,month)` via upsert, bukan DB constraint. Tulis upsert + confirm (set true + `confirmedAt/By=now`) + soft-delete + audit `output_reports` 4 aksi; baca non-deleted per FY + join `workdays` & fairness. `assessment_exclusion_policies{id,ruleSetId?,name,indicatorKey default output_achievement,action,category,matchType exact|list|prefix|regex,roMatchValue jsonb,scopeType national|kppn|organization,scopeId?,fiscalYearId?,year 2026,1–12,basisReference,displayReason,allowOperatorProposal,status draft|published}` + `assessment_exclusion_proposals{id,organizationId,fiscalYearId,indicatorKey,roCode,month?,category,basisReference,operatorNote,attachmentRef,status draft|submitted|approved|rejected|…,reviewNote,resolvedPolicyId}`. Fairness tulis idempotent `(org,fy,roCode)` + purge duplikat; baca scoped; admin CRUD policy/review. Tanpa asumsi persist untuk Output.
+- **Tabel `output_reports` (`packages/db/src/schema/output-reports.ts`)**:
+  - `id` (uuid, Primary Key)
+  - `fiscalYearId` (uuid, Foreign Key $\rightarrow$ `fiscal_years.id`)
+  - `roCode` (text, 1–32 karakter, uppercase)
+  - `roName` (text, opsional)
+  - `month` (smallint, 1–12)
+  - `rvro` (numeric 18,4, Not Null — tersimpan sebagai integer)
+  - `volumeDipa` (numeric 18,4, Not Null — tersimpan sebagai integer)
+  - `pcro` (numeric 8,4, Not Null — tersimpan max 2 desimal)
+  - `tpcro` (numeric 8,4, Not Null — tersimpan max 2 desimal)
+  - `reportedAt` (timestamptz, opsional/nullable)
+  - `confirmed` (boolean, default false)
+  - `confirmedAt` (timestamptz, opsional), `confirmedBy` (text, opsional)
+  - `createdBy` (text), `deletedAt` (timestamptz, soft delete), `createdAt`, `updatedAt`.
+  - Indeks: `fiscalYearId`, `(roCode, month)`, `confirmed`, `deletedAt`.
+
+- **Tabel `assessment_exclusion_policies` & `assessment_exclusion_proposals` (`packages/db/src/schema/assessment-exclusion.ts`)**:
+  - Menyimpan kebijakan pengecualian nasional/KPPN serta usulan simulasi pengecualian dari operator satker.
+  - Skema proposal mencakup `organizationId`, `fiscalYearId`, `roCode`, `month`, `category`, `basisReference`, `operatorNote`, `attachmentRef`, `status`.
+
+- **Tabel `workdays` (`packages/db/src/schema/workdays.ts`)**:
+  - Menyimpan 17 hari libur nasional resmi tahun 2026 untuk penghitungan hari kerja kanonis.
+
+- **Tabel `audit_logs` (`packages/db/src/schema/audit-logs.ts`)**:
+  - Mencatat rekam jejak setiap pembuatan, pengubahan, konfirmasi, penghapusan laporan RO, dan usulan fairness.
 
 ## 13. API / Service
 
-`output-achievement-service{fetchOutputReports,saveOutputReport,verifyOutputReport,removeOutputReport,submit/removeFairnessProposal,fetchFairnessPolicies/Proposals,saveFairnessPolicy,reviewProposal,fetchAllFairnessProposals}` → `server/output-achievement.ts` 9 ServerFn (`listOutputReportsFn(GET)`, `upsertOutputReportFn(POST)`, `confirmOutputReportFn(POST)`, `deleteOutputReportFn(POST)`, `createFairnessProposalFn`, `deleteFairnessProposalFn`, `listFairnessPoliciesFn(GET)`, `listFairnessProposalsFn(GET)`, `upsertFairnessPolicyFn`, `reviewFairnessProposalFn`, `listAllFairnessProposalsFn`) + FY2026 auto-init (`getOrInitFiscalYear`) + fallback `outputs:[]/holidays:[]` bila tanpa DB → domain `queries{listOutputs,listOutputsWithEligibility+deadline+eligibility,listFairness*}` + `mutations{upsertOutput,confirmOutput,softDeleteOutput,create/deleteFairnessProposal,upsertFairnessPolicy,reviewFairnessProposal}` + Zod + scope `assertOperatorOrgScope/assertAdminKppnScope` + audit. Validator passthrough di ServerFn, Zod domain; tanpa-DB tulis sukses-palsu untuk preview (pola modul lain).
+Lapisan service `output-achievement-service.ts` menghubungkan UI dengan 9 Server Functions di `apps/web/src/server/output-achievement.ts`:
+- `fetchOutputReports(orgId)` $\rightarrow$ `listOutputReportsFn(GET)`: Mengambil seluruh data laporan RO non-deleted, hari libur nasional, dan resolver status fairness.
+- `saveOutputReport(input)` $\rightarrow$ `upsertOutputReportFn(POST)`: Menyimpan data baru atau memperbarui data RO dengan validasi Zod dan pengecekan integer.
+- `verifyOutputReport(id)` $\rightarrow$ `confirmOutputReportFn(POST)`: Menandai konfirmasi laporan RO secara instan.
+- `removeOutputReport(id)` $\rightarrow$ `deleteOutputReportFn(POST)`: Melakukan soft-delete pada laporan RO.
+- `submitFairnessProposal(input)` $\rightarrow$ `createFairnessProposalFn(POST)`: Menyimpan usulan pengecualian secara idempotent.
+- `removeFairnessProposal(id, orgId)` $\rightarrow$ `deleteFairnessProposalFn(POST)`: Menghapus bersih usulan pengecualian saat satker menonaktifkannya.
+- `fetchFairnessProposals`, `fetchFairnessPolicies`, `saveFairnessPolicy`, `reviewProposal`: Mengelola data kebijakan dan review admin KPPN.
+
+*Fallback Mode Tanpa Database*: Jika database tidak terhubung, service mengembalikan array kosong `outputs: []` dan `holidays: []`, serta mutasi mengembalikan `{ success: true }` untuk mencegah aplikasi crash saat demo offline.
 
 ## 14. End-to-End Data Flow
 
-`drawer (RO/bulan/volume/rvro/pcro/tpcro/tanggal/confirmed) → service saveOutputReport → ServerFn upsertOutputReportFn → scope+FY → Zod dec4/dec84 + integer + range → Date(reportedAt) → upsert(audit) → invalidate → loader fetchOutputReports+fetchFairnessProposals → (a) tabel/4 kartu/strip (engine lokal `evalPeriod=selectedMonth`), (b) fairness modal list, (c) Dashboard → calculate.ts (resolve eligibility + 5-HK deadline holiday-aware + reportedAtISO + confirmed/isExcluded) → engine 30/70 → kartu CAPAIAN_OUTPUT + rekomendasi + history/export`. Fairness: `modal proposal → createFairnessProposalFn → upsert idempotent + purge → loader eligibility → engine continue(skip)`. Admin: `upsertFairnessPolicy/review` → eligibility terpengaruh next load. Tanggal lapor kini mengalir penuh `reportedDate → reportedAt → ISO string → deadline compare`.
+```
+[Operator UI: /operator/data/output-achievement]
+  │
+  ├─ (1) Pilih Pills Bulan 1..12 (State lokal `selectedMonth`)
+  │
+  ├─ (2) Input/Edit Form Drawer (Volume, RVRO, PCRO, TPCRO, Tanggal, Konfirmasi)
+  │      │
+  │      ├─ Live Drawer Formula Preview (Kalkulasi lokal Formula 1 / Formula 2 / Zero / Gate)
+  │      └─ Simpan Data ──► output-achievement-service ──► upsertOutputReportFn
+  │                             │
+  │                             ├─ Assert Operator Scope & FY 2026
+  │                             ├─ Zod Schema & Integer Validation (Volume & RVRO bulat murni)
+  │                             ├─ Upsert Database (output_reports) & Write Audit Log
+  │                             └─ router.invalidate()
+  │
+  ├─ (3) Modal Usulan Fairness (Simpan / Hapus Usulan)
+  │      └─ createFairnessProposalFn ──► Idempotent Upsert / Clean Delete ──► Invalidate
+  │
+  ├─ (4) Loader Fetching (fetchOutputReports + fetchFairnessProposals + Holidays)
+  │      │
+  │      ├─ resolveOutputAssessmentEligibility (Pengecualian Satker / Policy / FAN.ZZ1)
+  │      ├─ calculateFifthWorkingDayOfNextMonth (Deadline Kanonis 5 HK M+1)
+  │      │
+  │      ├─ [Engine Lokal Halaman]: calculateOutputAchievement(evalPeriod = selectedMonth)
+  │      │   └─ Render 4 Ponytail Metric Cards, Strip Reminder 5 HK, 4 Filter Tabs & DataTable
+  │      │
+  │      └─ [Dashboard Engine Snapshot]: calculateAndPersistSnapshot(reports FY)
+  │           └─ Render Kartu Capaian Output Dashboard, History Snapshot, dan XLSX/PDF Export
+```
 
-## 15. Dashboard Integration — IMPLEMENTED (sumber sama, periode FY)
+## 15. Dashboard Integration
 
-Satu engine actual via `calculateAndPersistSnapshot`; threshold warna 90/75 (umum); rute `CAPAIAN_OUTPUT → /operator/data/output-achievement`; rekomendasi kontekstual `Tingkatkan Capaian Output` (deep-link `output-achievement` konsisten). Kartu Dashboard tunjukkan skor agregat FY (tanpa `evalPeriod`) sehingga bisa beda dengan kartu halaman `selectedMonth`; rincian tepat/draft & fairness tidak di-breakdown di kartu (agregat buta — detail di halaman). History/Snapshot pakai snapshot umum `breakdownJson`.
+- **Pemetaan Indikator**: Dipetakan pada kartu `CAPAIAN_OUTPUT` di halaman Dashboard Utama (`/operator/dashboard` $\rightarrow$ tautan ke `/operator/data/output-achievement`).
+- **Skor & Status**: Menampilkan nilai agregat tahunan dari seluruh laporan RO tahun berjalan. Jika skor $\ge 90$ berstatus *Complete (Hijau)*, $\ge 75$ berstatus *Warning (Kuning)*, dan $< 75$ berstatus *Danger (Merah)*.
+- **Rekomendasi Dinamis**: Jika nilai subkomponen ketepatan atau capaian di bawah target, engine merekomendasikan aksi taktis: *"Tingkatkan Capaian Output"* dengan deep-link langsung ke halaman pengelolaan data Capaian Output.
 
-## 16. Reminder Integration — PARTIAL (kanonis tapi tanpa jadwal terkirim)
+## 16. Reminder Integration
 
-Strip per-bulan kanonis `calculateFifthWorkingDayOfNextMonth` + badge + saran + rincian `timely/late/pending` + teks `DD-MM-YYYY (Hari Kerja ke-5 M+1)` + seed `output_report_monthly` recommended → Reminder Center generik + `org_reminder_configs` + scheduler skeleton (seperti modul lain). Lead policy `[5,2]` hari kerja, `workdays_after_month_end:5`, dayType `workday`. Tanpa jadwal H-5/H-2 terkirim dari halaman; `nearestDeadline` Dashboard hardcode bila ada masih FY lama (verifikasi). Deadline kini tunggal kanonis (workday-aware), bukan 3 definisi lama.
+- **Strip Reminder Kanonis**: Terintegrasi di bagian atas halaman data Capaian Output dengan menghitung tanggal jatuh tempo $5\text{ HK M+1}$ secara dinamis berdasarkan kalender kerja resmi dan hari libur nasional KPPN.
+- **Kebijakan Reminder Terjadwal**: Terdapat konfigurasi seed policy `output_report_monthly` (tipe *Recommended*, lead days `[5, 2]`, target penerima operator dan PPK).
+- **Status Notifikasi**: Strip reminder menampilkan jumlah RO yang sudah tepat waktu, terlambat, dan yang masih menunggu konfirmasi.
 
-## 17. History Integration — IMPLEMENTED
+## 17. History Integration
 
-`breakdownJson.indicators[output_achievement]` (+`subComponents[timeliness 30,achievement 70]` + `formulaTrace 2×N+3` + `warnings` + `status complete|warning|incomplete` + `excluded` trace) per snapshot; compare History men-trace agregat. Per-RO & per-bulan & status konfirmasi/fairness tak berversi terpisah di snapshot header (hanya agregat FY); namun `roCode` ter-trace per langkah. Asumsi panel tak ada (tak persist) — konsisten.
+- **Persistensi Snapshot**: Setiap pembaruan data atau pemuatan dashboard menyimpan snapshot hasil evaluasi engine di tabel `score_snapshots` dalam format `breakdownJson.indicators.output_achievement`.
+- **Rincian Snapshot**: Memuat skor akhir, poin kontribusi, subkomponen `timeliness` (30%) dan `achievement` (70%), serta jejak formula audit lengkap per RO.
+- **Perbandingan Snapshot**: Fitur riwayat `/operator/history` dapat membandingkan perkembangan nilai Capaian Output antar-waktu.
 
-## 18. Report/Export Integration — IMPLEMENTED
+## 18. Report/Export Integration
 
-Sheet RO mentah (`roCode/roName/month/pcro/tpcro/rvro/volumeDipa/reportedAt/confirmed/eligibility/deadlineDate`) + Ringkasan 8 + PDF + agregat Admin; sanitasi; base64. Export kini berguna: kolom yang diekspor (PCRO/TPCRO/confirmed/reportedAt/isExcluded) justru yang dinilai engine — ironi lama teratasi. Copy "7 indikator" sama.
+- **Ekspor Excel (`operator-xlsx.ts`)**:
+  - Menyediakan sheet khusus `Capaian Output` yang memuat seluruh rincian per RO: Kode RO, Nama RO, Bulan, Target Volume DIPA, RVRO, PCRO, TPCRO, Tanggal Pelaporan, Status Konfirmasi, Status Objek Penilaian (*Dinilai / Dikecualikan*), dan Batas Waktu 5 HK.
+  - Menyertakan baris Capaian Output pada sheet Ringkasan 8 Indikator IKPA.
+- **Ekspor PDF (`operator-pdf.tsx`)**: Menampilkan ringkasan skor dan kontribusi Capaian Output secara transparan.
 
 ## 19. Error Handling
 
-Loader `Promise.all(fetchOutputs+fetchProposals)` tanpa try/catch (error propagate ke route error boundary). Mutasi → banner merah + preserve state; `createFairnessProposal` tanpa basis → early return tanpa banner (guard); validasi BE → throw `RVRO harus…/harus bulat/PCRO 0..100`; duplikat proposal → update bukan error; hapus via `confirm()` lalu `delete`. Tanpa-DB: baca kosong `outputs:[]`, tulis `success:true` palsu (preview offline). `reportedAt` null → strip `Belum Lapor (—)` jujur vs engine `pending` 0 + warning (konsisten, tidak divergen). `deadline` dari DB `workdays` kosong → fallback holiday `[]` → EOM+5 Mon–Fri murni.
+- **Validasi Nilai Integer**: Jika pengguna mencoba menginput nilai desimal pada Target Volume DIPA atau RVRO, form drawer menolak input secara langsung dan mutasi server melempar error `RVRO harus berupa bilangan bulat` / `Target Volume RO DIPA harus berupa bilangan bulat`.
+- **Validasi Batas Angka**: Penolakan otomatis pada tingkat server dan klien jika RVRO melebihi Volume DIPA atau jika PCRO/TPCRO bernilai negatif atau melebihi 100.
+- **Penanganan Denominator Nol**: Jika terdapat RO dengan TPCRO $\le 0$ saat PCRO $> 0$ atau Volume DIPA $\le 0$, engine tidak mengalami error *divide-by-zero*, melainkan menetapkan skor $0.00$ dan menyertakan pesan peringatan terstruktur.
+- **Pelaporan Kosong / Pending**: Laporan yang belum diisi tanggal lapor tidak menghasilkan error, melainkan ditandai sebagai `pending` pada subkomponen ketepatan waktu dengan status indikator `warning`.
 
 ## 20. Edge Cases
 
-- Semua draft (`!confirmed`) → NK-CRO 0.00 → skor = `0.3*avgT + 0`.
-- `PCRO 0 + confirmed` → capaian 0.00 (bukan warning F1/F2) — satu-satunya 0 eksplisit.
-- `FAN.ZZ1` tanpa proposal/policy → tetap excluded via fallback hardcode (3rd rule) — RO khusus tidak कभी dinilai bila policy seed hilang.
-- Duplikat `(FY,RO,bulan)` → upsert timpa (riwayat PCRO hilang di DB, tapi trace tetap per snapshot); RO sama beda bulan = baris terpisah (rata-rata per-baris, multi-bulan berbobot ganda sesuai evalPeriod).
-- `rvro > volume` → cap 100 (bukan error) untuk F2; `rv > vol` untuk F1 tak relevan (F1 pakai pcro). `vol 0 + rv 0` → F2 warning + 0 (bukan skip).
-- `reportedDate` masa depan masih `≤ deadline?` bisa tepat-artifisial bila deadline lebih jauh; tidak divalidasi ≤ today.
-- Pills bulan lokal `selectedMonth` — Des F2 paksa tetap tampil walau FY belum Desember; DB RO bulan lain tetap tersimpan tapi tak ikut `avg` bulan aktif.
-- `matchType regex` panjang >100 → `matchRoCode` return false (guard).
-- `workdays` kosong (tanpa seed) → deadline Mon–Fri murni minus Sabtu/Minggu saja (libur nasional diabaikan → toleransi 1–2 hari).
+| No | Kasus Khusus / Edge Case | Penanganan Sistem Aktual |
+|---|---|---|
+| 1 | Laporan RO belum dikonfirmasi (`confirmed: false`) | Skor capaian RO langsung dinilai $0.00$ (`ZERO_UNCONFIRMED`), namun ketepatan waktu tetap dinilai jika ada tanggal lapor. |
+| 2 | Progres capaian $\text{PCRO} = 0\%$ | Skor capaian RO langsung dinilai $0.00$ (`ZERO_PCRO`) tanpa pembagian numerik dan tanpa warning deviasi nol. |
+| 3 | Realisasi Volume melebihi Target Volume ($\text{RVRO} > \text{Volume DIPA}$) | Rasio capaian Formula 2 di-cap maksimal menjadi $100.00$. |
+| 4 | Seluruh RO pada suatu bulan berstatus Dikecualikan (*Fairness*) | Engine mengembalikan skor `null` dengan status `incomplete` dan pesan peringatan bahwa seluruh RO dikecualikan. |
+| 5 | RO Khusus `FAN.ZZ1` diinput tanpa kebijakan eksplisit | Resolver fairness secara otomatis mengecualikan RO `FAN.ZZ1` melalui *hardcoded fallback rule* TA 2026. |
+| 6 | Tanggal lapor persis pada hari kerja ke-5 ($5\text{ HK}$) | Evaluasi `reportedDate <= deadlineDate` bernilai `true` (inklusif) sehingga dinilai tepat waktu ($100$). |
+| 7 | Tanggal lapor melewati batas hari kerja ke-5 | Evaluasi bernilai `false` sehingga nilai ketepatan waktu menjadi $0$. |
+| 8 | Operator menonaktifkan usulan fairness satker | Mutasi `removeFairnessProposal` menghapus bersih baris usulan dari database dan mengembalikan status RO menjadi "Dinilai (Normal)". |
+| 9 | Target Volume DIPA bernilai 0 pada Formula 2 | Engine memberikan skor capaian $0.00$ dan mencatat warning `VOLUME_DIPA_MUST_BE_GT_ZERO`. |
+| 10 | Target TPCRO bernilai 0 saat $\text{PCRO} > 0$ pada Formula 1 | Engine memberikan skor capaian $0.00$ dan mencatat warning `TPCRO_MUST_BE_GT_ZERO_WHEN_PCRO_GT_ZERO`. |
 
 ## 21. Mock/Hardcoded/Placeholder Findings (10)
 
-1. HARDCODED: bobot 25 + 30/70 + cap 100 + round `half_up 2` + FY 2026.
-2. HARDCODED: `FAN.ZZ1` fallback exact di `fairness-resolver.ts:181-191` + policy seed `FAN.ZZ1` nasional published (`seed.ts:380-407`) — duplikat sadar; bila seed retracted, hardcode tetap exclude.
-3. KANONIS BARU: deadline `calculateFifthWorkingDayOfNextMonth` UTC + `holidays[]` 17 libur 2026 + `workdays[]` override (tanpa import hari cuti bersama detail).
-4. INTEGER ENFORCEMENT baru (`mutations.ts:67-68`) — `FormattedNumberInput allowDecimal false` + `Math.round(save)` + `Number.isInteger` guard (patch UI-INTEGER-VOL-RVRO).
-5. `DecimalCalc` string-arithmetic penuh (tanpa float) — satu-satunya indikator yang sudah presisi.
-6. Warning EN → ID campur: `VOLUME_DIPA_MUST_BE_GT_ZERO`, `TPCRO_MUST_BE_GT_ZERO_WHEN_PCRO_GT_ZERO`, `Tidak ada data…` — sudah ID tetapi prefix masih EN.
-7. Dead-ish: `publishedPolicies` di-props namun `FAN.ZZ1` hardcode tetap aktif walau policy list kosong (3rd fallback); `allowOperatorProposal` policy flag belum gate (semua proposal diterima).
-8. Tanpa-DB fallback OK: list → `outputs:[]/holidays:[]`; save/confirm → `success:true` palsu (pola modul lain — TODO unified).
-9. Live preview float `Math.min(...).toFixed(2)` vs engine DecimalCalc bisa beda 0.01 pada fractional edge (accepted, display-only).
-10. TODO implisit: FY dinamis (seed cuma 2026), `evalPeriod` vs Dashboard FY gap (belum disatukan), jadwal reminder H-5/H-2 terkirim, validasi `reportedDate ≤ deadline` sebelum simpan vs nilai 0, `target?/realized?` legacy field di skema tapi tak dipakai.
+1. **HARDCODED Subkomponen 30/70**: Nilai pembobotan $30\%$ NK-ROKW dan $70\%$ NK-CRO di-hardcode di dalam engine (`output-achievement.ts:263-264`), bukan dibaca dinamis dari rule set.
+2. **HARDCODED Bobot 25 IKPA**: Nilai bobot indikator default $25\%$ didefinisikan pada `default2026RuleSet.weights.output_achievement`.
+3. **HARDCODED Fallback RO Khusus `FAN.ZZ1`**: Fallback hardcode exact match `FAN.ZZ1` aktif di `fairness-resolver.ts:181-191` jika record database policy tidak ditemukan.
+4. **KANONIS Kalender Libur Nasional 2026**: Menggunakan 17 hari libur nasional resmi TA 2026 di `seed.ts:299-337` dan `workdays.ts`.
+5. **INTEGER ENFORCEMENT Murni**: Target Volume DIPA dan RVRO ditegakkan sebagai integer murni tanpa desimal di frontend `FormattedNumberInput` dan backend Zod mutations.
+6. **DECIMALCALC String Arithmetic**: Engine sepenuhnya menggunakan utilitas `DecimalCalc` untuk menghindari anomali pembulatan floating point JavaScript.
+7. **Pills Bulan Lokal vs Dashboard FY**: Tampilan halaman data menyaring berdasarkan pills bulan lokal (`evalPeriod`), sedangkan dashboard menghitung agregasi seluruh laporan tahun anggaran.
+8. **Live Preview Float Mirror**: Live preview di drawer menggunakan kalkulasi floating point `Math.min(...).toFixed(2)` untuk kecepatan render, sementara engine kalkulasi final menggunakan `DecimalCalc`.
+9. **Offline DB Fallback**: Jika koneksi database terputus, ServerFn mengembalikan fallback array kosong `{ outputs: [], holidays: [] }` dan mutasi sukses semu.
+10. **TODO Scheduler Reminder Otomatis**: Pengiriman reminder otomatis H-5 dan H-2 via cron scheduler masih berupa kerangka kerja dan belum mengirimkan email/notifikasi riil ke pengguna.
 
 ## 22. Source Code Evidence
 
-| Bagian | File → function/component → purpose |
+| Bagian | File $\rightarrow$ Function / Component $\rightarrow$ Tujuan |
 |---|---|
-| Kalkulasi | `packages/ikpa-engine/src/indicators/output-achievement.ts` → `calculateOutputAchievement` + `utils/workday-calendar.ts` → `calculateFifthWorkingDayOfNextMonth/addWorkdays/isWorkday` |
-| Skema/aturan | `packages/ikpa-engine/src/schemas.ts:108-129`; `rule-set.ts:159-168` (bobot 25) + `assessment-exclusion` DB |
-| Mapping | `apps/web/src/server/simulation/calculate.ts:452-486` ; `apps/web/src/server/policy/fairness-resolver.ts` → `resolveOutputAssessmentEligibility/matchRoCode` |
-| UI | `apps/web/src/routes/operator/data/output-achievement.tsx` → `OutputAchievementPage` (~1680 baris: pills 12, 4 kartu Ponytail, strip kanonis, 4 tab, 8 kolom tabel, drawer live preview, modal fairness, modal panduan) |
-| Service/API/validasi | `services/output-achievement-service.ts`; `server/output-achievement.ts` (9 ServerFn); `server/domains/output-achievement.{queries,mutations}.ts` → `upsertOutput/confirm/softDelete/create/deleteFairness*` + Zod + integer + audit |
-| DB | `packages/db/src/schema/output-reports.ts` → `output_reports`; `assessment-exclusion.ts` → `assessment_exclusion_policies/proposals`; `workdays.ts` |
-| Seed | `packages/db/src/seed.ts:241-259` (reminder `output_report_monthly`) + `:299-337` (17 libur) + `:380-407` (policy FAN.ZZ1) |
-| Dashboard/History/Export | `server/dashboard.ts`, `dashboard.tsx`, `history.tsx`, `exports/operator-xlsx.ts` → `indicators[output_achievement]` + sub 30/70 |
-| Test | `output-achievement.test.ts` (18: kosong, F1/F2/cap, draft, PCRO-0, warnings, timeliness, pending-warning, 5-HK kalender, fairness excluded/included, golden Pusdiklat 95.56) + `workday-calendar.test.ts` |
+| Engine Kalkulasi | `packages/ikpa-engine/src/indicators/output-achievement.ts` $\rightarrow$ `calculateOutputAchievement` $\rightarrow$ Kalkulasi Dual-Formula, 30/70, PCRO 0%, Gate Konfirmasi, dan Fairness |
+| Kalender Kerja Kanonis | `packages/ikpa-engine/src/utils/workday-calendar.ts` $\rightarrow$ `calculateFifthWorkingDayOfNextMonth`, `addWorkdays`, `isWorkday` $\rightarrow$ Penghitungan deadline 5 HK M+1 |
+| Skema Input Engine | `packages/ikpa-engine/src/schemas.ts:108-129` $\rightarrow$ `outputReportSchema`, `outputAchievementInputSchema` $\rightarrow$ Kontrak tipe data laporan RO |
+| Resolver Fairness | `apps/web/src/server/policy/fairness-resolver.ts` $\rightarrow$ `resolveOutputAssessmentEligibility`, `matchRoCode` $\rightarrow$ Penentuan status pengecualian RO |
+| Halaman Operator | `apps/web/src/routes/operator/data/output-achievement.tsx` $\rightarrow$ `OutputAchievementPage` $\rightarrow$ Tampilan utama, selector bulan, 4 kartu metrik, reminder strip, tabel data, drawer, dan modal |
+| Komponen Formatted Input | `apps/web/src/components/data/formatted-number-input.tsx` $\rightarrow$ `FormattedNumberInput` $\rightarrow$ Separasi ribuan real-time & proteksi integer murni |
+| Formatter Dinamis | `apps/web/src/lib/format.ts` $\rightarrow$ `stripTrailingDecimals`, `formatDateDDMMYYYY` $\rightarrow$ Standardisasi format angka dan tanggal kanonis |
+| Service Frontend | `apps/web/src/services/output-achievement-service.ts` $\rightarrow$ `fetchOutputReports`, `saveOutputReport`, `submitFairnessProposal` $\rightarrow$ Passthrough komunikasi ServerFn |
+| Server Functions | `apps/web/src/server/output-achievement.ts` $\rightarrow$ `listOutputReportsFn`, `upsertOutputReportFn`, `confirmOutputReportFn` $\rightarrow$ Handler server-side dengan validasi dan otorisasi |
+| Mutasi Server & Validasi | `apps/web/src/server/domains/output-achievement.mutations.ts` $\rightarrow$ `upsertOutput`, `createFairnessProposal`, `deleteFairnessProposal` $\rightarrow$ Validasi Zod, integer checks, dan audit logs |
+| Query Server | `apps/web/src/server/domains/output-achievement.queries.ts` $\rightarrow$ `listOutputsWithEligibility` $\rightarrow$ Pengambilan data laporan dengan resolver fairness dan deadline |
+| Skema Database | `packages/db/src/schema/output-reports.ts` $\rightarrow$ `outputReports`, `assessmentExclusionProposals` $\rightarrow$ Definisi tabel relasional Drizzle ORM |
+| Halaman Admin KPPN | `apps/web/src/routes/admin-kppn/policy/fairness.tsx` $\rightarrow$ `FairnessPolicyAdminPage` $\rightarrow$ Pengelolaan kebijakan fairness dan peninjauan usulan satker |
+| Unit Test Engine | `packages/ikpa-engine/src/indicators/output-achievement.test.ts` $\rightarrow$ Suite pengujian otomatis mencakup seluruh skenario bisnis dan golden test |
 
 ## 23. Documentation Discrepancies
 
-1. PRD §7 / FSD 900 ERD "`target/pcro`" lama (Desember-100 otomatis + `target=volume`) sudah ditimpa code FIX-CO-01 (F1/F2 + PCRO-0 + confirmed gate + fairness) — PRD perlu update § capaian vs modul ini kanonis.
-2. PRD:269 + FSD `5 HK` vs code lama 3 definisi (`YYYY-MM-05`/`EOM+5 Mon–Fri`/`DSL`) — SUDAH dikonsolidasi jadi 1 kanonis `EOM+5 workdays holiday-aware` + seed `workdays_after_month_end:5` selaras.
-3. BACKLOG F11-07/F9-07/F6-09 klaim lama "konfirmasi 5 HK & capaian RO bekerja" — KINI terbukti benar (gate + F1/F2 + 5 HK implementasi), но test golden 95.56 belum ada di backlog lama.
-4. Panduan output `guides.ts` g-07 vs engine 30/70 + F1/F2 + fairness — SUDAH selaras via modal Panduan Pusdiklat di halaman (isi §4.3 golden case).
-5. `fitur.md` tetap tidak ada (umum).
+1. **Formula Lama PRD vs Dual-Formula Aktual**: PRD lama mendokumentasikan bahwa bulan Desember otomatis bernilai 100%. Pada implementasi aktual PER-5/PB/2024 (FIX-CO-01), bulan Desember dihitung nyata menggunakan Formula 2 berbasis rasio RVRO terhadap Target Volume DIPA.
+2. **Definisi Batas Waktu 5 HK**: Spesifikasi awal memiliki beberapa variasi definisi deadline (tanggal 5 kalender, 5 hari kerja tanpa libur). Saat ini sistem telah sepenuhnya distandarisasi menjadi 1 definisi kanonis: Hari Kerja ke-5 bulan M+1 dengan memperhitungkan hari libur nasional KPPN (`calculateFifthWorkingDayOfNextMonth`).
+3. **Standardisasi Istilah Subkomponen**: Nomenklatur lama menggunakan singkatan `NKKW` dan `NKCRO`. Seluruh antarmuka, engine trace, dan dokumen telah distandarisasi menjadi `NK-ROKW` (Ketepatan Waktu Pelaporan RO) dan `NK-CRO` (Capaian Rincian Output).
+4. **Format Volume dan RVRO**: Dokumen lama mengizinkan desimal hingga 4 angka pada volume. Berdasarkan standarisasi DIPA dan pengujian operasional, Target Volume DIPA dan RVRO kini diwajibkan berupa bilangan bulat murni (*pure integer*).
 
 ## 24. Implementation Gaps (5)
 
-1. Periode pills lokal `selectedMonth` vs Dashboard FY aggregate — skor halaman bisa beda dengan Dashboard untuk FY yang sama (kanonis mana? — FY untuk rekap, bulan untuk drill-down; perlu label eksplisit di Dashboard).
-2. Validasi `reportedDate` masa depan / `reportedDate > deadline+bulan` belum ditolak — hanya dinilai 0 (mungkin perlu warning atau block future).
-3. `allowOperatorProposal` flag di policy belum enforce — semua proposal satker auto-excluded tanpa approval KPPN (review stub `reviewFairnessProposal` ada tapi tidak gate `calculate`).
-4. Reminder jadwal H-5/H-2 `output_report_monthly` belum terkirim otomatis; `nearestDeadline` generik vs per-bulan kanonis per RO; scheduler skeleton sama seperti indikator lain.
-5. Tanpa sinkronisasi FY selain 2026 (seed & FY auto-init hardcode 2026); rollover 2027 butuh seed ulang + migrasi workdays.
+1. **Sinkronisasi Agregasi Periode Bulan vs Dashboard FY**: Selector pills di halaman operator mengevaluasi nilai berdasarkan bulan yang dipilih (`evalPeriod = selectedMonth`), sedangkan Dashboard Utama menampilkan rata-rata agregat seluruh laporan tahun anggaran berjalan. Hal ini dapat menimbulkan perbedaan persepsi jika operator mengira angka di dashboard mewakili bulan terakhir.
+2. **Validasi Tanggal Pelaporan Masa Depan**: Sistem saat ini belum menolak pengisian `reportedDate` yang bertanggal di masa depan (*future date*), melainkan tetap menilainya terhadap deadline.
+3. **Alur Persetujuan Formal Fairness KPPN**: Pada lingkungan simulasi operator, usulan pengecualian satker langsung aktif mengecualikan RO dari perhitungan (*instant simulation exclusion*). Pada regulasi formal, usulan satker memerlukan persetujuan (*approval*) dari admin KPPN sebelum resmi dikecualikan.
+4. **Automated Cron Reminder Dispatcher**: Pemicu pengiriman email/notifikasi pengingat H-5 dan H-2 masih bersifat deklaratif di tabel database dan belum dieksekusi secara otomatis oleh background worker.
+5. **Dukungan Satuan RO Non-Integer (Layanan Khusus)**: Penegakan integer murni pada Target Volume DIPA dan RVRO berlaku global untuk seluruh RO, sehingga belum mendukung rincian output dengan satuan khusus (jika di masa depan terdapat RO dengan volume desimal resmi).
 
 ## 25. Questions for AI Reviewer
 
-1. Apakah `tepat = reportedDate ≤ EOM+5 workdays (loncat weekend+libur nasional KPPN)`, `capai = (F1: pcro/tpcro | F2: rvro/volume, Desember atau pcro≥100, cap 100)`, `gate confirmed→0, pcro==0→0`, `fairness excluded dari pembilang & penyebut kedua komponen`, `skor = 0.3 avgT + 0.7 avgC` bobot 25 sudah sesuai PER-5/Pusdiklat 2026 — khususnya pemisahan F1/F2 & gate konfirmasi & PCRO-0?
-2. Apakah penghapusan `fallback YYYY-MM-05` → `pending + warning + avgT 0` (tidak selalu tepat) sudah benar vs harus `incomplete` atau `belum dinilai`?
-3. Apakah deadline kanonis `calculateFifthWorkingDayOfNextMonth(EOM+5 workdays)` dengan `holidays 17 nasional + workdays override` cukup, atau perlu kalender cuti bersama + jam KPPN + timezone WIB eksplisit?
-4. Apakah Desember harus tetap F2 paksa (bukan 100 otomatis seperti regulasi lama `OUT-004`) dan apakah `tpcro/vol ≤0 → 0 + warning` (bukan skip) dapat diterima & cukup diungkap via trace?
-5. Haruskah `allowOperatorProposal=false` tetap auto-exclude FAN.ZZ1 via proposal satker, atau wajib gate `approved` KPPN sebelum `isExcluded=true` mempengaruhi skor?
-6. Apakah rata-rata per-baris dalam `evalPeriod` bulan (RO multi-bulan = baris terpisah di bulan masing-masing) sudah benar vs agregat per-RO-terakhir vs FY-average — dan mana yang tampil di Dashboard?
-7. Apakah integer enforcement RVRO/volume (`allowDecimal false` + `Math.round` + `isInteger`) sudah sesuai DIPA volume bulat, atau perlu dukung desimal satuan khusus & validasi `reportedAt` wajib saat `confirmed=true`?
+1. Apakah penerapan *Dual-Formula* Capaian RO (Formula 1: $\min\left(\frac{\text{PCRO}}{\text{TPCRO}} \times 100, 100\right)$ untuk Januari–November saat $\text{PCRO} < 100\%$, dan Formula 2: $\min\left(\frac{\text{RVRO}}{\text{Volume DIPA}} \times 100, 100\right)$ untuk Desember atau saat $\text{PCRO} \ge 100\%$) serta perlakuan khusus $\text{PCRO} = 0\% \rightarrow 0.00$ dan Laporan Belum Dikonfirmasi $\rightarrow 0.00$ sudah sepenuhnya presisi dan selaras dengan regulasi PER-5/PB/2024 dan Petunjuk Teknis IKPA TA 2026?
+2. Apakah penentuan batas waktu kanonis ketepatan pelaporan menggunakan Hari Kerja ke-5 bulan M+1 ($5\text{ HK M+1}$) dengan melompati hari libur nasional KPPN (`calculateFifthWorkingDayOfNextMonth`) sudah tepat, dan bagaimana perlakuan yang ideal terhadap hari cuti bersama yang ditetapkan mendadak oleh pemerintah?
+3. Apakah mekanisme perlakuan keadilan (*Fairness Treatment*) dengan mengeluarkan RO yang dikecualikan secara penuh dari pembilang dan penyebut pada kedua subkomponen (NK-ROKW dan NK-CRO) sudah tepat, dan apakah status usulan simulasi satker boleh langsung mengecualikan RO di tingkat operator sebelum disetujui KPPN?
+4. Bagaimana sebaiknya penyelarasan tampilan antara nilai bulanan pada halaman Capaian Output (`evalPeriod = selectedMonth`) dengan nilai tahunan yang ditampilkan pada kartu Dashboard Utama (`aggregate FY`) agar operator tidak mengalami kebingungan angka?
+5. Apakah penegakan bilangan bulat murni (*pure integer*) untuk Target Volume RO DIPA dan RVRO sudah sesuai dengan standar data DIPA seluruh kementerian/lembaga, ataukah perlu disediakan pengecualian untuk jenis RO tertentu?
+6. Pada evaluasi ketepatan waktu, jika suatu RO belum menyampaikan tanggal lapor (`reportedDate` kosong), sistem saat ini tidak memasukkannya ke dalam pembagi ketepatan waktu namun menandai status indikator sebagai `warning`. Apakah perlakuan ini sudah tepat dibandingkan dengan langsung menganggapnya bernilai 0 atau menetapkan status `incomplete`?
+7. Apakah struktur data dan alur antarmuka (Grid Target di kiri, Realisasi di kanan, Live Drawer Preview, dan Filter Tabs) sudah memberikan kenyamanan dan kejelasan maksimal bagi operator satker dalam menyusun strategi pemenuhan target IKPA Capaian Output?
 
 ---
 *Berhenti di sini. Jangan lanjut ke indikator berikutnya tanpa perintah.*
