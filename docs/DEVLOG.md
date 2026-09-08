@@ -3,7 +3,7 @@
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
 ### Session 173 - 2026-09-08
-**Time:** Start: 06:15 UTC | End: 06:45 UTC | Duration: ~30 minutes
+**Time:** Start: 06:15 UTC | End: 06:56 UTC | Duration: ~41 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator, Fullstack & Ponytail Design Agent
 - Model: Gemini 3.7 Flash
@@ -11,16 +11,26 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 **Tasks Completed:**
 - [UI-CO-PREVIEW-GRAYSCALE-REFACTOR-AND-FUTURE-PLAN] Refactor Menyeluruh Modul Capaian Output (`/operator/data/output-achievement`) Fokus Jadwal & Kepatuhan, Fitur Simulasi Tema Abu-abu Sandbox Non-Persistent (Preview), Panduan Reaktivasi Persistent `docs/future_plan/future_plan_caput.md`, dan Input Makro Dual-Source (Mode A & B):
   1. **Restrukturisasi 3 Tab Utama**:
-     - **Tab 1: `[ 📅 Jadwal & Kepatuhan ]`**: Fokus operasional utama satker (Selector Bulan 1–12, 4 Kartu Skor Ringkasan IKPA-CO, Modal Dual-Source Macro Input `[ ✏️ Input Capaian Terakhir ]`, Banner Open Period HK-7 & dispensasi M+1, Matriks 12 Bulan Open Period Nasional, dan Modal Pengajuan Periode Tambahan ke KPPN).
-     - **Tab 2: `[ 📖 Panduan PER-5 ]`**: Navigasi panduan komprehensif 5 bagian interaktif termasuk standardisasi 8 Variabel Kualitas Validasi Data Baku (Rules 01–08).
-     - **Tab 3: `[ 🧪 Fitur Simulasi (Preview) ▾ ]`**: Dropdown sub-tab (`Target Kinerja 12 Bulan`, `Realisasi Kinerja Bulanan`, `Fairness Treatment`) bertema abu-abu/slate dengan kontras tinggi (`text-slate-900`/`text-slate-100`, `border-slate-300`/`slate-700`, `bg-slate-50`/`slate-900/60`).
+     - **Tab 1: `[ Jadwal & Kepatuhan ]`**: Fokus operasional utama satker (Selector Bulan 1–12, 4 Kartu Skor Ringkasan IKPA-CO, Modal Dual-Source Macro Input `[ Input Capaian Terakhir ]`, Banner Open Period HK-7 & dispensasi M+1, Matriks 12 Bulan Open Period Nasional, dan Modal Pengajuan Periode Tambahan ke KPPN).
+     - **Tab 2: `[ Panduan PER-5 ]`**: Navigasi panduan komprehensif 5 bagian interaktif termasuk standardisasi 8 Variabel Kualitas Validasi Data Baku (Rules 01–08).
+     - **Tab 3: `[ Fitur Simulasi (Preview) ▾ ]`**: Dropdown sub-tab (`Target Kinerja 12 Bulan`, `Realisasi Kinerja Bulanan`, `Fairness Treatment`) bertema abu-abu/slate dengan kontras tinggi (`text-slate-900`/`text-slate-100`, `border-slate-300`/`slate-700`, `bg-slate-50`/`slate-900/60`).
   2. **Interaktivitas Sandbox Non-Persistent**:
      - Fitur simulasi berjalan dalam state in-memory (`simOutputs`, `simTargetPlans`, `simProposals`). User dapat mengedit target, mendistribusikan target otomatis, menginput realisasi bulanan, melihat live preview formula & live validation box (Rules 00–08), serta mengajukan usulan fairness tanpa memutasi remote database secara permanen.
      - Penambahan badge indicator `[ 🧪 Sandbox Preview ]` pada toast notification dan status feedback.
   3. **Dokumentasi Panduan Reaktivasi Persistent**:
      - Dibuat panduan teknis mendalam di `docs/future_plan/future_plan_caput.md` yang memuat arsitektur database, schema Drizzle, tabel mutasi server, mapping hook/service, dan checklist langkah aktivasi kembali persistent read-write.
-  4. **Dual-Source Macro Input Modal**:
-     - Mode A (`myintress_actual`) dan Mode B (`simulation_override` / Quick What-If) dengan sinkronisasi ke localStorage (`simulator_macro_co_data`) dan auto-recalculate nilai total `IKPA-CO = (NK-ROKW * 30%) + (NK-CRO * 70%)` dengan kontribusi +25% IKPA.
+  4. **Pembersihan UI & Feedback Resolusi**:
+     - Menghapus tombol redundan `Panduan PER-5` dari header atas.
+     - Menghapus emoji ganda pada 3 tombol tab navigasi (`📅`, `📖`, `🧪`) dan menyelaraskan dengan Lucide icon.
+     - Menghapus emoji pensil `✏️` ganda pada tombol `Input Capaian Terakhir`.
+     - Menghapus tombol `Buka Simulasi Target` dan memindahkan card `Pemutakhiran Target Triwulanan (10 HK Awal TW)` menjadi Box b di dalam Banner Open Period berdampingan dengan Open Period Reguler.
+     - Menghapus card redundan `Validasi Engine & Anomali Data` dari Tab 1 Jadwal & Kepatuhan.
+     - Menghapus tombol `Ajukan Buka Tambahan ke KPPN` dari banner Open Period.
+     - Menghapus kolom `Batas Akhir Periode Tambahan KPPN` dari tabel matriks 12 bulan Open Period.
+     - Menyelaraskan 4 kartu metrik nilai di atas secara simetris dan rapi (`flex flex-col justify-between min-h-[110px]`, baseline alignment `/ 100`, typography `text-2xl font-bold` konsisten).
+     - Menstandarisasi format kartu RO Objek Penilaian menjadi `X / Y RO` (misal `2 / 2 RO` saat input manual dan `0 / 0 RO` saat reset/kosong).
+     - Meningkatkan kontras warna teks header `Kode RO`, `Volume DIPA & Satuan`, `Versi`, `Status Rencana` pada `DomainDataTable` menjadi abu-abu tua/hitam tebal (`text-slate-800 dark:text-slate-200 font-bold`).
+     - Memperbarui penjelasan dan formula pada Bagian 3 Panduan PER-5: Formula 1 memuat definisi TPCRO & TRVRO, Formula 2 memuat formula `min((RVRO / TRVRO) * 100, 100)` beserta definisi PCRO & RVRO.
   5. **Verifikasi & Pengujian Otomatis**:
      - `npm run typecheck` -> Exit code 0 lintas 7 workspace packages monorepo.
      - `npm test` & `vitest` -> 37 test files / 266 unit tests lulus 100% (104 tests di `apps/web`, 93 di `ikpa-engine`, 31 di `access-control`, 29 di `policy-reminder`, 8 di `ui`, 1 di `contracts`).

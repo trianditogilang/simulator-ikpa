@@ -560,8 +560,8 @@ function OutputAchievementPage() {
 				isManual: true,
 				source: macroSavedData.source,
 				roLabel: macroSavedData.roEligible
-					? `${macroSavedData.roEligible} RO Objek Penilaian`
-					: `${evaluatedCount || 1} RO Objek Penilaian`,
+					? `${macroSavedData.roEligible} / ${macroSavedData.roEligible} RO`
+					: `${evaluatedCount} / ${totalRoMonth} RO`,
 				roSub:
 					macroSavedData.source === "myintress_actual"
 						? "Data Riil MyIntress Terinput"
@@ -1465,20 +1465,20 @@ function OutputAchievementPage() {
 	const targetColumns: ColumnDef<OutputTargetPlanRecord>[] = [
 		{
 			key: "ro",
-			header: "Kode & Uraian RO",
+			header: "Kode RO",
 			render: (plan) => (
 				<div>
 					<div className="flex items-center gap-1.5">
-						<span className="font-mono font-bold text-slate-900 dark:text-slate-100">
+						<span className="font-mono font-bold text-slate-950 dark:text-slate-50">
 							{plan.roCode}
 						</span>
 						{plan.isPriorityNational && (
-							<span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-amber-900 dark:text-amber-200 uppercase border border-amber-500/30">
+							<span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-amber-950 dark:text-amber-100 uppercase border border-amber-500/30">
 								PN
 							</span>
 						)}
 					</div>
-					<p className="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-1 font-medium">
+					<p className="text-[11px] text-slate-800 dark:text-slate-200 line-clamp-1 font-semibold">
 						{plan.roName || "—"}
 					</p>
 				</div>
@@ -1488,20 +1488,20 @@ function OutputAchievementPage() {
 			key: "volume",
 			header: "Volume DIPA & Satuan",
 			render: (plan) => (
-				<span className="font-semibold text-slate-900 dark:text-slate-100">
+				<span className="font-bold text-slate-950 dark:text-slate-50">
 					{formatDynamicNumber(plan.volumeDipa, 0)} {plan.unit || "Layanan"}
 				</span>
 			),
 		},
 		{
 			key: "version",
-			header: "Versi & Triwulan",
+			header: "Versi",
 			render: (plan) => (
 				<div>
-					<span className="font-bold text-slate-900 dark:text-slate-100">
+					<span className="font-bold text-slate-950 dark:text-slate-50">
 						Versi {plan.version}
 					</span>
-					<span className="text-[10px] text-slate-600 dark:text-slate-400 block font-medium">
+					<span className="text-[10px] text-slate-800 dark:text-slate-200 block font-semibold">
 						{plan.quarter ? `TW ${plan.quarter}` : "Awal Tahun"}
 					</span>
 				</div>
@@ -1514,8 +1514,8 @@ function OutputAchievementPage() {
 				<span
 					className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
 						plan.status === "active"
-							? "bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 border border-emerald-500/30"
-							: "bg-slate-300 dark:bg-slate-700 text-slate-900 dark:text-slate-100 border border-slate-400"
+							? "bg-emerald-500/20 text-emerald-950 dark:text-emerald-100 border border-emerald-500/40"
+							: "bg-slate-300 dark:bg-slate-700 text-slate-950 dark:text-slate-50 border border-slate-400 font-bold"
 					}`}
 				>
 					{plan.status === "active" ? "Aktif" : "Draft"}
@@ -1568,21 +1568,6 @@ function OutputAchievementPage() {
 							</p>
 						</div>
 					</div>
-
-					<div className="flex flex-wrap items-center gap-2">
-						<button
-							type="button"
-							onClick={() => setMainTab("panduan")}
-							className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition shadow-xs ${
-								mainTab === "panduan"
-									? "border-primary bg-primary text-primary-foreground"
-									: "border-border bg-background text-foreground hover:bg-surface-muted"
-							}`}
-						>
-							<BookOpen className="size-3.5" />
-							<span>Panduan PER-5</span>
-						</button>
-					</div>
 				</div>
 
 				{/* 3 Refactored Navigation Tabs */}
@@ -1601,7 +1586,7 @@ function OutputAchievementPage() {
 						}`}
 					>
 						<Calendar className="size-3.5" />
-						<span>📅 Jadwal & Kepatuhan</span>
+						<span>Jadwal & Kepatuhan</span>
 					</button>
 
 					{/* Tab 2: Panduan PER-5 */}
@@ -1618,7 +1603,7 @@ function OutputAchievementPage() {
 						}`}
 					>
 						<BookOpen className="size-3.5" />
-						<span>📖 Panduan PER-5</span>
+						<span>Panduan PER-5</span>
 					</button>
 
 					{/* Tab 3: Fitur Simulasi Dropdown (Preview Group) */}
@@ -1633,7 +1618,7 @@ function OutputAchievementPage() {
 							}`}
 						>
 							<FlaskConical className="size-3.5 text-slate-400" />
-							<span>🧪 Fitur Simulasi (Preview)</span>
+							<span>Fitur Simulasi (Preview)</span>
 							<ChevronDown className="size-3.5 ml-0.5 text-slate-400" />
 						</button>
 
@@ -1800,81 +1785,89 @@ function OutputAchievementPage() {
 									className="inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition shadow-xs"
 								>
 									<Edit className="size-3.5" />
-									<span>✏️ Input Capaian Terakhir</span>
+									<span>Input Capaian Terakhir</span>
 								</button>
 							</div>
 						</div>
 
 						{/* 4 Cards Scoring Strip */}
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1.5">
+							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-muted-foreground">
 									<span className="text-xs font-semibold">
 										RO Objek Penilaian
 									</span>
 									<Target className="size-4 text-primary" />
 								</div>
-								<p className="text-xl font-bold text-foreground">
-									{displayedScores.roLabel}
-								</p>
-								<p className="text-[11px] text-muted-foreground">
-									{displayedScores.roSub}
-								</p>
+								<div className="space-y-0.5 mt-2">
+									<p className="text-2xl font-bold tracking-tight text-foreground">
+										{displayedScores.roLabel}
+									</p>
+									<p className="text-[11px] text-muted-foreground font-medium">
+										{displayedScores.roSub}
+									</p>
+								</div>
 							</div>
 
-							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1.5">
+							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-muted-foreground">
 									<span className="text-xs font-semibold">
 										Ketepatan Waktu (NK-ROKW 30%)
 									</span>
 									<Clock className="size-4 text-warning" />
 								</div>
-								<p className="text-xl font-bold text-foreground">
-									{displayedScores.nkkw}{" "}
-									<span className="text-xs font-normal text-muted-foreground">
-										/ 100
-									</span>
-								</p>
-								<p className="text-[11px] text-muted-foreground">
-									{displayedScores.nkkwSub}
-								</p>
+								<div className="space-y-0.5 mt-2">
+									<p className="text-2xl font-bold tracking-tight text-foreground flex items-baseline gap-1">
+										<span>{displayedScores.nkkw}</span>
+										<span className="text-xs font-normal text-muted-foreground">
+											/ 100
+										</span>
+									</p>
+									<p className="text-[11px] text-muted-foreground font-medium">
+										{displayedScores.nkkwSub}
+									</p>
+								</div>
 							</div>
 
-							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-1.5">
+							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-muted-foreground">
 									<span className="text-xs font-semibold">
 										Capaian RO (NK-CRO 70%)
 									</span>
 									<Percent className="size-4 text-success" />
 								</div>
-								<p className="text-xl font-bold text-foreground">
-									{displayedScores.nkcro}{" "}
-									<span className="text-xs font-normal text-muted-foreground">
-										/ 100
-									</span>
-								</p>
-								<p className="text-[11px] text-muted-foreground">
-									{displayedScores.nkcroSub}
-								</p>
+								<div className="space-y-0.5 mt-2">
+									<p className="text-2xl font-bold tracking-tight text-foreground flex items-baseline gap-1">
+										<span>{displayedScores.nkcro}</span>
+										<span className="text-xs font-normal text-muted-foreground">
+											/ 100
+										</span>
+									</p>
+									<p className="text-[11px] text-muted-foreground font-medium">
+										{displayedScores.nkcroSub}
+									</p>
+								</div>
 							</div>
 
-							<div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 shadow-xs space-y-1.5">
+							<div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-primary">
 									<span className="text-xs font-bold">
 										Nilai IKPA-CO & Kontribusi
 									</span>
 									<Award className="size-4 text-primary" />
 								</div>
-								<p className="text-xl font-extrabold text-primary">
-									{displayedScores.finalScore}{" "}
-									<span className="text-xs font-normal text-muted-foreground">
-										/ 100
-									</span>
-								</p>
-								<p className="text-[11px] font-semibold text-foreground">
-									Kontribusi: +{displayedScores.weightedContribution} poin ke
-									Satker
-								</p>
+								<div className="space-y-0.5 mt-2">
+									<p className="text-2xl font-extrabold tracking-tight text-primary flex items-baseline gap-1">
+										<span>{displayedScores.finalScore}</span>
+										<span className="text-xs font-normal text-muted-foreground">
+											/ 100
+										</span>
+									</p>
+									<p className="text-[11px] font-semibold text-foreground">
+										Kontribusi: +{displayedScores.weightedContribution} poin ke
+										Satker
+									</p>
+								</div>
 							</div>
 						</div>
 
@@ -1940,49 +1933,73 @@ function OutputAchievementPage() {
 												: "Jadwal 12 Bulan Open Period"}
 										</span>
 									</button>
-									<button
-										type="button"
-										onClick={() => {
-											setAdditionalRequestDocNumber("");
-											setAdditionalRequestNote("");
-											setIsRequestingAdditionalOpen(true);
-										}}
-										className="inline-flex items-center gap-1.5 rounded-lg border border-warning/30 bg-warning/10 px-3 py-1.5 text-xs font-semibold text-warning transition hover:bg-warning/20 shadow-xs"
-									>
-										<Clock className="size-3.5" />
-										<span>Ajukan Buka Tambahan ke KPPN</span>
-									</button>
 								</div>
 							</div>
 
 							{/* Period Rules 2-Box */}
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-border/60 text-xs">
-								<div className="rounded-xl border border-success/20 bg-success/5 p-3 space-y-1">
-									<p className="font-bold text-success flex items-center gap-1.5">
-										<span className="flex size-4 items-center justify-center rounded-full bg-success text-success-foreground text-[10px] font-bold">
-											a
-										</span>
-										Open Period Reguler (Buka Sistem Otomatis)
-									</p>
-									<p className="text-[11px] text-muted-foreground leading-relaxed">
-										Awal bulan berikutnya s.d.{" "}
-										<strong>Hari Kerja ke-7 (HK-7)</strong> bulan berikutnya.
-										Sistem terbuka otomatis untuk seluruh satker tanpa syarat
-										dispensasi.
+								<div className="rounded-xl border border-success/20 bg-success/5 p-3 space-y-1.5 flex flex-col justify-between">
+									<div className="space-y-1">
+										<p className="font-bold text-success flex items-center gap-1.5">
+											<span className="flex size-4 items-center justify-center rounded-full bg-success text-success-foreground text-[10px] font-bold">
+												a
+											</span>
+											Open Period Reguler (Buka Sistem Otomatis)
+										</p>
+										<p className="text-[11px] text-muted-foreground leading-relaxed">
+											Awal bulan berikutnya s.d.{" "}
+											<strong>Hari Kerja ke-7 (HK-7)</strong> bulan berikutnya.
+											Sistem terbuka otomatis untuk seluruh satker tanpa syarat
+											dispensasi.
+										</p>
+									</div>
+									<p className="text-[10px] text-muted-foreground pt-1">
+										Jadwal Bulan {MONTH_NAMES[selectedMonth - 1]}:{" "}
+										<strong className="text-foreground">
+											{formatDateDDMMYYYY(canonicalDeadline)}
+										</strong>
 									</p>
 								</div>
-								<div className="rounded-xl border border-warning/20 bg-warning/5 p-3 space-y-1">
-									<p className="font-bold text-warning flex items-center gap-1.5">
-										<span className="flex size-4 items-center justify-center rounded-full bg-warning text-warning-foreground text-[10px] font-bold">
-											b
-										</span>
-										Open Period Tambahan KPPN (Kejadian Khusus)
-									</p>
-									<p className="text-[11px] text-muted-foreground leading-relaxed">
-										Setelah HK-7 s.d. <strong>akhir bulan berikutnya</strong>,
-										sepanjang telah dibuka periode pelaporan tambahan oleh Admin
-										KPPN (Aplikasi MyIntress / Simulator IKPA).
-									</p>
+								<div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-1.5 flex flex-col justify-between">
+									<div className="space-y-1">
+										<div className="flex items-center justify-between">
+											<p className="font-bold text-primary flex items-center gap-1.5">
+												<span className="flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+													b
+												</span>
+												Pemutakhiran Target Triwulanan (10 HK Awal TW)
+											</p>
+											<span
+												className={`rounded-full px-2 py-0.2 text-[9px] font-bold uppercase ${
+													activeWindow?.status === "open"
+														? "bg-success/10 text-success border border-success/20"
+														: activeWindow?.status === "scheduled"
+															? "bg-primary/10 text-primary border border-primary/20"
+															: "bg-surface-muted text-muted-foreground border border-border"
+												}`}
+											>
+												{activeWindow?.status === "open"
+													? "Terbuka"
+													: activeWindow?.status === "scheduled"
+														? "Terjadwal"
+														: "Ditutup"}
+											</span>
+										</div>
+										<p className="text-[11px] text-muted-foreground leading-relaxed">
+											{activeWindow
+												? `${activeWindow.name}: ${activeWindow.periodText} (${activeWindow.notes})`
+												: "Pemutakhiran target proyeksi 12 bulan dilakukan 10 hari kerja di awal triwulan."}
+										</p>
+									</div>
+									<div className="pt-1">
+										<a
+											href="/operator/reminders"
+											className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-semibold"
+										>
+											<Bell className="size-3" />
+											<span>Atur Reminder di Reminder Center</span>
+										</a>
+									</div>
 								</div>
 							</div>
 
@@ -2046,9 +2063,6 @@ function OutputAchievementPage() {
 												<th className="px-3 py-2.5">
 													Batas Akhir Open Period Reguler (Buka Sistem Otomatis)
 												</th>
-												<th className="px-3 py-2.5">
-													Batas Akhir Periode Tambahan KPPN
-												</th>
 												<th className="px-3 py-2.5 text-center">
 													Status Akses
 												</th>
@@ -2080,9 +2094,6 @@ function OutputAchievementPage() {
 													</td>
 													<td className="px-3 py-2.5 font-semibold text-primary">
 														{formatDateDDMMYYYY(item.regulerDeadline)}
-													</td>
-													<td className="px-3 py-2.5 text-muted-foreground">
-														{formatDateDDMMYYYY(item.additionalDeadline)}
 													</td>
 													<td className="px-3 py-2.5 text-center">
 														<span
@@ -2121,99 +2132,6 @@ function OutputAchievementPage() {
 								</div>
 							</div>
 						)}
-
-						{/* Quick Banners */}
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-2">
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-2 font-bold text-foreground text-xs">
-										<Calendar className="size-4 text-primary" />
-										<span>
-											Pemutakhiran Target Triwulanan (10 HK Awal Triwulan)
-										</span>
-									</div>
-									<span
-										className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-											activeWindow?.status === "open"
-												? "bg-success/10 text-success"
-												: activeWindow?.status === "scheduled"
-													? "bg-primary/10 text-primary"
-													: "bg-surface-muted text-muted-foreground"
-										}`}
-									>
-										{activeWindow?.status === "open"
-											? "Terbuka"
-											: activeWindow?.status === "scheduled"
-												? "Terjadwal"
-												: "Ditutup"}
-									</span>
-								</div>
-								<p className="text-xs text-muted-foreground">
-									{activeWindow
-										? `${activeWindow.name}: ${activeWindow.periodText} (${activeWindow.notes})`
-										: "Pemutakhiran target dilakukan 10 hari kerja di awal triwulan."}
-								</p>
-								<div className="flex items-center gap-3 pt-1">
-									<button
-										type="button"
-										onClick={() => {
-											setMainTab("simulasi");
-											setSimSubTab("target");
-										}}
-										className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-									>
-										<span>Buka Simulasi Target</span>
-										<ArrowRight className="size-3" />
-									</button>
-									<a
-										href="/operator/reminders"
-										className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
-									>
-										<Bell className="size-3" />
-										<span>Atur Reminder</span>
-									</a>
-								</div>
-							</div>
-
-							<div className="rounded-2xl border border-border bg-background p-4 shadow-xs space-y-2">
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-2 font-bold text-foreground text-xs">
-										<ShieldAlert className="size-4 text-warning" />
-										<span>Validasi Engine & Anomali Data</span>
-									</div>
-									<span className="text-xs text-muted-foreground font-semibold">
-										{monthBlockingCount + monthConfirmationCount} Catatan Bulan
-										Ini
-									</span>
-								</div>
-								<p className="text-xs text-muted-foreground">
-									{monthBlockingCount} Blocking Issues ·{" "}
-									{monthConfirmationCount} Butuh Konfirmasi PPK.
-								</p>
-								<div className="flex items-center gap-3 pt-1">
-									<button
-										type="button"
-										onClick={() => {
-											setMainTab("simulasi");
-											setSimSubTab("realisasi");
-											setActiveTabFilter("action_needed");
-										}}
-										className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-									>
-										<span>Uji Coba Validasi di Simulasi</span>
-										<ArrowRight className="size-3" />
-									</button>
-									<button
-										type="button"
-										onClick={() => setMainTab("panduan")}
-										className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
-									>
-										<BookOpen className="size-3" />
-										<span>Pelajari 8 Rule PER-5</span>
-									</button>
-								</div>
-							</div>
-						</div>
 					</div>
 				)}
 
@@ -2299,29 +2217,37 @@ function OutputAchievementPage() {
 										3. Formula Perhitungan NK-CRO (Formula 1 vs Formula 2)
 									</p>
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-										<div className="rounded-lg border border-border bg-background p-3 space-y-1">
+										<div className="rounded-lg border border-border bg-background p-3 space-y-1.5">
 											<span className="font-bold text-foreground">
 												Formula 1 (Jan–Nov & PCRO &lt; 100%)
 											</span>
 											<code className="block rounded bg-surface p-2 font-mono text-primary font-bold text-center">
 												min((PCRO / TPCRO) × 100, 100)
 											</code>
-											<p className="text-[11px] text-muted-foreground">
-												Digunakan pada periode berjalan jika progres fisik belum
-												selesai penuh.
-											</p>
+											<div className="text-[11px] text-muted-foreground space-y-1 pt-1 leading-relaxed">
+												<p>
+													• <strong>TPCRO (Target Progres Capaian Rincian Output)</strong>: Target persentase kemajuan pelaksanaan suatu RO yang diproyeksikan tercapai setiap bulannya.
+												</p>
+												<p>
+													• <strong>TRVRO (Target Realisasi Volume Rincian Output)</strong>: Target jumlah atau volume fisik dari suatu RO yang direncanakan akan direalisasikan pada bulan tertentu.
+												</p>
+											</div>
 										</div>
-										<div className="rounded-lg border border-border bg-background p-3 space-y-1">
+										<div className="rounded-lg border border-border bg-background p-3 space-y-1.5">
 											<span className="font-bold text-foreground">
 												Formula 2 (Desember atau PCRO = 100%)
 											</span>
 											<code className="block rounded bg-surface p-2 font-mono text-primary font-bold text-center">
-												min((RVRO / Target Volume DIPA) × 100, 100)
+												min((RVRO / TRVRO) × 100, 100)
 											</code>
-											<p className="text-[11px] text-muted-foreground">
-												Digunakan pada akhir tahun anggaran atau saat target
-												fisik telah mencapai 100%.
-											</p>
+											<div className="text-[11px] text-muted-foreground space-y-1 pt-1 leading-relaxed">
+												<p>
+													• <strong>PCRO (Progres Capaian Rincian Output)</strong>: Persentase yang menunjukkan tingkat penyelesaian dari aktivitas RO yang sedang berjalan.
+												</p>
+												<p>
+													• <strong>RVRO (Realisasi Volume Rincian Output)</strong>: Jumlah atau volume fisik dari RO yang telah tercapai dalam periode pelaporan.
+												</p>
+											</div>
 										</div>
 									</div>
 								</div>
