@@ -42,22 +42,23 @@ export const mockReminderPolicies: ReminderPolicyEventItem[] = [
 	{
 		id: "pol-02",
 		eventType: "output_report_due",
-		eventTitle: "Batas Pelaporan & Konfirmasi Capaian Output",
+		eventTitle: "Batas Pelaporan & Konfirmasi Capaian Output (Open Period)",
 		indicatorKey: "output_achievement",
 		indicatorLabel: "Capaian Output",
 		category: "mandatory",
 		dayType: "workday",
-		deadlineFormulaSummary: "Hari kerja ke-5 bulan berikutnya",
+		deadlineFormulaSummary:
+			"Hari kerja ke-7 bulan berikutnya (Open Period Reguler, Jan-Mar s.d. 30 April 2026)",
 		allowedMinLeadDays: 1,
-		allowedMaxLeadDays: 10,
-		defaultLeadDays: [5, 2],
+		allowedMaxLeadDays: 14,
+		defaultLeadDays: [7, 3, 0],
 		requiredRecipients: ["Operator Capaian Output", "PPK Satker"],
 		allowDisable: false,
 		allowRecipientOverride: true,
 		status: "published",
 		ruleSetVersion: "2026.1",
 		description:
-			"Pengingat pelaporan capaian output bulanan ke aplikasi OM-SPAN / SAKTI.",
+			"Pengingat pelaporan dan konfirmasi capaian output bulanan pada Open Period Reguler (awal bulan s.d. HK-7) maupun periode tambahan KPPN.",
 	},
 	{
 		id: "pol-03",
@@ -119,6 +120,27 @@ export const mockReminderPolicies: ReminderPolicyEventItem[] = [
 		ruleSetVersion: "2026.1",
 		description:
 			"Ringkasan berkala progres skor estimasi dan tindakan mitigasi risiko mingguan.",
+	},
+	{
+		id: "pol-06",
+		eventType: "output_target_update_due",
+		eventTitle: "Pemutakhiran Proyeksi Target Capaian Output Triwulanan",
+		indicatorKey: "output_achievement",
+		indicatorLabel: "Capaian Output",
+		category: "mandatory",
+		dayType: "workday",
+		deadlineFormulaSummary:
+			"10 hari kerja awal triwulan (TW I & II s.d. 30 Apr 2026, TW III s.d. 14 Jul 2026, TW IV s.d. 14 Okt 2026)",
+		allowedMinLeadDays: 0,
+		allowedMaxLeadDays: 10,
+		defaultLeadDays: [10, 3, 0],
+		requiredRecipients: ["PPK Satker", "KPA Satker", "Operator Capaian Output"],
+		allowDisable: false,
+		allowRecipientOverride: true,
+		status: "published",
+		ruleSetVersion: "2026.1",
+		description:
+			"Pengingat periode input dan pemutakhiran target capaian output triwulanan (10 hari kerja di awal triwulan).",
 	},
 ];
 

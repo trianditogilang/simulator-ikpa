@@ -53,6 +53,108 @@ describe("deadline-calculator", () => {
 			evaluateDeadline({ type: "end_of_year_schedule" }, { year: 2026 }, cal),
 		).toBe("2026-12-31");
 	});
+	it("target_window_close for 2026 quarters", () => {
+		expect(
+			evaluateDeadline(
+				{ type: "target_window_close" },
+				{ year: 2026, quarter: 1 },
+				cal,
+			),
+		).toBe("2026-04-30");
+		expect(
+			evaluateDeadline(
+				{ type: "target_window_close" },
+				{ year: 2026, quarter: 2 },
+				cal,
+			),
+		).toBe("2026-04-30");
+		expect(
+			evaluateDeadline(
+				{ type: "target_window_close" },
+				{ year: 2026, quarter: 3 },
+				cal,
+			),
+		).toBe("2026-07-14");
+		expect(
+			evaluateDeadline(
+				{ type: "target_window_close" },
+				{ year: 2026, quarter: 4 },
+				cal,
+			),
+		).toBe("2026-10-14");
+	});
+	it("output_report_deadline for 2026 realization open periods", () => {
+		expect(
+			evaluateDeadline(
+				{ type: "output_report_deadline" },
+				{ year: 2026, month: 1 },
+				cal,
+			),
+		).toBe("2026-04-30");
+		expect(
+			evaluateDeadline(
+				{ type: "output_report_deadline" },
+				{ year: 2026, month: 4 },
+				cal,
+			),
+		).toBe("2026-05-12");
+		expect(
+			evaluateDeadline(
+				{ type: "output_report_deadline" },
+				{ year: 2026, month: 5 },
+				cal,
+			),
+		).toBe("2026-06-10");
+		expect(
+			evaluateDeadline(
+				{ type: "output_report_deadline" },
+				{ year: 2026, month: 6 },
+				cal,
+			),
+		).toBe("2026-07-09");
+		expect(
+			evaluateDeadline(
+				{ type: "output_report_deadline" },
+				{ year: 2026, month: 7 },
+				cal,
+			),
+		).toBe("2026-08-11");
+		expect(
+			evaluateDeadline(
+				{ type: "output_report_deadline" },
+				{ year: 2026, month: 8 },
+				cal,
+			),
+		).toBe("2026-09-09");
+		expect(
+			evaluateDeadline(
+				{ type: "output_report_deadline" },
+				{ year: 2026, month: 9 },
+				cal,
+			),
+		).toBe("2026-10-09");
+		expect(
+			evaluateDeadline(
+				{ type: "output_report_deadline" },
+				{ year: 2026, month: 10 },
+				cal,
+			),
+		).toBe("2026-11-10");
+		expect(
+			evaluateDeadline(
+				{ type: "output_report_deadline" },
+				{ year: 2026, month: 11 },
+				cal,
+			),
+		).toBe("2026-12-09");
+		expect(
+			evaluateDeadline(
+				{ type: "output_report_deadline" },
+				{ year: 2026, month: 12 },
+				cal,
+			),
+		).toBe("2027-01-13");
+	});
 	it("rejects unknown formula", () => {
 		expect(() =>
 			evaluateDeadline({ type: "unknown" } as never, { year: 2026 }, cal),

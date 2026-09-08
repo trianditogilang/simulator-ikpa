@@ -275,17 +275,17 @@ describe("Capaian Output & Fairness Treatment (CO-01 s.d. CO-18)", () => {
 		expect(result.subComponents?.find((s) => s.key === "timeliness")?.score).toBe("0.00");
 	});
 
-	// CO-12: Canonical 5th workday deadline calculation with calendar shifts
-	it("CO-12: calculates fifth working day of next month correctly with weekends & holidays", () => {
-		// July 2026 -> August 2026: Aug 1 (Sat), Aug 2 (Sun), Aug 3 (Mon, 1), Aug 4 (Tue, 2), Aug 5 (Wed, 3), Aug 6 (Thu, 4), Aug 7 (Fri, 5)
-		const deadline = calculateFifthWorkingDayOfNextMonth(2026, 7, { holidays: [] });
-		expect(deadline).toBe("2026-08-07");
+	// CO-12: Canonical 7th workday / 2026 open period schedule deadline calculation
+	it("CO-12: calculates output report open period deadline correctly for 2026 and generic 7 HK", () => {
+		// 2026 official schedule: July 2026 -> 2026-08-11, April 2026 -> 2026-05-12, Jan-Mar 2026 -> 2026-04-30
+		expect(calculateFifthWorkingDayOfNextMonth(2026, 1, { holidays: [] })).toBe("2026-04-30");
+		expect(calculateFifthWorkingDayOfNextMonth(2026, 4, { holidays: [] })).toBe("2026-05-12");
+		expect(calculateFifthWorkingDayOfNextMonth(2026, 7, { holidays: [] })).toBe("2026-08-11");
+		expect(calculateFifthWorkingDayOfNextMonth(2026, 12, { holidays: [] })).toBe("2027-01-13");
 
-		// With holiday on Monday Aug 3 -> shifts to Monday Aug 10
-		const deadlineWithHoliday = calculateFifthWorkingDayOfNextMonth(2026, 7, {
-			holidays: ["2026-08-03"],
-		});
-		expect(deadlineWithHoliday).toBe("2026-08-10");
+		// Generic year 2027: July 2027 -> Aug 1 (Sun) -> Aug 2,3,4,5,6,9,10 (7 HK = Aug 10, 2027)
+		const genericDeadline = calculateFifthWorkingDayOfNextMonth(2027, 7, { holidays: [] });
+		expect(genericDeadline).toBe("2027-08-10");
 	});
 
 	// CO-13: Fairness treatment (4 ROs = 100, 1 RO FAN.ZZ1 excluded -> NKCRO = 100, denominator = 4)

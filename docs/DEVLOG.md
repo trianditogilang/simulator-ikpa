@@ -2,6 +2,207 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 172 - 2026-09-08
+**Time:** Start: 04:40 UTC | End: 04:48 UTC | Duration: ~8 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng
+**Tasks Completed:**
+- [UI-CO-RELOCATE-FAIRNESS-BUTTON-TO-TAB] Pemindahan Tombol 'Atur Fairness RO' dari Header Utama Halaman Masuk ke Dalam Tab Navigasi Fairness Treatment (`/operator/data/output-achievement`):
+  1. **Pembersihan Header Atas Halaman**:
+     - Menghapus tombol `Atur Fairness RO` dari header atas di samping tombol `Panduan PER-5` agar header atas tetap bersih dan terfokus pada aksi global referensi regulasi.
+  2. **Penyelarasan Tab Navigasi 4 (Fairness Treatment)**:
+     - Menyesuaikan tombol aksi di dalam Tab 4 (*Fairness Treatment (Pengecualian RO Khusus & Kahar)*) menjadi `Atur Fairness RO` dengan icon `Scale` dan fungsi `handleOpenFairnessModal()` yang terintegrasi penuh.
+  3. **Verifikasi**:
+     - `npm run typecheck` -> Exit code 0 lintas seluruh 7 workspace packages.
+     - `npm run test` -> 162/162 unit tests lulus 100% di seluruh workspace monorepo.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `npm run test` -> 162/162 tests passed.
+
+### Session 171 - 2026-09-08
+**Time:** Start: 04:20 UTC | End: 04:30 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng
+**Tasks Completed:**
+- [UI-CO-GUIDE-MODAL-8-VALIDATION-RULES] Standardisasi Menyeluruh 8 Variabel Kualitas Validasi Data Capaian Output pada Modal Panduan PER-5/PB/2024 (`/operator/data/output-achievement`):
+  1. **Pembaruan Judul Bagian**:
+     - Memperbarui judul Bagian 4 menjadi `4. 8 Variabel Kualitas Validasi Data` dengan sub-badge `Engine Rules 01–08`.
+  2. **Standardisasi 8 Variabel Kualitas Validasi Data Baku**:
+     - `01 - % Realisasi Anggaran > 0% namun PCRO 0%` -> `Wajib Diperbaiki` (Rose badge)
+     - `02 - PCRO < % Realisasi Anggaran` -> `Wajib Konfirmasi, Bisa Diperbaiki` (Amber badge)
+     - `03 - PCRO 100% namun RVRO 0` -> `Wajib Diperbaiki` (Rose badge)
+     - `04 - PCRO 100% namun RVRO < Target/Volume RO pada DIPA` -> `Wajib Diperbaiki` (Rose badge)
+     - `05 - Terdapat RVRO yang dilaporkan namun Realisasi Anggaran masih 0` -> `Wajib Konfirmasi, Bisa Diperbaiki` (Amber badge)
+     - `06 - RVRO diisi menggunakan desimal sedangkan Satuan tidak memungkinkan` -> `Wajib Diperbaiki` (Rose badge)
+     - `07 - RVRO > Target/Volume RO pada DIPA` -> `Wajib Konfirmasi, Bisa Diperbaiki` (Amber badge)
+     - `08 - RVRO >= Target/Volume RO pada DIPA, namun PCRO < 100%` -> `Wajib Konfirmasi, Bisa Diperbaiki` (Amber badge)
+  3. **Penyelarasan UI Ponytail**:
+     - Menggunakan badge warna tematik Ponytail (Danger/Rose untuk *Wajib Diperbaiki*, Warning/Amber untuk *Wajib Konfirmasi, Bisa Diperbaiki*) dengan tata letak rapi, font mono pada kode rule, serta border dan padding proporsional.
+  4. **Verifikasi**:
+     - `npm run typecheck` -> Exit code 0 lintas seluruh 7 workspace packages.
+     - `npm run test` -> 162/162 unit tests lulus 100% di seluruh workspace monorepo.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `npm run test` -> 162/162 tests passed.
+
+### Session 170 - 2026-09-08
+**Time:** Start: 04:00 UTC | End: 04:10 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: Fullstack Admin & Operator Policy Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng
+**Tasks Completed:**
+- [CO-REALIZATION-OPEN-PERIOD-GUIDANCE-AND-REMINDER] Penyesuaian Menyeluruh Panduan Reminder & Jadwal Periodisasi Pelaporan Capaian Output (Open Period Reguler 7 HK & Periode Tambahan KPPN):
+  1. **Standardisasi Aturan Periodisasi Open Period**:
+     - **Open Period Reguler (Buka Sistem Otomatis)**: Sejak awal bulan berikutnya sampai dengan **Hari Kerja ke-7 (tujuh) bulan berikutnya** (sistem buka otomatis tanpa dispensasi).
+     - **Open Period Tambahan KPPN (Kejadian Khusus)**: Setelah hari kerja ke-7 bulan berikutnya sampai dengan **akhir bulan berikutnya**, sepanjang telah dibuka periode pelaporan tambahan oleh Admin KPPN pada Aplikasi MyIntress / Simulator IKPA apabila terdapat kejadian khusus yang diajukan oleh operator satker.
+  2. **Jadwal Resmi Batas Akhir Open Period Reguler TA 2026**:
+     - Januari: **30 April 2026** (relaksasi awal tahun)
+     - Februari: **30 April 2026** (relaksasi awal tahun)
+     - Maret: **30 April 2026** (relaksasi awal tahun)
+     - April: **12 Mei 2026** (HK-7 Mei)
+     - Mei: **10 Juni 2026** (HK-7 Juni)
+     - Juni: **9 Juli 2026** (HK-7 Juli)
+     - Juli: **11 Agustus 2026** (HK-7 Agustus)
+     - Agustus: **9 September 2026** (HK-7 September)
+     - September: **9 Oktober 2026** (HK-7 Oktober)
+     - Oktober: **10 November 2026** (HK-7 November)
+     - November: **9 Desember 2026** (HK-7 Desember)
+     - Desember: **13 Januari 2027** (HK-7 Januari 2027)
+  3. **Pembaruan Deadline Calculation Engine & Workday Calendar**:
+     - Memperbarui `packages/ikpa-engine/src/utils/workday-calendar.ts` dengan `OFFICIAL_2026_OUTPUT_REALIZATION_DEADLINES` dan formula `calculateOutputReportDeadline` (7 HK M+1 / jadwal resmi 2026).
+     - Memperbarui `packages/policy-reminder/src/deadline-calculator.ts` dengan formula `output_report_deadline` dan `output_realization_open_period`.
+     - Memperbarui unit tests di `packages/ikpa-engine/src/indicators/output-achievement.test.ts` dan `packages/policy-reminder/src/deadline-calculator.test.ts`.
+  4. **Antarmuka Tab 3 Realisasi Kinerja Bulanan (`/operator/data/output-achievement`)**:
+     - Mengganti strip 5 HK dengan Authoritative **Open Period Reminder & Guidance Banner** (Batas HK-7, status Buka Otomatis / Tambahan KPPN / Ditutup, 2-box penjelasan aturan a & b).
+     - Menambahkan Panel Dropdown Interaktif **Jadwal 12 Bulan Open Period Nasional** dengan tombol langsung *Buka Bulan Ini*.
+     - Menambahkan Modal Dialog **Pengajuan Pembukaan Periode Tambahan ke KPPN** (pilihan alasan kejadian khusus, nomor surat/ND, keterangan dispensasi).
+     - Menyelaraskan Modal Panduan Resmi Capaian Output dengan aturan Open Period.
+  5. **Pengelolaan Open Period 12 Bulan pada Menu Admin KPPN (`/admin-kppn/policy/reminders`)**:
+     - Menambahkan Tab 3: *Open Period Realisasi Kinerja (12 Bulan)*.
+     - Menyediakan pemilih Tahun Anggaran, tombol preset *Reset Jadwal Resmi (12 Bulan)*, dan tabel 12 bulan lengkap.
+     - Menyediakan modal drawer untuk Admin KPPN mengubah tanggal batas reguler (HK-7), batas tambahan (M+1), status sistem, serta tombol aksi cepat **Buka / Tutup Periode Tambahan KPPN** beserta catatan surat persetujuan.
+  6. **Verifikasi**:
+     - `npm run typecheck` -> Exit code 0 lintas seluruh 7 workspace packages.
+     - `npm run test` -> 162/162 unit tests lulus 100% di seluruh workspace.
+**Code Changes:**
+- Files modified:
+  - `packages/ikpa-engine/src/utils/workday-calendar.ts`
+  - `packages/ikpa-engine/src/indicators/output-achievement.test.ts`
+  - `packages/policy-reminder/src/deadline-calculator.ts`
+  - `packages/policy-reminder/src/deadline-calculator.test.ts`
+  - `apps/web/src/mocks/reminder-policies.ts`
+  - `apps/web/src/server/domains/output-achievement.queries.ts`
+  - `apps/web/src/server/simulation/calculate.ts`
+  - `apps/web/src/routes/admin-kppn/policy/reminders.tsx`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `npm run test` -> 162/162 tests passed.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk evaluasi dan tugas berikutnya dari pengguna.
+
+### Session 169 - 2026-09-08
+**Time:** Start: 03:40 UTC | End: 03:50 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: Fullstack Admin & Operator Policy Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng
+**Tasks Completed:**
+- [ADMIN-OP-TARGET-REMINDER-FLEXIBILITY] Fleksibilitas Konfigurasi Jadwal Pemutakhiran Target Kinerja bagi Admin KPPN & Jalur Khusus Pemutakhiran Fleksibel bagi Operator Satker saat Perubahan DIPA:
+  1. **Manajemen Jadwal Pemutakhiran Target (Target Windows) Interaktif pada Admin KPPN**:
+     - Menambahkan navigasi 2 tab di `/admin-kppn/policy/reminders`: Tab 1 *Kebijakan Event Reminder* dan Tab 2 *Jadwal Jendela Pemutakhiran Target (Target Windows)*.
+     - Menyediakan pemilih Tahun Anggaran (`2026`, `2027`, `2028`), status jendela 4 triwulan (TW I - TW IV), dan tombol preset otomatis *Reset 10 HK Standard*.
+     - Menyediakan modal dialog drawer untuk Admin KPPN mengedit tanggal buka (`opensAt`), batas akhir (`closesAt`), status akses (`open`, `scheduled`, `closed`), dan dasar rujukan kebijakan per triwulan yang terhubung langsung ke mutasi server `saveTargetUpdateWindow`.
+  2. **Fleksibilitas Pemutakhiran Target bagi Operator Satker saat Perubahan DIPA / Kondisi Khusus**:
+     - Memperbarui Drawer Target Kinerja 12 Bulan di `/operator/data/output-achievement` dengan selector *Jenis / Pemicu Pemutakhiran*:
+       - **Reguler (Jendela Triwulanan 10 HK)**: Mengikuti jadwal resmi triwulan berjalan.
+       - **Perubahan DIPA / Revisi Target**: Jalur fleksibel mandiri bagi satker saat terdapat revisi DIPA yang mempengaruhi volume dan/atau jumlah RO tanpa terhalang kunci jendela triwulanan.
+       - **Penyesuaian Realisasi Anggaran (PPA)**: Penyesuaian proyeksi berdasar realisasi belanja RO.
+       - **Kondisi Khusus / Arahan KPPN**: Penyesuaian khusus berdasar dispensasi atau arahan KPPN.
+     - Menambahkan field *Nomor / Tanggal Dokumen Revisi DIPA & Keterangan*.
+     - Menambahkan fitur *⚡ Distribusi Rata Otomatis* pada form drawer untuk membagi volume DIPA dan target PCRO 100% secara merata dan proporsional ke 12 bulan hanya dengan 1 klik.
+     - Menambahkan card penjelasan fleksibilitas perubahan DIPA dan quick CTA button *+ Pemutakhiran Jalur DIPA* pada banner jadwal di Tab 2 (Target Kinerja 12 Bulan).
+  3. **Verifikasi Kualitas**:
+     - `npm run typecheck` -> Exit code 0 lintas 7 workspace packages.
+     - `npm run test` -> 161/161 tests lulus 100% di seluruh workspace monorepo.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/admin-kppn/policy/reminders.tsx`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `npm run test` -> 161/161 tests passed.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk evaluasi dan pengembangan fitur selanjutnya.
+
+### Session 168 - 2026-09-08
+**Time:** Start: 03:30 UTC | End: 03:40 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: Fullstack Operator & Policy Reminder Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, context7, emil-design-eng
+**Tasks Completed:**
+- [CO-TARGET-UPDATE-REMINDER-SCHEDULE-ALIGNMENT] Penyelarasan Menyeluruh Reminder & Jadwal Pemutakhiran Proyeksi Target Capaian Output TA 2026:
+  1. **Standardisasi Jadwal 10 Hari Kerja Awal Triwulan TA 2026**:
+     - Menetapkan jadwal resmi periode pengisian dan pemutakhiran target capaian output TA 2026:
+       - **Triwulan I Tahun 2026**: Periode Pengisian dan Pelaporan **s.d. 30 April 2026** (relaksasi awal tahun bersamaan dengan TW II)
+       - **Triwulan II Tahun 2026**: Periode Pengisian dan Pelaporan **s.d. 30 April 2026**
+       - **Triwulan III Tahun 2026**: Periode Pengisian dan Pelaporan **s.d. 14 Juli 2026** (10 HK awal Juli)
+       - **Triwulan IV Tahun 2026**: Periode Pengisian dan Pelaporan **s.d. 14 Oktober 2026** (10 HK awal Oktober)
+  2. **Pembaruan Policy Reminder & Deadline Calculation Engine**:
+     - Menambahkan formula deadline `target_window_close` & `quarterly_target_update` pada `packages/policy-reminder/src/deadline-calculator.ts` dengan penanganan deterministik untuk 4 triwulan TA 2026 dan aturan 10 hari kerja.
+     - Menambahkan 8 unit tests di `packages/policy-reminder/src/deadline-calculator.test.ts` untuk memastikan akurasi tanggal evaluasi 2026-04-30 (TW1 & TW2), 2026-07-14 (TW3), dan 2026-10-14 (TW4).
+     - Mendaftarkan event policy `output_target_update_due` pada `packages/db/src/seed.ts`, `apps/web/src/mocks/reminder-policies.ts`, dan `apps/web/src/routes/operator/reminders.tsx` (lead days: H-10, H-3, H-0).
+  3. **Pembaruan Database Seed `targetUpdateWindows` & Re-Seeding**:
+     - Memperbarui tabel `target_update_windows` di `packages/db/src/seed.ts` dan mengeksekusi re-seeding ke PostgreSQL remote dengan status dan tanggal resmi.
+  4. **Antarmuka Ponytail UI di Tab 2 (Target Kinerja 12 Bulan) & Tab 1 (Ringkasan)**:
+     - Merancang dan menambahkan banner & 4-quarter card grid interaktif *Reminder & Jadwal Pemutakhiran Target Kinerja Output TA 2026* di Tab 2 `/operator/data/output-achievement`.
+     - Menambahkan CTA langsung ke Reminder Center (`/operator/reminders`) untuk konfigurasi notifikasi email.
+     - Menyelaraskan quick banner di Tab 1 (Ringkasan & Anomali).
+  5. **Verifikasi**:
+     - `npm run typecheck` -> Exit code 0 lintas seluruh 7 workspace packages.
+     - `npm run test` -> 161/161 tests lulus 100% di seluruh workspace.
+**Code Changes:**
+- Files modified:
+  - `packages/policy-reminder/src/deadline-calculator.ts`
+  - `packages/policy-reminder/src/deadline-calculator.test.ts`
+  - `packages/db/src/seed.ts`
+  - `apps/web/src/mocks/reminder-policies.ts`
+  - `apps/web/src/routes/operator/reminders.tsx`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors.
+  - `npm run test` -> 161/161 tests passed.
+**Issues Encountered:**
+- None.
+**Next Session Plan:**
+- Siap untuk feedback dan iterasi selanjutnya dari pengguna.
+
 ### Session 167 - 2026-09-08
 **Time:** Start: 02:50 UTC | End: 02:56 UTC | Duration: ~6 minutes
 - Status: Completed

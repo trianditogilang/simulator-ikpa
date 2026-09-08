@@ -12,7 +12,7 @@ import {
 	workdays,
 } from "@simulator-ikpa/db/schema";
 import {
-	calculateFifthWorkingDayOfNextMonth,
+	calculateOutputReportDeadline,
 	evaluateOutputAnomaly,
 	validateOutputRecord,
 	type OutputValidationResult,
@@ -189,7 +189,7 @@ export async function listOutputsWithEligibility(
 			operatorProposals: proposals as never,
 		});
 
-		const deadlineDate = calculateFifthWorkingDayOfNextMonth(
+		const deadlineDate = calculateOutputReportDeadline(
 			fy.year,
 			r.month,
 			cal,

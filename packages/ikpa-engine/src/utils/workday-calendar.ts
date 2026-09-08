@@ -109,12 +109,46 @@ export function countWorkdays(
 	return cnt;
 }
 
+export const OFFICIAL_2026_OUTPUT_REALIZATION_DEADLINES: Record<number, string> = {
+	1: "2026-04-30", // Januari (relaksasi awal tahun)
+	2: "2026-04-30", // Februari (relaksasi awal tahun)
+	3: "2026-04-30", // Maret (relaksasi awal tahun)
+	4: "2026-05-12", // April (HK-7 Mei 2026)
+	5: "2026-06-10", // Mei (HK-7 Juni 2026)
+	6: "2026-07-09", // Juni (HK-7 Juli 2026)
+	7: "2026-08-11", // Juli (HK-7 Agustus 2026)
+	8: "2026-09-09", // Agustus (HK-7 September 2026)
+	9: "2026-10-09", // September (HK-7 Oktober 2026)
+	10: "2026-11-10", // Oktober (HK-7 November 2026)
+	11: "2026-12-09", // November (HK-7 Desember 2026)
+	12: "2027-01-13", // Desember (HK-7 Januari 2027)
+};
+
+export function calculateOutputReportDeadline(
+	year: number,
+	reportingMonth: number,
+	cal?: Partial<WorkdayCalendarInput> | null,
+): string {
+	if (year === 2026 && OFFICIAL_2026_OUTPUT_REALIZATION_DEADLINES[reportingMonth]) {
+		return OFFICIAL_2026_OUTPUT_REALIZATION_DEADLINES[reportingMonth];
+	}
+	const anchorDate = new Date(Date.UTC(year, reportingMonth, 0));
+	const anchorIso = toIsoString(anchorDate);
+	return addWorkdays(anchorIso, 7, cal);
+}
+
+export function calculateSeventhWorkingDayOfNextMonth(
+	year: number,
+	reportingMonth: number,
+	cal?: Partial<WorkdayCalendarInput> | null,
+): string {
+	return calculateOutputReportDeadline(year, reportingMonth, cal);
+}
+
 export function calculateFifthWorkingDayOfNextMonth(
 	year: number,
 	reportingMonth: number,
 	cal?: Partial<WorkdayCalendarInput> | null,
 ): string {
-	const anchorDate = new Date(Date.UTC(year, reportingMonth, 0));
-	const anchorIso = toIsoString(anchorDate);
-	return addWorkdays(anchorIso, 5, cal);
+	return calculateOutputReportDeadline(year, reportingMonth, cal);
 }

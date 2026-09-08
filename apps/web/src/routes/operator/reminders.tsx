@@ -54,6 +54,7 @@ const EVENT_NAMES: Record<string, string> = {
 	up_tup_revolving_due: "Batas Revolving GUP (30 Hari Kalender)",
 	output_report_monthly: "Konfirmasi Capaian Output (5 Hari Kerja)",
 	output_report_due: "Konfirmasi Capaian Output (5 Hari Kerja)",
+	output_target_update_due: "Pemutakhiran Proyeksi Target Output (10 Hari Kerja Awal Triwulan)",
 	spm_dispensation_q4: "Batas Pengajuan SPM Dispensasi Akhir Tahun",
 	spm_dispensation_warning: "Peringatan Rasio SPM Dispensasi Triwulan IV",
 	contract_registration_3d: "Penyampaian Data Kontrak (3 Hari Kerja)",

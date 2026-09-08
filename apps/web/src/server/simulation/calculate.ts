@@ -24,7 +24,7 @@ import {
 } from "@simulator-ikpa/db/schema";
 import type { EngineInput } from "@simulator-ikpa/ikpa-engine";
 import {
-	calculateFifthWorkingDayOfNextMonth,
+	calculateOutputReportDeadline,
 	calculateIkpa,
 	parseRuleSet,
 } from "@simulator-ikpa/ikpa-engine";
@@ -470,7 +470,7 @@ export async function calculateAndPersistSnapshot(
 					publishedPolicies: policyRows as never,
 					operatorProposals: proposalRows as never,
 				});
-				const deadline = calculateFifthWorkingDayOfNextMonth(fy.year, o.month, {
+				const deadline = calculateOutputReportDeadline(fy.year, o.month, {
 					holidays,
 					workdays: workdayOverrides,
 				});
