@@ -1842,16 +1842,18 @@ function OutputAchievementPage() {
 							{/* Card 1: RO Objek Penilaian */}
 							<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-muted-foreground">
-									<span className="text-xs font-semibold">
+									<span className="text-xs font-semibold truncate">
 										RO Objek Penilaian
 									</span>
-									<Target className="size-4 text-primary" />
+									<Target className="size-4 text-primary shrink-0" />
 								</div>
-								<div className="space-y-0.5">
-									<p className="text-2xl font-bold text-foreground sm:text-3xl">
-										{displayedScores.roLabel}
-									</p>
-									<p className="text-[11px] text-muted-foreground">
+								<div className="space-y-0.5 mt-auto">
+									<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+										<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
+											{displayedScores.roLabel}
+										</p>
+									</div>
+									<p className="text-[11px] text-muted-foreground truncate" title={displayedScores.roSub}>
 										{displayedScores.roSub}
 									</p>
 								</div>
@@ -1860,19 +1862,19 @@ function OutputAchievementPage() {
 							{/* Card 2: Ketepatan Waktu (NK-ROKW 30%) */}
 							<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-muted-foreground">
-									<span className="text-xs font-semibold">
+									<span className="text-xs font-semibold truncate">
 										Ketepatan Waktu (30%)
 									</span>
-									<Clock className="size-4 text-warning" />
+									<Clock className="size-4 text-warning shrink-0" />
 								</div>
-								<div className="space-y-0.5">
-									<div className="flex items-baseline gap-1">
-										<p className="text-2xl font-bold text-foreground sm:text-3xl">
+								<div className="space-y-0.5 mt-auto">
+									<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+										<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
 											{displayedScores.nkkw}
 										</p>
-										<span className="text-xs text-muted-foreground">/ 100</span>
+										<span className="text-xs text-muted-foreground truncate">/ 100</span>
 									</div>
-									<p className="text-[11px] text-muted-foreground">
+									<p className="text-[11px] text-muted-foreground truncate" title={displayedScores.nkkwSub}>
 										{displayedScores.nkkwSub}
 									</p>
 								</div>
@@ -1881,19 +1883,19 @@ function OutputAchievementPage() {
 							{/* Card 3: Capaian RO (NK-CRO 70%) */}
 							<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-muted-foreground">
-									<span className="text-xs font-semibold">
+									<span className="text-xs font-semibold truncate">
 										Capaian RO (70%)
 									</span>
-									<Percent className="size-4 text-success" />
+									<Percent className="size-4 text-success shrink-0" />
 								</div>
-								<div className="space-y-0.5">
-									<div className="flex items-baseline gap-1">
-										<p className="text-2xl font-bold text-foreground sm:text-3xl">
+								<div className="space-y-0.5 mt-auto">
+									<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+										<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
 											{displayedScores.nkcro}
 										</p>
-										<span className="text-xs text-muted-foreground">/ 100</span>
+										<span className="text-xs text-muted-foreground truncate">/ 100</span>
 									</div>
-									<p className="text-[11px] text-muted-foreground">
+									<p className="text-[11px] text-muted-foreground truncate" title={displayedScores.nkcroSub}>
 										{displayedScores.nkcroSub}
 									</p>
 								</div>
@@ -1902,21 +1904,23 @@ function OutputAchievementPage() {
 							{/* Card 4 (2 paling kanan): Nilai IKPA Capaian Output */}
 							<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-muted-foreground">
-									<span className="text-xs font-semibold">
+									<span className="text-xs font-semibold truncate">
 										Nilai IKPA Capaian Output
 									</span>
-									<ShieldCheck className="size-4 text-primary" />
+									<ShieldCheck className="size-4 text-primary shrink-0" />
 								</div>
-								<div className="space-y-0.5">
-									<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-										{displayedScores.finalScore !== "—"
-											? Math.min(
-													100,
-													Math.max(0, Number(displayedScores.finalScore)),
-												).toFixed(2)
-											: "—"}
-									</p>
-									<p className="text-[11px] text-muted-foreground">
+								<div className="space-y-0.5 mt-auto">
+									<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+										<p className="text-2xl font-extrabold text-primary sm:text-3xl leading-none">
+											{displayedScores.finalScore !== "—"
+												? Math.min(
+														100,
+														Math.max(0, Number(displayedScores.finalScore)),
+													).toFixed(2)
+												: "—"}
+										</p>
+									</div>
+									<p className="text-[11px] text-muted-foreground truncate" title="(30% × NK-ROKW) + (70% × NK-CRO)">
 										(30% × NK-ROKW) + (70% × NK-CRO)
 									</p>
 								</div>
@@ -1925,20 +1929,22 @@ function OutputAchievementPage() {
 							{/* Card 5 (paling kanan): Nilai Akhir (25%) */}
 							<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 								<div className="flex items-center justify-between text-muted-foreground">
-									<span className="text-xs font-semibold">
+									<span className="text-xs font-semibold truncate">
 										Nilai Akhir (25%)
 									</span>
-									<Sparkles className="size-4 text-success" />
+									<Sparkles className="size-4 text-success shrink-0" />
 								</div>
-								<div className="space-y-0.5">
-									<p className="text-2xl font-extrabold text-success sm:text-3xl">
-										{displayedScores.finalScore !== "—"
-											? `${(Math.min(100, Math.max(0, Number(displayedScores.finalScore))) * 0.25).toFixed(2)} pts`
-											: displayedScores.weightedContribution !== "—"
-												? `${Math.min(25, Math.max(0, Number(displayedScores.weightedContribution))).toFixed(2)} pts`
-												: "—"}
-									</p>
-									<p className="text-[11px] text-muted-foreground">
+								<div className="space-y-0.5 mt-auto">
+									<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+										<p className="text-2xl font-extrabold text-success sm:text-3xl leading-none">
+											{displayedScores.finalScore !== "—"
+												? `${(Math.min(100, Math.max(0, Number(displayedScores.finalScore))) * 0.25).toFixed(2)} pts`
+												: displayedScores.weightedContribution !== "—"
+													? `${Math.min(25, Math.max(0, Number(displayedScores.weightedContribution))).toFixed(2)} pts`
+													: "—"}
+										</p>
+									</div>
+									<p className="text-[11px] text-muted-foreground truncate" title="Bobot 25% terhadap total IKPA">
 										Bobot 25% terhadap total IKPA
 									</p>
 								</div>

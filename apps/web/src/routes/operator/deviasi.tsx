@@ -839,16 +839,16 @@ function DeviasiPage() {
 						{/* Card 1: Total RPD vs Realisasi Kumulatif */}
 						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold">
+								<span className="text-xs font-semibold truncate">
 									Total s.d. {MONTH_NAMES[evalMonth - 1]}
 								</span>
-								<Coins className="size-4 text-primary" />
+								<Coins className="size-4 text-primary shrink-0" />
 							</div>
-							<div className="space-y-0.5 text-xs font-semibold text-foreground">
-								<p>
+							<div className="space-y-0.5 text-xs font-semibold text-foreground mt-auto">
+								<p className="truncate" title={`Real: ${formatRupiah(totalRealizedTrail)}`}>
 									Real: <span className="font-bold">{formatRupiah(totalRealizedTrail)}</span>
 								</p>
-								<p className="text-muted-foreground text-[11px]">
+								<p className="text-muted-foreground text-[11px] truncate" title={`RPD: ${formatRupiah(totalPlannedTrail)}`}>
 									RPD: {formatRupiah(totalPlannedTrail)}
 								</p>
 							</div>
@@ -857,11 +857,11 @@ function DeviasiPage() {
 						{/* Card 2: Rata-rata Deviasi Kumulatif */}
 						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold">
+								<span className="text-xs font-semibold truncate">
 									Rata-rata Deviasi
 								</span>
 								<Percent
-									className={`size-4 ${
+									className={`size-4 shrink-0 ${
 										actualScoreObj.avgDeviation !== null &&
 										actualScoreObj.avgDeviation > 10
 											? "text-danger"
@@ -872,23 +872,25 @@ function DeviasiPage() {
 									}`}
 								/>
 							</div>
-							<div className="space-y-0.5">
-								<p
-									className={`text-2xl font-bold sm:text-3xl ${
-										actualScoreObj.avgDeviation !== null &&
-										actualScoreObj.avgDeviation > 10
-											? "text-danger"
-											: actualScoreObj.avgDeviation !== null &&
-												  actualScoreObj.avgDeviation > 5
-												? "text-warning"
-												: "text-foreground"
-									}`}
-								>
-									{actualScoreObj.avgDeviation !== null
-										? formatPercent(actualScoreObj.avgDeviation)
-										: "—"}
-								</p>
-								<p className="text-[11px] text-muted-foreground">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p
+										className={`text-2xl font-bold sm:text-3xl leading-none ${
+											actualScoreObj.avgDeviation !== null &&
+											actualScoreObj.avgDeviation > 10
+												? "text-danger"
+												: actualScoreObj.avgDeviation !== null &&
+													  actualScoreObj.avgDeviation > 5
+													? "text-warning"
+													: "text-foreground"
+										}`}
+									>
+										{actualScoreObj.avgDeviation !== null
+											? formatPercent(actualScoreObj.avgDeviation)
+											: "—"}
+									</p>
+								</div>
+								<p className="text-[11px] text-muted-foreground truncate" title="Ambang batas: ≤ 5.00%">
 									Ambang batas: ≤ 5.00%
 								</p>
 							</div>
@@ -897,16 +899,18 @@ function DeviasiPage() {
 						{/* Card 3: Pembagi n Bulan Berjalan */}
 						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold">
+								<span className="text-xs font-semibold truncate">
 									Objek Penilaian (n)
 								</span>
-								<Calendar className="size-4 text-primary" />
+								<Calendar className="size-4 text-primary shrink-0" />
 							</div>
-							<div className="space-y-0.5">
-								<p className="text-2xl font-bold text-foreground sm:text-3xl">
-									n = {actualScoreObj.monthsCount} Bulan
-								</p>
-								<p className="text-[11px] text-muted-foreground">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
+										n = {actualScoreObj.monthsCount} Bulan
+									</p>
+								</div>
+								<p className="text-[11px] text-muted-foreground truncate" title={`Januari s.d. ${MONTH_NAMES[evalMonth - 1]}`}>
 									Januari s.d. {MONTH_NAMES[evalMonth - 1]}
 								</p>
 							</div>
@@ -915,21 +919,23 @@ function DeviasiPage() {
 						{/* Card 4: Nilai IKPA Deviasi (2nd from right) */}
 						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold">
+								<span className="text-xs font-semibold truncate">
 									Nilai IKPA Deviasi Hal III
 								</span>
-								<ShieldCheck className="size-4 text-primary" />
+								<ShieldCheck className="size-4 text-primary shrink-0" />
 							</div>
-							<div className="space-y-0.5">
-								<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-									{actualScoreObj.score !== null
-										? Math.min(
-												100,
-												Math.max(0, actualScoreObj.score),
-											).toFixed(2)
-										: "—"}
-								</p>
-								<p className="text-[11px] text-muted-foreground">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p className="text-2xl font-extrabold text-primary sm:text-3xl leading-none">
+										{actualScoreObj.score !== null
+											? Math.min(
+													100,
+													Math.max(0, actualScoreObj.score),
+												).toFixed(2)
+											: "—"}
+									</p>
+								</div>
+								<p className="text-[11px] text-muted-foreground truncate" title={actualScoreObj.avgDeviation !== null && actualScoreObj.avgDeviation <= 5 ? "Maksimal (Rata-rata ≤ 5%)" : "100 − Rata-rata Deviasi"}>
 									{actualScoreObj.avgDeviation !== null &&
 									actualScoreObj.avgDeviation <= 5
 										? "Maksimal (Rata-rata ≤ 5%)"
@@ -941,21 +947,23 @@ function DeviasiPage() {
 						{/* Card 5: Nilai Akhir IKPA (Rightmost) */}
 						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold">
+								<span className="text-xs font-semibold truncate">
 									Nilai Akhir (15%)
 								</span>
-								<Sparkles className="size-4 text-success" />
+								<Sparkles className="size-4 text-success shrink-0" />
 							</div>
-							<div className="space-y-0.5">
-								<p className="text-2xl font-extrabold text-success sm:text-3xl">
-									{actualScoreObj.contribution !== null
-										? `${Math.min(
-												15,
-												Math.max(0, actualScoreObj.contribution),
-											).toFixed(2)} pts`
-										: "—"}
-								</p>
-								<p className="text-[11px] text-muted-foreground">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p className="text-2xl font-extrabold text-success sm:text-3xl leading-none">
+										{actualScoreObj.contribution !== null
+											? `${Math.min(
+													15,
+													Math.max(0, actualScoreObj.contribution),
+												).toFixed(2)} pts`
+											: "—"}
+									</p>
+								</div>
+								<p className="text-[11px] text-muted-foreground truncate" title="Bobot 15% terhadap total IKPA">
 									Bobot 15% terhadap total IKPA
 								</p>
 							</div>

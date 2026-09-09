@@ -1,4 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { Dialog } from "radix-ui";
 import {
 	AlertCircle,
 	AlertTriangle,
@@ -103,6 +104,7 @@ function SpmDispensationPage() {
 	const [actionMessage, setActionMessage] = useState<string | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isExampleOpen, setIsExampleOpen] = useState(false);
+	const [isHelpOpen, setIsHelpOpen] = useState(false);
 
 	const activeYear = initialData.year ?? 2026;
 
@@ -391,14 +393,121 @@ function SpmDispensationPage() {
 						</p>
 					</div>
 
-					<button
-						type="button"
-						onClick={handleOpenCreateSpm}
-						className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-					>
-						<Plus className="size-4" />
-						<span>Tambah SPM Q4</span>
-					</button>
+					<div className="flex items-center gap-2 shrink-0">
+						<Dialog.Root open={isHelpOpen} onOpenChange={setIsHelpOpen}>
+							<Dialog.Trigger asChild>
+								<button
+									type="button"
+									aria-label="Lihat panduan dan rumus Dispensasi SPM"
+									className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-surface shadow-xs transition-colors"
+								>
+									<span className="flex size-4 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-[10px]">
+										?
+									</span>
+									<span>Panduan &amp; Rumus</span>
+								</button>
+							</Dialog.Trigger>
+							<Dialog.Portal>
+								<Dialog.Overlay className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-in fade-in" />
+								<Dialog.Content className="fixed inset-x-4 top-[8%] z-50 mx-auto max-w-2xl rounded-2xl border border-border bg-background p-6 shadow-2xl outline-none max-h-[85vh] overflow-y-auto">
+									<div className="flex items-center justify-between gap-4 border-b border-border pb-4">
+										<Dialog.Title className="text-lg font-bold text-foreground">
+											Panduan &amp; Rumus Dispensasi SPM (Pengurang IKPA)
+										</Dialog.Title>
+										<Dialog.Close asChild>
+											<button
+												type="button"
+												className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-muted hover:text-foreground"
+											>
+												Tutup
+											</button>
+										</Dialog.Close>
+									</div>
+
+									<div className="mt-4 space-y-4 text-sm text-foreground">
+										<div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-xs leading-relaxed text-foreground">
+											<p className="font-semibold text-primary mb-1">
+												Ketentuan Penilaian Indikator Dispensasi SPM:
+											</p>
+											Dispensasi SPM berfungsi sebagai <strong>faktor pengurang (penalti)</strong> langsung terhadap Total Nilai IKPA Satker, bukan indikator penambah berbobot positif. Penilaian dievaluasi secara khusus pada <strong>Triwulan IV (Oktober s.d. Desember)</strong> pada masa Langkah-Langkah Akhir Tahun Anggaran (LLAT).
+											<p className="mt-1 text-[11px] text-muted-foreground">
+												*Tujuannya mendorong ketertiban dan kedisiplinan satker agar seluruh pengajuan SPM selesai tepat waktu sebelum batas akhir regulasi tanpa surat dispensasi KPPN.
+											</p>
+										</div>
+
+										<div>
+											<h4 className="font-semibold text-foreground text-xs uppercase tracking-wider mb-2">
+												Matriks Rasio &amp; Besaran Pengurang Nilai IKPA (PER-5/PB/2024)
+											</h4>
+											<div className="overflow-x-auto rounded-xl border border-border">
+												<table className="w-full text-xs text-left">
+													<thead className="bg-surface-muted text-muted-foreground font-semibold">
+														<tr>
+															<th className="px-3 py-2">Kategori</th>
+															<th className="px-3 py-2">Rentang Rasio Dispensasi (‰)</th>
+															<th className="px-3 py-2 text-right">Potongan Poin IKPA</th>
+															<th className="px-3 py-2">Tingkat Risiko</th>
+														</tr>
+													</thead>
+													<tbody className="divide-y divide-border">
+														{BUCKET_TABLE.map((b) => (
+															<tr key={b.category}>
+																<td className="px-3 py-2 font-medium">Kategori {b.category}</td>
+																<td className="px-3 py-2 font-mono">{b.rangeLabel}</td>
+																<td className="px-3 py-2 text-right font-bold text-danger">
+																	{b.deduction === "0,00" ? "0,00 pts" : `−${b.deduction} pts`}
+																</td>
+																<td className="px-3 py-2 text-muted-foreground">{b.description}</td>
+															</tr>
+														))}
+													</tbody>
+												</table>
+											</div>
+										</div>
+
+										<div className="space-y-2 text-xs">
+											<h4 className="font-semibold text-foreground text-xs uppercase tracking-wider">
+												Tahapan &amp; Formula Perhitungan:
+											</h4>
+											<ol className="list-decimal pl-4 space-y-1 text-muted-foreground">
+												<li>
+													<strong>Total SPM Q4</strong>: Hitung seluruh SPM yang terbit pada Triwulan IV (Oktober, November, Desember).
+												</li>
+												<li>
+													<strong>SPM Dispensasi</strong>: Hitung jumlah SPM Q4 yang diterbitkan dengan izin/surat dispensasi keterlambatan.
+												</li>
+												<li>
+													<strong>Rasio Dispensasi (Permil)</strong> = (Jumlah SPM Dispensasi ÷ Total SPM Q4) × 1.000‰.
+												</li>
+												<li>
+													<strong>Penetapan Pengurang</strong>: Cocokkan rasio permil dengan tabel matriks 5 kategori di atas.
+												</li>
+												<li>
+													<strong>Dampak Total IKPA</strong>: Total IKPA Akhir = Subtotal 7 Indikator − Pengurang Dispensasi.
+												</li>
+											</ol>
+										</div>
+
+										<div className="rounded-xl border border-border bg-surface-muted/50 p-3.5 text-xs text-muted-foreground">
+											<p className="font-semibold text-foreground mb-1">💡 Tips Mitigasi Satker:</p>
+											<p>
+												Ajukan SPM termin dan kontrak sebelum tanggal cut-off LLAT yang diterbitkan Direktorat Jenderal Perbendaharaan. Hindari menumpuk tagihan SPM-LS dan SPM-GUP di minggu-minggu terakhir bulan Desember.
+											</p>
+										</div>
+									</div>
+								</Dialog.Content>
+							</Dialog.Portal>
+						</Dialog.Root>
+
+						<button
+							type="button"
+							onClick={handleOpenCreateSpm}
+							className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+						>
+							<Plus className="size-4" />
+							<span>Tambah SPM Q4</span>
+						</button>
+					</div>
 				</div>
 
 				{/* Feedback status */}
@@ -424,14 +533,16 @@ function SpmDispensationPage() {
 					{/* Card 1: Total SPM Q4 */}
 					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">Total SPM Q4</span>
-							<FileText className="size-4 text-muted-foreground" />
+							<span className="text-xs font-semibold truncate">Total SPM Q4</span>
+							<FileText className="size-4 text-muted-foreground shrink-0" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-bold text-foreground sm:text-3xl">
-								{totalQ4}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
+									{totalQ4}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title="Penyebut · seluruh SPM terbit Okt–Des">
 								Penyebut · seluruh SPM terbit Okt–Des
 							</p>
 						</div>
@@ -440,22 +551,24 @@ function SpmDispensationPage() {
 					{/* Card 2: SPM Dispensasi */}
 					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">SPM Dispensasi</span>
+							<span className="text-xs font-semibold truncate">SPM Dispensasi</span>
 							<AlertTriangle
-								className={`size-4 ${
+								className={`size-4 shrink-0 ${
 									dispensationCount > 0 ? "text-danger" : "text-success"
 								}`}
 							/>
 						</div>
-						<div className="space-y-0.5">
-							<p
-								className={`text-2xl font-bold sm:text-3xl ${
-									dispensationCount > 0 ? "text-danger" : "text-success"
-								}`}
-							>
-								{dispensationCount}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p
+									className={`text-2xl font-bold sm:text-3xl leading-none ${
+										dispensationCount > 0 ? "text-danger" : "text-success"
+									}`}
+								>
+									{dispensationCount}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title="Pembilang · diajukan dispensasi">
 								Pembilang · diajukan dispensasi
 							</p>
 						</div>
@@ -464,14 +577,16 @@ function SpmDispensationPage() {
 					{/* Card 3: Rasio Dispensasi */}
 					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">Rasio Dispensasi</span>
-							<TrendingDown className="size-4 text-primary" />
+							<span className="text-xs font-semibold truncate">Rasio Dispensasi</span>
+							<TrendingDown className="size-4 text-primary shrink-0" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-bold text-foreground sm:text-3xl">
-								{formatNumber(ratioNum)}‰
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
+									{formatNumber(ratioNum)}‰
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title={`Kategori ${calc.category} · per 1.000 SPM Q4`}>
 								Kategori {calc.category} · per 1.000 SPM Q4
 							</p>
 						</div>
@@ -480,18 +595,20 @@ function SpmDispensationPage() {
 					{/* Card 4 (2 paling kanan): Nilai IKPA Dispensasi SPM */}
 					<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">
+							<span className="text-xs font-semibold truncate">
 								Nilai IKPA Dispensasi SPM
 							</span>
-							<ShieldCheck className="size-4 text-primary" />
+							<ShieldCheck className="size-4 text-primary shrink-0" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-								{deductionNum === 0
-									? "100.00"
-									: Math.max(0, 100 - deductionNum * 20).toFixed(2)}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-extrabold text-primary sm:text-3xl leading-none">
+									{deductionNum === 0
+										? "100.00"
+										: Math.max(0, 100 - deductionNum * 20).toFixed(2)}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title={deductionNum === 0 ? "Nihil dispensasi (Nilai maksimal)" : `Potongan ${calc.deduction} poin IKPA`}>
 								{deductionNum === 0
 									? "Nihil dispensasi (Nilai maksimal)"
 									: `Potongan ${calc.deduction} poin IKPA`}
@@ -502,16 +619,18 @@ function SpmDispensationPage() {
 					{/* Card 5 (paling kanan): Nilai Akhir (Pengurang 5%) */}
 					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">
+							<span className="text-xs font-semibold truncate">
 								Nilai Akhir (Pengurang 5%)
 							</span>
-							<Sparkles className="size-4 text-success" />
+							<Sparkles className="size-4 text-success shrink-0" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-extrabold text-success sm:text-3xl">
-								{deductionNum > 0 ? `−${calc.deduction} pts` : "0.00 pts"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-extrabold text-success sm:text-3xl leading-none">
+									{deductionNum > 0 ? `−${calc.deduction} pts` : "0.00 pts"}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title="Pengurang Nilai Total IKPA Satker">
 								Pengurang Nilai Total IKPA Satker
 							</p>
 						</div>

@@ -924,19 +924,19 @@ function ContractsInvoicesPage() {
 							<>
 								<button
 									type="button"
-									onClick={() => setIsContractGuideOpen(true)}
-									className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground shadow-xs transition hover:bg-surface-muted"
-								>
-									<HelpCircle className="size-3.5 text-primary" />
-									<span>Panduan Rumus</span>
-								</button>
-								<button
-									type="button"
 									onClick={handleOpenCreateContract}
 									className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
 								>
 									<Plus className="size-3.5" />
 									<span>Tambah Kontrak</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => setIsContractGuideOpen(true)}
+									className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground shadow-xs transition hover:bg-surface-muted"
+								>
+									<HelpCircle className="size-3.5 text-primary" />
+									<span>Panduan Rumus</span>
 								</button>
 							</>
 						)}
@@ -945,19 +945,19 @@ function ContractsInvoicesPage() {
 							<>
 								<button
 									type="button"
-									onClick={() => setIsTagihanGuideOpen(true)}
-									className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground shadow-xs transition hover:bg-surface-muted"
-								>
-									<HelpCircle className="size-3.5 text-primary" />
-									<span>Panduan Rumus</span>
-								</button>
-								<button
-									type="button"
 									onClick={handleOpenCreateSpm}
 									className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
 								>
 									<Plus className="size-3.5" />
 									<span>Catat SPM-LS</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => setIsTagihanGuideOpen(true)}
+									className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground shadow-xs transition hover:bg-surface-muted"
+								>
+									<HelpCircle className="size-3.5 text-primary" />
+									<span>Panduan Rumus</span>
 								</button>
 							</>
 						)}
@@ -989,21 +989,21 @@ function ContractsInvoicesPage() {
 						{/* Card 1: Pra DIPA (40%) */}
 						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold">
+								<span className="text-xs font-semibold truncate">
 									Pra DIPA (40%)
 								</span>
-								<Calendar className="size-4 text-primary" />
+								<Calendar className="size-4 text-primary shrink-0" />
 							</div>
-							<div className="space-y-0.5">
-								<div className="flex items-baseline gap-2">
-									<p className="text-2xl font-bold text-foreground sm:text-3xl">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
 										{contractSummary.kd.score !== null ? Number(contractSummary.kd.score).toFixed(2) : "—"}
 									</p>
-									<span className="text-[11px] font-semibold text-muted-foreground">
+									<span className="text-[11px] font-semibold text-muted-foreground truncate">
 										{contractSummary.kd.denominatorCount} Kontrak
 									</span>
 								</div>
-								<p className="text-[11px] text-muted-foreground">
+								<p className="text-[11px] text-muted-foreground truncate" title={`${contractSummary.kd.praDipaCount} Pra-DIPA · ${contractSummary.kd.q1Count} TW I`}>
 									{contractSummary.kd.praDipaCount} Pra-DIPA · {contractSummary.kd.q1Count} TW I
 								</p>
 							</div>
@@ -1012,21 +1012,21 @@ function ContractsInvoicesPage() {
 						{/* Card 2: Akselerasi 53 (40%) */}
 						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold">
+								<span className="text-xs font-semibold truncate">
 									Akselerasi 53 (40%)
 								</span>
-								<Clock className="size-4 text-primary" />
+								<Clock className="size-4 text-primary shrink-0" />
 							</div>
-							<div className="space-y-0.5">
-								<div className="flex items-baseline gap-2">
-									<p className="text-2xl font-bold text-foreground sm:text-3xl">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
 										{contractSummary.ak53.score !== null ? Number(contractSummary.ak53.score).toFixed(2) : "—"}
 									</p>
-									<span className="text-[11px] font-semibold text-muted-foreground">
+									<span className="text-[11px] font-semibold text-muted-foreground truncate">
 										{contractSummary.ak53.completedCount} Selesai
 									</span>
 								</div>
-								<p className="text-[11px] text-muted-foreground">
+								<p className="text-[11px] text-muted-foreground truncate" title={`${contractSummary.ak53.tw1Count} TW I · ${contractSummary.ak53.tw2Count} TW II`}>
 									{contractSummary.ak53.tw1Count} TW I · {contractSummary.ak53.tw2Count} TW II
 								</p>
 							</div>
@@ -1035,21 +1035,21 @@ function ContractsInvoicesPage() {
 						{/* Card 3: Distribusi A.K. (20%) */}
 						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold">
+								<span className="text-xs font-semibold truncate">
 									Distribusi A.K. (20%)
 								</span>
-								<TrendingUp className="size-4 text-primary" />
+								<TrendingUp className="size-4 text-primary shrink-0" />
 							</div>
-							<div className="space-y-0.5">
-								<div className="flex items-baseline gap-2">
-									<p className="text-2xl font-bold text-foreground sm:text-3xl">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
 										{contractSummary.dak.score !== null ? Number(contractSummary.dak.score).toFixed(2) : "—"}
 									</p>
-									<span className="text-[11px] font-semibold text-primary">
+									<span className="text-[11px] font-semibold text-primary truncate">
 										Rasio {contractSummary.dak.ratio.toFixed(1)}%
 									</span>
 								</div>
-								<p className="text-[11px] text-muted-foreground">
+								<p className="text-[11px] text-muted-foreground truncate" title={`${contractSummary.dak.countQ2} dari ${contractSummary.dak.totalEligible} kontrak TW II`}>
 									{contractSummary.dak.countQ2} dari {contractSummary.dak.totalEligible} kontrak TW II
 								</p>
 							</div>
@@ -1058,22 +1058,24 @@ function ContractsInvoicesPage() {
 						{/* Card 4 (2 paling kanan): Nilai IKPA Belanja Kontraktual */}
 						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold text-foreground">
+								<span className="text-xs font-semibold text-foreground truncate">
 									Nilai IKPA Kontraktual
 								</span>
-								<ShieldCheck className="size-4 text-primary" />
+								<ShieldCheck className="size-4 text-primary shrink-0" />
 							</div>
-							<div className="space-y-0.5">
-								<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-									{contractSummary.final.score !== null &&
-									contractSummary.final.score !== undefined
-										? Math.min(
-												100,
-												Math.max(0, Number(contractSummary.final.score)),
-											).toFixed(2)
-										: "—"}
-								</p>
-								<p className="text-[11px] text-muted-foreground">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p className="text-2xl font-extrabold text-primary sm:text-3xl leading-none">
+										{contractSummary.final.score !== null &&
+										contractSummary.final.score !== undefined
+											? Math.min(
+													100,
+													Math.max(0, Number(contractSummary.final.score)),
+												).toFixed(2)
+											: "—"}
+									</p>
+								</div>
+								<p className="text-[11px] text-muted-foreground truncate" title="Skor komposit 3 subkomponen">
 									Skor komposit 3 subkomponen
 								</p>
 							</div>
@@ -1082,24 +1084,26 @@ function ContractsInvoicesPage() {
 						{/* Card 5 (paling kanan): Nilai Akhir (10%) */}
 						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold text-success">
+								<span className="text-xs font-semibold text-success truncate">
 									Nilai Akhir (10%)
 								</span>
-								<Sparkles className="size-4 text-success" />
+								<Sparkles className="size-4 text-success shrink-0" />
 							</div>
-							<div className="space-y-0.5">
-								<p className="text-2xl font-extrabold text-success sm:text-3xl">
-									{contractSummary.final.weightedContribution
-										? `${Math.min(
-												10,
-												Math.max(
-													0,
-													Number(contractSummary.final.weightedContribution),
-												),
-											).toFixed(2)} pts`
-										: "—"}
-								</p>
-								<p className="text-[11px] text-muted-foreground">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p className="text-2xl font-extrabold text-success sm:text-3xl leading-none">
+										{contractSummary.final.weightedContribution
+											? `${Math.min(
+													10,
+													Math.max(
+														0,
+														Number(contractSummary.final.weightedContribution),
+													),
+												).toFixed(2)} pts`
+											: "—"}
+									</p>
+								</div>
+								<p className="text-[11px] text-muted-foreground truncate" title="Bobot 10% terhadap total IKPA">
 									Bobot 10% terhadap total IKPA
 								</p>
 							</div>
@@ -1274,21 +1278,21 @@ function ContractsInvoicesPage() {
 						{/* Card 1: SPM Tepat Waktu */}
 						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold">
+								<span className="text-xs font-semibold truncate">
 									SPM Tepat Waktu
 								</span>
-								<CheckCircle2 className="size-4 text-success" />
+								<CheckCircle2 className="size-4 text-success shrink-0" />
 							</div>
-							<div className="space-y-0.5">
-								<div className="flex items-baseline gap-2">
-									<p className="text-2xl font-bold text-foreground sm:text-3xl">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
 										{tagihanSummary.onTimeCount}
 									</p>
-									<span className="text-[11px] font-semibold text-muted-foreground">
+									<span className="text-[11px] font-semibold text-muted-foreground truncate">
 										/ {tagihanSummary.eligibleCount} Eligible
 									</span>
 								</div>
-								<p className="text-[11px] text-muted-foreground">
+								<p className="text-[11px] text-muted-foreground truncate" title="Maks. 17 HK sejak BAST/BAPP">
 									Maks. 17 HK sejak BAST/BAPP
 								</p>
 							</div>
@@ -1297,21 +1301,21 @@ function ContractsInvoicesPage() {
 						{/* Card 2: SPM Terlambat */}
 						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold">
+								<span className="text-xs font-semibold truncate">
 									SPM Terlambat
 								</span>
-								<Clock className="size-4 text-danger" />
+								<Clock className="size-4 text-danger shrink-0" />
 							</div>
-							<div className="space-y-0.5">
-								<div className="flex items-baseline gap-2">
-									<p className="text-2xl font-bold text-danger sm:text-3xl">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p className="text-2xl font-bold text-danger sm:text-3xl leading-none">
 										{tagihanSummary.lateCount}
 									</p>
-									<span className="text-[11px] font-semibold text-muted-foreground">
+									<span className="text-[11px] font-semibold text-muted-foreground truncate">
 										Berkas
 									</span>
 								</div>
-								<p className="text-[11px] text-muted-foreground">
+								<p className="text-[11px] text-muted-foreground truncate" title={tagihanSummary.lateCount > 0 ? "Mengurangi persentase skor" : "Nihil berkas terlambat"}>
 									{tagihanSummary.lateCount > 0
 										? "Mengurangi persentase skor"
 										: "Nihil berkas terlambat"}
@@ -1322,23 +1326,23 @@ function ContractsInvoicesPage() {
 						{/* Card 3: Menunggu Konversi */}
 						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold">
+								<span className="text-xs font-semibold truncate">
 									Menunggu Konversi
 								</span>
-								<TrendingUp className="size-4 text-primary" />
+								<TrendingUp className="size-4 text-primary shrink-0" />
 							</div>
-							<div className="space-y-0.5">
-								<div className="flex items-baseline gap-2">
-									<p className="text-2xl font-bold text-foreground sm:text-3xl">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
 										{tagihanSummary.pendingCount}
 									</p>
-									<span className="text-[11px] font-semibold text-muted-foreground">
+									<span className="text-[11px] font-semibold text-muted-foreground truncate">
 										{tagihanSummary.riskyCount > 0
 											? `${tagihanSummary.riskyCount} Berisiko`
 											: "Proses"}
 									</span>
 								</div>
-								<p className="text-[11px] text-muted-foreground">
+								<p className="text-[11px] text-muted-foreground truncate" title={tagihanSummary.pegawaiCount > 0 ? `+${tagihanSummary.pegawaiCount} Belanja Pegawai (Dikecualikan)` : "Belum masuk penilaian final"}>
 									{tagihanSummary.pegawaiCount > 0
 										? `+${tagihanSummary.pegawaiCount} Belanja Pegawai (Dikecualikan)`
 										: "Belum masuk penilaian final"}
@@ -1349,22 +1353,24 @@ function ContractsInvoicesPage() {
 						{/* Card 4 (2 paling kanan): Nilai IKPA Tagihan */}
 						<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold text-foreground">
+								<span className="text-xs font-semibold text-foreground truncate">
 									Nilai IKPA Tagihan
 								</span>
-								<ShieldCheck className="size-4 text-primary" />
+								<ShieldCheck className="size-4 text-primary shrink-0" />
 							</div>
-							<div className="space-y-0.5">
-								<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-									{tagihanSummary.score !== null &&
-									tagihanSummary.score !== undefined
-										? Math.min(
-												100,
-												Math.max(0, Number(tagihanSummary.score)),
-											).toFixed(2)
-										: "—"}
-								</p>
-								<p className="text-[11px] text-muted-foreground">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p className="text-2xl font-extrabold text-primary sm:text-3xl leading-none">
+										{tagihanSummary.score !== null &&
+										tagihanSummary.score !== undefined
+											? Math.min(
+													100,
+													Math.max(0, Number(tagihanSummary.score)),
+												).toFixed(2)
+											: "—"}
+									</p>
+								</div>
+								<p className="text-[11px] text-muted-foreground truncate" title="(SPM Tepat Waktu ÷ Total Eligible) × 100">
 									(SPM Tepat Waktu ÷ Total Eligible) × 100
 								</p>
 							</div>
@@ -1373,24 +1379,26 @@ function ContractsInvoicesPage() {
 						{/* Card 5 (paling kanan): Nilai Akhir (10%) */}
 						<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
-								<span className="text-xs font-semibold text-success">
+								<span className="text-xs font-semibold text-success truncate">
 									Nilai Akhir (10%)
 								</span>
-								<Sparkles className="size-4 text-success" />
+								<Sparkles className="size-4 text-success shrink-0" />
 							</div>
-							<div className="space-y-0.5">
-								<p className="text-2xl font-extrabold text-success sm:text-3xl">
-									{tagihanSummary.weightedContribution
-										? `${Math.min(
-												10,
-												Math.max(
-													0,
-													Number(tagihanSummary.weightedContribution),
-												),
-											).toFixed(2)} pts`
-										: "—"}
-								</p>
-								<p className="text-[11px] text-muted-foreground">
+							<div className="space-y-0.5 mt-auto">
+								<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+									<p className="text-2xl font-extrabold text-success sm:text-3xl leading-none">
+										{tagihanSummary.weightedContribution
+											? `${Math.min(
+													10,
+													Math.max(
+														0,
+														Number(tagihanSummary.weightedContribution),
+													),
+												).toFixed(2)} pts`
+											: "—"}
+									</p>
+								</div>
+								<p className="text-[11px] text-muted-foreground truncate" title="Bobot 10% terhadap total IKPA">
 									Bobot 10% terhadap total IKPA
 								</p>
 							</div>
@@ -2497,8 +2505,15 @@ function ContractsInvoicesPage() {
 										<span>3. Distribusi A.K. — Bobot 20%</span>
 									</div>
 									<p className="text-muted-foreground">
-										Menilai proporsi jumlah kontrak bernilai ≥ Rp50 juta (semua jenis belanja) yang ditandatangani s.d. 30 Juni (Triwulan II).
+										Menilai proporsi jumlah kontrak bernilai ≥ Rp50 juta (seluruh jenis belanja) yang ditandatangani s.d. 30 Juni (Triwulan II) terhadap seluruh jumlah kontrak dalam satu tahun:
 									</p>
+									<ul className="list-disc list-inside space-y-1 text-muted-foreground text-[11px]">
+										<li>Rasio &gt; 75,00%: 100 Poin</li>
+										<li>50,01% &lt; Rasio &le; 75,00%: 80 Poin</li>
+										<li>25,01% &lt; Rasio &le; 50,00%: 60 Poin</li>
+										<li>0,01% &lt; Rasio &le; 25,00%: 50 Poin</li>
+										<li>Rasio = 0%: 0 Poin</li>
+									</ul>
 								</div>
 							</div>
 

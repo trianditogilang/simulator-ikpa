@@ -9,13 +9,13 @@ import {
 const CODES = default2026RuleSet.revisionEligibilityCodes;
 const FY = 2026;
 
-test("golden XYZ: S1=1 S2=3 → 75", async () => {
+test("golden XYZ: S1=1 S2=3 → 80", async () => {
   const { calcRevisiScore } = await import("./revisi-dipa-workspace");
   const s = calcRevisiScore(1, 3);
-  expect(s.nkraS1).toBe(100);
+  expect(s.nkraS1).toBe(110);
   expect(s.nkraS2).toBe(50);
-  expect(s.annual).toBe(75);
-  expect(s.contribution).toBe(7.5);
+  expect(s.annual).toBe(80);
+  expect(s.contribution).toBe(8.0);
 });
 
 test("kode 212 pagu tetap → objek; 315/325 → bukan; 221 pagu naik → bukan", () => {

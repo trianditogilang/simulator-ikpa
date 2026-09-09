@@ -1,4 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { Dialog } from "radix-ui";
 import {
 	AlertCircle,
 	Calendar,
@@ -81,6 +82,7 @@ function BudgetRevisionsPage() {
 		useState(false);
 	const [isSingleBudgetDrawerOpen, setIsSingleBudgetDrawerOpen] =
 		useState(false);
+	const [isHelpOpen, setIsHelpOpen] = useState(false);
 	const [singleBudgetAccount, setSingleBudgetAccount] =
 		useState<AccountCode>("51");
 	const [singleBudgetAmount, setSingleBudgetAmount] = useState("");
@@ -732,6 +734,133 @@ function BudgetRevisionsPage() {
 							<Plus className="size-3.5" />
 							<span>Catat Pengesahan Revisi DIPA</span>
 						</button>
+
+						<Dialog.Root open={isHelpOpen} onOpenChange={setIsHelpOpen}>
+							<Dialog.Trigger asChild>
+								<button
+									type="button"
+									aria-label="Lihat panduan dan rumus Revisi DIPA"
+									className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-surface shadow-xs transition-colors"
+								>
+									<span className="flex size-4 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-[10px]">
+										?
+									</span>
+									<span>Panduan &amp; Rumus</span>
+								</button>
+							</Dialog.Trigger>
+							<Dialog.Portal>
+								<Dialog.Overlay className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-in fade-in" />
+								<Dialog.Content className="fixed inset-x-4 top-[8%] z-50 mx-auto max-w-2xl rounded-2xl border border-border bg-background p-6 shadow-2xl outline-none max-h-[85vh] overflow-y-auto">
+									<div className="flex items-center justify-between gap-4 border-b border-border pb-4">
+										<Dialog.Title className="text-lg font-bold text-foreground">
+											Panduan &amp; Rumus Revisi DIPA (Bobot 10%)
+										</Dialog.Title>
+										<Dialog.Close asChild>
+											<button
+												type="button"
+												className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-muted hover:text-foreground"
+											>
+												Tutup
+											</button>
+										</Dialog.Close>
+									</div>
+
+									<div className="mt-4 space-y-4 text-sm text-foreground">
+										<div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-xs leading-relaxed text-foreground">
+											<p className="font-semibold text-primary mb-1">
+												Ketentuan Penilaian IKPA Revisi DIPA:
+											</p>
+											Indikator ini mengukur <strong>kualitas perencanaan anggaran</strong> satker dengan mengendalikan frekuensi revisi DIPA. Penilaian dihitung <strong>per semester</strong> (Semester I: Jan–Jun &amp; Semester II: Jul–Des). Satu baris revisi <strong>hanya dihitung sebagai objek penilaian</strong> jika <strong>2 syarat terpenuhi sekaligus</strong>:
+											<ol className="list-decimal pl-4 mt-1.5 space-y-0.5">
+												<li><strong>Total pagu satker tetap</strong> (Pagu Sebelum = Pagu Sesudah, delta Rp 0).</li>
+												<li>Minimal satu kode revisi termasuk dalam <strong>14 kode pagu tetap eligible</strong>.</li>
+											</ol>
+											<p className="mt-1.5 text-[11px] text-muted-foreground">
+												*Pengesahan awal (DIPA-AWAL) dan revisi dengan perubahan total pagu satker (naik/turun) <strong>otomatis tidak dihitung (dikecualikan)</strong>.
+											</p>
+										</div>
+
+										<div>
+											<h4 className="font-semibold text-foreground text-xs uppercase tracking-wider mb-2">
+												Matriks Penilaian NKRA per Semester
+											</h4>
+											<div className="overflow-x-auto rounded-xl border border-border">
+												<table className="w-full text-xs text-left">
+													<thead className="bg-surface-muted text-muted-foreground font-semibold">
+														<tr>
+															<th className="px-3 py-2">Jumlah Revisi DIPA per Semester (Non Kumulatif)</th>
+															<th className="px-3 py-2 text-right">Nilai Kinerja (NKRA)</th>
+															<th className="px-3 py-2">Status &amp; Keterangan</th>
+														</tr>
+													</thead>
+													<tbody className="divide-y divide-border">
+														<tr>
+															<td className="px-3 py-2 font-medium">0 – 1 kali</td>
+															<td className="px-3 py-2 text-right font-bold text-success">110</td>
+															<td className="px-3 py-2 text-muted-foreground">Sangat Baik / Bebas Revisi</td>
+														</tr>
+														<tr>
+															<td className="px-3 py-2 font-medium">2 kali</td>
+															<td className="px-3 py-2 text-right font-bold text-primary">100</td>
+															<td className="px-3 py-2 text-muted-foreground">Optimal (Ambang batas aman terpenuhi)</td>
+														</tr>
+														<tr>
+															<td className="px-3 py-2 font-medium">≥ 3 kali</td>
+															<td className="px-3 py-2 text-right font-bold text-danger">50</td>
+															<td className="px-3 py-2 text-muted-foreground">Melebihi Batas Wajar</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+										</div>
+
+										<div className="space-y-2 text-xs">
+											<h4 className="font-semibold text-foreground text-xs uppercase tracking-wider">
+												Tahapan &amp; Formula Perhitungan:
+											</h4>
+											<ol className="list-decimal pl-4 space-y-1 text-muted-foreground">
+												<li>
+													<strong>Filter Objek Penilaian</strong>: Setiap revisi diperiksa apakah pagu tetap dan memiliki kode eligible.
+												</li>
+												<li>
+													<strong>Hitung Objek per Semester</strong>: Jumlahkan frekuensi objek di Semester I (S₁) dan Semester II (S₂).
+												</li>
+												<li>
+													<strong>Nilai IKPA Revisi DIPA</strong> = ((NKRA S₁ * 50%) + (NKRA S₂ * 50%)) (maksimal 100.00).
+												</li>
+												<li>
+													<strong>Nilai Akhir (Bobot 10%)</strong> = Nilai IKPA × 10% (maksimal 10.00 pts).
+												</li>
+											</ol>
+										</div>
+
+										<div>
+											<h4 className="font-semibold text-foreground text-xs uppercase tracking-wider mb-2">
+												Daftar 14 Jenis Revisi Pagu Tetap (PER-5/PB/2024)
+											</h4>
+											<div className="overflow-x-auto rounded-xl border border-border max-h-48 overflow-y-auto">
+												<table className="w-full text-xs text-left">
+													<thead className="sticky top-0 bg-surface-muted text-muted-foreground font-semibold">
+														<tr>
+															<th className="px-3 py-2 w-20">Kode</th>
+															<th className="px-3 py-2">Uraian Jenis Revisi</th>
+														</tr>
+													</thead>
+													<tbody className="divide-y divide-border">
+														{Object.entries(REVISI_JENIS).map(([k, v]) => (
+															<tr key={k}>
+																<td className="px-3 py-1.5 font-mono font-bold text-primary">{k}</td>
+																<td className="px-3 py-1.5 text-foreground">{v}</td>
+															</tr>
+														))}
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								</Dialog.Content>
+							</Dialog.Portal>
+						</Dialog.Root>
 					</div>
 				</div>
 
@@ -740,14 +869,16 @@ function BudgetRevisionsPage() {
 					{/* Card 1: NKRA Semester I */}
 					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">NKRA Semester I</span>
-							<Calendar className="size-4 text-primary" />
+							<span className="text-xs font-semibold truncate">NKRA Semester I</span>
+							<Calendar className="size-4 text-primary shrink-0" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-bold text-foreground sm:text-3xl">
-								{Number(skor.nkraS1).toFixed(2)}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
+									{Number(skor.nkraS1).toFixed(2)}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title={`${s1} objek terhitung · ${semesterStatus(s1)}`}>
 								{s1} objek terhitung · {semesterStatus(s1)}
 							</p>
 						</div>
@@ -756,14 +887,16 @@ function BudgetRevisionsPage() {
 					{/* Card 2: NKRA Semester II */}
 					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">NKRA Semester II</span>
-							<Calendar className="size-4 text-primary" />
+							<span className="text-xs font-semibold truncate">NKRA Semester II</span>
+							<Calendar className="size-4 text-primary shrink-0" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-bold text-foreground sm:text-3xl">
-								{Number(skor.nkraS2).toFixed(2)}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
+									{Number(skor.nkraS2).toFixed(2)}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title={`${s2} objek terhitung · ${semesterStatus(s2)}`}>
 								{s2} objek terhitung · {semesterStatus(s2)}
 							</p>
 						</div>
@@ -772,16 +905,18 @@ function BudgetRevisionsPage() {
 					{/* Card 3: Nilai IKPA Revisi DIPA (2nd from right) */}
 					<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">
+							<span className="text-xs font-semibold truncate">
 								Nilai IKPA Revisi DIPA
 							</span>
-							<ShieldCheck className="size-4 text-primary" />
+							<ShieldCheck className="size-4 text-primary shrink-0" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-								{Math.min(100, Math.max(0, Number(skor.annual))).toFixed(2)}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-extrabold text-primary sm:text-3xl leading-none">
+									{Math.min(100, Math.max(0, Number(skor.annual))).toFixed(2)}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title="Rata-rata: (Semester I + II) / 2">
 								Rata-rata: (Semester I + II) / 2
 							</p>
 						</div>
@@ -790,16 +925,18 @@ function BudgetRevisionsPage() {
 					{/* Card 4: Nilai Akhir IKPA (Rightmost) */}
 					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">
+							<span className="text-xs font-semibold truncate">
 								Nilai Akhir (10%)
 							</span>
-							<Sparkles className="size-4 text-success" />
+							<Sparkles className="size-4 text-success shrink-0" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-extrabold text-success sm:text-3xl">
-								{Math.min(10, Math.max(0, skor.contribution)).toFixed(2)} pts
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-extrabold text-success sm:text-3xl leading-none">
+									{Math.min(10, Math.max(0, skor.contribution)).toFixed(2)} pts
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title="Bobot 10% terhadap total IKPA">
 								Bobot 10% terhadap total IKPA
 							</p>
 						</div>

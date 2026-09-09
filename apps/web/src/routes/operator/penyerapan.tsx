@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { default2026RuleSet } from "@simulator-ikpa/ikpa-engine";
-import { ShieldCheck, Sparkles, Target } from "lucide-react";
+import { ShieldCheck, Sparkles } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
@@ -199,7 +199,6 @@ function PenyerapanPage() {
 		score.score !== null && actualScore.score !== null
 			? score.score - actualScore.score
 			: null;
-	const gap = score.score !== null ? Math.max(0, 100 - score.score) : null;
 
 	// Calculation breakdown for the selected quarter
 	const selectedQuarterDetails = useMemo(() => {
@@ -478,8 +477,8 @@ function PenyerapanPage() {
 					</div>
 				) : null}
 
-				{/* 5 Key Metric Cards in Balanced Horizontal Grid */}
-				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+				{/* 4 Key Metric Cards in Balanced Horizontal Grid */}
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
 					{/* Card 1: Skor Aktual Terkunci */}
 					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
@@ -488,16 +487,18 @@ function PenyerapanPage() {
 								Terkunci 🔒
 							</span>
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-bold text-foreground sm:text-3xl">
-								{actualScore.score !== null
-									? Math.min(
-											100,
-											Math.max(0, actualScore.score),
-										).toFixed(2)
-									: "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
+									{actualScore.score !== null
+										? Math.min(
+												100,
+												Math.max(0, actualScore.score),
+											).toFixed(2)
+										: "—"}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title={`Realisasi s.d. ${MONTH_NAMES[currentMonth - 1]}`}>
 								Realisasi s.d. {MONTH_NAMES[currentMonth - 1]}
 							</p>
 						</div>
@@ -515,43 +516,29 @@ function PenyerapanPage() {
 								<span className="text-muted-foreground text-[10px]">Belum ada rencana</span>
 							)}
 						</div>
-						<div className="space-y-0.5">
-							<p
-								className={`text-2xl font-bold sm:text-3xl ${
-									planDelta !== null && planDelta > 0
-										? "text-emerald-600"
-										: planDelta !== null && planDelta < 0
-											? "text-rose-600"
-											: "text-foreground"
-								}`}
-							>
-								{planDelta !== null
-									? `${planDelta > 0 ? "+" : ""}${planDelta.toFixed(2)}`
-									: "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p
+									className={`text-2xl font-bold sm:text-3xl leading-none ${
+										planDelta !== null && planDelta > 0
+											? "text-emerald-600"
+											: planDelta !== null && planDelta < 0
+												? "text-rose-600"
+												: "text-foreground"
+									}`}
+								>
+									{planDelta !== null
+										? `${planDelta > 0 ? "+" : ""}${planDelta.toFixed(2)}`
+										: "—"}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title="Selisih terhadap nilai akhir">
 								Selisih terhadap nilai akhir
 							</p>
 						</div>
 					</div>
 
-					{/* Card 3: Target Jarak ke 100 */}
-					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
-						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">Jarak ke 100</span>
-							<Target className="size-4 text-primary" />
-						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-bold text-foreground sm:text-3xl">
-								{gap !== null ? gap.toFixed(2) : "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
-								Kebutuhan menuju nilai optimal
-							</p>
-						</div>
-					</div>
-
-					{/* Card 4: Nilai IKPA Penyerapan (2nd from right) */}
+					{/* Card 3: Nilai IKPA Penyerapan (2nd from right) */}
 					<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">
@@ -559,15 +546,17 @@ function PenyerapanPage() {
 							</span>
 							<ShieldCheck className="size-4 text-primary" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-								{score.score !== null
-									? Math.min(100, Math.max(0, score.score)).toFixed(2)
-									: isBlu
-										? "Dikecualikan"
-										: "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-extrabold text-primary sm:text-3xl leading-none">
+									{score.score !== null
+										? Math.min(100, Math.max(0, score.score)).toFixed(2)
+										: isBlu
+											? "Dikecualikan"
+											: "—"}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title={isBlu ? "Satker BLU (Dikecualikan)" : `Rata-rata s.d. Triwulan ${evaluatedQuartersCount} dari 4`}>
 								{isBlu
 									? "Satker BLU (Dikecualikan)"
 									: `Rata-rata s.d. Triwulan ${evaluatedQuartersCount} dari 4`}
@@ -575,7 +564,7 @@ function PenyerapanPage() {
 						</div>
 					</div>
 
-					{/* Card 5: Nilai Akhir IKPA (Rightmost) */}
+					{/* Card 4: Nilai Akhir IKPA (Rightmost) */}
 					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
 							<span className="text-xs font-semibold">
@@ -583,15 +572,17 @@ function PenyerapanPage() {
 							</span>
 							<Sparkles className="size-4 text-success" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-extrabold text-success sm:text-3xl">
-								{score.score !== null && !isBlu
-									? `${((Math.min(100, Math.max(0, score.score)) * 20) / 100).toFixed(2)} pts`
-									: isBlu
-										? "0.00 pts"
-										: "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-extrabold text-success sm:text-3xl leading-none">
+									{score.score !== null && !isBlu
+										? `${((Math.min(100, Math.max(0, score.score)) * 20) / 100).toFixed(2)} pts`
+										: isBlu
+											? "0.00 pts"
+											: "—"}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title="Bobot 20% terhadap total IKPA">
 								Bobot 20% terhadap total IKPA
 							</p>
 						</div>

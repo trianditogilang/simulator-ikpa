@@ -167,7 +167,7 @@ export const default2026RuleSet: RuleSetConfig = {
 		output_achievement: "25",
 	},
 	dipaRevisionBuckets: [
-		{ min: "0", max: "1", score: "100" },
+		{ min: "0", max: "1", score: "110" },
 		{ min: "2", max: "2", score: "100" },
 		{ min: "3", max: "999", score: "50" },
 	],

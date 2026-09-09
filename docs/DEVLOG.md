@@ -2,6 +2,182 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 217 - 2026-09-09
+**Time:** Start: 17:26 UTC | End: 17:38 UTC | Duration: ~12 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail
+**Tasks Completed:**
+- [UI-CONTRACTS-GUIDE-DISTRIBUSI-AK-SCALE-TEXT] Penambahan List Skala Rasio Penilaian Distribusi A.K. (Format Bullet List ul) pada Modal Panduan Belanja Kontraktual:
+  1. **Belanja Kontraktual (`apps/web/src/routes/operator/data/contracts-invoices.tsx`)**:
+     - Menambahkan daftar poin/kategori skala rasio penilaian berformat list bullet (`<ul className="list-disc list-inside space-y-1 text-muted-foreground text-[11px]">`) di bawah deskripsi subkomponen 3 (`3. Distribusi A.K. — Bobot 20%`) pada modal Panduan Belanja Kontraktual selaras dengan format card 2 (AK53):
+       - `Rasio > 75,00%: 100 Poin`
+       - `50,01% < Rasio <= 75,00%: 80 Poin`
+       - `25,01% < Rasio <= 50,00%: 60 Poin`
+       - `0,01% < Rasio <= 25,00%: 50 Poin`
+       - `Rasio = 0%: 0 Poin`
+     - Mempertahankan seluruh komponen, logika perhitungan, dan elemen UI lainnya tanpa perubahan yang tidak diminta.
+  2. **Verifikasi Monorepo**:
+     - `npm run typecheck --workspace @simulator-ikpa/web` $\rightarrow$ 0 error.
+     - `npx vitest run` $\rightarrow$ 39 test files / 282 unit tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/contracts-invoices.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 216 - 2026-09-09
+**Time:** Start: 16:49 UTC | End: 16:55 UTC | Duration: ~6 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail
+**Tasks Completed:**
+- [UI-HEADER-BUTTONS-REORDER-AND-UPTUP-STYLE-ALIGNMENT] Penyelarasan Urutan Tombol Aksi & Panduan Rumus (Revisi DIPA & Kontrak/Tagihan) serta Standardisasi Warna Tombol UP/TUP (Kelola Data Biru Tua & Panduan Rumus Putih):
+  1. **Revisi DIPA (`apps/web/src/routes/operator/data/budget-revisions.tsx`)**:
+     - Memindahkan tombol `Panduan & Rumus` ke posisi paling kanan setelah tombol aksi `Atur Pagu Awal TA` dan `+ Catat Pengesahan Revisi DIPA`.
+     - Urutan baru: `Total Pagu Aktif` $\rightarrow$ `Atur Pagu Awal TA` $\rightarrow$ `+ Catat Pengesahan Revisi DIPA` $\rightarrow$ `Panduan & Rumus`.
+  2. **Belanja Kontraktual & Penyelesaian Tagihan (`apps/web/src/routes/operator/data/contracts-invoices.tsx`)**:
+     - Menyelaraskan urutan tombol aksi utama agar berada di sebelah kiri dan `Panduan Rumus` di sebelah kanan:
+       - Tab Belanja Kontraktual: `+ Tambah Kontrak` (primary) $\rightarrow$ `Panduan Rumus` (outline).
+       - Tab Penyelesaian Tagihan (SPM-LS): `+ Catat SPM-LS` (primary) $\rightarrow$ `Panduan Rumus` (outline).
+  3. **Pengelolaan UP / TUP & KKP (`apps/web/src/routes/operator/up-tup.tsx`)**:
+     - Mengubah tombol `Kelola Data UP/TUP` menjadi tombol utama bertema biru tua dengan teks dan ikon putih (`bg-primary text-primary-foreground`).
+     - Mengubah tombol `Panduan Rumus` menjadi tombol sekunder/outline dengan latar putih dan teks/ikon biru (`border border-border bg-background text-foreground`).
+  4. **Verifikasi Monorepo**:
+     - `npm run typecheck --workspace @simulator-ikpa/web` $\rightarrow$ 0 error.
+     - `npx vitest run` $\rightarrow$ 39 test files / 282 unit tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/budget-revisions.tsx`
+  - `apps/web/src/routes/operator/data/contracts-invoices.tsx`
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 215 - 2026-09-09
+**Time:** Start: 16:30 UTC | End: 16:42 UTC | Duration: ~12 minutes
+- Status: Completed
+- Agent/Role: Fullstack Engine, Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, system-debugging
+**Tasks Completed:**
+- [ENGINE-REVISI-DIPA-NKRA-110-BUCKET] Penyesuaian Logika Matriks NKRA Revisi DIPA Semesteran (0–1x: 110, 2x: 100, >=3x: 50) dan Nilai IKPA Tahunan Maksimal 100.00:
+  1. **Engine Rule Set (`packages/ikpa-engine/src/rule-set.ts`)**:
+     - Memperbarui bucket pertama pada `default2026RuleSet.dipaRevisionBuckets` dari `{ min: "0", max: "1", score: "100" }` menjadi `{ min: "0", max: "1", score: "110" }`.
+     - Bucket lengkap: 0–1 kali revisi pagu tetap per semester $\rightarrow$ NKRA 110, 2 kali revisi $\rightarrow$ NKRA 100, $\ge 3$ kali revisi $\rightarrow$ NKRA 50.
+  2. **Engine Indicator & Formula Capping (`packages/ikpa-engine/src/indicators/dipa-revision.ts`)**:
+     - Memastikan formula semesteran: $\text{rawAnnual} = (\text{NKRA } S_1 + \text{NKRA } S_2) / 2$, dengan pembatasan maksimal $\text{annualScore} = \min(100, \max(0, \text{rawAnnual}))$.
+     - Contoh: $S_1 = 1$ (NKRA 110) dan $S_2 = 3$ (NKRA 50) $\rightarrow (110 + 50) / 2 = 80.00$ (Kontribusi Bobot 10% = 8.00 pts).
+     - Jika $S_1 = 0$ (NKRA 110) dan $S_2 = 0$ (NKRA 110) $\rightarrow (110 + 110) / 2 = 110 \rightarrow$ di-cap maksimal $\mathbf{100.00}$ (Kontribusi Bobot 10% = 10.00 pts).
+  3. **Pengujian & Paritas Komprehensif**:
+     - Menambahkan golden test cases pada `packages/ikpa-engine/src/indicators/dipa-revision.test.ts` dan memperbarui `apps/web/src/lib/simulation/revisi-dipa-workspace.test.ts`.
+  4. **Frontend UI & Panduan (`apps/web/src/routes/operator/data/budget-revisions.tsx`)**:
+     - Memperbarui tabel matriks pada Modal Dialog "Panduan & Rumus Revisi DIPA" sehingga menampilkan 0–1x: 110, 2x: 100, $\ge 3$x: 50.
+     - Memperbarui deskripsi preview pada drawer tambah/edit data revisi.
+  5. **Verifikasi Monorepo**:
+     - `npm run typecheck --workspace @simulator-ikpa/web` -> 0 error.
+     - `npx vitest run` -> 39 test files / 282 unit tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `packages/ikpa-engine/src/rule-set.ts`
+  - `packages/ikpa-engine/src/indicators/dipa-revision.test.ts`
+  - `apps/web/src/lib/simulation/revisi-dipa-workspace.test.ts`
+  - `apps/web/src/routes/operator/data/budget-revisions.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 214 - 2026-09-09
+**Time:** Start: 16:01 UTC | End: 16:08 UTC | Duration: ~7 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail
+**Tasks Completed:**
+- [UI-PANDUAN-RUMUS-REVISI-DIPA-AND-SPM-DISPENSASI] Penambahan Tombol & Modal Dialog 'Panduan & Rumus' pada Header Halaman Revisi DIPA dan Dispensasi SPM:
+  1. **Revisi DIPA (`apps/web/src/routes/operator/data/budget-revisions.tsx`)**:
+     - Menambahkan tombol `Panduan & Rumus` dengan ikon `?` pada top summary banner header.
+     - Mengintegrasikan modal Radix Dialog yang memuat:
+       - Ketentuan 2 syarat mutlak revisi objek (total pagu tetap $\Delta=0$ dan kode termasuk 14 kode eligible).
+       - Pengecualian otomatis untuk DIPA-AWAL dan revisi dengan perubahan pagu satker.
+       - Tabel matriks skor NKRA per semester (0–1x: 100, 2x: 100, $\ge$3x: 50).
+       - Tahapan dan formula semesteran: $\text{Nilai IKPA} = (\text{NKRA } S_1 + \text{NKRA } S_2) \div 2$ dan kontribusi bobot 10%.
+       - Tabel lengkap daftar 14 kode jenis revisi pagu tetap eligible (PER-5/PB/2024) beserta uraiannya.
+  2. **Dispensasi SPM (`apps/web/src/routes/operator/data/spm-dispensation.tsx`)**:
+     - Menambahkan tombol `Panduan & Rumus` dengan ikon `?` pada top header sejajar dengan tombol `Tambah SPM Q4`.
+     - Mengintegrasikan modal Radix Dialog yang memuat:
+       - Penjelasan peran dispensasi SPM sebagai faktor pengurang (penalti) nilai akhir IKPA khusus evaluasi Q4 LLAT.
+       - Tabel matriks 5 kategori rasio permil ($\text{‰}$) vs besaran potongan poin IKPA ($0{,}00$ s.d. $-1{,}00$ pts).
+       - Tahapan formula perhitungan rasio permil dan pengurangan langsung ke total skor satker.
+       - Tips mitigasi satker menghadapi batas waktu LLAT.
+  3. **Verifikasi Monorepo**:
+     - `npm run typecheck --workspace @simulator-ikpa/web` -> 0 error.
+     - `npx vitest run` -> 39 test files / 280 unit tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/budget-revisions.tsx`
+  - `apps/web/src/routes/operator/data/spm-dispensation.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 213 - 2026-09-09
+**Time:** Start: 15:45 UTC | End: 15:52 UTC | Duration: ~7 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail
+**Tasks Completed:**
+- [UI-PENYERAPAN-CARD-REMOVE-AND-HEADER-CARDS-ALIGNMENT] Penghapusan Card 'Jarak ke 100' pada Penyerapan Anggaran (Simetri 4 Kolom) dan Penyelarasan Vertikal Sempurna Nilai Angka Header Score Cards Seluruh Indikator IKPA:
+  1. **Penyerapan Anggaran (`apps/web/src/routes/operator/penyerapan.tsx`)**:
+     - Menghapus card redundan "Jarak ke 100" (Card 3 lama) dan import/variabel `Target` & `gap`.
+     - Menyesuaikan container grid dari `lg:grid-cols-5` menjadi `lg:grid-cols-4` sehingga 4 card yang tersisa (Skor Aktual, Dampak Rencana, Nilai IKPA Penyerapan, Nilai Akhir 20%) tampil simetris dan proporsional.
+  2. **Penyelarasan Vertikal Sempurna Header Cards Seluruh Indikator IKPA**:
+     - Menerapkan arsitektur Ponytail styling seragam pada container angka di baris header card indikator:
+       - `space-y-0.5 mt-auto` pada wrapper bawah agar angka selalu duduk di baseline bawah yang sama terlepas dari panjang judul/badge atas.
+       - `<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">` yang membungkus `<p className="... leading-none">` dan elemen auxiliary (`pts`, `/ 100`, `Kontrak`, dsb.).
+       - Penambahan `truncate` dengan atribut `title` pada subtitle dan judul agar tidak terjadi pergeseran tinggi baris antar card berdampingan.
+     - Diterapkan pada 6 domain indikator yang diminta:
+       1. Penyerapan Anggaran (`apps/web/src/routes/operator/penyerapan.tsx`)
+       2. Belanja Kontraktual (`apps/web/src/routes/operator/data/contracts-invoices.tsx` tab Kontrak)
+       3. Penyelesaian Tagihan SPM-LS (`apps/web/src/routes/operator/data/contracts-invoices.tsx` tab Tagihan)
+       4. UP/TUP & KKP (`apps/web/src/routes/operator/up-tup.tsx`)
+       5. Capaian Output (`apps/web/src/routes/operator/data/output-achievement.tsx`)
+       6. Dispensasi SPM (`apps/web/src/routes/operator/data/spm-dispensation.tsx`)
+       7. Revisi DIPA (`apps/web/src/routes/operator/data/budget-revisions.tsx`)
+       8. Deviasi Halaman III DIPA (`apps/web/src/routes/operator/deviasi.tsx`)
+  3. **Verifikasi Monorepo**:
+     - `npm run typecheck --workspace @simulator-ikpa/web` -> 0 error.
+     - `npx vitest run` -> 39 test files / 280 unit tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/penyerapan.tsx`
+  - `apps/web/src/routes/operator/data/contracts-invoices.tsx`
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `apps/web/src/routes/operator/data/spm-dispensation.tsx`
+  - `apps/web/src/routes/operator/data/budget-revisions.tsx`
+  - `apps/web/src/routes/operator/deviasi.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 212 - 2026-09-09
+**Time:** Start: 15:15 UTC | End: 15:19 UTC | Duration: ~4 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Claude Opus 4.6
+- Skills: ponytail
+**Tasks Completed:**
+- [UI-TABLE-HEADER-CONTRAST-FIX] Perbaikan Kontras Font Judul Kolom Tabel (th) Menjadi Hitam:
+  1. Ganti `text-slate-800 dark:text-slate-200` menjadi `text-foreground` pada `thead` dan `th` di komponen bersama `DomainDataTable` — warna hitam di light mode, putih di dark mode.
+  2. Efek menyeluruh ke semua card tabel di `/operator/data/budget-revisions`: Daftar Pengesahan & Riwayat Revisi DIPA, Rincian 4 Jenis Belanja, Daftar Komitmen Data Kontrak, Daftar Penyelesaian Tagihan SPM-LS, Riwayat Transaksi UP/TUP/Revolving GUP, Daftar Penerbitan SPM.
+  3. Verifikasi: typecheck web 0 error.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/data/domain-data-table.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
 ### Session 211 - 2026-09-09
 **Time:** Start: 14:58 UTC | End: 15:05 UTC | Duration: ~7 minutes
 - Status: Completed

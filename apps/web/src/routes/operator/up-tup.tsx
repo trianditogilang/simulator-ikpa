@@ -724,11 +724,11 @@ function UpTupPage() {
 						<button
 							type="button"
 							onClick={() => scrollToData("uptup")}
-							className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground shadow-xs transition hover:bg-surface-muted"
+							className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
 						>
-							<Coins className="size-3.5 text-primary" />
+							<Coins className="size-3.5" />
 							<span>Kelola Data UP/TUP</span>
-							<ArrowRight className="size-3 text-muted-foreground" />
+							<ArrowRight className="size-3" />
 						</button>
 
 						<Dialog.Root open={isHelpOpen} onOpenChange={setIsHelpOpen}>
@@ -736,9 +736,9 @@ function UpTupPage() {
 								<button
 									type="button"
 									aria-label="Lihat rumus singkat UP/TUP & KKP"
-									className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
+									className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground shadow-xs transition hover:bg-surface-muted"
 								>
-									<HelpCircle className="size-4" />
+									<HelpCircle className="size-4 text-primary" />
 									<span>Panduan Rumus</span>
 								</button>
 							</Dialog.Trigger>
@@ -890,14 +890,16 @@ function UpTupPage() {
 					{/* Card 1: NK Tunai */}
 					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">NK Tunai (Bobot 90%)</span>
-							<Coins className="size-4 text-primary" />
+							<span className="text-xs font-semibold truncate">NK Tunai (Bobot 90%)</span>
+							<Coins className="size-4 text-primary shrink-0" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-bold text-foreground sm:text-3xl">
-								{score.tunai !== null ? formatNumber(score.tunai) : "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
+									{score.tunai !== null ? formatNumber(score.tunai) : "—"}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title="Ketepatan 50% · %GUP 25% · Setoran 25%">
 								Ketepatan 50% · %GUP 25% · Setoran 25%
 							</p>
 						</div>
@@ -906,18 +908,20 @@ function UpTupPage() {
 					{/* Card 2: NK KKP */}
 					<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">NK KKP (Bobot 10%)</span>
-							<CreditCard className="size-4 text-warning" />
+							<span className="text-xs font-semibold truncate">NK KKP (Bobot 10%)</span>
+							<CreditCard className="size-4 text-warning shrink-0" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-bold text-foreground sm:text-3xl">
-								{hasKkp
-									? score.kkp !== null
-										? formatNumber(score.kkp)
-										: "—"
-									: "0,00"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-bold text-foreground sm:text-3xl leading-none">
+									{hasKkp
+										? score.kkp !== null
+											? formatNumber(score.kkp)
+											: "—"
+										: "0,00"}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title={hasKkp ? "Target Kumulatif Triwulanan" : "Status: Tanpa UP KKP"}>
 								{hasKkp ? "Target Kumulatif Triwulanan" : "Status: Tanpa UP KKP"}
 							</p>
 						</div>
@@ -926,18 +930,20 @@ function UpTupPage() {
 					{/* Card 3: Nilai IKPA UP/TUP & KKP (2nd from right) */}
 					<div className="rounded-xl border border-primary/20 bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">
+							<span className="text-xs font-semibold truncate">
 								Nilai IKPA UP/TUP &amp; KKP
 							</span>
-							<ShieldCheck className="size-4 text-primary" />
+							<ShieldCheck className="size-4 text-primary shrink-0" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-extrabold text-primary sm:text-3xl">
-								{score.score !== null
-									? formatNumber(Math.min(100, Math.max(0, score.score)))
-									: "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-extrabold text-primary sm:text-3xl leading-none">
+									{score.score !== null
+										? formatNumber(Math.min(100, Math.max(0, score.score)))
+										: "—"}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title={hasKkp ? "90% Tunai + 10% KKP" : "90% Tunai (Tanpa UP KKP)"}>
 								{hasKkp ? "90% Tunai + 10% KKP" : "90% Tunai (Tanpa UP KKP)"}
 							</p>
 						</div>
@@ -946,18 +952,20 @@ function UpTupPage() {
 					{/* Card 4: Nilai Akhir (Rightmost) */}
 					<div className="rounded-xl border border-success/20 bg-success/5 p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 						<div className="flex items-center justify-between text-muted-foreground">
-							<span className="text-xs font-semibold">
+							<span className="text-xs font-semibold truncate">
 								Nilai Akhir (10%)
 							</span>
-							<Sparkles className="size-4 text-success" />
+							<Sparkles className="size-4 text-success shrink-0" />
 						</div>
-						<div className="space-y-0.5">
-							<p className="text-2xl font-extrabold text-success sm:text-3xl">
-								{score.contribution !== null
-									? `${formatNumber(Math.min(10, Math.max(0, score.contribution)))} pts`
-									: "—"}
-							</p>
-							<p className="text-[11px] text-muted-foreground">
+						<div className="space-y-0.5 mt-auto">
+							<div className="flex items-baseline gap-1.5 min-h-[32px] sm:min-h-[36px]">
+								<p className="text-2xl font-extrabold text-success sm:text-3xl leading-none">
+									{score.contribution !== null
+										? `${formatNumber(Math.min(10, Math.max(0, score.contribution)))} pts`
+										: "—"}
+								</p>
+							</div>
+							<p className="text-[11px] text-muted-foreground truncate" title={hasKkp ? "Bobot 10% terhadap total IKPA" : "Bobot 10% (Maks. 9.00 pts)"}>
 								{hasKkp
 									? "Bobot 10% terhadap total IKPA"
 									: "Bobot 10% (Maks. 9.00 pts)"}

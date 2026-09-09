@@ -111,13 +111,13 @@ export function DomainDataTable<T extends { id: string | number }>({
 				)}
 			>
 				<table className="w-full text-left text-xs">
-					<thead className="sticky top-0 z-10 border-b border-border/80 bg-surface text-slate-800 dark:text-slate-200">
+					<thead className="sticky top-0 z-10 border-b border-border/80 bg-surface text-foreground">
 						<tr>
 							{columns.map((col) => (
 								<th
 									key={col.key}
 									className={twMerge(
-										"px-4 py-2.5 font-bold text-slate-800 dark:text-slate-200 bg-surface",
+										"px-4 py-2.5 font-bold text-foreground bg-surface",
 										col.className,
 									)}
 								>
