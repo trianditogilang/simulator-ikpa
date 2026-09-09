@@ -33,6 +33,7 @@ import {
 } from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
+import { SaveScenarioDialog } from "@/components/operator/save-scenario-dialog";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import {
 	formatDateDDMMYYYY,
@@ -156,6 +157,7 @@ function OutputAchievementPage() {
 	const [macroNkcro, setMacroNkcro] = useState("95.00");
 	const [macroRoEligible, setMacroRoEligible] = useState("");
 	const [macroSavedData, setMacroSavedData] = useState<MacroCOData | null>(null);
+	const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
 
 	// In-memory Sandbox Simulation State
 	const [simOutputs, setSimOutputs] = useState<OutputReportRecord[]>(
@@ -1821,6 +1823,17 @@ function OutputAchievementPage() {
 									<Edit className="size-3.5" />
 									<span>Input Capaian Terakhir</span>
 								</button>
+								{macroSavedData?.source === "simulation_override" && (
+									<button
+										type="button"
+										onClick={() => setIsSaveDialogOpen(true)}
+										title="Simpan ke Skenario A, B, atau C"
+										className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition shadow-xs"
+									>
+										<Save className="size-3.5" />
+										<span>Simpan Skenario (A/B/C)</span>
+									</button>
+								)}
 							</div>
 						</div>
 
@@ -4172,6 +4185,41 @@ function OutputAchievementPage() {
 						</div>
 					</div>
 				)}
+				<SaveScenarioDialog
+					open={isSaveDialogOpen}
+					onOpenChange={setIsSaveDialogOpen}
+					indicatorKey="output_achievement"
+					indicatorName="Capaian Output"
+					activePeriodMonth={selectedMonth}
+					overrides={
+						macroSavedData?.source === "simulation_override"
+							? {
+									output_achievement: (() => {
+										const nkkw = Math.min(100, Math.max(0, macroSavedData.nkkw));
+										const nkcro = Math.min(100, Math.max(0, macroSavedData.nkcro));
+										return (Math.round((nkkw * 0.3 + nkcro * 0.7) * 100) / 100).toFixed(2);
+									})(),
+								}
+							: undefined
+					}
+					overrideSummaries={
+						macroSavedData?.source === "simulation_override"
+							? [
+									{
+										label: "Nilai IKPA Capaian Output (What-If)",
+										originalValue: typeof (engineResult as unknown as { score?: unknown }).score === "number" ? ((engineResult as unknown as { score: number }).score).toFixed(2) : "—",
+										newValue: displayedScores.finalScore,
+									},
+								]
+							: []
+					}
+					onSuccess={() => {
+						setActionMessage(
+							"Skenario what-if Capaian Output tersimpan di slot A/B/C. Buka Riwayat & Skenario untuk membandingkan.",
+						);
+						setTimeout(() => setActionMessage(null), 5000);
+					}}
+				/>
 			</div>
 		</OperatorShell>
 	);

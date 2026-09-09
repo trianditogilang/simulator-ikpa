@@ -2,6 +2,71 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 203 - 2026-09-09
+**Time:** Start: 12:12 UTC | End: 12:18 UTC | Duration: ~6 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: muse-spark-1.3
+**Tasks Completed:**
+- [FIX-HISTORY-EDIT-SCENARIO-DECIMAL-COMMA] Perbaikan Simpan Perubahan Skenario di `/operator/history` Tab Skenario Simulasi:
+  1. Akar masalah: input skor memakai `type=number step=0.1` sehingga nilai dua desimal (mis. 95.55) gagal validasi step native dan koma desimal Indonesia ditolak browser — tombol Simpan tidak bisa submit.
+  2. Ganti input Target dan 8 skor indikator menjadi `type=text inputMode=decimal` dengan parsing toleran (koma -> titik), clamp 0-100, dan normalisasi target sebelum `updateScenario`.
+  3. Verifikasi: typecheck web 0 error, `npx vitest run` 39 files / 280 tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/history.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck --workspace @simulator-ikpa/web` -> 0 errors.
+  - `npx vitest run` -> 39/39 test files passed (280 tests).
+
+### Session 202 - 2026-09-09
+**Time:** Start: 12:00 UTC | End: 12:10 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: muse-spark-1.3
+- Skills: ponytail
+**Tasks Completed:**
+- [UI-SAVE-DIALOG-REMOVE-REDUNDANT-SLOT-TEXTS-AND-SYNC] Hapus Teks Redundan & Sinkronisasi Slot Dialog Simpan Skenario:
+  1. Hapus paragraf "Memilih slot akan langsung menimpa (rewrite)" dan label "(Timpa Slot)" pada card slot di `save-scenario-dialog.tsx`, tanpa mengubah elemen lain.
+  2. Sinkronisasi pilihan slot A/B/C antar indikator via `localStorage` (`ikpa-scenario-slot`): init dari storage, re-sync saat dialog dibuka, `storage` event listener, persist saat pilih dan saat simpan sukses; `handleClose` tidak lagi me-reset ke A.
+  3. Verifikasi: typecheck web 0 error, `npx vitest run` 39 files / 280 tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/operator/save-scenario-dialog.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck --workspace @simulator-ikpa/web` -> 0 errors.
+  - `npx vitest run` -> 39/39 test files passed (280 tests).
+
+### Session 201 - 2026-09-09
+**Time:** Start: 11:40 UTC | End: 11:55 UTC | Duration: ~15 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: muse-spark-1.3
+- Skills: ponytail, context7-mcp
+**Tasks Completed:**
+- [UI-WHATIF-SAVE-SLOT-ABC-INFO-4-INDICATORS] Info Slot A/B/C Sebelum Simpan Skenario What-If pada 4 Menu Indikator:
+  1. **Dialog Terunifikasi (`apps/web/src/components/operator/save-scenario-dialog.tsx`)**: Banner info dinamis "Skenario what-if ini akan disimpan di Skenario A/B/C" + konteks indikator & periode, ringan tanpa over-engineering.
+  2. **Deviasi (`apps/web/src/routes/operator/deviasi.tsx`) & Penyerapan (`apps/web/src/routes/operator/penyerapan.tsx`)**: Ganti simpan langsung `executeSimulation` menjadi `SaveScenarioDialog` dengan `overrides` + `overrideSummaries`, tombol "Simpan Skenario (A/B/C)".
+  3. **UP-TUP (`apps/web/src/routes/operator/up-tup.tsx`)**: Tombol baru "Simpan Skenario (A/B/C)" pada panel simulasi via `assumptions.upTup` + ringkasan GUP.
+  4. **Capaian Output (`apps/web/src/routes/operator/data/output-achievement.tsx`)**: Tombol baru khusus Mode B `simulation_override` via `overrides.output_achievement` + ringkasan skor.
+  5. **Verifikasi**: `npm run typecheck` 0 error, `npx vitest run` 39 files / 280 tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/operator/save-scenario-dialog.tsx`
+  - `apps/web/src/routes/operator/deviasi.tsx`
+  - `apps/web/src/routes/operator/penyerapan.tsx`
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `apps/web/src/routes/operator/data/output-achievement.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck` -> 0 errors across monorepo.
+  - `npx vitest run` -> 39/39 test files passed (280 tests).
+
 ### Session 200 - 2026-09-08
 **Time:** Start: 17:45 UTC | End: 17:55 UTC | Duration: ~10 minutes
 - Status: Completed

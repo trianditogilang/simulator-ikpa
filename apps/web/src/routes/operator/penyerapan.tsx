@@ -4,6 +4,7 @@ import { ShieldCheck, Sparkles, Target } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
+import { SaveScenarioDialog } from "@/components/operator/save-scenario-dialog";
 import { useActiveContext } from "@/components/layout/active-context";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { formatPercent, formatRupiah } from "@/lib/format";
@@ -22,7 +23,6 @@ import {
 import { fetchBudgetAndRevisions } from "@/services/budget-revisions-service";
 import { fetchRpdAndRealizations } from "@/services/rpd-realization-service";
 import { fetchSatkerSettings } from "@/services/settings-service";
-import { executeSimulation } from "@/services/simulation-service";
 
 export const Route = createFileRoute("/operator/penyerapan")({
 	loader: async ({ context }) => {
@@ -95,7 +95,8 @@ function PenyerapanPage() {
 	const [selectedQuarter, setSelectedQuarter] = useState<1 | 2 | 3 | 4>(currentQuarter);
 	const [plan, setPlan] = useState<Record<string, string>>({});
 	const [isHelpOpen, setIsHelpOpen] = useState(false);
-	const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+	const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+	const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
 
 	const handleSelectQuarter = (q: 1 | 2 | 3 | 4) => {
 		setSelectedQuarter(q);
@@ -243,7 +244,7 @@ function PenyerapanPage() {
 			}
 			return next;
 		});
-		setSaveStatus("idle");
+		setSaveFeedback(null);
 	};
 
 	const handleResetPlan = () => {
@@ -254,29 +255,22 @@ function PenyerapanPage() {
 		} catch {
 			// ignore
 		}
-		setSaveStatus("idle");
+		setSaveFeedback(null);
 	};
 
-	const handleSaveScenario = async () => {
-		setSaveStatus("saving");
-		try {
-			const storageKey = `sim_penyerapan_plan_${activeOrgId || "default"}`;
-			localStorage.setItem(storageKey, JSON.stringify(plan));
-
-			await executeSimulation({
-				orgId: activeOrgId,
-				period: { kind: "month", value: currentMonth },
-				simulationType: "scenario",
-				simulationName: `Skenario Penyerapan Bulan ${MONTH_NAMES[currentMonth - 1]}`,
-			});
-			setSaveStatus("saved");
-			setTimeout(() => {
-				setSaveStatus("idle");
-			}, 4000);
-		} catch {
-			setSaveStatus("error");
-		}
-	};
+	const penyerapanScoreValue =
+		score.score !== null ? score.score.toFixed(2) : "100.00";
+	const penyerapanSummaries = useMemo(
+		() => [
+			{
+				label: `Nilai IKPA Penyerapan s.d. ${MONTH_NAMES[currentMonth - 1]}`,
+				originalValue:
+					actualScore.score !== null ? actualScore.score.toFixed(2) : "—",
+				newValue: penyerapanScoreValue,
+			},
+		],
+		[actualScore.score, penyerapanScoreValue, currentMonth],
+	);
 
 	return (
 		<OperatorShell currentPath="/operator/penyerapan">
@@ -786,9 +780,9 @@ function PenyerapanPage() {
 						</div>
 
 						<div className="flex items-center gap-2">
-							{saveStatus === "saved" ? (
+							{saveFeedback ? (
 								<span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 animate-in fade-in">
-									✓ Skenario tersimpan
+									{saveFeedback}
 								</span>
 							) : null}
 
@@ -803,20 +797,21 @@ function PenyerapanPage() {
 									</button>
 									<button
 										type="button"
-										onClick={handleSaveScenario}
-										disabled={saveStatus === "saving"}
+										onClick={() => setIsSaveDialogOpen(true)}
+										title="Simpan ke Skenario A, B, atau C"
 										className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
 									>
-										{saveStatus === "saving" ? "Menyimpan..." : "Simpan Skenario"}
+										Simpan Skenario (A/B/C)
 									</button>
 								</>
 							) : (
 								<button
 									type="button"
-									onClick={handleSaveScenario}
+									onClick={() => setIsSaveDialogOpen(true)}
+									title="Ubah minimal satu rencana agar skenario dapat disimpan"
 									className="px-3.5 py-1.5 rounded-xl bg-amber-600/90 hover:bg-amber-700 text-white text-xs font-semibold shadow-sm transition-colors"
 								>
-									Simpan Skenario
+									Simpan Skenario (A/B/C)
 								</button>
 							)}
 						</div>
@@ -961,6 +956,25 @@ function PenyerapanPage() {
 						</div>
 					</div>
 				</section>
+				<SaveScenarioDialog
+					open={isSaveDialogOpen}
+					onOpenChange={setIsSaveDialogOpen}
+					indicatorKey="budget_absorption"
+					indicatorName="Penyerapan Anggaran"
+					activePeriodMonth={currentMonth}
+					overrides={{ budget_absorption: penyerapanScoreValue }}
+					overrideSummaries={penyerapanSummaries}
+					onSuccess={() => {
+						const storageKey = `sim_penyerapan_plan_${activeOrgId || "default"}`;
+						try {
+							localStorage.setItem(storageKey, JSON.stringify(plan));
+						} catch {
+							// ignore
+						}
+						setSaveFeedback("✓ Tersimpan di slot A/B/C");
+						setTimeout(() => setSaveFeedback(null), 4000);
+					}}
+				/>
 			</div>
 		</OperatorShell>
 	);

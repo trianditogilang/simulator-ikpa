@@ -10,7 +10,7 @@ import {
 	X,
 } from "lucide-react";
 import { Dialog } from "radix-ui";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { executeSimulation } from "@/services/simulation-service";
 
@@ -53,6 +53,19 @@ const MONTH_NAMES = [
 	"Desember",
 ];
 
+const SLOT_STORAGE_KEY = "ikpa-scenario-slot";
+
+function readStoredSlot(): "A" | "B" | "C" {
+	try {
+		if (typeof window === "undefined") return "A";
+		const raw = window.localStorage.getItem(SLOT_STORAGE_KEY);
+		if (raw === "A" || raw === "B" || raw === "C") return raw;
+	} catch {
+		// ignore storage errors
+	}
+	return "A";
+}
+
 export function SaveScenarioDialog({
 	open,
 	onOpenChange,
@@ -69,8 +82,8 @@ export function SaveScenarioDialog({
 	const navigate = useNavigate();
 
 	const periodLabel = `${MONTH_NAMES[activePeriodMonth - 1] || `Bulan ${activePeriodMonth}`} ${fiscalYear}`;
-	const [selectedSlot, setSelectedSlot] = useState<"A" | "B" | "C">("A");
-	const defaultScenarioName = `Skenario A: Tutup gap via ${indicatorName}`;
+	const [selectedSlot, setSelectedSlot] = useState<"A" | "B" | "C">(readStoredSlot);
+	const defaultScenarioName = `Skenario ${selectedSlot}: Tutup gap via ${indicatorName}`;
 
 	const [scenarioName, setScenarioName] = useState(defaultScenarioName);
 	const [notes, setNotes] = useState("");
@@ -81,6 +94,36 @@ export function SaveScenarioDialog({
 		snapshotId: string;
 		totalScore: string;
 	} | null>(null);
+
+	const selectSlot = (slot: "A" | "B" | "C") => {
+		setSelectedSlot(slot);
+		try {
+			window.localStorage.setItem(SLOT_STORAGE_KEY, slot);
+		} catch {
+			// ignore storage errors
+		}
+		setScenarioName(`Skenario ${slot}: Tutup gap via ${indicatorName}`);
+	};
+
+	useEffect(() => {
+		if (open) {
+			const stored = readStoredSlot();
+			setSelectedSlot(stored);
+			setScenarioName(`Skenario ${stored}: Tutup gap via ${indicatorName}`);
+			setSavedResult(null);
+			setError(null);
+		}
+	}, [open, indicatorName]);
+
+	useEffect(() => {
+		const onStorage = (e: StorageEvent) => {
+			if (e.key === SLOT_STORAGE_KEY && (e.newValue === "A" || e.newValue === "B" || e.newValue === "C")) {
+				setSelectedSlot(e.newValue);
+			}
+		};
+		window.addEventListener("storage", onStorage);
+		return () => window.removeEventListener("storage", onStorage);
+	}, []);
 
 	const hasChanges =
 		(overrides && Object.keys(overrides).length > 0) ||
@@ -123,6 +166,11 @@ export function SaveScenarioDialog({
 				snapshotId: res.snapshotId,
 				totalScore: res.totalScore ?? "—",
 			});
+			try {
+				window.localStorage.setItem(SLOT_STORAGE_KEY, selectedSlot);
+			} catch {
+				// ignore storage errors
+			}
 			onSuccess?.();
 		} catch (err: unknown) {
 			setError(
@@ -136,8 +184,7 @@ export function SaveScenarioDialog({
 	const handleClose = () => {
 		setSavedResult(null);
 		setError(null);
-		setScenarioName(defaultScenarioName);
-		setSelectedSlot("A");
+		setScenarioName(`Skenario ${selectedSlot}: Tutup gap via ${indicatorName}`);
 		setNotes("");
 		onOpenChange(false);
 	};
@@ -236,6 +283,15 @@ export function SaveScenarioDialog({
 						</div>
 					) : (
 						<form onSubmit={handleSave} className="mt-4 space-y-4">
+							<div className="rounded-xl border border-primary/25 bg-primary/5 p-3 text-xs leading-relaxed">
+								<p className="font-bold text-foreground">
+									Skenario what-if ini akan disimpan di{" "}
+									<span className="text-primary">Skenario {selectedSlot}</span>
+								</p>
+								<p className="mt-0.5 text-[11px] text-muted-foreground">
+									{indicatorName} · {periodLabel} · Maks. 3 slot (A, B, C). Memilih slot yang sudah terisi akan menimpa data lama di slot tersebut.
+								</p>
+							</div>
 							{error && (
 								<div className="flex items-center gap-2 rounded-xl border border-danger/30 bg-danger/10 p-3 text-xs text-danger font-semibold">
 									<AlertCircle className="size-4 shrink-0" />
@@ -261,8 +317,7 @@ export function SaveScenarioDialog({
 												key={slot}
 												type="button"
 												onClick={() => {
-													setSelectedSlot(slot);
-													setScenarioName(`Skenario ${slot}: Tutup gap via ${indicatorName}`);
+													selectSlot(slot);
 												}}
 												className={twMerge(
 													"flex flex-col items-center justify-center rounded-xl border p-2.5 text-center transition cursor-pointer",
@@ -284,16 +339,10 @@ export function SaveScenarioDialog({
 												<span className="mt-1 text-xs font-bold text-foreground">
 													Skenario {slot}
 												</span>
-												<span className="text-[10px] text-muted-foreground">
-													(Timpa Slot)
-												</span>
 											</button>
 										);
 									})}
 								</div>
-								<p className="mt-1.5 text-[11px] text-muted-foreground">
-									💡 Memilih slot akan langsung <strong>menimpa (rewrite)</strong> data pada slot terpilih dengan hasil simulasi indikator yang aktif.
-								</p>
 							</div>
 
 							<div>

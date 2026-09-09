@@ -316,9 +316,13 @@ function OperatorHistoryPage() {
 		setFeedbackMessage(null);
 		setErrorMessage(null);
 		try {
+			const normalizedTarget = editTargetScore.replace(",", ".").trim();
+			const targetNum = parseFloat(normalizedTarget);
 			await updateScenario(editingScenario.id, {
 				name: editScenarioName,
-				targetScore: editTargetScore,
+				targetScore: Number.isFinite(targetNum)
+					? String(Math.min(Math.max(targetNum, 0), 100))
+					: editTargetScore,
 				indicatorScores: editIndicatorScores,
 			});
 			setFeedbackMessage(`Skenario "${editScenarioName}" berhasil diperbarui.`);
@@ -1319,16 +1323,15 @@ function OperatorHistoryPage() {
 												<label htmlFor="edit-scenario-target" className="block text-xs font-semibold text-foreground">
 													Target Nilai IKPA
 												</label>
-												<input
-													id="edit-scenario-target"
-													type="number"
-													step="0.01"
-													min="0"
-													max="100"
-													value={editTargetScore}
-													onChange={(e) => setEditTargetScore(e.target.value)}
-													className="mt-1 w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-												/>
+										<input
+												id="edit-scenario-target"
+												type="text"
+												inputMode="decimal"
+												value={editTargetScore}
+												onChange={(e) => setEditTargetScore(e.target.value.replace(",", "."))}
+												placeholder="95.00"
+												className="mt-1 w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+											/>
 											</div>
 										</div>
 
@@ -1375,22 +1378,29 @@ function OperatorHistoryPage() {
 																</span>
 															</div>
 															<div className="flex items-center gap-1 shrink-0">
-																<input
-																	type="number"
-																	min="0"
-																	max="100"
-																	step="0.1"
-																	value={currentVal}
-																	onChange={(e) => {
-																		const val = parseFloat(e.target.value) || 0;
+															<input
+																type="text"
+																inputMode="decimal"
+																value={String(currentVal)}
+																onChange={(e) => {
+																	const normalized = e.target.value.replace(",", ".").trim();
+																	if (normalized === "") {
 																		setEditIndicatorScores((prev) => ({
 																			...prev,
-																			[ind.key]: Math.min(Math.max(val, 0), 100),
+																			[ind.key]: 0,
 																		}));
-																	}}
-																	aria-label={`Skor ${ind.label}`}
-																	className="w-16 rounded-lg border border-border bg-surface px-2 py-1 text-right text-xs font-bold text-foreground focus:border-primary focus:outline-none"
-																/>
+																		return;
+																	}
+																	const val = parseFloat(normalized);
+																	if (!Number.isFinite(val)) return;
+																	setEditIndicatorScores((prev) => ({
+																		...prev,
+																		[ind.key]: Math.min(Math.max(val, 0), 100),
+																	}));
+																}}
+																aria-label={`Skor ${ind.label}`}
+																className="w-20 rounded-lg border border-border bg-surface px-2 py-1 text-right text-xs font-bold text-foreground focus:border-primary focus:outline-none"
+															/>
 															</div>
 														</div>
 													);

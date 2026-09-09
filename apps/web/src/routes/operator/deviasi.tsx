@@ -28,6 +28,7 @@ import {
 } from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
+import { SaveScenarioDialog } from "@/components/operator/save-scenario-dialog";
 import { useActiveContext } from "@/components/layout/active-context";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { formatPercent, formatRupiah } from "@/lib/format";
@@ -51,7 +52,6 @@ import {
 	saveRealization,
 	saveRpdLine,
 } from "@/services/rpd-realization-service";
-import { executeSimulation } from "@/services/simulation-service";
 
 export const Route = createFileRoute("/operator/deviasi")({
 	validateSearch: (search: Record<string, unknown>) => ({
@@ -173,9 +173,8 @@ function DeviasiPage() {
 
 	const [planRpd, setPlanRpd] = useState<Record<string, string>>({});
 	const [planReal, setPlanReal] = useState<Record<string, string>>({});
-	const [isSavingScenario, setIsSavingScenario] = useState(false);
+	const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
 	const [scenarioMessage, setScenarioMessage] = useState<string | null>(null);
-	const [scenarioError, setScenarioError] = useState<string | null>(null);
 
 	const pagu: PaguMap = useMemo(() => {
 		const map: PaguMap = {};
@@ -388,37 +387,21 @@ function DeviasiPage() {
 		});
 	};
 
-	const handleSaveScenario = async () => {
-		setIsSavingScenario(true);
-		setScenarioMessage(null);
-		setScenarioError(null);
-
-		try {
-			const scoreValue =
-				simScore.score !== null ? simScore.score.toFixed(2) : "100.00";
-			await executeSimulation({
-				period: { kind: "month", value: evalMonth },
-				simulationType: "scenario",
-				simulationName: `Skenario Deviasi Hal III s.d. ${MONTH_NAMES[evalMonth - 1]} (${scoreValue})`,
-				overrides: {
-					rpd_deviation: scoreValue,
-				},
-			});
-
-			setScenarioMessage(
-				`Skenario simulasi Deviasi Hal III berhasil disimpan ke Riwayat Snapshot IKPA (Nilai ${scoreValue}).`,
-			);
-			setTimeout(() => setScenarioMessage(null), 5000);
-		} catch (err: unknown) {
-			setScenarioError(
-				err instanceof Error
-					? err.message
-					: "Gagal menyimpan skenario simulasi.",
-			);
-		} finally {
-			setIsSavingScenario(false);
-		}
-	};
+	const deviasiScoreValue =
+		simScore.score !== null ? simScore.score.toFixed(2) : "100.00";
+	const deviasiOverrideSummaries = useMemo(
+		() => [
+			{
+				label: `Nilai IKPA Deviasi Hal III s.d. ${MONTH_NAMES[evalMonth - 1]}`,
+				originalValue:
+					actualScoreObj.score !== null
+						? actualScoreObj.score.toFixed(2)
+						: "—",
+				newValue: deviasiScoreValue,
+			},
+		],
+		[actualScoreObj.score, deviasiScoreValue, evalMonth],
+	);
 
 	const handleSaveRpd = async () => {
 		setActionMessage(null);
@@ -1340,19 +1323,9 @@ function DeviasiPage() {
 									href="/operator/history"
 									className="underline underline-offset-2 hover:text-foreground font-bold"
 								>
-									Buka Riwayat Snapshot →
+									Buka Riwayat & Skenario →
 								</a>
 							</output>
-						)}
-
-						{scenarioError && (
-							<div
-								role="alert"
-								className="flex items-center gap-2.5 rounded-xl border border-danger/30 bg-danger/10 p-4 text-xs font-semibold text-danger shadow-xs"
-							>
-								<AlertCircle className="size-4 shrink-0" />
-								<p>{scenarioError}</p>
-							</div>
 						)}
 
 						{/* 4 Score Cards (Simulasi vs Aktual vs Dampak vs Rata-rata) */}
@@ -1449,13 +1422,14 @@ function DeviasiPage() {
 
 							<button
 								type="button"
-								disabled={isSavingScenario || !hasPlan}
-								onClick={handleSaveScenario}
+								disabled={!hasPlan}
+								onClick={() => setIsSaveDialogOpen(true)}
+								title={!hasPlan ? "Ubah minimal satu asumsi rencana agar skenario dapat disimpan" : `Simpan ke Skenario A, B, atau C`}
 								className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
 							>
 								<Save className="size-3.5" />
 								<span>
-									{isSavingScenario ? "Menyimpan Skenario..." : "Simpan Skenario IKPA"}
+									Simpan Skenario (A/B/C)
 								</span>
 							</button>
 						</div>
@@ -1760,6 +1734,21 @@ function DeviasiPage() {
 						</div>
 					</div>
 				</DomainFormDrawer>
+				<SaveScenarioDialog
+					open={isSaveDialogOpen}
+					onOpenChange={setIsSaveDialogOpen}
+					indicatorKey="rpd_deviation"
+					indicatorName="Deviasi Hal III DIPA"
+					activePeriodMonth={evalMonth}
+					overrides={{ rpd_deviation: deviasiScoreValue }}
+					overrideSummaries={deviasiOverrideSummaries}
+					onSuccess={() => {
+						setScenarioMessage(
+							`Skenario what-if Deviasi Hal III (${deviasiScoreValue}) tersimpan di slot A/B/C. Buka Riwayat & Skenario untuk membandingkan.`,
+						);
+						setTimeout(() => setScenarioMessage(null), 5000);
+					}}
+				/>
 			</div>
 		</OperatorShell>
 	);

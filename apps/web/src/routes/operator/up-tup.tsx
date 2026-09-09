@@ -13,6 +13,7 @@ import {
 	Lightbulb,
 	Pencil,
 	RotateCw,
+	Save,
 	Scale,
 	ShieldCheck,
 	Sparkles,
@@ -29,6 +30,7 @@ import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { useActiveContext } from "@/components/layout/active-context";
 import { OperatorShell } from "@/components/layout/operator-shell";
+import { SaveScenarioDialog } from "@/components/operator/save-scenario-dialog";
 import { UpTupAssumptionPanel } from "@/components/operator/up-tup-assumption-panel";
 import {
 	formatDateDDMMYYYY,
@@ -114,6 +116,8 @@ function UpTupPage() {
 			: new Date().getMonth() + 1;
 	const [assumptions, setAssumptions] = useState<UpTupAssumptions | null>(null);
 	const [isHelpOpen, setIsHelpOpen] = useState(false);
+	const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+	const [scenarioMessage, setScenarioMessage] = useState<string | null>(null);
 
 	// Data Management State (from /operator/data/up-tup-kkp)
 	const [activeTab, setActiveTab] = useState<"uptup" | "kkp">("uptup");
@@ -1936,7 +1940,7 @@ function UpTupPage() {
 							</p>
 						</div>
 
-						{!assumptions && (
+						{!assumptions ? (
 							<button
 								type="button"
 								onClick={() =>
@@ -1947,8 +1951,30 @@ function UpTupPage() {
 								<Sparkles className="size-3.5" />
 								<span>Mulai Simulasi Rencana</span>
 							</button>
+						) : (
+							<button
+								type="button"
+								onClick={() => setIsSaveDialogOpen(true)}
+								title="Simpan ke Skenario A, B, atau C"
+								className="inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
+							>
+								<Save className="size-3.5" />
+								<span>Simpan Skenario (A/B/C)</span>
+							</button>
 						)}
 					</div>
+
+					{scenarioMessage && (
+						<output className="flex items-center justify-between gap-2.5 rounded-xl border border-success/30 bg-success/10 p-3 text-xs font-semibold text-success">
+							<span>{scenarioMessage}</span>
+							<a
+								href="/operator/history"
+								className="font-bold underline underline-offset-2 hover:text-foreground"
+							>
+								Buka Riwayat & Skenario →
+							</a>
+						</output>
+					)}
 
 					{assumptions ? (
 						<UpTupAssumptionPanel
@@ -2004,6 +2030,31 @@ function UpTupPage() {
 						))}
 					</div>
 				</div>
+				<SaveScenarioDialog
+					open={isSaveDialogOpen}
+					onOpenChange={setIsSaveDialogOpen}
+					indicatorKey="up_tup"
+					indicatorName="Pengelolaan UP TUP & KKP"
+					activePeriodMonth={currentMonth}
+					assumptions={assumptions ? { upTup: assumptions } : undefined}
+					overrideSummaries={
+						assumptions
+							? [
+									{
+										label: "Rencana GUP",
+										originalValue: `UP ${formatRupiah(Number(activeUpAmount) || 0)}`,
+										newValue: `GUP ${formatRupiah(Number(assumptions.nilaiRencanaGUP) || 0)} (${formatDateIndonesian(assumptions.tanggalRencanaGUP)})`,
+									},
+								]
+							: []
+					}
+					onSuccess={() => {
+						setScenarioMessage(
+							"Skenario what-if UP TUP & KKP tersimpan di slot A/B/C. Buka Riwayat & Skenario untuk membandingkan.",
+						);
+						setTimeout(() => setScenarioMessage(null), 5000);
+					}}
+				/>
 			</div>
 		</OperatorShell>
 	);
