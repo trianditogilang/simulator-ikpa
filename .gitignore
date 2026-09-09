@@ -4,8 +4,12 @@ dist
 dist-ssr
 *.local
 .env
+.env*
 .nitro
 .tanstack
+.vercel
+*.log
+uploads/
 .wrangler
 .output
 .vinxi
