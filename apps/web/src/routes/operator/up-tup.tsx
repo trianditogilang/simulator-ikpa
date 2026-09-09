@@ -21,7 +21,7 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import { Dialog } from "radix-ui";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
 	type ColumnDef,
 	DomainDataTable,
@@ -118,6 +118,17 @@ function UpTupPage() {
 	const [isHelpOpen, setIsHelpOpen] = useState(false);
 	const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
 	const [scenarioMessage, setScenarioMessage] = useState<string | null>(null);
+	const dataSectionRef = useRef<HTMLDivElement>(null);
+
+	const scrollToData = (tab: "uptup" | "kkp") => {
+		setActiveTab(tab);
+		requestAnimationFrame(() => {
+			dataSectionRef.current?.scrollIntoView({
+				behavior: "smooth",
+				block: "start",
+			});
+		});
+	};
 
 	// Data Management State (from /operator/data/up-tup-kkp)
 	const [activeTab, setActiveTab] = useState<"uptup" | "kkp">("uptup");
@@ -710,14 +721,15 @@ function UpTupPage() {
 					</div>
 
 					<div className="flex items-center gap-2">
-						<a
-							href="/operator/data/up-tup-kkp"
+						<button
+							type="button"
+							onClick={() => scrollToData("uptup")}
 							className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground shadow-xs transition hover:bg-surface-muted"
 						>
 							<Coins className="size-3.5 text-primary" />
 							<span>Kelola Data UP/TUP</span>
 							<ArrowRight className="size-3 text-muted-foreground" />
-						</a>
+						</button>
 
 						<Dialog.Root open={isHelpOpen} onOpenChange={setIsHelpOpen}>
 							<Dialog.Trigger asChild>
@@ -863,12 +875,13 @@ function UpTupPage() {
 								</p>
 							</div>
 						</div>
-						<a
-							href="/operator/data/up-tup-kkp"
+						<button
+							type="button"
+							onClick={() => scrollToData("kkp")}
 							className="shrink-0 rounded-lg bg-warning/20 px-3 py-1.5 text-xs font-bold text-foreground hover:bg-warning/30 transition"
 						>
 							Atur Status KKP →
-						</a>
+						</button>
 					</div>
 				)}
 
@@ -1054,12 +1067,13 @@ function UpTupPage() {
 							<p className="text-xs text-muted-foreground">
 								Belum ada transaksi GUP/PTUP. Catat transaksi aktual agar jatuh tempo
 								pertanggungjawaban terpantau otomatis.{" "}
-								<a
-									href="/operator/data/up-tup-kkp"
+								<button
+									type="button"
+									onClick={handleOpenCreateUpTup}
 									className="text-primary font-semibold underline-offset-4 hover:underline"
 								>
 									Tambah Data UP/TUP
-								</a>
+								</button>
 							</p>
 						</div>
 					) : (
@@ -1113,7 +1127,7 @@ function UpTupPage() {
 				)}
 
 				{/* 2 Tab Selector */}
-				<div className="flex items-center gap-2 border-b border-border pb-2">
+				<div ref={dataSectionRef} className="flex items-center gap-2 border-b border-border pb-2 scroll-mt-20">
 					<button
 						type="button"
 						onClick={() => setActiveTab("uptup")}

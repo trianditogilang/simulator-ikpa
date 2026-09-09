@@ -31,6 +31,7 @@ import {
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { SaveScenarioDialog } from "@/components/operator/save-scenario-dialog";
+import { WhatIfPanel } from "@/components/operator/what-if-panel";
 import { formatDate, formatNumber } from "@/lib/format";
 import {
 	calcDispensasiPreview,
@@ -120,15 +121,15 @@ function SpmDispensationPage() {
 	const normalCount = totalQ4 - dispensationCount;
 
 	// What-If Simulation: rencana dispensasi & total SPM Q4
-	const [dispPlan, setDispPlan] = useState<DispensasiAssumptions | null>(null);
+	const [dispPlan, setDispPlan] = useState<DispensasiAssumptions>({
+		dispensationCount,
+		totalSpmQ4: totalQ4,
+	});
 	const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
-	const dispPreview = useMemo(
-		() => (dispPlan ? calcDispensasiPreview(dispPlan) : null),
-		[dispPlan],
-	);
+	const dispPreview = useMemo(() => calcDispensasiPreview(dispPlan), [dispPlan]);
 	const dispSummaries = useMemo(
 		() =>
-			dispPlan && dispPreview
+			dispPreview
 				? [
 						{
 							label: `SPM dispensasi (${dispensationCount} → ${Math.floor(dispPlan.dispensationCount)} dari total ${totalQ4} → ${Math.floor(dispPlan.totalSpmQ4)})`,
@@ -561,57 +562,27 @@ function SpmDispensationPage() {
 					</div>
 				</div>
 
-				{/* What-If Simulation: Rencana Dispensasi Q4 */}
-				<section
-					aria-label="Simulasi What-If Rencana Dispensasi SPM"
-					className="rounded-2xl border border-amber-200 bg-amber-50/30 p-4 sm:p-5 shadow-xs space-y-4"
+				<WhatIfPanel
+					storageKey="ikpa-whatif-dispensasi"
+					title="Simulasi What-If Rencana Dispensasi"
+					description="Uji rencana jumlah dispensasi vs total SPM Q4 — rasio permil & pengurang dihitung dengan bucket resmi, tanpa mengubah data aktual."
+					action={
+						<button
+							type="button"
+							disabled={!dispPreview?.isValid}
+							onClick={() => setIsSaveDialogOpen(true)}
+							title={
+								dispPreview?.isValid
+									? "Simpan ke Skenario A, B, atau C"
+									: (dispPreview?.message ?? "Lengkapi rencana agar skenario dapat disimpan")
+							}
+							className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
+						>
+							<Save className="size-3.5" />
+							<span>Simpan Skenario (A/B/C)</span>
+						</button>
+					}
 				>
-					<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-						<div>
-							<h2 className="text-base font-bold text-foreground flex items-center gap-2">
-								<span className="size-2.5 rounded-full bg-amber-400" />
-								<span>Simulasi What-If Rencana Dispensasi</span>
-							</h2>
-							<p className="mt-0.5 text-xs text-muted-foreground">
-								Uji rencana jumlah dispensasi vs total SPM Q4 — rasio
-								permil & pengurang dihitung dengan bucket resmi, tanpa
-								mengubah data aktual.
-							</p>
-						</div>
-						{dispPlan ? (
-							<button
-								type="button"
-								disabled={!dispPreview?.isValid}
-								onClick={() => setIsSaveDialogOpen(true)}
-								title={
-									dispPreview?.isValid
-										? "Simpan ke Skenario A, B, atau C"
-										: (dispPreview?.message ?? "Lengkapi rencana agar skenario dapat disimpan")
-								}
-								className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
-							>
-								<Save className="size-3.5" />
-								<span>Simpan Skenario (A/B/C)</span>
-							</button>
-						) : (
-							<button
-								type="button"
-								onClick={() =>
-									setDispPlan({
-										dispensationCount,
-										totalSpmQ4: totalQ4,
-									})
-								}
-								className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
-							>
-								<FlaskConical className="size-3.5" />
-								<span>Mulai Simulasi Rencana</span>
-							</button>
-						)}
-					</div>
-
-					{dispPlan ? (
-						<>
 							<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
 								<div className="rounded-xl border border-amber-200/80 bg-background p-3.5 space-y-1.5">
 									<label
@@ -711,10 +682,15 @@ function SpmDispensationPage() {
 									</p>
 									<button
 										type="button"
-										onClick={() => setDispPlan(null)}
+										onClick={() =>
+											setDispPlan({
+												dispensationCount,
+												totalSpmQ4: totalQ4,
+											})
+										}
 										className="text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline"
 									>
-										Reset simulasi
+										Reset ke aktual
 									</button>
 								</div>
 							</div>
@@ -722,18 +698,7 @@ function SpmDispensationPage() {
 								Bucket pengurang: 0,00‰ = 0 · 0,01–0,09‰ = 0,25 ·
 								0,10–0,99‰ = 0,50 · 1,00–4,99‰ = 0,75 · ≥5,00‰ = 1,00.
 							</p>
-						</>
-					) : (
-						<div className="rounded-xl bg-background/60 p-4 text-xs text-muted-foreground border border-amber-200/60">
-							<p>
-								Tekan <strong>Mulai Simulasi Rencana</strong> untuk menguji
-								skenario dispensasi akhir tahun. Hasil hanya proyeksi —
-								data aktual tidak berubah sampai Anda simpan sebagai
-								skenario.
-							</p>
-						</div>
-					)}
-				</section>
+				</WhatIfPanel>
 
 				{/* Strip Reminder Batas Akhir SPM (§5.4) */}
 				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 text-xs shadow-xs">
@@ -1140,16 +1105,12 @@ function SpmDispensationPage() {
 					indicatorName="Dispensasi SPM"
 					activePeriodMonth={12}
 					fiscalYear={activeYear}
-					assumptions={
-						dispPlan
-							? {
-									dispensasi: {
-										dispensationCount: Math.floor(dispPlan.dispensationCount),
-										totalSpmQ4: Math.floor(dispPlan.totalSpmQ4),
-									},
-								}
-							: undefined
-					}
+					assumptions={{
+						dispensasi: {
+							dispensationCount: Math.floor(dispPlan.dispensationCount),
+							totalSpmQ4: Math.floor(dispPlan.totalSpmQ4),
+						},
+					}}
 					overrideSummaries={dispSummaries}
 					onSuccess={() => {
 						setActionMessage(

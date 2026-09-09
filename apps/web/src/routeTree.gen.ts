@@ -47,7 +47,6 @@ import { Route as OperatorDataContractsInvoicesRouteImport } from './routes/oper
 import { Route as OperatorDataOutputAchievementRouteImport } from './routes/operator/data/output-achievement'
 import { Route as OperatorDataRpdRealizationRouteImport } from './routes/operator/data/rpd-realization'
 import { Route as OperatorDataSpmDispensationRouteImport } from './routes/operator/data/spm-dispensation'
-import { Route as OperatorDataUpTupKkpRouteImport } from './routes/operator/data/up-tup-kkp'
 import { Route as AdminKppnPolicyRuleSetsIndexRouteImport } from './routes/admin-kppn/policy/rule-sets/index'
 import { Route as AdminKppnPolicyRuleSetsRuleSetIdRouteImport } from './routes/admin-kppn/policy/rule-sets/$ruleSetId'
 import { Route as ApiJobsImportProcessRouteImport } from './routes/api/jobs/import/process'
@@ -251,11 +250,6 @@ const OperatorDataSpmDispensationRoute =
     path: '/data/spm-dispensation',
     getParentRoute: () => OperatorRouteRoute,
   } as any)
-const OperatorDataUpTupKkpRoute = OperatorDataUpTupKkpRouteImport.update({
-  id: '/data/up-tup-kkp',
-  path: '/data/up-tup-kkp',
-  getParentRoute: () => OperatorRouteRoute,
-} as any)
 const AdminKppnPolicyRuleSetsIndexRoute =
   AdminKppnPolicyRuleSetsIndexRouteImport.update({
     id: '/policy/rule-sets/',
@@ -312,7 +306,6 @@ export interface FileRoutesByFullPath {
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
   '/operator/data/rpd-realization': typeof OperatorDataRpdRealizationRoute
   '/operator/data/spm-dispensation': typeof OperatorDataSpmDispensationRoute
-  '/operator/data/up-tup-kkp': typeof OperatorDataUpTupKkpRoute
   '/admin-kppn/organizations/': typeof AdminKppnOrganizationsIndexRoute
   '/admin-kppn/policy/rule-sets/$ruleSetId': typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
   '/api/jobs/import/process': typeof ApiJobsImportProcessRoute
@@ -356,7 +349,6 @@ export interface FileRoutesByTo {
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
   '/operator/data/rpd-realization': typeof OperatorDataRpdRealizationRoute
   '/operator/data/spm-dispensation': typeof OperatorDataSpmDispensationRoute
-  '/operator/data/up-tup-kkp': typeof OperatorDataUpTupKkpRoute
   '/admin-kppn/organizations': typeof AdminKppnOrganizationsIndexRoute
   '/admin-kppn/policy/rule-sets/$ruleSetId': typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
   '/api/jobs/import/process': typeof ApiJobsImportProcessRoute
@@ -401,7 +393,6 @@ export interface FileRoutesById {
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
   '/operator/data/rpd-realization': typeof OperatorDataRpdRealizationRoute
   '/operator/data/spm-dispensation': typeof OperatorDataSpmDispensationRoute
-  '/operator/data/up-tup-kkp': typeof OperatorDataUpTupKkpRoute
   '/admin-kppn/organizations/': typeof AdminKppnOrganizationsIndexRoute
   '/admin-kppn/policy/rule-sets/$ruleSetId': typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
   '/api/jobs/import/process': typeof ApiJobsImportProcessRoute
@@ -447,7 +438,6 @@ export interface FileRouteTypes {
     | '/operator/data/output-achievement'
     | '/operator/data/rpd-realization'
     | '/operator/data/spm-dispensation'
-    | '/operator/data/up-tup-kkp'
     | '/admin-kppn/organizations/'
     | '/admin-kppn/policy/rule-sets/$ruleSetId'
     | '/api/jobs/import/process'
@@ -491,7 +481,6 @@ export interface FileRouteTypes {
     | '/operator/data/output-achievement'
     | '/operator/data/rpd-realization'
     | '/operator/data/spm-dispensation'
-    | '/operator/data/up-tup-kkp'
     | '/admin-kppn/organizations'
     | '/admin-kppn/policy/rule-sets/$ruleSetId'
     | '/api/jobs/import/process'
@@ -535,7 +524,6 @@ export interface FileRouteTypes {
     | '/operator/data/output-achievement'
     | '/operator/data/rpd-realization'
     | '/operator/data/spm-dispensation'
-    | '/operator/data/up-tup-kkp'
     | '/admin-kppn/organizations/'
     | '/admin-kppn/policy/rule-sets/$ruleSetId'
     | '/api/jobs/import/process'
@@ -824,13 +812,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OperatorDataSpmDispensationRouteImport
       parentRoute: typeof OperatorRouteRoute
     }
-    '/operator/data/up-tup-kkp': {
-      id: '/operator/data/up-tup-kkp'
-      path: '/data/up-tup-kkp'
-      fullPath: '/operator/data/up-tup-kkp'
-      preLoaderRoute: typeof OperatorDataUpTupKkpRouteImport
-      parentRoute: typeof OperatorRouteRoute
-    }
     '/admin-kppn/policy/rule-sets/': {
       id: '/admin-kppn/policy/rule-sets/'
       path: '/policy/rule-sets'
@@ -909,7 +890,6 @@ interface OperatorRouteRouteChildren {
   OperatorDataOutputAchievementRoute: typeof OperatorDataOutputAchievementRoute
   OperatorDataRpdRealizationRoute: typeof OperatorDataRpdRealizationRoute
   OperatorDataSpmDispensationRoute: typeof OperatorDataSpmDispensationRoute
-  OperatorDataUpTupKkpRoute: typeof OperatorDataUpTupKkpRoute
 }
 
 const OperatorRouteRouteChildren: OperatorRouteRouteChildren = {
@@ -930,7 +910,6 @@ const OperatorRouteRouteChildren: OperatorRouteRouteChildren = {
   OperatorDataOutputAchievementRoute: OperatorDataOutputAchievementRoute,
   OperatorDataRpdRealizationRoute: OperatorDataRpdRealizationRoute,
   OperatorDataSpmDispensationRoute: OperatorDataSpmDispensationRoute,
-  OperatorDataUpTupKkpRoute: OperatorDataUpTupKkpRoute,
 }
 
 const OperatorRouteRouteWithChildren = OperatorRouteRoute._addFileChildren(

@@ -2,6 +2,42 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 211 - 2026-09-09
+**Time:** Start: 14:58 UTC | End: 15:05 UTC | Duration: ~7 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: muse-spark-1.3
+- Skills: ponytail
+**Tasks Completed:**
+- [UI-UPTUP-REMOVE-DATA-ROUTE-INPAGE-SCROLL] Hapus Jalur /operator/data/up-tup-kkp:
+  1. "Kelola Data UP/TUP" → scroll smooth ke card tab Transaksi UP/TUP (tanpa ubah gaya tombol); "Atur Status KKP" → pindah tab KKP + scroll; "Tambah Data UP/TUP" → langsung buka drawer tambah.
+  2. Hapus file rute `data/up-tup-kkp.tsx` + regenerasi route tree (`tsr generate`), 0 referensi sisa.
+  3. Verifikasi: typecheck web 0 error, `npx vitest run` 39 files / 280 tests lulus 100%.
+**Code Changes:**
+- Files modified/removed:
+  - `apps/web/src/routes/operator/up-tup.tsx`
+  - `apps/web/src/routes/operator/data/up-tup-kkp.tsx` (dihapus)
+  - `apps/web/src/routeTree.gen.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 210 - 2026-09-09
+**Time:** Start: 14:48 UTC | End: 14:56 UTC | Duration: ~8 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: muse-spark-1.3
+- Skills: ponytail
+**Tasks Completed:**
+- [UI-WHATIF-DISPENSASI-EXPANDABLE-DIRECT] Panel Dispensasi Expandable Langsung:
+  1. Ganti section manual menjadi `WhatIfPanel` bersama (minimize default, tanpa ubah logika lain).
+  2. Hapus tombol "Mulai Simulasi Rencana" dan teks perintah "Tekan Mulai Simulasi Rencana" — input rencana langsung tampil saat di-maximize dengan prefill nilai aktual, reset menjadi "Reset ke aktual".
+  3. Verifikasi: typecheck web 0 error, `npx vitest run` 39 files / 280 tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/spm-dispensation.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
 ### Session 209 - 2026-09-09
 **Time:** Start: 13:45 UTC | End: 13:58 UTC | Duration: ~13 minutes
 - Status: Completed
