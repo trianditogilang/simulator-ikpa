@@ -154,7 +154,7 @@ export function evaluateSingleContract(
 			? { label: "Pra-DIPA (120 Pts)", variant: "success" as const }
 			: isKdQ1
 				? { label: "s.d. 31 Mar (110 Pts)", variant: "info" as const }
-				: { label: "Setelah 31 Mar (Non-KD)", variant: "muted" as const };
+				: { label: "Setelah 31 Mar (Non Pra-DIPA)", variant: "muted" as const };
 
 	// 3. AK53
 	const isAk53Account = acc === "53";
@@ -296,14 +296,14 @@ export function calcKontraktualSummary(
 	} else {
 		if (ratio < 75) {
 			recommendations.push(
-				`Rasio Kontrak sampai Triwulan II saat ini ${ratio.toFixed(1)}% (Nilai DAK: ${dakSub?.score ?? "0"}). Dorong percepatan pendaftaran kontrak sebelum 30 Juni untuk mencapai rasio >75% (Nilai DAK 100).`,
+				`Rasio Kontrak sampai Triwulan II saat ini ${ratio.toFixed(1)}% (Nilai Distribusi A.K.: ${dakSub?.score ?? "0"}). Dorong percepatan pendaftaran kontrak sebelum 30 Juni untuk mencapai rasio >75% (Nilai Distribusi A.K. 100).`,
 			);
 		}
 
 		const postMarchCount = eligibleGeneral.length - kdList.length;
 		if (postMarchCount > 0 || praDipaCount === 0) {
 			recommendations.push(
-				`Terdapat ${postMarchCount} kontrak yang ditandatangani setelah 31 Maret. Untuk tahun anggaran berikutnya, maksimalkan penandatanganan Pra-DIPA (Poin 120) atau paling lambat 31 Maret (Poin 110) guna mendongkrak skor Kontrak Dini.`,
+				`Terdapat ${postMarchCount} kontrak yang ditandatangani setelah 31 Maret. Untuk tahun anggaran berikutnya, maksimalkan penandatanganan Pra-DIPA (Poin 120) atau paling lambat 31 Maret (Poin 110) guna mendongkrak skor Pra-DIPA.`,
 			);
 		}
 

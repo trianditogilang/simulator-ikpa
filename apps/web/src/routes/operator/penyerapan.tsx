@@ -5,6 +5,7 @@ import { Dialog } from "radix-ui";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { SaveScenarioDialog } from "@/components/operator/save-scenario-dialog";
+import { WhatIfPanel } from "@/components/operator/what-if-panel";
 import { useActiveContext } from "@/components/layout/active-context";
 import { OperatorShell } from "@/components/layout/operator-shell";
 import { formatPercent, formatRupiah } from "@/lib/format";
@@ -763,22 +764,11 @@ function PenyerapanPage() {
 					</div>
 				</section>
 
-				{/* Table 2: Yellow Editable Future Plan Section (Simulasi Rencana Pencairan) */}
-				<section
-					aria-label="Rencana pencairan sisa tahun"
-					className="rounded-2xl border border-amber-200 bg-amber-50/30 p-4 sm:p-5 shadow-sm space-y-4"
-				>
-					<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-						<div>
-							<h2 className="text-base font-bold text-foreground flex items-center gap-2">
-								<span className="size-2.5 rounded-full bg-amber-400" />
-								<span>Rencana Pencairan Sisa Tahun (Simulasi)</span>
-							</h2>
-							<p className="mt-0.5 text-xs text-muted-foreground">
-								Sel kuning dapat diubah untuk mensimulasikan pencapaian target di masa depan
-							</p>
-						</div>
-
+				<WhatIfPanel
+					storageKey="ikpa-whatif-penyerapan"
+					title="Rencana Pencairan Sisa Tahun (Simulasi)"
+					description="Sel kuning dapat diubah untuk mensimulasikan pencapaian target di masa depan"
+					action={
 						<div className="flex items-center gap-2">
 							{saveFeedback ? (
 								<span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 animate-in fade-in">
@@ -815,7 +805,8 @@ function PenyerapanPage() {
 								</button>
 							)}
 						</div>
-					</div>
+					}
+				>
 
 					{planMonths.length === 0 ? (
 						<div className="rounded-xl border border-border bg-background p-4 text-xs text-muted-foreground text-center">
@@ -870,7 +861,7 @@ function PenyerapanPage() {
 					<p className="text-[11px] text-muted-foreground leading-relaxed">
 						Sel kuning = simulasi perencanaan (pola Excel). Rencana hanya memengaruhi skor simulasi di halaman ini dan tidak menimpa data aktual di database.
 					</p>
-				</section>
+				</WhatIfPanel>
 
 				{/* Strategy Assistance Panel */}
 				<section

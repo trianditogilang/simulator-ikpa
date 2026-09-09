@@ -2,6 +2,98 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 209 - 2026-09-09
+**Time:** Start: 13:45 UTC | End: 13:58 UTC | Duration: ~13 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: muse-spark-1.3
+- Skills: ponytail
+**Tasks Completed:**
+- [UI-WHATIF-PANEL-EXPANDABLE-MINIMIZED] Card Simulasi What-If Expandable di 4 Menu:
+  1. Komponen bersama `apps/web/src/components/operator/what-if-panel.tsx`: header klik-untuk-toggle + tombol ikon Minimize2/Maximize2 eksplisit, default minimize saat pertama masuk, pilihan diingat per panel via localStorage, isi di-unmount saat minimize (DOM ringan untuk HP).
+  2. Diterapkan ke panel Revisi DIPA, Penyerapan, Kontraktual, dan Tagihan tanpa mengubah logika simulasi/simpan di dalamnya.
+  3. Verifikasi: typecheck web 0 error, `npx vitest run` 39 files / 280 tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/operator/what-if-panel.tsx` (baru)
+  - `apps/web/src/routes/operator/data/budget-revisions.tsx`
+  - `apps/web/src/routes/operator/penyerapan.tsx`
+  - `apps/web/src/routes/operator/data/contracts-invoices.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 208 - 2026-09-09
+**Time:** Start: 13:25 UTC | End: 13:35 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: muse-spark-1.3
+- Skills: ponytail
+**Tasks Completed:**
+- [UI-KONTRAKTUAL-TERM-ORDER-RENAME] Urutan & Istilah Subkomponen Tab Kontrak (`?tab=contracts`):
+  1. Urutan logika proses: 1. Pra-DIPA (40%) → 2. AK53 (40%) → 3. Distribusi A.K. (20%) — diterapkan di kartu skor, akordeon trace, formula komposit, drawer preview, modal panduan, dan ringkasan what-if.
+  2. Rename: "KD"/"Kontrak Dini" → "Pra-DIPA" penuh; "DAK" → "Distribusi A.K." (hindari kerancuan Dana Alokasi Khusus); AK53 dipertahankan. Termasuk badge "Non Pra-DIPA" dan teks rekomendasi workspace.
+  3. Verifikasi: typecheck web 0 error, test kontraktual 3/3 lulus.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/contracts-invoices.tsx`
+  - `apps/web/src/lib/simulation/kontraktual-workspace.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 207 - 2026-09-09
+**Time:** Start: 13:05 UTC | End: 13:20 UTC | Duration: ~15 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: muse-spark-1.3
+- Skills: ponytail, context7-mcp
+**Tasks Completed:**
+- [UI-WHATIF-DISPENSASI-SIMULATION] Fitur Simulasi What-If Dispensasi SPM (`/operator/data/spm-dispensation`):
+  1. Panel amber pola UP-TUP: "Mulai Simulasi Rencana" (prefill aktual) → 2 input (rencana dispensasi & total SPM Q4) → preview via `calcDispensasiPreview` engine resmi (rasio ‰, kategori 1–5, pengurang) + status vs aktual + reset.
+  2. Tombol "Simpan Skenario (A/B/C)" via `SaveScenarioDialog` (`assumptions.dispensasi`, jalur server resmi `calculate.ts`, periode Desember).
+  3. Verifikasi: typecheck web 0 error.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/spm-dispensation.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 206 - 2026-09-09
+**Time:** Start: 12:45 UTC | End: 13:05 UTC | Duration: ~20 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: muse-spark-1.3
+- Skills: ponytail, context7-mcp
+**Tasks Completed:**
+- [UI-WHATIF-KONTRAKTUAL-SIMULATION] Fitur Simulasi What-If Belanja Kontraktual (tab Kontrak):
+  1. Panel amber 8 input rencana jujur per driver engine: Pra-DIPA (120 pts), ttd s.d. 31 Mar (110), ttd Apr–Jun, ttd Jul–Des, + AK53 selesai SP2D TW I–IV — dibangun sebagai synthetic `ContractRecord` lalu dihitung ulang penuh via `calcKontraktualSummary` (DAK 20% / KD 40% / AK53 40%).
+  2. Kartu Skor Simulasi + Dampak Δ; tombol "Simpan Skenario (A/B/C)" via `SaveScenarioDialog` (`overrides.contractual`, ringkasan 4 baris).
+- [UI-WHATIF-TAGIHAN-SIMULATION] Fitur Simulasi What-If Penyelesaian Tagihan (tab Tagihan):
+  1. Panel amber 2 input (rencana tepat ≤17 HK vs terlambat), live skor (Tepat ÷ Eligible) × 100 + Δ.
+  2. Tombol "Simpan Skenario (A/B/C)" via `SaveScenarioDialog` (`overrides.invoice_timeliness`, ringkasan 2 baris).
+  3. Verifikasi: typecheck web 0 error.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/contracts-invoices.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 205 - 2026-09-09
+**Time:** Start: 12:35 UTC | End: 12:45 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: muse-spark-1.3
+- Skills: ponytail, context7-mcp
+**Tasks Completed:**
+- [UI-WHATIF-REVISI-DIPA-SIMULATION] Fitur Simulasi What-If Revisi DIPA (`/operator/data/budget-revisions`):
+  1. Panel amber "Simulasi What-If Rencana Revisi": 2 input rencana +revisi objek S1/S2, live skor via `calcRevisiScore` engine resmi (bucket 0–1=100, 2=100, ≥3=50), kartu Skor Simulasi + Dampak Δ + kontribusi.
+  2. Tombol "Simpan Skenario (A/B/C)" via `SaveScenarioDialog` (`overrides.dipa_revision`, ringkasan 3 baris, periode dari active context) — perlakuan sama dengan 4 indikator sebelumnya.
+  3. Verifikasi: typecheck web 0 error.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/data/budget-revisions.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
 ### Session 204 - 2026-09-09
 **Time:** Start: 12:20 UTC | End: 12:28 UTC | Duration: ~8 minutes
 - Status: Completed

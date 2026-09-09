@@ -4,9 +4,11 @@ import {
 	Calendar,
 	CheckCircle2,
 	Coins,
+	FlaskConical,
 	Info,
 	Pencil,
 	Plus,
+	Save,
 	ShieldCheck,
 	SlidersHorizontal,
 	Sparkles,
@@ -20,7 +22,10 @@ import {
 } from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
+import { useActiveContext } from "@/components/layout/active-context";
 import { OperatorShell } from "@/components/layout/operator-shell";
+import { SaveScenarioDialog } from "@/components/operator/save-scenario-dialog";
+import { WhatIfPanel } from "@/components/operator/what-if-panel";
 import { formatRupiah } from "@/lib/format";
 import {
 	ACCOUNT_CODES,
@@ -174,6 +179,46 @@ function BudgetRevisionsPage() {
 		[initialData.revisions, initialData.year, eligibleCodes],
 	);
 	const skor = useMemo(() => calcRevisiScore(s1, s2), [s1, s2]);
+
+	// What-If Simulation: rencana tambah revisi objek per semester
+	const activeContext = useActiveContext();
+	const activePeriodMonth =
+		activeContext?.context.period.kind === "month"
+			? activeContext.context.period.value
+			: new Date().getMonth() + 1;
+	const [simAddS1, setSimAddS1] = useState("");
+	const [simAddS2, setSimAddS2] = useState("");
+	const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+	const addS1 = Math.max(0, Number.parseInt(simAddS1, 10) || 0);
+	const addS2 = Math.max(0, Number.parseInt(simAddS2, 10) || 0);
+	const hasSimPlan = addS1 > 0 || addS2 > 0;
+	const simSkor = useMemo(
+		() => calcRevisiScore(s1 + addS1, s2 + addS2),
+		[s1, s2, addS1, addS2],
+	);
+	const simScoreValue = simSkor.annual.toFixed(2);
+	const simDelta =
+		(hasSimPlan ? simSkor.annual : 0) - (hasSimPlan ? Number(skor.annual) : 0);
+	const revisiSummaries = useMemo(
+		() => [
+			{
+				label: `Revisi objek Semester I (${s1} → ${s1 + addS1})`,
+				originalValue: Number(skor.nkraS1).toFixed(2),
+				newValue: Number(simSkor.nkraS1).toFixed(2),
+			},
+			{
+				label: `Revisi objek Semester II (${s2} → ${s2 + addS2})`,
+				originalValue: Number(skor.nkraS2).toFixed(2),
+				newValue: Number(simSkor.nkraS2).toFixed(2),
+			},
+			{
+				label: "Nilai IKPA Revisi DIPA",
+				originalValue: Number(skor.annual).toFixed(2),
+				newValue: simScoreValue,
+			},
+		],
+		[s1, s2, addS1, addS2, skor, simSkor, simScoreValue],
+	);
 
 	const byId = useMemo(() => {
 		const m = new Map<string, (typeof classified)[number]>();
@@ -760,6 +805,122 @@ function BudgetRevisionsPage() {
 						</div>
 					</div>
 				</div>
+
+				<WhatIfPanel
+					storageKey="ikpa-whatif-revisi"
+					title="Simulasi What-If Rencana Revisi"
+					description="Tambah rencana revisi objek per semester untuk memproyeksikan skor — tanpa mengubah data aktual di database."
+					action={
+						<button
+							type="button"
+							disabled={!hasSimPlan}
+							onClick={() => setIsSaveDialogOpen(true)}
+							title={
+								hasSimPlan
+									? "Simpan ke Skenario A, B, atau C"
+									: "Isi minimal satu rencana tambah revisi agar skenario dapat disimpan"
+							}
+							className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
+						>
+							<Save className="size-3.5" />
+							<span>Simpan Skenario (A/B/C)</span>
+						</button>
+					}
+				>
+
+					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+						<div className="rounded-xl border border-amber-200/80 bg-background p-3.5 space-y-1.5">
+							<label
+								htmlFor="sim-add-s1"
+								className="block text-xs font-semibold text-foreground"
+							>
+								Rencana +Revisi Semester I
+							</label>
+							<input
+								id="sim-add-s1"
+								type="number"
+								min="0"
+								value={simAddS1}
+								onChange={(e) => setSimAddS1(e.target.value)}
+								placeholder="0"
+								className="w-full rounded-lg border border-amber-300 bg-amber-50/70 focus:bg-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 px-2.5 py-1.5 text-xs font-mono text-amber-950 placeholder:text-amber-300 transition-all"
+							/>
+							<p className="text-[11px] text-muted-foreground">
+								Aktual: {s1} objek · NKRA {Number(skor.nkraS1).toFixed(2)}
+							</p>
+						</div>
+						<div className="rounded-xl border border-amber-200/80 bg-background p-3.5 space-y-1.5">
+							<label
+								htmlFor="sim-add-s2"
+								className="block text-xs font-semibold text-foreground"
+							>
+								Rencana +Revisi Semester II
+							</label>
+							<input
+								id="sim-add-s2"
+								type="number"
+								min="0"
+								value={simAddS2}
+								onChange={(e) => setSimAddS2(e.target.value)}
+								placeholder="0"
+								className="w-full rounded-lg border border-amber-300 bg-amber-50/70 focus:bg-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 px-2.5 py-1.5 text-xs font-mono text-amber-950 placeholder:text-amber-300 transition-all"
+							/>
+							<p className="text-[11px] text-muted-foreground">
+								Aktual: {s2} objek · NKRA {Number(skor.nkraS2).toFixed(2)}
+							</p>
+						</div>
+						<div className="rounded-xl border border-primary/30 bg-primary/5 p-3.5 space-y-1">
+							<span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+								<FlaskConical className="size-3.5 text-primary" />
+								<span>Skor Simulasi</span>
+							</span>
+							<p className="text-2xl font-extrabold text-primary">
+								{hasSimPlan ? simScoreValue : "—"}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Kontribusi{" "}
+								{hasSimPlan
+									? `${Math.min(10, Math.max(0, simSkor.contribution)).toFixed(2)} pts`
+									: "—"}{" "}
+								· Aktual {Number(skor.annual).toFixed(2)}
+							</p>
+						</div>
+						<div className="rounded-xl border border-border bg-background p-3.5 space-y-1">
+							<span className="text-xs font-semibold text-muted-foreground">
+								Dampak Rencana (Δ)
+							</span>
+							<p
+								className={`text-2xl font-bold ${
+									!hasSimPlan
+										? "text-muted-foreground"
+										: simDelta > 0
+											? "text-success"
+											: simDelta < 0
+												? "text-danger"
+												: "text-muted-foreground"
+								}`}
+							>
+								{hasSimPlan
+									? `${simDelta > 0 ? "+" : ""}${simDelta.toFixed(2)}`
+									: "—"}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								{!hasSimPlan
+									? "Belum ada rencana"
+									: simDelta > 0
+										? "Meningkatkan nilai akhir"
+										: simDelta < 0
+											? "Menurunkan nilai akhir"
+											: "Tidak mengubah nilai"}
+							</p>
+						</div>
+					</div>
+
+					<p className="text-[11px] text-muted-foreground leading-relaxed">
+						Bucket penilaian: 0–1 revisi = 100 · 2 revisi = 100 · ≥3 revisi =
+						50 per semester; nilai tahunan = (S1 + S2) / 2.
+					</p>
+				</WhatIfPanel>
 
 				{/* Feedback status */}
 				{actionMessage && (
@@ -1551,6 +1712,22 @@ function BudgetRevisionsPage() {
 						</div>
 					</div>
 				</DomainFormDrawer>
+				<SaveScenarioDialog
+					open={isSaveDialogOpen}
+					onOpenChange={setIsSaveDialogOpen}
+					indicatorKey="dipa_revision"
+					indicatorName="Revisi DIPA"
+					activePeriodMonth={activePeriodMonth}
+					fiscalYear={initialData.year}
+					overrides={{ dipa_revision: simScoreValue }}
+					overrideSummaries={revisiSummaries}
+					onSuccess={() => {
+						setActionMessage(
+							`Skenario what-if Revisi DIPA (${simScoreValue}) tersimpan di slot A/B/C. Buka Riwayat & Skenario untuk membandingkan.`,
+						);
+						setTimeout(() => setActionMessage(null), 5000);
+					}}
+				/>
 			</div>
 		</OperatorShell>
 	);

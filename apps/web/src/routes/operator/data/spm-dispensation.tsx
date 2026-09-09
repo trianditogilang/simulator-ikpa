@@ -11,10 +11,12 @@ import {
 	ChevronUp,
 	FileQuestion,
 	FileText,
+	FlaskConical,
 	Info,
 	Lightbulb,
 	Pencil,
 	Plus,
+	Save,
 	ShieldAlert,
 	ShieldCheck,
 	Sparkles,
@@ -28,7 +30,12 @@ import {
 } from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
 import { OperatorShell } from "@/components/layout/operator-shell";
+import { SaveScenarioDialog } from "@/components/operator/save-scenario-dialog";
 import { formatDate, formatNumber } from "@/lib/format";
+import {
+	calcDispensasiPreview,
+	type DispensasiAssumptions,
+} from "@/lib/simulation/dispensasi-assumptions";
 import {
 	addSpmDispensasi,
 	editSpmDispensasi,
@@ -111,6 +118,27 @@ function SpmDispensationPage() {
 	const totalQ4 = initialData.spmQ4List.length;
 	const dispensationCount = initialData.spmQ4List.filter((s) => s.isDispensasi).length;
 	const normalCount = totalQ4 - dispensationCount;
+
+	// What-If Simulation: rencana dispensasi & total SPM Q4
+	const [dispPlan, setDispPlan] = useState<DispensasiAssumptions | null>(null);
+	const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+	const dispPreview = useMemo(
+		() => (dispPlan ? calcDispensasiPreview(dispPlan) : null),
+		[dispPlan],
+	);
+	const dispSummaries = useMemo(
+		() =>
+			dispPlan && dispPreview
+				? [
+						{
+							label: `SPM dispensasi (${dispensationCount} → ${Math.floor(dispPlan.dispensationCount)} dari total ${totalQ4} → ${Math.floor(dispPlan.totalSpmQ4)})`,
+							originalValue: `−${calc.deduction} pts (Kat. ${calc.category})`,
+							newValue: `−${dispPreview.deduction.toFixed(2)} pts (Kat. ${dispPreview.category})`,
+						},
+					]
+				: [],
+		[dispPlan, dispPreview, dispensationCount, totalQ4, calc],
+	);
 
 	// Filtered items
 	const filteredData = useMemo(() => {
@@ -533,6 +561,180 @@ function SpmDispensationPage() {
 					</div>
 				</div>
 
+				{/* What-If Simulation: Rencana Dispensasi Q4 */}
+				<section
+					aria-label="Simulasi What-If Rencana Dispensasi SPM"
+					className="rounded-2xl border border-amber-200 bg-amber-50/30 p-4 sm:p-5 shadow-xs space-y-4"
+				>
+					<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+						<div>
+							<h2 className="text-base font-bold text-foreground flex items-center gap-2">
+								<span className="size-2.5 rounded-full bg-amber-400" />
+								<span>Simulasi What-If Rencana Dispensasi</span>
+							</h2>
+							<p className="mt-0.5 text-xs text-muted-foreground">
+								Uji rencana jumlah dispensasi vs total SPM Q4 — rasio
+								permil & pengurang dihitung dengan bucket resmi, tanpa
+								mengubah data aktual.
+							</p>
+						</div>
+						{dispPlan ? (
+							<button
+								type="button"
+								disabled={!dispPreview?.isValid}
+								onClick={() => setIsSaveDialogOpen(true)}
+								title={
+									dispPreview?.isValid
+										? "Simpan ke Skenario A, B, atau C"
+										: (dispPreview?.message ?? "Lengkapi rencana agar skenario dapat disimpan")
+								}
+								className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
+							>
+								<Save className="size-3.5" />
+								<span>Simpan Skenario (A/B/C)</span>
+							</button>
+						) : (
+							<button
+								type="button"
+								onClick={() =>
+									setDispPlan({
+										dispensationCount,
+										totalSpmQ4: totalQ4,
+									})
+								}
+								className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
+							>
+								<FlaskConical className="size-3.5" />
+								<span>Mulai Simulasi Rencana</span>
+							</button>
+						)}
+					</div>
+
+					{dispPlan ? (
+						<>
+							<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+								<div className="rounded-xl border border-amber-200/80 bg-background p-3.5 space-y-1.5">
+									<label
+										htmlFor="sim-disp-count"
+										className="block text-xs font-semibold text-foreground"
+									>
+										Rencana SPM Dispensasi
+									</label>
+									<input
+										id="sim-disp-count"
+										type="number"
+										min="0"
+										value={dispPlan.dispensationCount}
+										onChange={(e) =>
+											setDispPlan({
+												...dispPlan,
+												dispensationCount: Math.max(
+													0,
+													Number.parseInt(e.target.value, 10) || 0,
+												),
+											})
+										}
+										placeholder="0"
+										className="w-full rounded-lg border border-amber-300 bg-amber-50/70 focus:bg-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 px-2.5 py-1.5 text-xs font-mono text-amber-950 placeholder:text-amber-300 transition-all"
+									/>
+									<p className="text-[11px] text-muted-foreground">
+										Aktual: {dispensationCount} berkas
+									</p>
+								</div>
+								<div className="rounded-xl border border-amber-200/80 bg-background p-3.5 space-y-1.5">
+									<label
+										htmlFor="sim-disp-total"
+										className="block text-xs font-semibold text-foreground"
+									>
+										Rencana Total SPM Q4
+									</label>
+									<input
+										id="sim-disp-total"
+										type="number"
+										min="0"
+										value={dispPlan.totalSpmQ4}
+										onChange={(e) =>
+											setDispPlan({
+												...dispPlan,
+												totalSpmQ4: Math.max(
+													0,
+													Number.parseInt(e.target.value, 10) || 0,
+												),
+											})
+										}
+										placeholder="0"
+										className="w-full rounded-lg border border-amber-300 bg-amber-50/70 focus:bg-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 px-2.5 py-1.5 text-xs font-mono text-amber-950 placeholder:text-amber-300 transition-all"
+									/>
+									<p className="text-[11px] text-muted-foreground">
+										Aktual: {totalQ4} berkas
+									</p>
+								</div>
+								<div className="rounded-xl border border-primary/30 bg-primary/5 p-3.5 space-y-1">
+									<span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+										<FlaskConical className="size-3.5 text-primary" />
+										<span>Pengurang Simulasi</span>
+									</span>
+									<p className="text-2xl font-extrabold text-primary">
+										{dispPreview
+											? `−${dispPreview.deduction.toFixed(2)} pts`
+											: "—"}
+									</p>
+									<p className="text-[11px] text-muted-foreground">
+										{dispPreview
+											? `Rasio ${dispPreview.ratioFormatted}‰ · Kategori ${dispPreview.category}`
+											: "—"}{" "}
+										· Aktual −{calc.deduction} pts
+									</p>
+								</div>
+								<div className="rounded-xl border border-border bg-background p-3.5 space-y-1">
+									<span className="text-xs font-semibold text-muted-foreground">
+										Status Rencana
+									</span>
+									<p
+										className={`text-sm font-bold ${
+											!dispPreview?.isValid
+												? "text-danger"
+												: dispPreview.deduction > deductionNum
+													? "text-danger"
+													: dispPreview.deduction < deductionNum
+														? "text-success"
+														: "text-muted-foreground"
+										}`}
+									>
+										{!dispPreview?.isValid
+											? (dispPreview?.message ?? "Belum valid")
+											: dispPreview.deduction > deductionNum
+												? "Potongan bertambah"
+												: dispPreview.deduction < deductionNum
+													? "Potongan berkurang"
+													: "Sama dengan aktual"}
+									</p>
+									<button
+										type="button"
+										onClick={() => setDispPlan(null)}
+										className="text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline"
+									>
+										Reset simulasi
+									</button>
+								</div>
+							</div>
+							<p className="text-[11px] text-muted-foreground leading-relaxed">
+								Bucket pengurang: 0,00‰ = 0 · 0,01–0,09‰ = 0,25 ·
+								0,10–0,99‰ = 0,50 · 1,00–4,99‰ = 0,75 · ≥5,00‰ = 1,00.
+							</p>
+						</>
+					) : (
+						<div className="rounded-xl bg-background/60 p-4 text-xs text-muted-foreground border border-amber-200/60">
+							<p>
+								Tekan <strong>Mulai Simulasi Rencana</strong> untuk menguji
+								skenario dispensasi akhir tahun. Hasil hanya proyeksi —
+								data aktual tidak berubah sampai Anda simpan sebagai
+								skenario.
+							</p>
+						</div>
+					)}
+				</section>
+
 				{/* Strip Reminder Batas Akhir SPM (§5.4) */}
 				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 text-xs shadow-xs">
 					<div className="flex items-start gap-3">
@@ -931,6 +1133,31 @@ function SpmDispensationPage() {
 						</div>
 					</div>
 				</DomainFormDrawer>
+				<SaveScenarioDialog
+					open={isSaveDialogOpen}
+					onOpenChange={setIsSaveDialogOpen}
+					indicatorKey="spm_dispensation"
+					indicatorName="Dispensasi SPM"
+					activePeriodMonth={12}
+					fiscalYear={activeYear}
+					assumptions={
+						dispPlan
+							? {
+									dispensasi: {
+										dispensationCount: Math.floor(dispPlan.dispensationCount),
+										totalSpmQ4: Math.floor(dispPlan.totalSpmQ4),
+									},
+								}
+							: undefined
+					}
+					overrideSummaries={dispSummaries}
+					onSuccess={() => {
+						setActionMessage(
+							`Skenario what-if Dispensasi SPM (pengurang −${dispPreview?.deduction.toFixed(2) ?? "—"} pts) tersimpan di slot A/B/C. Buka Riwayat & Skenario untuk membandingkan.`,
+						);
+						setTimeout(() => setActionMessage(null), 5000);
+					}}
+				/>
 			</div>
 		</OperatorShell>
 	);

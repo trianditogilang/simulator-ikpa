@@ -8,11 +8,13 @@ import {
 	ChevronUp,
 	Clock,
 	FileSignature,
+	FlaskConical,
 	HelpCircle,
 	Info,
 	Pencil,
 	Plus,
 	Receipt,
+	Save,
 	ShieldCheck,
 	Sparkles,
 	Trash2,
@@ -26,7 +28,10 @@ import {
 } from "@/components/data/domain-data-table";
 import { DomainFormDrawer } from "@/components/data/domain-form-drawer";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
+import { useActiveContext } from "@/components/layout/active-context";
 import { OperatorShell } from "@/components/layout/operator-shell";
+import { SaveScenarioDialog } from "@/components/operator/save-scenario-dialog";
+import { WhatIfPanel } from "@/components/operator/what-if-panel";
 import { formatRupiah } from "@/lib/format";
 import {
 	ACCOUNT_LABELS,
@@ -132,6 +137,191 @@ function ContractsInvoicesPage() {
 	const tagihanSummary = useMemo(
 		() => calcTagihanSummary(initialData.spmLsList, initialData.contracts),
 		[initialData.spmLsList, initialData.contracts],
+	);
+
+	const activeContext = useActiveContext();
+	const activePeriodMonth =
+		activeContext?.context.period.kind === "month"
+			? activeContext.context.period.value
+			: new Date().getMonth() + 1;
+	const fiscalYear = initialData.year || 2026;
+
+	// What-If Kontraktual: rencana tambah kontrak (archetype jujur per subkomponen)
+	const [simKontrakPraDipa, setSimKontrakPraDipa] = useState("");
+	const [simKontrakQ1, setSimKontrakQ1] = useState("");
+	const [simKontrakQ2, setSimKontrakQ2] = useState("");
+	const [simKontrakH2, setSimKontrakH2] = useState("");
+	const [simAk53Tw1, setSimAk53Tw1] = useState("");
+	const [simAk53Tw2, setSimAk53Tw2] = useState("");
+	const [simAk53Tw3, setSimAk53Tw3] = useState("");
+	const [simAk53Tw4, setSimAk53Tw4] = useState("");
+	const [isKontrakDialogOpen, setIsKontrakDialogOpen] = useState(false);
+	const nPraDipa = Math.max(0, Number.parseInt(simKontrakPraDipa, 10) || 0);
+	const nQ1 = Math.max(0, Number.parseInt(simKontrakQ1, 10) || 0);
+	const nQ2 = Math.max(0, Number.parseInt(simKontrakQ2, 10) || 0);
+	const nH2 = Math.max(0, Number.parseInt(simKontrakH2, 10) || 0);
+	const nAk53Tw = [simAk53Tw1, simAk53Tw2, simAk53Tw3, simAk53Tw4].map((v) =>
+		Math.max(0, Number.parseInt(v, 10) || 0),
+	);
+	const hasKontrakPlan =
+		nPraDipa + nQ1 + nQ2 + nH2 + nAk53Tw.reduce((a, b) => a + b, 0) > 0;
+	const simContracts = useMemo(() => {
+		const list = [...initialData.contracts];
+		const pushN = (
+			n: number,
+			rec: Omit<ContractRecord, "id" | "contractNumber">,
+			tag: string,
+		) => {
+			for (let i = 0; i < n; i++) {
+				list.push({
+					...rec,
+					id: `sim-${tag}-${i}`,
+					contractNumber: `Rencana ${tag} ${i + 1}`,
+				});
+			}
+		};
+		pushN(
+			nPraDipa,
+			{
+				accountCode: "52",
+				value: "100000000",
+				signedAt: `${fiscalYear - 1}-12-20`,
+				paymentType: "sekaligus",
+				sp2dAt: null,
+			},
+			"pra-dipa",
+		);
+		pushN(
+			nQ1,
+			{
+				accountCode: "52",
+				value: "100000000",
+				signedAt: `${fiscalYear}-03-10`,
+				paymentType: "sekaligus",
+				sp2dAt: null,
+			},
+			"q1",
+		);
+		pushN(
+			nQ2,
+			{
+				accountCode: "52",
+				value: "100000000",
+				signedAt: `${fiscalYear}-06-10`,
+				paymentType: "sekaligus",
+				sp2dAt: null,
+			},
+			"q2",
+		);
+		pushN(
+			nH2,
+			{
+				accountCode: "52",
+				value: "100000000",
+				signedAt: `${fiscalYear}-10-10`,
+				paymentType: "sekaligus",
+				sp2dAt: null,
+			},
+			"h2",
+		);
+		const ak53Sp2d = [
+			`${fiscalYear}-02-15`,
+			`${fiscalYear}-05-15`,
+			`${fiscalYear}-08-15`,
+			`${fiscalYear}-11-15`,
+		];
+		nAk53Tw.forEach((n, idx) => {
+			pushN(
+				n,
+				{
+					accountCode: "53",
+					value: "100000000",
+					signedAt: `${fiscalYear}-01-10`,
+					paymentType: "sekaligus",
+					sp2dAt: ak53Sp2d[idx] ?? null,
+				},
+				`ak53-tw${idx + 1}`,
+			);
+		});
+		return list;
+	}, [
+		initialData.contracts,
+		fiscalYear,
+		nPraDipa,
+		nQ1,
+		nQ2,
+		nH2,
+		nAk53Tw,
+	]);
+	const simKontrakSummary = useMemo(
+		() => calcKontraktualSummary(simContracts, fiscalYear),
+		[simContracts, fiscalYear],
+	);
+	const kontrakSimScore = simKontrakSummary.final.score;
+	const kontrakSimDelta =
+		hasKontrakPlan &&
+		kontrakSimScore !== null &&
+		contractSummary.final.score !== null
+			? Number(kontrakSimScore) - Number(contractSummary.final.score)
+			: null;
+	const kontrakSummaries = useMemo(() => {
+		const rows = [
+			{
+				label: "Pra-DIPA (40%)",
+				originalValue: contractSummary.kd.score ?? "—",
+				newValue: simKontrakSummary.kd.score ?? "—",
+			},
+			{
+				label: "AK53 (40%)",
+				originalValue: contractSummary.ak53.score ?? "—",
+				newValue: simKontrakSummary.ak53.score ?? "—",
+			},
+			{
+				label: "Distribusi A.K. (20%)",
+				originalValue: contractSummary.dak.score ?? "—",
+				newValue: simKontrakSummary.dak.score ?? "—",
+			},
+			{
+				label: "Nilai IKPA Kontraktual",
+				originalValue: contractSummary.final.score ?? "—",
+				newValue: simKontrakSummary.final.score ?? "—",
+			},
+		];
+		return rows;
+	}, [contractSummary, simKontrakSummary]);
+
+	// What-If Tagihan: rencana SPM tepat waktu vs terlambat
+	const [simTepat, setSimTepat] = useState("");
+	const [simTerlambat, setSimTerlambat] = useState("");
+	const [isTagihanDialogOpen, setIsTagihanDialogOpen] = useState(false);
+	const nTepat = Math.max(0, Number.parseInt(simTepat, 10) || 0);
+	const nTerlambat = Math.max(0, Number.parseInt(simTerlambat, 10) || 0);
+	const hasTagihanPlan = nTepat + nTerlambat > 0;
+	const tagihanSimScore =
+		hasTagihanPlan && tagihanSummary.completedCount + nTepat + nTerlambat > 0
+			? ((tagihanSummary.onTimeCount + nTepat) /
+					(tagihanSummary.completedCount + nTepat + nTerlambat)) *
+				100
+			: null;
+	const tagihanSimDelta =
+		tagihanSimScore !== null && tagihanSummary.score !== null
+			? tagihanSimScore - Number(tagihanSummary.score)
+			: null;
+	const tagihanSummaries = useMemo(
+		() => [
+			{
+				label: `SPM tepat waktu (${tagihanSummary.onTimeCount} → ${tagihanSummary.onTimeCount + nTepat})`,
+				originalValue: `${tagihanSummary.onTimeCount} berkas`,
+				newValue: `${tagihanSummary.onTimeCount + nTepat} berkas`,
+			},
+			{
+				label: "Nilai IKPA Tagihan",
+				originalValue: tagihanSummary.score ?? "—",
+				newValue:
+					tagihanSimScore !== null ? tagihanSimScore.toFixed(2) : "—",
+			},
+		],
+		[tagihanSummary, nTepat, tagihanSimScore],
 	);
 
 	// Live preview of candidate contract in drawer
@@ -441,7 +631,7 @@ function ContractsInvoicesPage() {
 		},
 		{
 			key: "signed",
-			header: "Tanggal TTD & KD",
+			header: "Tanggal TTD & Pra-DIPA",
 			render: (item) => {
 				const ev = evaluateSingleContract(item, initialData.year || 2026);
 				return (
@@ -723,7 +913,7 @@ function ContractsInvoicesPage() {
 							</div>
 							<p className="text-xs text-muted-foreground">
 								{!isTagihanTab
-									? "Pantau akselerasi kontrak melalui Distribusi (20%), Kontrak Pra-DIPA / Dini (40%), dan Akselerasi Belanja Modal 53 (40%)."
+									? "Pantau akselerasi kontrak melalui Pra-DIPA (40%), Akselerasi Belanja Modal 53 (40%), dan Distribusi A.K. (20%)."
 									: "Pantau kepatuhan penyelesaian tagihan SPM-LS maksimal 17 hari kerja sejak tanggal BAST/BAPP hingga konversi KPPN (khusus SPM non-belanja pegawai)."}
 							</p>
 						</div>
@@ -842,11 +1032,11 @@ function ContractsInvoicesPage() {
 							</div>
 						</div>
 
-						{/* Card 3: Distribusi Akselerasi Kontrak (20%) */}
+						{/* Card 3: Distribusi A.K. (20%) */}
 						<div className="rounded-xl border border-border bg-background p-4 shadow-xs flex flex-col justify-between min-h-[110px]">
 							<div className="flex items-center justify-between text-muted-foreground">
 								<span className="text-xs font-semibold">
-									Distribusi Akselerasi (20%)
+									Distribusi A.K. (20%)
 								</span>
 								<TrendingUp className="size-4 text-primary" />
 							</div>
@@ -915,6 +1105,167 @@ function ContractsInvoicesPage() {
 							</div>
 						</div>
 					</div>
+				)}
+
+				{/* What-If Simulation: Rencana Tambah Kontrak */}
+				{!isTagihanTab && (
+					<WhatIfPanel
+						storageKey="ikpa-whatif-kontrak"
+						title="Simulasi What-If Rencana Kontrak"
+						description="Tambah rencana kontrak (≥ Rp50 juta) per pola waktu — skor Pra-DIPA/AK53/Distribusi A.K. dihitung ulang dengan rumus engine resmi, tanpa mengubah data aktual."
+						action={
+							<button
+								type="button"
+								disabled={!hasKontrakPlan || kontrakSimScore === null}
+								onClick={() => setIsKontrakDialogOpen(true)}
+								title={
+									!hasKontrakPlan
+										? "Isi minimal satu rencana kontrak agar skenario dapat disimpan"
+										: kontrakSimScore === null
+											? "Rencana belum menghasilkan skor (lengkapi pola kontrak)"
+											: "Simpan ke Skenario A, B, atau C"
+								}
+								className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
+							>
+								<Save className="size-3.5" />
+								<span>Simpan Skenario (A/B/C)</span>
+							</button>
+						}
+					>
+
+						<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+							{[
+								{
+									id: "sim-k-pra",
+									label: "Pra-DIPA (120 pts)",
+									hint: "Distribusi A.K. ✓ · Pra-DIPA 120",
+									value: simKontrakPraDipa,
+									setter: setSimKontrakPraDipa,
+								},
+								{
+									id: "sim-k-q1",
+									label: "Ttd s.d. 31 Mar (110)",
+									hint: "Distribusi A.K. ✓ · Pra-DIPA 110",
+									value: simKontrakQ1,
+									setter: setSimKontrakQ1,
+								},
+								{
+									id: "sim-k-q2",
+									label: "Ttd Apr–Jun",
+									hint: "Distribusi A.K. ✓ · Pra-DIPA —",
+									value: simKontrakQ2,
+									setter: setSimKontrakQ2,
+								},
+								{
+									id: "sim-k-h2",
+									label: "Ttd Jul–Des",
+									hint: "Distribusi A.K. penyebut · Pra-DIPA —",
+									value: simKontrakH2,
+									setter: setSimKontrakH2,
+								},
+							].map((f) => (
+								<div
+									key={f.id}
+									className="rounded-xl border border-amber-200/80 bg-background p-3 space-y-1.5"
+								>
+									<label
+										htmlFor={f.id}
+										className="block text-xs font-semibold text-foreground"
+									>
+										{f.label}
+									</label>
+									<input
+										id={f.id}
+										type="number"
+										min="0"
+										value={f.value}
+										onChange={(e) => f.setter(e.target.value)}
+										placeholder="0"
+										className="w-full rounded-lg border border-amber-300 bg-amber-50/70 focus:bg-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 px-2.5 py-1.5 text-xs font-mono text-amber-950 placeholder:text-amber-300 transition-all"
+									/>
+									<p className="text-[10px] text-muted-foreground">{f.hint}</p>
+								</div>
+							))}
+						</div>
+
+						<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+							{[
+								{ id: "sim-ak53-1", label: "53 Selesai TW I (100)", value: simAk53Tw1, setter: setSimAk53Tw1 },
+								{ id: "sim-ak53-2", label: "53 Selesai TW II (90)", value: simAk53Tw2, setter: setSimAk53Tw2 },
+								{ id: "sim-ak53-3", label: "53 Selesai TW III (80)", value: simAk53Tw3, setter: setSimAk53Tw3 },
+								{ id: "sim-ak53-4", label: "53 Selesai TW IV (70)", value: simAk53Tw4, setter: setSimAk53Tw4 },
+							].map((f) => (
+								<div
+									key={f.id}
+									className="rounded-xl border border-amber-200/80 bg-background p-3 space-y-1.5"
+								>
+									<label
+										htmlFor={f.id}
+										className="block text-xs font-semibold text-foreground"
+									>
+										{f.label}
+									</label>
+									<input
+										id={f.id}
+										type="number"
+										min="0"
+										value={f.value}
+										onChange={(e) => f.setter(e.target.value)}
+										placeholder="0"
+										className="w-full rounded-lg border border-amber-300 bg-amber-50/70 focus:bg-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 px-2.5 py-1.5 text-xs font-mono text-amber-950 placeholder:text-amber-300 transition-all"
+									/>
+									<p className="text-[10px] text-muted-foreground">
+										Akun 53 · Rp50–200jt · sekaligus · ada SP2D
+									</p>
+								</div>
+							))}
+						</div>
+
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+							<div className="rounded-xl border border-primary/30 bg-primary/5 p-3.5 space-y-1">
+								<span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+									<FlaskConical className="size-3.5 text-primary" />
+									<span>Skor Simulasi Kontraktual</span>
+								</span>
+								<p className="text-2xl font-extrabold text-primary">
+									{hasKontrakPlan && kontrakSimScore !== null
+										? Number(kontrakSimScore).toFixed(2)
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									Pra-DIPA {simKontrakSummary.kd.score ?? "—"} · AK53{" "}
+									{simKontrakSummary.ak53.score ?? "—"} · Distribusi A.K.{" "}
+									{simKontrakSummary.dak.score ?? "—"} · Aktual{" "}
+									{contractSummary.final.score ?? "—"}
+								</p>
+							</div>
+							<div className="rounded-xl border border-border bg-background p-3.5 space-y-1">
+								<span className="text-xs font-semibold text-muted-foreground">
+									Dampak Rencana (Δ)
+								</span>
+								<p
+									className={`text-2xl font-bold ${
+										kontrakSimDelta === null
+											? "text-muted-foreground"
+											: kontrakSimDelta > 0
+												? "text-success"
+												: kontrakSimDelta < 0
+													? "text-danger"
+													: "text-muted-foreground"
+									}`}
+								>
+									{kontrakSimDelta !== null
+										? `${kontrakSimDelta > 0 ? "+" : ""}${kontrakSimDelta.toFixed(2)}`
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									{kontrakSimDelta === null
+										? "Belum ada rencana"
+										: "Selisih terhadap nilai akhir aktual"}
+								</p>
+							</div>
+						</div>
+					</WhatIfPanel>
 				)}
 
 				{/* 5-Card Score Grid for Penyelesaian Tagihan (SPM-LS) */}
@@ -1047,6 +1398,115 @@ function ContractsInvoicesPage() {
 					</div>
 				)}
 
+				{/* What-If Simulation: Rencana Penyelesaian SPM-LS */}
+				{isTagihanTab && (
+					<WhatIfPanel
+						storageKey="ikpa-whatif-tagihan"
+						title="Simulasi What-If Rencana Tagihan"
+						description="Tambah rencana SPM tepat waktu (≤ 17 HK) vs terlambat — tanpa mengubah data aktual."
+						action={
+							<button
+								type="button"
+								disabled={!hasTagihanPlan || tagihanSimScore === null}
+								onClick={() => setIsTagihanDialogOpen(true)}
+								title={
+									!hasTagihanPlan
+										? "Isi minimal satu rencana SPM agar skenario dapat disimpan"
+										: "Simpan ke Skenario A, B, atau C"
+								}
+								className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
+							>
+								<Save className="size-3.5" />
+								<span>Simpan Skenario (A/B/C)</span>
+							</button>
+						}
+					>
+
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+							<div className="rounded-xl border border-amber-200/80 bg-background p-3.5 space-y-1.5">
+								<label
+									htmlFor="sim-spm-tepat"
+									className="block text-xs font-semibold text-foreground"
+								>
+									Rencana SPM Tepat Waktu
+								</label>
+								<input
+									id="sim-spm-tepat"
+									type="number"
+									min="0"
+									value={simTepat}
+									onChange={(e) => setSimTepat(e.target.value)}
+									placeholder="0"
+									className="w-full rounded-lg border border-amber-300 bg-amber-50/70 focus:bg-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 px-2.5 py-1.5 text-xs font-mono text-amber-950 placeholder:text-amber-300 transition-all"
+								/>
+								<p className="text-[11px] text-muted-foreground">
+									Aktual tepat: {tagihanSummary.onTimeCount} berkas
+								</p>
+							</div>
+							<div className="rounded-xl border border-amber-200/80 bg-background p-3.5 space-y-1.5">
+								<label
+									htmlFor="sim-spm-terlambat"
+									className="block text-xs font-semibold text-foreground"
+								>
+									Rencana SPM Terlambat
+								</label>
+								<input
+									id="sim-spm-terlambat"
+									type="number"
+									min="0"
+									value={simTerlambat}
+									onChange={(e) => setSimTerlambat(e.target.value)}
+									placeholder="0"
+									className="w-full rounded-lg border border-amber-300 bg-amber-50/70 focus:bg-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 px-2.5 py-1.5 text-xs font-mono text-amber-950 placeholder:text-amber-300 transition-all"
+								/>
+								<p className="text-[11px] text-muted-foreground">
+									Aktual terlambat: {tagihanSummary.lateCount} berkas
+								</p>
+							</div>
+							<div className="rounded-xl border border-primary/30 bg-primary/5 p-3.5 space-y-1">
+								<span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+									<FlaskConical className="size-3.5 text-primary" />
+									<span>Skor Simulasi</span>
+								</span>
+								<p className="text-2xl font-extrabold text-primary">
+									{tagihanSimScore !== null
+										? tagihanSimScore.toFixed(2)
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									(Tepat ÷ Eligible) × 100 · Aktual{" "}
+									{tagihanSummary.score ?? "—"}
+								</p>
+							</div>
+							<div className="rounded-xl border border-border bg-background p-3.5 space-y-1">
+								<span className="text-xs font-semibold text-muted-foreground">
+									Dampak Rencana (Δ)
+								</span>
+								<p
+									className={`text-2xl font-bold ${
+										tagihanSimDelta === null
+											? "text-muted-foreground"
+											: tagihanSimDelta > 0
+												? "text-success"
+												: tagihanSimDelta < 0
+													? "text-danger"
+													: "text-muted-foreground"
+									}`}
+								>
+									{tagihanSimDelta !== null
+										? `${tagihanSimDelta > 0 ? "+" : ""}${tagihanSimDelta.toFixed(2)}`
+										: "—"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									{tagihanSimDelta === null
+										? "Belum ada rencana"
+										: "Selisih terhadap nilai akhir aktual"}
+								</p>
+							</div>
+						</div>
+					</WhatIfPanel>
+				)}
+
 				{/* Accordion: Trace & Detail Perhitungan Belanja Kontraktual */}
 				{!isTagihanTab && (
 					<div className="rounded-2xl border border-border bg-background shadow-xs overflow-hidden">
@@ -1074,10 +1534,78 @@ function ContractsInvoicesPage() {
 						{isTraceExpanded && (
 							<div className="border-t border-border p-4 sm:p-5 space-y-4 text-xs bg-surface/30">
 								<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-									{/* DAK Step */}
+									{/* 1. Pra-DIPA Step */}
 									<div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
 										<div className="flex items-center justify-between font-semibold text-foreground">
-											<span>1. DAK (Bobot 20%)</span>
+											<span>1. Pra-DIPA (Bobot 40%)</span>
+											<span className="text-primary font-bold">
+												Skor: {contractSummary.kd.score ?? "—"}
+											</span>
+										</div>
+										<p className="text-muted-foreground text-[11px]">
+											Rata-rata poin kontrak Pra-DIPA (120) dan 1 Jan–31 Mar (110) per kontrak. Kontrak setelah 31 Mar tidak masuk penyebut.
+										</p>
+										<div className="rounded-lg bg-surface p-2.5 font-mono text-[11px] space-y-1 text-foreground">
+											<p>
+												Pra-DIPA: {contractSummary.kd.praDipaCount} × 120 ={" "}
+												{contractSummary.kd.praDipaCount * 120}
+											</p>
+											<p>
+												TW I: {contractSummary.kd.q1Count} × 110 ={" "}
+												{contractSummary.kd.q1Count * 110}
+											</p>
+											<p>
+												Rata-rata: {contractSummary.kd.totalPoints} ÷ {contractSummary.kd.denominatorCount} ={" "}
+												<span className="font-bold text-primary">
+													{contractSummary.kd.score ?? "—"}
+												</span>
+											</p>
+										</div>
+										<p className="text-[11px] text-muted-foreground">
+											Kontribusi = {contractSummary.kd.score ?? 0} × 40% ={" "}
+											<span className="font-semibold text-foreground">
+												{contractSummary.kd.weightedContribution ?? 0}
+											</span>
+										</p>
+									</div>
+
+									{/* 2. AK53 Step */}
+									<div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
+										<div className="flex items-center justify-between font-semibold text-foreground">
+											<span>2. AK53 (Bobot 40%)</span>
+											<span className="text-primary font-bold">
+												Skor: {contractSummary.ak53.score ?? "—"}
+											</span>
+										</div>
+										<p className="text-muted-foreground text-[11px]">
+											Rata-rata poin kontrak akun 53 (Rp50–200jt, sekaligus) berdasarkan triwulan terbit SP2D (TW I: 100, TW II: 90, TW III: 80, TW IV: 70).
+										</p>
+										<div className="rounded-lg bg-surface p-2.5 font-mono text-[11px] space-y-1 text-foreground">
+											<p>
+												Selesai TW I: {contractSummary.ak53.tw1Count} × 100 | TW II: {contractSummary.ak53.tw2Count} × 90
+											</p>
+											<p>
+												Selesai TW III: {contractSummary.ak53.tw3Count} × 80 | TW IV: {contractSummary.ak53.tw4Count} × 70
+											</p>
+											<p>
+												Rata-rata ={" "}
+												<span className="font-bold text-primary">
+													{contractSummary.ak53.score ?? "—"}
+												</span>
+											</p>
+										</div>
+										<p className="text-[11px] text-muted-foreground">
+											Kontribusi = {contractSummary.ak53.score ?? 0} × 40% ={" "}
+											<span className="font-semibold text-foreground">
+												{contractSummary.ak53.weightedContribution ?? 0}
+											</span>
+										</p>
+									</div>
+
+									{/* 3. Distribusi A.K. Step */}
+									<div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
+										<div className="flex items-center justify-between font-semibold text-foreground">
+											<span>3. Distribusi A.K. (Bobot 20%)</span>
 											<span className="text-primary font-bold">
 												Skor: {contractSummary.dak.score ?? "—"}
 											</span>
@@ -1112,74 +1640,6 @@ function ContractsInvoicesPage() {
 											</span>
 										</p>
 									</div>
-
-									{/* KD Step */}
-									<div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
-										<div className="flex items-center justify-between font-semibold text-foreground">
-											<span>2. KD (Bobot 40%)</span>
-											<span className="text-primary font-bold">
-												Skor: {contractSummary.kd.score ?? "—"}
-											</span>
-										</div>
-										<p className="text-muted-foreground text-[11px]">
-											Rata-rata poin kontrak Pra-DIPA (120) dan 1 Jan–31 Mar (110) per kontrak. Kontrak setelah 31 Mar tidak masuk penyebut.
-										</p>
-										<div className="rounded-lg bg-surface p-2.5 font-mono text-[11px] space-y-1 text-foreground">
-											<p>
-												Pra-DIPA: {contractSummary.kd.praDipaCount} × 120 ={" "}
-												{contractSummary.kd.praDipaCount * 120}
-											</p>
-											<p>
-												TW I: {contractSummary.kd.q1Count} × 110 ={" "}
-												{contractSummary.kd.q1Count * 110}
-											</p>
-											<p>
-												Rata-rata: {contractSummary.kd.totalPoints} ÷ {contractSummary.kd.denominatorCount} ={" "}
-												<span className="font-bold text-primary">
-													{contractSummary.kd.score ?? "—"}
-												</span>
-											</p>
-										</div>
-										<p className="text-[11px] text-muted-foreground">
-											Kontribusi = {contractSummary.kd.score ?? 0} × 40% ={" "}
-											<span className="font-semibold text-foreground">
-												{contractSummary.kd.weightedContribution ?? 0}
-											</span>
-										</p>
-									</div>
-
-									{/* AK53 Step */}
-									<div className="rounded-xl border border-border bg-background p-3.5 space-y-2">
-										<div className="flex items-center justify-between font-semibold text-foreground">
-											<span>3. AK53 (Bobot 40%)</span>
-											<span className="text-primary font-bold">
-												Skor: {contractSummary.ak53.score ?? "—"}
-											</span>
-										</div>
-										<p className="text-muted-foreground text-[11px]">
-											Rata-rata poin kontrak akun 53 (Rp50–200jt, sekaligus) berdasarkan triwulan terbit SP2D (TW I: 100, TW II: 90, TW III: 80, TW IV: 70).
-										</p>
-										<div className="rounded-lg bg-surface p-2.5 font-mono text-[11px] space-y-1 text-foreground">
-											<p>
-												Selesai TW I: {contractSummary.ak53.tw1Count} × 100 | TW II: {contractSummary.ak53.tw2Count} × 90
-											</p>
-											<p>
-												Selesai TW III: {contractSummary.ak53.tw3Count} × 80 | TW IV: {contractSummary.ak53.tw4Count} × 70
-											</p>
-											<p>
-												Rata-rata ={" "}
-												<span className="font-bold text-primary">
-													{contractSummary.ak53.score ?? "—"}
-												</span>
-											</p>
-										</div>
-										<p className="text-[11px] text-muted-foreground">
-											Kontribusi = {contractSummary.ak53.score ?? 0} × 40% ={" "}
-											<span className="font-semibold text-foreground">
-												{contractSummary.ak53.weightedContribution ?? 0}
-											</span>
-										</p>
-									</div>
 								</div>
 
 								{/* Composite Summary Formula */}
@@ -1189,9 +1649,9 @@ function ContractsInvoicesPage() {
 											Formula Nilai Akhir Indikator Belanja Kontraktual
 										</p>
 										<p className="text-[11px] text-muted-foreground mt-0.5">
-											Nilai BK = (DAK × 20%) + (KD × 40%) + (AK53 × 40%) = (
-											{contractSummary.dak.score ?? 0} × 0.2) + ({contractSummary.kd.score ?? 0} × 0.4) + (
-											{contractSummary.ak53.score ?? 0} × 0.4) ={" "}
+											Nilai BK = (Pra-DIPA × 40%) + (AK53 × 40%) + (Distribusi A.K. × 20%) = (
+											{contractSummary.kd.score ?? 0} × 0.4) + (
+											{contractSummary.ak53.score ?? 0} × 0.4) + ({contractSummary.dak.score ?? 0} × 0.2) ={" "}
 											<span className="font-bold text-foreground">
 												{contractSummary.final.score ?? "Belum Lengkap"}
 											</span>
@@ -1804,13 +2264,7 @@ function ContractsInvoicesPage() {
 							</div>
 							<div className="grid grid-cols-3 gap-2 text-[11px]">
 								<div className="rounded-lg bg-background p-2 border border-border">
-									<p className="text-muted-foreground text-[10px]">DAK (20%)</p>
-									<p className="font-semibold text-foreground mt-0.5">
-										{liveContractDrawerPreview.dakBadge.label}
-									</p>
-								</div>
-								<div className="rounded-lg bg-background p-2 border border-border">
-									<p className="text-muted-foreground text-[10px]">KD (40%)</p>
+									<p className="text-muted-foreground text-[10px]">Pra-DIPA (40%)</p>
 									<p className="font-semibold text-foreground mt-0.5">
 										{liveContractDrawerPreview.kdBadge.label}
 									</p>
@@ -1819,6 +2273,12 @@ function ContractsInvoicesPage() {
 									<p className="text-muted-foreground text-[10px]">AK53 (40%)</p>
 									<p className="font-semibold text-foreground mt-0.5">
 										{liveContractDrawerPreview.ak53Badge.label}
+									</p>
+								</div>
+								<div className="rounded-lg bg-background p-2 border border-border">
+									<p className="text-muted-foreground text-[10px]">Distribusi A.K. (20%)</p>
+									<p className="font-semibold text-foreground mt-0.5">
+										{liveContractDrawerPreview.dakBadge.label}
 									</p>
 								</div>
 							</div>
@@ -2005,30 +2465,20 @@ function ContractsInvoicesPage() {
 									</p>
 								</div>
 
-								{/* 1. DAK */}
+								{/* 1. Pra-DIPA */}
 								<div className="rounded-xl border border-border p-3.5 space-y-2">
 									<div className="flex items-center justify-between font-bold">
-										<span>1. Distribusi Akselerasi Kontrak (DAK) — Bobot 20%</span>
-									</div>
-									<p className="text-muted-foreground">
-										Menilai proporsi jumlah kontrak bernilai ≥ Rp50 juta (semua jenis belanja) yang ditandatangani s.d. 30 Juni (Triwulan II).
-									</p>
-								</div>
-
-								{/* 2. KD */}
-								<div className="rounded-xl border border-border p-3.5 space-y-2">
-									<div className="flex items-center justify-between font-bold">
-										<span>2. Kontrak Pra-DIPA / Kontrak Dini (KD) — Bobot 40%</span>
+										<span>1. Pra-DIPA — Bobot 40%</span>
 									</div>
 									<p className="text-muted-foreground">
 										Rata-rata poin per kontrak (nilai ≥ Rp50 juta) yang ditandatangani sebelum 1 Jan (120 poin) atau s.d. 31 Maret (110 poin). Kontrak setelah 31 Maret tidak dihitung dalam penyebut rata-rata.
 									</p>
 								</div>
 
-								{/* 3. AK53 */}
+								{/* 2. AK53 */}
 								<div className="rounded-xl border border-border p-3.5 space-y-2">
 									<div className="flex items-center justify-between font-bold">
-										<span>3. Akselerasi Kontrak 53 (AK53) — Bobot 40%</span>
+										<span>2. Akselerasi Kontrak 53 (AK53) — Bobot 40%</span>
 									</div>
 									<p className="text-muted-foreground">
 										Hanya menilai kontrak Belanja Modal (Akun 53) bernilai Rp50.000.000 s.d. Rp200.000.000 bertipe pembayaran <strong>sekaligus</strong> (termin dikecualikan), berdasarkan triwulan tanggal SP2D:
@@ -2039,6 +2489,16 @@ function ContractsInvoicesPage() {
 										<li>Triwulan III (1 Jul–30 Sep): 80 Poin</li>
 										<li>Triwulan IV (1 Okt–31 Des): 70 Poin</li>
 									</ul>
+								</div>
+
+								{/* 3. Distribusi A.K. */}
+								<div className="rounded-xl border border-border p-3.5 space-y-2">
+									<div className="flex items-center justify-between font-bold">
+										<span>3. Distribusi A.K. — Bobot 20%</span>
+									</div>
+									<p className="text-muted-foreground">
+										Menilai proporsi jumlah kontrak bernilai ≥ Rp50 juta (semua jenis belanja) yang ditandatangani s.d. 30 Juni (Triwulan II).
+									</p>
 								</div>
 							</div>
 
@@ -2135,6 +2595,46 @@ function ContractsInvoicesPage() {
 						</div>
 					</div>
 				)}
+				<SaveScenarioDialog
+					open={isKontrakDialogOpen}
+					onOpenChange={setIsKontrakDialogOpen}
+					indicatorKey="contractual"
+					indicatorName="Belanja Kontraktual"
+					activePeriodMonth={activePeriodMonth}
+					fiscalYear={fiscalYear}
+					overrides={
+						kontrakSimScore !== null
+							? { contractual: Number(kontrakSimScore).toFixed(2) }
+							: undefined
+					}
+					overrideSummaries={kontrakSummaries}
+					onSuccess={() => {
+						setActionMessage(
+							`Skenario what-if Belanja Kontraktual (${kontrakSimScore !== null ? Number(kontrakSimScore).toFixed(2) : "—"}) tersimpan di slot A/B/C. Buka Riwayat & Skenario untuk membandingkan.`,
+						);
+						setTimeout(() => setActionMessage(null), 5000);
+					}}
+				/>
+				<SaveScenarioDialog
+					open={isTagihanDialogOpen}
+					onOpenChange={setIsTagihanDialogOpen}
+					indicatorKey="invoice_timeliness"
+					indicatorName="Penyelesaian Tagihan"
+					activePeriodMonth={activePeriodMonth}
+					fiscalYear={fiscalYear}
+					overrides={
+						tagihanSimScore !== null
+							? { invoice_timeliness: tagihanSimScore.toFixed(2) }
+							: undefined
+					}
+					overrideSummaries={tagihanSummaries}
+					onSuccess={() => {
+						setActionMessage(
+							`Skenario what-if Penyelesaian Tagihan (${tagihanSimScore !== null ? tagihanSimScore.toFixed(2) : "—"}) tersimpan di slot A/B/C. Buka Riwayat & Skenario untuk membandingkan.`,
+						);
+						setTimeout(() => setActionMessage(null), 5000);
+					}}
+				/>
 			</div>
 		</OperatorShell>
 	);
