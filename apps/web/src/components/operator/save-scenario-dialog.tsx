@@ -54,6 +54,7 @@ const MONTH_NAMES = [
 ];
 
 const SLOT_STORAGE_KEY = "ikpa-scenario-slot";
+const SLOT_NAMES_KEY = "ikpa-scenario-slot-names";
 
 function readStoredSlot(): "A" | "B" | "C" {
 	try {
@@ -64,6 +65,33 @@ function readStoredSlot(): "A" | "B" | "C" {
 		// ignore storage errors
 	}
 	return "A";
+}
+
+function readStoredNames(): Partial<Record<"A" | "B" | "C", string>> {
+	try {
+		if (typeof window === "undefined") return {};
+		const raw = window.localStorage.getItem(SLOT_NAMES_KEY);
+		if (!raw) return {};
+		const parsed = JSON.parse(raw) as Record<string, unknown>;
+		const out: Partial<Record<"A" | "B" | "C", string>> = {};
+		for (const slot of ["A", "B", "C"] as const) {
+			if (typeof parsed[slot] === "string" && (parsed[slot] as string).trim()) {
+				out[slot] = (parsed[slot] as string).trim();
+			}
+		}
+		return out;
+	} catch {
+		return {};
+	}
+}
+
+function writeStoredName(slot: "A" | "B" | "C", name: string) {
+	try {
+		const next = { ...readStoredNames(), [slot]: name.trim() };
+		window.localStorage.setItem(SLOT_NAMES_KEY, JSON.stringify(next));
+	} catch {
+		// ignore storage errors
+	}
 }
 
 export function SaveScenarioDialog({
@@ -86,6 +114,7 @@ export function SaveScenarioDialog({
 	const defaultScenarioName = `Skenario ${selectedSlot}: Tutup gap via ${indicatorName}`;
 
 	const [scenarioName, setScenarioName] = useState(defaultScenarioName);
+	const [isNameDirty, setIsNameDirty] = useState(false);
 	const [notes, setNotes] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -102,14 +131,21 @@ export function SaveScenarioDialog({
 		} catch {
 			// ignore storage errors
 		}
-		setScenarioName(`Skenario ${slot}: Tutup gap via ${indicatorName}`);
+		setScenarioName(
+			readStoredNames()[slot] ?? `Skenario ${slot}: Tutup gap via ${indicatorName}`,
+		);
+		setIsNameDirty(false);
 	};
 
 	useEffect(() => {
 		if (open) {
 			const stored = readStoredSlot();
+			const names = readStoredNames();
 			setSelectedSlot(stored);
-			setScenarioName(`Skenario ${stored}: Tutup gap via ${indicatorName}`);
+			setScenarioName(
+				names[stored] ?? `Skenario ${stored}: Tutup gap via ${indicatorName}`,
+			);
+			setIsNameDirty(false);
 			setSavedResult(null);
 			setError(null);
 		}
@@ -119,11 +155,17 @@ export function SaveScenarioDialog({
 		const onStorage = (e: StorageEvent) => {
 			if (e.key === SLOT_STORAGE_KEY && (e.newValue === "A" || e.newValue === "B" || e.newValue === "C")) {
 				setSelectedSlot(e.newValue);
+				setIsNameDirty(false);
+			}
+			if (e.key === SLOT_NAMES_KEY && !isNameDirty) {
+				const names = readStoredNames();
+				const next = names[selectedSlot];
+				if (next) setScenarioName(next);
 			}
 		};
 		window.addEventListener("storage", onStorage);
 		return () => window.removeEventListener("storage", onStorage);
-	}, []);
+	}, [selectedSlot, isNameDirty]);
 
 	const hasChanges =
 		(overrides && Object.keys(overrides).length > 0) ||
@@ -171,6 +213,7 @@ export function SaveScenarioDialog({
 			} catch {
 				// ignore storage errors
 			}
+			writeStoredName(selectedSlot, cleanName);
 			onSuccess?.();
 		} catch (err: unknown) {
 			setError(
@@ -353,7 +396,10 @@ export function SaveScenarioDialog({
 									type="text"
 									required
 									value={scenarioName}
-									onChange={(e) => setScenarioName(e.target.value)}
+									onChange={(e) => {
+										setScenarioName(e.target.value);
+										setIsNameDirty(true);
+									}}
 									placeholder="Contoh: Skenario A: Tutup gap via Penyerapan Anggaran..."
 									className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
 								/>

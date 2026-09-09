@@ -2,6 +2,27 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 204 - 2026-09-09
+**Time:** Start: 12:20 UTC | End: 12:28 UTC | Duration: ~8 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator Agent
+- Model: muse-spark-1.3
+**Tasks Completed:**
+- [UI-SCENARIO-SLOT-NAME-GLOBAL-SYNC] Sinkronisasi Global Nama Skenario per Slot:
+  1. Masalah: isian nama di dialog tiap indikator selalu me-reset ke default ("Tutup gap via ...") sehingga nama terakhir ("1", "2", "C") tidak terbawa antar indikator / Riwayat.
+  2. Solusi ringan: cache `ikpa-scenario-slot-names` (nama terakhir per slot A/B/C) — ditulis saat simpan dialog (`writeStoredName`) dan saat simpan edit Riwayat (deteksi slot dari nama baru, fallback nama lama), dibaca saat dialog dibuka dan saat pindah slot; dialog tidak lagi me-reset nama.
+  3. Guard `isNameDirty` + `storage` event agar sinkron lintas tab tanpa menimpa ketikan pengguna.
+  4. Verifikasi: typecheck web 0 error, `npx vitest run` 39 files / 280 tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/operator/save-scenario-dialog.tsx`
+  - `apps/web/src/routes/operator/history.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npm run typecheck --workspace @simulator-ikpa/web` -> 0 errors.
+  - `npx vitest run` -> 39/39 test files passed (280 tests).
+
 ### Session 203 - 2026-09-09
 **Time:** Start: 12:12 UTC | End: 12:18 UTC | Duration: ~6 minutes
 - Status: Completed

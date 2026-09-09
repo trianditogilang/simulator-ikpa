@@ -309,6 +309,13 @@ function OperatorHistoryPage() {
 		}
 	};
 
+	const detectSlot = (name: string): "A" | "B" | "C" | null => {
+		const upper = name.toUpperCase();
+		const m = upper.match(/SKENARIO\s*([A-C])/) ?? upper.match(/\[([A-C])\]/) ?? upper.match(/^([A-C])\s*:/);
+		const slot = m?.[1];
+		return slot === "A" || slot === "B" || slot === "C" ? slot : null;
+	};
+
 	const handleSaveEdit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!editingScenario) return;
@@ -325,6 +332,18 @@ function OperatorHistoryPage() {
 					: editTargetScore,
 				indicatorScores: editIndicatorScores,
 			});
+			try {
+				const slot = detectSlot(editScenarioName) ?? detectSlot(editingScenario.name);
+				if (slot && editScenarioName.trim()) {
+					const raw = window.localStorage.getItem("ikpa-scenario-slot-names");
+					const names = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+					names[slot] = editScenarioName.trim();
+					window.localStorage.setItem("ikpa-scenario-slot-names", JSON.stringify(names));
+					window.localStorage.setItem("ikpa-scenario-slot", slot);
+				}
+			} catch {
+				// ignore storage errors
+			}
 			setFeedbackMessage(`Skenario "${editScenarioName}" berhasil diperbarui.`);
 			setEditingScenario(null);
 			await router.invalidate();
