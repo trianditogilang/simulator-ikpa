@@ -28,10 +28,12 @@ import {
 	listFairnessProposals,
 	listOutputsWithEligibility,
 } from "./domains/output-achievement.queries";
+import { failIfProduction } from "./runtime-guards";
 
 function getDatabase() {
 	const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
 	if (!dbUrl) {
+		failIfProduction(true, "Production database is not configured for output achievement.");
 		return null;
 	}
 	return createDbClient(dbUrl);

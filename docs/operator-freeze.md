@@ -1,8 +1,8 @@
-# Operator Freeze — Simulator IKPA
+# Operator Release Stabilization — Simulator IKPA
 
-Status: **FROZEN**. Jangan ubah kode operator sama sekali.
+Status: **BEHAVIOR FROZEN**. Perilaku Operator yang sudah diterima tidak boleh diubah selama stabilisasi rilis.
 
-Aturan: hanya 1 file docs baru + `BACKLOG`/`DEVLOG`. Tidak ada UI (Ponytail: nihil).
+Aturan: perubahan UI/IA/formula dilarang kecuali ada defect yang dapat direproduksi dan requirement v2 yang eksplisit. Perubahan test, security fix, lint fix, accessibility fix, production fail-safe, dan defect fix terarah diperbolehkan bila memiliki regression evidence. Jangan melakukan refactor lintas folder atau redesign spekulatif.
 
 ## Glob freeze
 
@@ -41,4 +41,4 @@ apps/web/src/components/layout/operator-*
 ## Verifikasi wajib
 
 1. `npm run typecheck --workspace @simulator-ikpa/web` → 0 error.
-2. `git diff --name-only` hanya file docs (`docs/operator-freeze.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`).
+2. Untuk task dokumentasi murni, `git diff --name-only` hanya file docs. Untuk task stabilisasi kode, setiap file di luar glob harus memiliki alasan, test, dan entry BACKLOG/DEVLOG.

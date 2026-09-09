@@ -845,31 +845,37 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
 
 ## 18. Fase 13 — Quality, Security, Deployment, dan UAT
 
-> Depends: PRE-F13 CORR-01..05 + CORR-A-00..05. Jangan mulai F13 sebelum CORR-01 s.d. CORR-05 dan CORR-A-00 s.d. CORR-A-05 selesai; checkbox F13 tetap kosong.
+> **Mode Fase 13:** verification-first dan behavior-preserving. Jangan melakukan redesign UI, mengubah IA 8 indikator, formula IKPA, actual/what-if, Slot A/B/C, atau reminder mandatory tanpa defect yang dapat direproduksi dan requirement v2 yang eksplisit. Hindari refactor lintas folder dan major dependency upgrade kecuali terbukti wajib untuk security/deployment. Setiap perubahan perilaku wajib memiliki regression test dan bukti sebelum/sesudah.
+>
+> **Depends:** PRE-F13 CORR-00..06 + CORR-A-00..05. Jangan mulai task F13 selain F13-00 sebelum CORR-00..06, CORR-A-00..05, dan kontrak aktif Revisi v2 siap; checkbox F13 tetap kosong sampai entry gate lulus.
 
-- [ ] **F13-01 â€” Lengkapi unit test seluruh pure modules.** [Role: QA Agent] [Model: Sol Medium]  
-  **Scope:** Engine, rule parser, workday, deadline, compliance, scheduler, access, import parser  
-  **DoD:** Branch kritis dan boundary regulasi tercakup; golden tests wajib lulus.
+- [x] **F13-00 — Bekukan kontrak rilis dan baseline aplikasi.** [Role: Release Readiness Agent] [Model: Sol Medium]
+  **Scope:** Kontrak `docs/revisi-v2`, acceptance criteria aktif, traceability, baseline typecheck/test/lint/build/smoke, runtime mock/fallback, dependency manifest, dan E2E harness.
+  **DoD:** `docs/revisi-v2/ACCEPTANCE-CRITERIA.md` menjadi rujukan UAT; seluruh discrepancy memiliki task/status/owner; jumlah test dan workspace tercatat; tidak ada redesign atau perubahan formula; production blocker terinventarisasi. Selesai 2026-09-09: typecheck, Vitest 42 file/291 test, lint 0 error/86 warning, production build, dan E2E smoke desktop/mobile 2/2 lulus; smoke memakai Chrome lokal karena browser bundled gagal diunduh akibat jaringan.
+
+- [x] **F13-01 â€” Lengkapi unit test seluruh pure modules.** [Role: QA Agent] [Model: Sol Medium]
+  **Scope:** Engine, rule parser, workday, deadline, compliance, scheduler, access, import parser, serta seluruh test workspace web.
+  **DoD:** `npm run test` menjalankan semua workspace termasuk web; branch kritis dan boundary regulasi tercakup; golden tests wajib lulus. Selesai 2026-09-09: workspace test configuration diperbaiki agar E2E tidak ikut Vitest dan seluruh package menemukan test-nya; ditambahkan coverage pure utility/scheduler/workday serta production delivery/import guards; rounding negatif fixed-point diperbaiki dari `--1.24` menjadi `-1.24`; 46 file/309 test lulus.
 
 - [ ] **F13-02 â€” Buat integration test tenant isolation.** [Role: QA Agent] [Model: Sol Medium]  
-  **Scope:** Seluruh query/mutation Operator dan Admin dengan cross-tenant IDs  
-  **DoD:** Read/write lintas satker/scope selalu ditolak tanpa data leakage pada error.
+  **Scope:** Seluruh ServerFn query/mutation Operator/Admin, export, import/job, QStash, delivery retry, dan cross-tenant/cross-KPPN IDs.
+  **DoD:** Read/write lintas satker/scope selalu ditolak tanpa data leakage pada error atau payload.
 
 - [ ] **F13-03 â€” Buat integration test policy/reminder.** [Role: QA Agent] [Model: Sol Medium]  
-  **Scope:** Publish/re-evaluate, mandatory lock, workday, idempotency, retry, stale snapshot  
-  **DoD:** Acceptance criteria policy 13â€“20 lulus pada database test.
+  **Scope:** Publish/re-evaluate, mandatory lock, Tagihan H+17, Output lima hari kerja, GUP/PTUP, workday, idempotency, retry, stale snapshot, dan policy version.
+  **DoD:** V2-AC-17..21 lulus pada database test; delivery replay tidak menggandakan notifikasi.
 
 - [ ] **F13-04 â€” Buat E2E Operator.** [Role: QA Agent] [Model: Sol Medium]  
-  **Scope:** Login â†’ input core domains â†’ calculate â†’ snapshot â†’ reminder â†’ export  
-  **DoD:** Alur desktop dan mobile kritis lulus dengan data terisolasi.
+  **Scope:** Login, navigasi 8 indikator, actual/proyeksi, what-if tanpa mutasi actual, Slot A/B/C, sinkronisasi nama, Dashboard 8 indikator, parity Dashboardâ€“Riwayat, compare Evaluasi bulanan dengan skenario, mandatory reminder, dan export sesuai konteks.
+  **DoD:** Skenario Playwright terisolasi lulus pada Chromium desktop dan Mobile Chrome dengan data tenant terisolasi; screenshot/trace tersedia saat gagal.
 
 - [ ] **F13-05 â€” Buat E2E Admin KPPN.** [Role: QA Agent] [Model: Sol Medium]  
-  **Scope:** Login â†’ monitor â†’ detail read-only â†’ access â†’ publish policy â†’ failed delivery retry â†’ export  
-  **DoD:** Last-admin protection, scope, audit, dan snapshot immutability terverifikasi.
+  **Scope:** Login, agregat 8 indikator, skor/gap/sumber aktual-proyeksi-kosong, detail read-only, mandatory reminder, access, publish policy, failed delivery retry, cross-scope rejection, audit, dan export scoped.
+  **DoD:** Tidak ada kontrol mutasi operasional/sel kuning; last-admin protection, scope, audit, snapshot immutability, dan Admin V2-AC-22..24 terverifikasi.
 
 - [ ] **F13-06 â€” Lakukan security review aplikasi.** [Role: Security Agent] [Model: Sol Medium]  
-  **Scope:** Auth/session, tenant isolation, upload, export, webhook, SSR data, XSS, CSV injection, secrets, rate limits  
-  **DoD:** Tidak ada critical/high terbuka; medium memiliki owner dan due date.
+  **Scope:** Auth/session, tenant isolation, upload, export signature/MIME, runtime mock/fallback, webhook, SSR data, XSS, CSV injection, secrets, dependency manifest, rate limits.
+  **DoD:** Tidak ada critical/high terbuka; production tidak mengembalikan mock sukses atau file palsu; medium memiliki owner dan due date.
 
 - [ ] **F13-07 â€” Lakukan performance test.** [Role: QA Agent] [Model: Sol Medium]  
   **Scope:** Kalkulasi satu satker, dashboard agregat, 10k import, scheduler batch, export  
@@ -877,7 +883,7 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
 
 - [ ] **F13-08 â€” Konfigurasi CI quality gate.** [Role: DevOps Agent] [Model: Luna Max]  
   **Files:** `.github/workflows/ci.yml`, `package.json`  
-  **DoD:** Typecheck, lint, unit, golden, integration, build, secret scan, dan migration check berjalan.
+  **DoD:** `npm ci`, typecheck seluruh workspace, lint tanpa error, unit/golden termasuk web, integration, E2E smoke, production build, secret scan, generated-route check, dan migration check berjalan tanpa `continue-on-error` pada gate wajib.
 
 - [ ] **F13-09 â€” Konfigurasi deployment Vercel.** [Role: DevOps Agent] [Model: Luna Max]  
   **Files:** `vercel.json`, `docs/deployment-vercel.md`  
@@ -891,14 +897,14 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Scope:** Structured logs, request ID, redaction, calculation latency, job/delivery/import failures, publish errors  
   **DoD:** Alert harian/job gagal, delivery threshold, stuck import, dan publish failure dapat diuji.
 
-- [ ] **F13-12 â€” Buat runbook operasional.** [Role: Technical Writer] [Model: Luna Max]  
+- [x] **F13-12 â€” Buat runbook operasional.** [Role: Technical Writer] [Model: Luna Max]
   **Files:** `docs/runbook-operations.md`, `docs/runbook-incidents.md`  
-  **DoD:** Seed/admin recovery, failed migration/job/email/import, rule rollback, secret rotation, dan escalation owner tersedia.
+  **DoD:** Seed/admin recovery, failed migration/job/email/import, rule rollback, secret rotation, dan escalation owner tersedia. Selesai 2026-09-09; runbook sengaja menyatakan preview/staging sebagai prasyarat dan tidak mengasumsikan credential vendor.
 
 - [ ] **F13-13 â€” Laksanakan UAT berbasis acceptance criteria.** [Role: Product & IKPA Analyst] [Model: Sol Medium]  
   **File:** `docs/uat-report.md`  
-  **Depends:** F13-01â€“F13-12  
-  **DoD:** Seluruh 24 acceptance criteria FSD memiliki bukti pass/fail, owner defect, severity, dan keputusan rilis.
+  **Depends:** F13-00â€“F13-12
+  **DoD:** Seluruh `V2-AC-01..24` pada `docs/revisi-v2/ACCEPTANCE-CRITERIA.md` memiliki bukti pass/fail, environment, owner defect, severity, dan keputusan rilis; acceptance criteria v1 yang historis tidak digunakan sebagai kontrak aktif.
 
 - [ ] **F13-14 â€” Verifikasi go-live regulasi dan data.** [Role: Product & IKPA Analyst] [Model: Sol Medium]  
   **Files:** `docs/go-live-checklist.md`, `docs/regulatory-verification-2026.md`  

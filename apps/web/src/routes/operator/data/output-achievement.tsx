@@ -4090,10 +4090,11 @@ function OutputAchievementPage() {
 
 							<div className="space-y-3 text-xs">
 								<div>
-									<label className="text-muted-foreground block mb-1 font-semibold">
+									<label htmlFor="additional-request-month" className="text-muted-foreground block mb-1 font-semibold">
 										Bulan Pelaporan yang Dimohonkan:
 									</label>
 									<input
+										id="additional-request-month"
 										type="text"
 										readOnly
 										value={`Bulan ${MONTH_NAMES[selectedMonth - 1]} ${initialData.year} (Batas Tambahan: ${formatDateDDMMYYYY(currentMonthOpenPeriod.additionalDeadline)})`}
@@ -4102,10 +4103,11 @@ function OutputAchievementPage() {
 								</div>
 
 								<div>
-									<label className="text-muted-foreground block mb-1 font-semibold">
+									<label htmlFor="additional-request-reason" className="text-muted-foreground block mb-1 font-semibold">
 										Penyebab Keterlambatan / Kejadian Khusus:
 									</label>
 									<select
+										id="additional-request-reason"
 										value={additionalRequestReason}
 										onChange={(e) => setAdditionalRequestReason(e.target.value)}
 										className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none font-medium"
@@ -4132,10 +4134,11 @@ function OutputAchievementPage() {
 								</div>
 
 								<div>
-									<label className="text-muted-foreground block mb-1 font-semibold">
+									<label htmlFor="additional-request-doc" className="text-muted-foreground block mb-1 font-semibold">
 										Nomor Surat / Nota Dinas Permohonan:
 									</label>
 									<input
+										id="additional-request-doc"
 										type="text"
 										required
 										placeholder="Contoh: S-123/WPB.08/KP.01/2026 atau ND-456/2026"
@@ -4148,10 +4151,11 @@ function OutputAchievementPage() {
 								</div>
 
 								<div>
-									<label className="text-muted-foreground block mb-1 font-semibold">
+									<label htmlFor="additional-request-note" className="text-muted-foreground block mb-1 font-semibold">
 										Keterangan Tambahan / Penjelasan:
 									</label>
 									<textarea
+										id="additional-request-note"
 										rows={3}
 										value={additionalRequestNote}
 										onChange={(e) => setAdditionalRequestNote(e.target.value)}

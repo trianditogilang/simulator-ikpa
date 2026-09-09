@@ -40,6 +40,15 @@ const GUP_ACUAN_TABLE: Array<{
 	{ pct: 100, hari: [28, 30, 31], nilai: [100, 100, 100] },
 ];
 
+const GUP_TABLE_HEADER_DAYS = [
+	{ id: "max-28", value: 28 },
+	{ id: "max-30", value: 30 },
+	{ id: "max-31", value: 31 },
+	{ id: "score-28", value: 28 },
+	{ id: "score-30", value: 30 },
+	{ id: "score-31", value: 31 },
+] as const;
+
 function num(v: string): number {
 	const n = Number(v);
 	return Number.isFinite(n) ? n : 0;
@@ -280,7 +289,7 @@ export function UpTupAssumptionPanel({
 							<div className="space-y-1.5">
 								{analysis.actions.map((action, idx) => (
 									<div
-										key={idx}
+										key={action.label}
 										className="rounded-lg border border-border/70 bg-background/80 p-2.5 text-xs space-y-0.5"
 									>
 										<p className="font-semibold text-foreground">
@@ -298,8 +307,8 @@ export function UpTupAssumptionPanel({
 					{/* Notes / Disclaimer */}
 					{analysis.notes.length > 0 ? (
 						<div className="rounded-lg border border-border/60 bg-surface-muted/50 p-2.5 text-[11px] text-muted-foreground space-y-1">
-							{analysis.notes.map((note, idx) => (
-								<p key={idx} className="leading-relaxed">
+							{analysis.notes.map((note) => (
+								<p key={note} className="leading-relaxed">
 									• {note}
 								</p>
 							))}
@@ -384,9 +393,9 @@ export function UpTupAssumptionPanel({
 								</th>
 							</tr>
 							<tr className="bg-[#244061] text-white">
-								{[28, 30, 31, 28, 30, 31].map((d, i) => (
-									<th key={i} className="border border-[#244061] px-2 py-1 font-semibold">
-										{d}
+								{GUP_TABLE_HEADER_DAYS.map((day) => (
+									<th key={day.id} className="border border-[#244061] px-2 py-1 font-semibold">
+										{day.value}
 									</th>
 								))}
 							</tr>
@@ -400,16 +409,12 @@ export function UpTupAssumptionPanel({
 										<td className="border border-border/60 bg-[#244061] px-2 py-1 text-left font-semibold text-white">
 											{row.pct}%
 										</td>
-										{row.hari.map((h, i) => (
-											<td key={i} className="border border-border/60 px-2 py-1">
-												{h} hari
-											</td>
-										))}
-										{row.nilai.map((n, i) => (
-											<td key={i} className="border border-border/60 px-2 py-1">
-												{n}%
-											</td>
-										))}
+										<td key="hari-first" className="border border-border/60 px-2 py-1">{row.hari[0]} hari</td>
+										<td key="hari-second" className="border border-border/60 px-2 py-1">{row.hari[1]} hari</td>
+										<td key="hari-third" className="border border-border/60 px-2 py-1">{row.hari[2]} hari</td>
+										<td key="nilai-first" className="border border-border/60 px-2 py-1">{row.nilai[0]}%</td>
+										<td key="nilai-second" className="border border-border/60 px-2 py-1">{row.nilai[1]}%</td>
+										<td key="nilai-third" className="border border-border/60 px-2 py-1">{row.nilai[2]}%</td>
 									</tr>
 							))}
 						</tbody>

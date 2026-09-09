@@ -2,6 +2,43 @@
 
 Dokumen ini adalah tracker operasional pelaksanaan [TASK-LIST-Simulator-IKPA.md](TASK-LIST-Simulator-IKPA.md). Setiap agent wajib memperbaruinya ketika mulai, terblokir, membutuhkan perbaikan, atau menyelesaikan task.
 
+## Active Tasks
+
+| Task ID | Status | Next action | Blocker |
+|---|---|---|---|
+| F13-01 | Completed | Siapkan integration isolation setelah test database tersedia | Unit/golden/pure modules hijau; integration DB belum menjadi bagian task ini |
+| F13-02 | Blocked | Sediakan database test terisolasi lalu jalankan cross-tenant read/write/export/job suite | Tidak ada DATABASE_URL/Neon branch/test-container lokal atau harness DB yang dapat dijalankan reproducibly |
+| F13-03 | Blocked | Sediakan database/provider test lalu jalankan policy/reminder/idempotency suite | Delivery provider dan database test belum tersedia; pure scheduler/reminder tests sudah lulus |
+| F13-04 | Blocked | Tambahkan auth-seeded Playwright fixtures dan skenario Operator v2 | Smoke harness ada, tetapi login, tenant seed, dan persistence belum tersedia di environment lokal |
+| F13-05 | Blocked | Tambahkan auth-seeded Playwright fixtures dan skenario Admin KPPN v2 | Smoke harness ada, tetapi scope KPPN, policy mutation, delivery retry, dan audit perlu DB/auth staging |
+| F13-06 | Needs Fix | Selesaikan security review dan dependency/provider audit | Runtime mock/fallback ditutup; remote dependency audit dan authenticated scope review belum dapat dijalankan |
+| F13-07 | Blocked | Jalankan performance baseline kalkulasi/dashboard/export | Dataset 10k, query plan, dan environment benchmark belum tersedia |
+| F13-08 | Needs Fix | Jalankan workflow CI pada remote pull request | Workflow, secret scan, migration/generated-route checks sudah ditambahkan; belum ada remote run |
+| F13-09 | Blocked | Validasi Vercel preview/staging | Project ID, credential, dan preview URL belum tersedia |
+| F13-10 | Blocked | Terapkan Cloudflare security baseline pada staging | Zone/rule ID dan origin deployment belum tersedia |
+| F13-11 | Needs Fix | Lengkapi metric/alert dan redaction drill | Request ID/audit tersedia sebagian; observability provider dan alert test belum terhubung |
+| F13-12 | Completed | Pertahankan runbook operasi dan insiden sebagai gate release | `docs/runbook-operations.md` dan `docs/runbook-incidents.md` tersedia; tidak mengasumsikan secret/vendor |
+| F13-13 | Blocked | Jalankan UAT authenticated terhadap 24 V2-AC | `docs/uat-report.md` sudah mencatat per-ID evidence; database/auth/staging belum tersedia |
+| F13-14 | Blocked | Verifikasi regulasi dan keputusan go-live | Parameter/regulatory approver dan evidence staging belum lengkap |
+| STAB-ARCHIVE | Blocked | Arsipkan histori PRE-F13 setelah release evidence dan inbound-link inventory siap | BACKLOG/DEVLOG append-only masih menjadi source of record; pemindahan sekarang berisiko memutus tautan silang dan belum memberi manfaat UAT |
+| F13-00 | Completed | Lanjutkan F13-06 security review dan F13-08 CI gate; pertahankan baseline hijau | Lint exit 0 dengan 85 warning legacy; browser bundled Playwright gagal diunduh, Chrome lokal lulus |
+| STAB-TOOLING | Completed | Pertahankan test script web, manifest dependency, dan E2E smoke harness | Browser bundled download gagal jaringan; Chrome lokal lulus |
+| STAB-RUNTIME | Completed | Lanjutkan audit fallback saat F13-06 | Production database/provider/dependency fallback kini fail-closed; demo hanya non-production |
+
+## Recent Completions
+
+- `STAB-CONTRACT-01` — Kontrak v2 dan 24 acceptance criteria aktif.
+- `STAB-DOCS-01` — Indeks dokumentasi dan workflow selective-reading.
+- `STAB-TOOLING` — Test workspace web, dependency manifest, Vitest exclusion, dan Playwright smoke desktop/mobile.
+- `STAB-RUNTIME` — Guard production untuk database, export signature, import, reminder, policy mock, dan QStash delivery.
+- `F13-00` — Entry gate baseline hijau setelah typecheck, workspace test, lint, build, dan E2E smoke lulus; current workspace total 46 file/309 test.
+- `F13-01` — Pure module/golden/boundary coverage ditambah; workspace test runner tidak lagi melewatkan test web/package.
+- `F13-12` — Runbook operasi dan insiden dibuat dengan aturan preview-first dan fail-closed.
+- `CORR-A-05` — Policy, kalender, akses, dan audit Admin KPPN.
+
+Rows after the tracker are retained as completed history. Search by task ID or
+path instead of loading the complete history during session startup.
+
 ## Aturan Status
 
 | Status | Arti |
@@ -15,6 +52,27 @@ Dokumen ini adalah tracker operasional pelaksanaan [TASK-LIST-Simulator-IKPA.md]
 
 | Task ID | Status | Task | Owner/Role | Model | Started | Updated/Completed | File implementasi | Bukti/Catatan |
 |---|---|---|---|---|---|---|---|---|
+| STAB-DOCS-01 | Completed | Tambahkan indeks dokumentasi dan aturan pembacaan konteks agent | Primary Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `AGENTS.md`; `README.md`; `docs/README.md` | Workflow selective-reading, precedence kontrak v2, dan aturan update BACKLOG/DEVLOG ditambahkan; tidak ada kode aplikasi diubah. |
+| STAB-CONTRACT-01 | Completed | Bekukan kontrak aktif Revisi v2 dan acceptance criteria UAT | Primary Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `docs/revisi-v2/*.md`; `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`; `docs/traceability-matrix.md` | Kontrak aktif 8 indikator, actual/what-if, Slot A/B/C, reminder mandatory, Admin scope, Import deferred, dan 24 V2-AC dibuat eksplisit; baseline v1 diberi status historis; tanpa perubahan kode. |
+| STAB-LOGS-01 | Completed | Tambahkan bagian aktif BACKLOG/DEVLOG tanpa memindahkan histori | Primary Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `docs/BACKLOG.md`; `docs/DEVLOG.md` | Active Tasks, Recent Completions, Current Phase, dan Recent Sessions ditambahkan; histori tetap append-only di file yang sama. |
+| STAB-F13-01 | Completed | Revisi kontrak, entry gate, dan proteksi perilaku Fase 13 | Primary Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `docs/TASK-LIST-Simulator-IKPA.md`; `docs/operator-freeze.md` | Dependency CORR-00..06 + CORR-A-00..05, F13-00, V2-AC, scope E2E/security/CI, dan behavior-frozen release policy ditambahkan; tanpa perubahan aplikasi. |
+| F13-00 | Completed | Bekukan kontrak rilis dan baseline aplikasi | Release Readiness Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `docs/TASK-LIST-Simulator-IKPA.md`; `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`; `vitest.config.ts`; `playwright.config.ts` | Kontrak v2/24 AC aktif; typecheck lulus; workspace test lulus; production build lulus; lint exit 0 (85 warning legacy, 0 error); E2E smoke 2/2 lulus via Chrome lokal; preview landing sebelumnya HTTP 200. Browser bundled Playwright tidak terunduh karena jaringan dan dicatat sebagai catatan environment. |
+| F13-01 | Completed | Lengkapi unit/golden/boundary test pure modules | QA Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `apps/web/vitest.config.ts`; `packages/{access-control,contracts,policy-reminder}/vitest.config.ts`; `packages/ikpa-engine/src/utils*.test.ts`; `packages/policy-reminder/src/scheduler.test.ts`; `packages/ikpa-engine/src/utils/decimal.ts`; workspace package manifests | `npm run test --workspaces --if-present` lulus 46 file/309 test (web 20/128, access 4/31, contracts 1/1, engine 15/108, policy 5/33, UI 1/8); E2E tidak lagi ikut Vitest; ditemukan dan diperbaiki rounding negatif `--1.24`; typecheck package lulus. |
+| F13-02 | Blocked | Integration test tenant isolation seluruh ServerFn/export/import/job | QA Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `packages/access-control/src/scope-guard.test.ts`; `apps/web/src/server/*`; `packages/policy-reminder/src/scheduler.ts` | Guard unit positive/negative tersedia; scheduler pending re-evaluation kini memfilter `orgId` di SQL. Belum dapat memenuhi DoD integration karena tidak ada database test terisolasi/harness reproducible; tidak menandai pass berdasarkan mock. |
+| F13-03 | Blocked | Integration test policy/reminder, idempotency, retry, dan mandatory lock | QA Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `packages/policy-reminder/src/{deadline-calculator,compliance-guard,scheduler}.test.ts`; `apps/web/src/server/reminders/*` | Pure deadline/compliance/scheduler test lulus; DB delivery/provider replay dan V2-AC-17..21 belum dapat diverifikasi tanpa database/provider test environment. |
+| F13-04 | Blocked | E2E Operator v2 | QA Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `playwright.config.ts`; `apps/web/e2e/smoke.spec.ts`; `docs/uat-report.md` | Smoke landing 2/2 lulus; login, tenant seed, persistence, Slot A/B/C, reminder, parity, dan export context belum dapat dijalankan tanpa auth/DB fixture. |
+| F13-05 | Blocked | E2E Admin KPPN v2 | QA Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `playwright.config.ts`; `docs/uat-report.md`; `apps/web/src/routes/admin-kppn/*` | Admin server/UI guard tersedia; scoped aggregate/read-only/cross-scope/retry/audit E2E memerlukan auth/DB staging. |
+| F13-06 | Needs Fix | Security review dan production truthfulness | Security Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `apps/web/src/server/runtime-guards.ts`; `apps/web/src/server/qstash/*`; `apps/web/src/server/import/*`; `scripts/check-secrets.mjs` | Production fallback/provider/import/export ditutup; secret scan lokal lulus; `npm audit` registry mirror 404 dan authenticated/security dependency review belum selesai. |
+| F13-07 | Blocked | Performance baseline kalkulasi/dashboard/export | QA Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `docs/go-live-checklist.md` | Belum ada dataset benchmark 10k dan database staging; tidak membuat angka performa sintetis. |
+| F13-08 | Needs Fix | CI quality gate | DevOps Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `.github/workflows/ci.yml`; `package.json`; `scripts/check-secrets.mjs`; `playwright.config.ts` | Workflow menjalankan npm ci, typecheck, workspace test, lint, generated-route, migration, secret scan, build, Playwright install/smoke; belum pernah dijalankan pada remote PR. |
+| F13-09 | Blocked | Vercel preview/staging | DevOps Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `docs/deployment-vercel.md` | Checklist tersedia; project ID, credential, env staging, dan URL belum tersedia. |
+| F13-10 | Blocked | Cloudflare security baseline | DevOps Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `docs/cloudflare-security-baseline.md` | Rules terdokumentasi; zone/origin/rule ID belum tersedia untuk verifikasi penerapan. |
+| F13-11 | Needs Fix | Observability dan alert | DevOps Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `docs/observability-baseline.md`; `apps/web/src/server/qstash/handler.ts`; `apps/web/src/server/audit/write-audit.ts` | Request ID, audit, dan structured error sebagian tersedia; metric/redaction/alert drill belum terhubung. |
+| F13-12 | Completed | Runbook operasional dan insiden | Technical Writer | GPT-5 | 2026-09-09 | 2026-09-09 | `docs/runbook-operations.md`; `docs/runbook-incidents.md` | Seed/migration/job/email/import failure, rollback, secret rotation, scope incident, dan escalation owner ditulis; deployment tetap harus preview-first. |
+| F13-13 | Blocked | UAT 24 V2-AC | Product & IKPA Analyst | GPT-5 | 2026-09-09 | 2026-09-09 | `docs/uat-report.md`; `docs/revisi-v2/ACCEPTANCE-CRITERIA.md` | Ledger per-ID tersedia; status non-Done ditahan sampai authenticated DB/staging evidence. |
+| F13-14 | Blocked | Go-live regulasi dan data | Product & IKPA Analyst | GPT-5 | 2026-09-09 | 2026-09-09 | `docs/go-live-checklist.md`; `docs/regulatory-verification-2026.md` | Keputusan tetap NO-GO; parameter/approver dan seluruh release gates belum lengkap. |
+| STAB-TOOLING | Completed | Integritas test runner, dependency manifest, dan E2E smoke | Primary Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `apps/web/package.json`; `packages/db/package.json`; `package.json`; `package-lock.json`; `playwright.config.ts`; `apps/web/e2e/smoke.spec.ts`; `vitest.config.ts` | `npm run test --workspaces --if-present` menjalankan web; seed mendeklarasikan IKPA engine; ExcelJS/PDF renderer/Playwright terdaftar; smoke Chromium desktop + Mobile Chrome 2/2 lulus memakai Chrome lokal. |
+| STAB-RUNTIME | Completed | Fail-safe runtime mock/fallback produksi | Primary Agent | GPT-5 | 2026-09-09 | 2026-09-09 | `apps/web/src/server/runtime-guards.ts`; `apps/web/src/server/exports/*`; `apps/web/src/server/import.ts`; `apps/web/src/server/qstash/handler.ts`; admin policy/report/workday routes | Production tanpa DB/provider/renderer/signature valid kini error terstruktur; preview policy/report/workday tidak menampilkan fixture produksi; QStash/Resend mock ditolak; Vitest 42/291 lulus. |
 | DOCS-REVISI-V2 | Completed | Salinan PRD/FSD/TSD/ERD ke docs/revisi-v2 disesuaikan IA 8 indikator + Admin monitor + freeze | Technical Writer | muse-spark-1.3 | 2026-09-09 | 2026-09-09 | `docs/revisi-v2/PRD-Simulator-IKPA.md`; `docs/revisi-v2/FSD-Simulator-IKPA.md`; `docs/revisi-v2/TSD-Simulator-IKPA.md`; `docs/revisi-v2/ERD-Simulator-IKPA.md` | 1. Salinan verbatim baseline v1 + addendum Revisi v2 per file (PRE-F13 addendum-only); 2. Baseline v1 di docs/ tak diubah; 3. git diff --check bersih. |
 | CORR-A-00 | Completed | Bekukan kontrak: Admin monitor 8 indikator + reminder wajib (parkir) | Frontend Admin Agent | muse-spark-1.3 | 2026-09-09 | 2026-09-09 | `apps/web/src/server/admin-monitoring.ts` | 1. Kontrak scope dibekukan: `getAdminDashboardSummaryFn` & `listAdminOrganizationsFn` kini verifikasi `kppnScopeId` via `assertAdminKppnScope(access, scope)` + query default dibatasi `allowedKppnScopeIds` (tutup celah baca lintas KPPN); 2. Read-only, tanpa sel kuning, tanpa mutasi; 3. Typecheck web 0 error, vitest 39 files / 282 tests lulus 100%. |
 | CORR-A-01 | Completed | Dashboard Admin agregat 8 baris + deadline wajib (parkir) | Frontend Admin Agent | muse-spark-1.3 | 2026-09-09 | 2026-09-09 | `apps/web/src/server/admin-monitoring.ts`; `apps/web/src/services/admin-monitoring-service.ts`; `apps/web/src/routes/admin-kppn/dashboard.tsx` | 1. Server `getAdminDashboardSummaryFn` tambah `indicatorAverages` (rata-rata 8 indikator dari breakdownJson snapshot terkini per satker) + per-satker `indicators/gap/dataKind`; 2. Dashboard tampil tabel Agregat 8 Indikator + strip Deadline Wajib dari policy backend (mandatory aktif) — read-only, guard scope A-00, tanpa mutasi; 3. Typecheck web 0 error, vitest 39 files / 282 tests lulus 100%. |

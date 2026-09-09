@@ -10,6 +10,7 @@ export const Route = createFileRoute("/admin-kppn/reports")({
 });
 
 function AdminReportsPage() {
+	const productionDataUnavailable = import.meta.env.PROD;
 	const { reportTypes, previewData } = getMockAdminReports();
 	const [selectedReportId, setSelectedReportId] = useState<string>("rekap-nilai");
 	const [fiscalYear, setFiscalYear] = useState("2026");
@@ -39,6 +40,16 @@ function AdminReportsPage() {
 			setGeneratingFormat(null);
 		}
 	};
+
+	if (productionDataUnavailable) {
+		return (
+			<AdminShell currentPath="/admin-kppn/reports">
+				<div role="alert" className="rounded-xl border border-danger/30 bg-danger/10 p-5 text-sm text-danger">
+					Preview laporan produksi tidak tersedia tanpa data agregat terautentikasi. Ekspor tetap harus dijalankan melalui endpoint scoped.
+				</div>
+			</AdminShell>
+		);
+	}
 
 	return (
 		<AdminShell currentPath="/admin-kppn/reports">

@@ -1450,9 +1450,9 @@ function OperatorRemindersPage() {
 								}
 								return (
 									<div className="flex flex-wrap gap-1.5">
-										{parsed.map((d, idx) => (
+										{parsed.map((d) => (
 											<span
-												key={`${d}-${idx}`}
+												key={d}
 												className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-semibold border ${
 													d === 0
 														? "bg-danger/10 border-danger/20 text-danger"

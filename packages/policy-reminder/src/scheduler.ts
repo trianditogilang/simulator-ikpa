@@ -150,10 +150,14 @@ export async function reEvaluatePending(
 	const rows = await db
 		.select()
 		.from(notificationDeliveries)
-		.where(and(eq(notificationDeliveries.status, "scheduled")))
+		.where(
+			and(
+				eq(notificationDeliveries.status, "scheduled"),
+				eq(notificationDeliveries.orgId, orgId),
+			),
+		)
 		.limit(100);
-	// ponytail: placeholder re-evaluation - caller will regenerate keys and cancel outdated
-	return rows
-		.filter((r) => (r as unknown as { orgId?: string }).orgId === orgId || true)
-		.slice(0, 20);
+	// ponytail: placeholder re-evaluation - caller will regenerate keys and cancel outdated.
+	// The tenant predicate is enforced in SQL, not by a post-query filter.
+	return rows.slice(0, 20);
 }

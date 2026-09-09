@@ -21,6 +21,7 @@ import { getAccessResolutionForSession } from "../access.server";
 import { getServerAuthSession } from "../auth-session.server";
 import { calculateAndPersistSnapshot } from "../simulation/calculate";
 import { sanitizeForExport } from "../import/parser";
+import { assertProductionFileSignature, failIfProduction } from "../runtime-guards";
 
 // ponytail: exceljs direct; ceiling = true streaming for >10k rows
 // upgrade path: streaming writer + R2 presigned download URL for large exports
@@ -69,6 +70,7 @@ export async function buildOperatorXlsxBuffer(args: { orgId: string; db: ReturnT
 	} catch { ExcelJS = null; }
 
 	if (!ExcelJS) {
+		failIfProduction(true, "XLSX renderer is unavailable in production.");
 		// fallback: return CSV-like text encoded as xlsx mime (ponytail ceiling)
 		const csv = [
 			"Sheet: Ringkasan",
@@ -134,6 +136,7 @@ export const requestOperatorXlsxFn = createServerFn({ method: "GET" })
 		if (!targetOrgId) throw new Error("Satuan Kerja aktif tidak ditemukan.");
 		assertOperatorOrgScope(access, targetOrgId);
 		const db = getDatabase();
+		failIfProduction(!db, "Production database is not configured for operator export.");
 		if (!db) {
 			// mock fallback buffer (CSV text)
 			const csv = "account_code,amount\n51,1500000000.00\n";
@@ -156,8 +159,11 @@ export const requestOperatorXlsxFn = createServerFn({ method: "GET" })
 					contrib: (i as { weightedContribution?: string }).weightedContribution ?? "0.00",
 				})),
 			};
-		} catch {}
+		} catch (error) {
+			failIfProduction(true, `Operator snapshot calculation failed: ${(error as Error).message}`);
+		}
 		const buf = await buildOperatorXlsxBuffer({ orgId: targetOrgId, db, fiscalYearId: fy.id, summary });
+		assertProductionFileSignature(buf, new Uint8Array([0x50, 0x4b, 0x03, 0x04]), "XLSX");
 		const mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 		const filename = `IKPA-Operator-${targetOrgId}-2026-${new Date().toISOString().slice(0,10)}.xlsx`;
 		return { filename, mimeType: mime, contentBase64: Buffer.from(buf).toString("base64") };

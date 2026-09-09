@@ -19,7 +19,15 @@ export async function handleQStashImport(
 		throw Object.assign(new Error("Invalid QStash signature"), { statusCode: 401, code: "INVALID_SIGNATURE" });
 	}
 	const requestId = headers.get("x-request-id") ?? newRequestId();
-	if (!dbUrl) return { requestId, processed: 0, stuckRecovered: 0 };
+	if (!dbUrl) {
+		if (process.env.NODE_ENV === "production") {
+			throw Object.assign(new Error("Production database is required for import job processing."), {
+				statusCode: 503,
+				code: "DATABASE_UNAVAILABLE",
+			});
+		}
+		return { requestId, processed: 0, stuckRecovered: 0 };
+	}
 	const db = createDbClient(dbUrl);
 	const now = new Date();
 	const stuckThreshold = new Date(now.getTime() - 5 * 60 * 1000);

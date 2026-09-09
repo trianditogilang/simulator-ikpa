@@ -29,10 +29,12 @@ import {
 	previewReminderSchedule,
 } from "./reminders/config.queries";
 import { listDeliveriesForOperator } from "./reminders/delivery.queries";
+import { failIfProduction } from "./runtime-guards";
 
 function getDatabase() {
 	const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
 	if (!dbUrl) {
+		failIfProduction(true, "Production database is not configured for reminders.");
 		return null;
 	}
 	return createDbClient(dbUrl);
@@ -355,6 +357,7 @@ export const listOperatorRemindersFn = createServerFn({ method: "GET" })
 				};
 			});
 		} else {
+			failIfProduction(true, "Reminder delivery records are unavailable in production.");
 			deliveries = getMockDeliveries();
 		}
 
@@ -405,6 +408,8 @@ export const listOperatorRemindersFn = createServerFn({ method: "GET" })
 			};
 		});
 
+		failIfProduction(recipients.length === 0, "Reminder recipients are unavailable in production.");
+
 		return {
 			fiscalYearId: fy.id,
 			year: fy.year,
@@ -414,8 +419,7 @@ export const listOperatorRemindersFn = createServerFn({ method: "GET" })
 			policies: mappedPolicies,
 			configs: mappedConfigs,
 			previews,
-			recipients:
-				recipients.length > 0 ? recipients : getMockRecipients(),
+			recipients: recipients.length > 0 ? recipients : getMockRecipients(),
 			deliveries,
 			stats: computeStats(events, mappedPolicies, deliveries),
 			providerStatus: {

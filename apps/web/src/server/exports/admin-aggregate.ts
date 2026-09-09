@@ -7,6 +7,7 @@ import { fiscalYears, organizations, scoreSnapshots, simulations } from "@simula
 import { getAccessResolutionForSession } from "../access.server";
 import { getServerAuthSession } from "../auth-session.server";
 import { sanitizeForExport } from "../import/parser";
+import { assertProductionFileSignature, failIfProduction } from "../runtime-guards";
 
 function getDatabase() {
 	const url = process.env.DIRECT_URL || process.env.DATABASE_URL;
@@ -37,6 +38,7 @@ async function buildAdminXlsx(args: { db: ReturnType<typeof createDbClient>; kpp
 		ExcelJS = await (Function("m", "return import(m)") as (m: string) => Promise<unknown>)("exceljs");
 	} catch { ExcelJS = null; }
 	if (!ExcelJS) {
+		failIfProduction(true, "XLSX renderer is unavailable in production.");
 		const csv = ["kode,nama,skor,pengurang,periode", ...rows.map(r=>`${esc(r.kode)},${esc(r.nama)},${esc(r.skor)},${esc(r.pengurang)},${esc(r.period)}`)].join("\n");
 		return new TextEncoder().encode(csv);
 	}
@@ -59,6 +61,7 @@ async function buildAdminPdf(args: { kppnName: string; kppnCode: string; year: n
 		ReactPdf = await (Function("m", "return import(m)") as (m: string) => Promise<unknown>)("@react-pdf/renderer");
 	} catch { ReactPdf = null; }
 	if (!ReactPdf) {
+		failIfProduction(true, "PDF renderer is unavailable in production.");
 		const txt = `Rekap Agregat ${args.kppnName} ${args.kppnCode} ${args.month}/${args.year}\n${args.rows.map(r=>`${r.kode} ${r.nama} ${r.skor}`).join("\n")}\nDisclaimer internal.\n`;
 		return new TextEncoder().encode(txt);
 	}
@@ -69,7 +72,10 @@ async function buildAdminPdf(args: { kppnName: string; kppnCode: string; year: n
 	try {
 		// @ts-ignore
 		React = await (Function("m", "return import(m)") as (m: string) => Promise<unknown>)("react");
-	} catch { return new TextEncoder().encode("pdf fallback"); }
+	} catch {
+		failIfProduction(true, "React runtime is unavailable for PDF rendering in production.");
+		return new TextEncoder().encode("pdf fallback");
+	}
 	const h = (React as { createElement:(...a:unknown[])=>unknown }).createElement;
 	const s = (StyleSheet as { create:(o:Record<string,unknown>)=>Record<string,unknown> }).create({
 		page: { padding: 28, fontSize: 9, fontFamily: "Helvetica" },
@@ -113,11 +119,13 @@ export const requestAdminAggregateXlsxFn = createServerFn({ method: "GET" })
 		const year = data.year ?? 2026;
 		const month = data.month ?? 8;
 		const db = getDatabase();
+		failIfProduction(!db, "Production database is not configured for admin XLSX export.");
 		if (!db) {
 			const csv = "kode,nama,skor\n411782,Satker Contoh,94.20\n";
 			return { filename: `IKPA-Agregat-${data.kppnScopeId}-${year}.xlsx`, mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", contentBase64: Buffer.from(csv).toString("base64") };
 		}
 		const buf = await buildAdminXlsx({ db, kppnScopeId: data.kppnScopeId, year, month });
+		assertProductionFileSignature(buf, new Uint8Array([0x50, 0x4b, 0x03, 0x04]), "XLSX");
 		return { filename: `IKPA-Agregat-${data.kppnScopeId}-${year}-${String(month).padStart(2,"0")}.xlsx`, mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", contentBase64: Buffer.from(buf).toString("base64") };
 	});
 
@@ -130,6 +138,7 @@ export const requestAdminAggregatePdfFn = createServerFn({ method: "GET" })
 		const year = data.year ?? 2026;
 		const month = data.month ?? 8;
 		const db = getDatabase();
+		failIfProduction(!db, "Production database is not configured for admin PDF export.");
 		if (!db) {
 			const buf = await buildAdminPdf({ kppnName: "KPPN Malang", kppnCode: data.kppnScopeId.slice(0,3), year, month, rows: [{ kode:"411782", nama:"Satker Contoh", skor:"94.20"}] });
 			return { filename: `IKPA-Agregat-${data.kppnScopeId}.pdf`, mimeType: "application/pdf", contentBase64: Buffer.from(buf).toString("base64") };
@@ -145,6 +154,7 @@ export const requestAdminAggregatePdfFn = createServerFn({ method: "GET" })
 			const snaps = await db.select({ totalScore: scoreSnapshots.totalScore }).from(scoreSnapshots).innerJoin(simulations, eq(scoreSnapshots.simulationId, simulations.id)).where(eq(simulations.fiscalYearId, fy.id)).limit(1);
 			rows.push({ kode: (org as unknown as { kodeSatker: string }).kodeSatker, nama: org.name, skor: snaps[0]?.totalScore ?? "-" });
 		}
-		const buf = await buildAdminPdf({ kppnName, kppnCode: data.kppnScopeId.slice(0,8), year, month, rows: rows.length? rows : [{kode:"411782",nama:"Satker Contoh",skor:"94.20"}] });
+		const buf = await buildAdminPdf({ kppnName, kppnCode: data.kppnScopeId.slice(0,8), year, month, rows });
+		assertProductionFileSignature(buf, new Uint8Array([0x25, 0x50, 0x44, 0x46]), "PDF");
 		return { filename: `IKPA-Agregat-${data.kppnScopeId}-${year}.pdf`, mimeType: "application/pdf", contentBase64: Buffer.from(buf).toString("base64") };
 	});

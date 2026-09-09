@@ -1,6 +1,6 @@
 # FSD — Functional Specification Document (Revisi v2)
 
-> Salinan baseline v1.0. Isi di bawah garis ini tidak diubah. Seluruh penyesuaian hanya berupa addendum ini. Baseline v1 di `docs/` tetap utuh.
+> Dokumen ini adalah spesifikasi fungsional aktif Revisi v2. Baseline v1.0 dipertahankan di bagian bawah hanya untuk histori dan traceability; bila ada konflik, kontrak aktif v2 berlaku.
 
 ## Addendum Revisi v2 — 2026-09-09
 
@@ -9,6 +9,18 @@
 3. **Tagihan & Output (CORR-06):** strip reminder wajib (H+17, 5 hari kerja) + rekomendasi kontekstual; bukan kalkulator opsional.
 4. **Admin monitor (CORR-A-00 s.d. CORR-A-05, parkir):** dashboard agregat 8 baris, daftar satker (8 skor, gap, actual vs proyeksi), detail satker read-only, monitoring reminder mandatory; policy/kalender/akses/audit tetap.
 5. **Freeze operator:** `docs/operator-freeze.md` — kode area operator tidak boleh diubah.
+
+## Kontrak fungsional aktif Revisi v2
+
+- IA Operator terdiri dari Dashboard IKPA, delapan workspace indikator, Reminder Center, dan Lainnya (Riwayat, Laporan, Panduan, Pengaturan).
+- Actual YTD/actual tersimpan tidak boleh tertimpa oleh proyeksi atau what-if. Perubahan asumsi hanya memengaruhi mode proyeksi/skenario.
+- Skenario disimpan per indikator pada Slot A/B/C. Dashboard merakit delapan baris dan menyediakan `Simpan skenario IKPA`; tidak ada menu Skenario gabungan.
+- Riwayat menggunakan istilah Evaluasi untuk item aktual dan membandingkan Evaluasi bulanan dengan proyeksi/skenario; maksimal tiga slot skenario dapat dipilih.
+- Reminder wajib Tagihan, Output, dan GUP/PTUP harus terlihat pada konteks indikator yang relevan dan menghormati workday/policy backend.
+- Admin monitoring adalah read-only untuk transaksi satker dan menampilkan skor, gap, serta `actual`/`proyeksi`/`kosong`; mutasi administratif yang sah tetap server-authoritative dan teraudit.
+- Import Data berstatus `Disabled/Deferred intentionally` sampai ada keputusan re-enable terpisah.
+
+Acceptance criteria aktif v2 berada di [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md). Bagian bernomor setelah garis pemisah adalah baseline v1 historis.
 
 **Produk:** Simulator Penilaian IKPA Satker  
 **Versi:** 1.0 — Berdasarkan PRD Final v1.3  

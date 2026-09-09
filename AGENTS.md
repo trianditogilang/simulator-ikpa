@@ -95,3 +95,46 @@ tanstackIntent:
     run: "npx @tanstack/intent@latest load @tanstack/virtual-file-routes#virtual-file-routes"
     for: "Programmatic route tree building as an alternative to filesystem conventions: rootRoute, index, route, layout, physical, defineVirtualSubtreeConfig. Use with TanStack Router plugin's virtualRouteConfig option."
 <!-- intent-skills:end -->
+
+## Project workflow
+
+### Instruction precedence
+
+Use project context in this order:
+
+1. `AGENTS.md` repository rules;
+2. active `docs/revisi-v2/` product specifications;
+3. the active task and acceptance criteria in `docs/TASK-LIST-Simulator-IKPA.md`;
+4. relevant ADRs and open-task state in `docs/BACKLOG.md`;
+5. implementation and automated tests as evidence of current behavior;
+6. historical records in `docs/DEVLOG.md` and `docs/archive/`.
+
+When sources conflict, do not silently choose one. Report the conflict, identify the affected requirement, and stop before making a behavior-changing decision.
+
+### Session startup
+
+Before editing files:
+
+1. Read this file completely.
+2. Read the documentation index linked from the root `README.md`.
+3. Inspect `git status` and preserve existing user changes.
+4. Read only the active task and dependencies, the active/open backlog section, recent or task-specific DEVLOG entries, and directly relevant specification sections.
+5. Search older records by task ID, feature, ADR, or affected path when needed.
+
+Do not read the complete `BACKLOG.md` or `DEVLOG.md` by default.
+
+### Concurrent work and documentation
+
+Before editing, check task ownership/status and whether affected files already contain user or agent changes. Do not overwrite, revert, reset, or reformat unrelated changes. Stop and report overlapping concurrent work.
+
+`BACKLOG.md` records current execution state, dependencies, blockers, acceptance criteria, and next action. `DEVLOG.md` records concise execution evidence, decisions, verification, and unresolved risks. Do not duplicate long narratives in both files.
+
+After a task completes and its required verification passes:
+
+1. update its status in `docs/BACKLOG.md`;
+2. add one concise evidence entry to `docs/DEVLOG.md`;
+3. update the task list or traceability matrix only when scope, requirement, or status changes;
+4. keep completed-history moves in a dedicated documentation task;
+5. preserve task IDs and repair inbound links before moving documents.
+
+Never mark a task `Completed` while a required verification is failing.

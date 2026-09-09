@@ -7,10 +7,12 @@ import { getServerAuthSession } from "./auth-session.server";
 import { POLICY_INDICATOR_LABELS } from "./reminders";
 import { listDeliveriesForAdmin } from "./reminders/delivery.queries";
 import { retryFailedDelivery } from "./reminders/delivery.mutations";
+import { failIfProduction } from "./runtime-guards";
 
 function getDatabase() {
 	const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
 	if (!dbUrl) {
+		failIfProduction(true, "Production database is not configured for admin deliveries.");
 		return null;
 	}
 	return createDbClient(dbUrl);

@@ -2,12 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq } from "drizzle-orm";
 import { createDbClient } from "@simulator-ikpa/db";
 import { fiscalYears, ruleSets } from "@simulator-ikpa/db/schema";
+import { assertOperatorOrgScope, ForbiddenError } from "@simulator-ikpa/access-control";
 import { getAccessResolutionForSession } from "./access.server";
 import { getServerAuthSession } from "./auth-session.server";
+import { failIfProduction } from "./runtime-guards";
 
 function getDatabase() {
 	const url = process.env.DIRECT_URL || process.env.DATABASE_URL;
-	if (!url) return null;
+	if (!url) {
+		failIfProduction(true, "Production database is not configured for active rule-set context.");
+		return null;
+	}
 	return createDbClient(url);
 }
 
@@ -16,8 +21,20 @@ function getDatabase() {
 export const getHeaderRuleSetFn = createServerFn({ method: "GET" })
 	.validator((data?: { orgId?: string; year?: number }) => data)
 	.handler(async ({ data }) => {
-		const auth = await getServerAuthSession();
+	const auth = await getServerAuthSession();
 		const access = await getAccessResolutionForSession(auth, data?.orgId);
+		if (data?.orgId) {
+			if (
+				access.status === "operator_single_scope" ||
+				access.status === "operator_multiple_scopes"
+			) {
+				assertOperatorOrgScope(access, data.orgId);
+			} else {
+				throw new ForbiddenError(
+					"Organisasi header berada di luar wewenang sesi aktif.",
+				);
+			}
+		}
 		const db = getDatabase();
 		if (!db) {
 			// dev without DB – mock published 2026.1 so header not empty (matches /admin-kppn/policy/rule-sets mock)

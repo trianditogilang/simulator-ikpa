@@ -1,12 +1,22 @@
 # ERD — Entity Relationship Diagram (Revisi v2)
 
-> Salinan baseline v1.0. Isi di bawah garis ini tidak diubah. Seluruh penyesuaian hanya berupa addendum ini. Baseline v1 di `docs/` tetap utuh.
+> Dokumen ini adalah model data aktif Revisi v2. Baseline v1.0 dipertahankan di bagian bawah hanya untuk histori; bila ada konflik, kontrak aktif v2 berlaku.
 
 ## Addendum Revisi v2 — 2026-09-09
 
 1. **Tanpa perubahan skema:** tidak ada tabel/kolom/relasi baru. Admin monitor hanya membaca tabel scoped yang sama.
 2. **Isolasi tenant tetap:** akses Admin via `assertAdminKppnScope`; baca lintas satker dalam scope KPPN, tulis operasional dilarang.
 3. **Snapshot/score tidak ditulis oleh Admin;** skenario Admin bersifat baca/proyeksi tampilan.
+
+## Kontrak data aktif Revisi v2
+
+- Tidak ada perubahan schema yang dibutuhkan untuk IA delapan indikator; delapan baris tampilan terdiri dari tujuh indikator plus pengurang Dispensasi SPM.
+- Actual, proyeksi, scenario, dan snapshot tetap dibedakan melalui tipe simulation/snapshot yang sudah ada.
+- Slot A/B/C menggunakan simulation/scenario yang scoped ke organisasi Operator; perubahan scenario tidak menulis sumber actual.
+- Admin membaca snapshot, breakdown, delivery, policy, dan akses hanya dalam scope KPPN yang diotorisasi.
+- Import Data tetap disabled/deferred dari UI; tabel import dipertahankan hanya untuk re-enable terpisah.
+
+Acceptance criteria aktif v2 berada di [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md). Bagian bernomor setelah garis pemisah adalah baseline v1 historis.
 
 **Produk:** Simulator Penilaian IKPA Satker  
 **Basis:** PRD Final v1.3, FSD MVP v1.0, dan TSD MVP v1.0  

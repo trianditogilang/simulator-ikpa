@@ -84,7 +84,7 @@ function AdminAccessManagementPage() {
 	// ponytail: resolve current user email via Clerk, fallback to first active admin in list
 	let currentUserEmail: string | null = null;
 	try {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
+		// biome-ignore lint/correctness/useHookAtTopLevel: demo mode may omit ClerkProvider; the hook is isolated in this guarded compatibility path.
 		const { user, isLoaded } = useUser();
 		if (isLoaded && user?.primaryEmailAddress?.emailAddress) {
 			currentUserEmail = user.primaryEmailAddress.emailAddress.toLowerCase();

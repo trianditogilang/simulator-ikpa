@@ -1,8 +1,9 @@
 # Traceability Matrix — Simulator Penilaian IKPA
 
-**Sumber:** PRD v1.3, FSD v1.0, TSD v1.0, ERD v1.0, UI/UX Design System v1.0, dan UI/UX Wireframes v1.0  
+**Sumber aktif:** [PRD Revisi v2](revisi-v2/PRD-Simulator-IKPA.md), [FSD Revisi v2](revisi-v2/FSD-Simulator-IKPA.md), [TSD Revisi v2](revisi-v2/TSD-Simulator-IKPA.md), [ERD Revisi v2](revisi-v2/ERD-Simulator-IKPA.md), dan [Acceptance Criteria Revisi v2](revisi-v2/ACCEPTANCE-CRITERIA.md).
+**Referensi historis:** PRD/FSD/TSD/ERD v1.0, UI/UX Design System v1.0, dan UI/UX Wireframes v1.0.
 **Backlog implementasi:** [TASK-LIST-Simulator-IKPA.md](TASK-LIST-Simulator-IKPA.md)  
-**Status baseline:** 31 Agustus 2026
+**Status baseline:** 9 September 2026; status aktif Revisi v2: 9 September 2026. F13-00/F13-01 sudah diverifikasi lokal (46 file/309 test); integration/E2E authenticated menunggu database dan staging.
 
 Dokumen ini memetakan requirement ke task implementasi. Detail perilaku tetap mengikuti dokumen sumber; matriks ini tidak menduplikasi spesifikasi.
 
@@ -14,8 +15,33 @@ Dokumen ini memetakan requirement ke task implementasi. Detail perilaku tetap me
 | `Planned` | Termasuk MVP dan sudah memiliki task implementasi |
 | `Deferred` | Sengaja di luar MVP |
 | `Done` | Implementasi dan verifikasi sudah selesai |
+| `Blocked` | Bukti belum dapat dijalankan karena environment/dependency eksternal belum tersedia |
+| `Needs Fix` | Implementasi atau quality gate tersedia, tetapi DoD formal belum lulus |
 
-Semua item di bawah berstatus `Planned`, kecuali yang secara eksplisit ditandai `Gate`. Status implementasi aktual dilacak di [BACKLOG.md](BACKLOG.md).
+Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan bukti UAT menggunakan [ACCEPTANCE-CRITERIA.md](revisi-v2/ACCEPTANCE-CRITERIA.md); status implementasi aktual dilacak di [BACKLOG.md](BACKLOG.md).
+
+## Active v2 mapping
+
+| Area | Active criteria | Evidence phase | Current status |
+|---|---|---|---|
+| Akses dan scope | V2-AC-01..07 | F13-02, F13-04, F13-05 | Blocked — authenticated DB/E2E fixture belum tersedia |
+| Input dan engine | V2-AC-08..11 | F13-01, F13-02 | Needs Fix — unit/golden hijau; scoped integration belum dijalankan |
+| Skenario, dashboard, dan riwayat | V2-AC-12..16 | F13-04 | Blocked — Playwright login/persistence fixture belum tersedia |
+| Policy, deadline, dan delivery | V2-AC-17..21 | F13-03, F13-05 | Blocked — database/provider replay harness belum tersedia |
+| Admin monitoring dan export | V2-AC-22..24 | F13-05, F13-06 | Needs Fix — signature/runtime guard hijau; scoped admin E2E belum dijalankan |
+
+### Active v2 evidence ledger
+
+| Criteria | Evidence now | Status |
+|---|---|---|
+| V2-AC-01 | Landing smoke desktop/mobile 2/2; login persistence belum diuji | Needs Fix |
+| V2-AC-02..07 | Access-control unit tests dan server guards; authenticated cross-scope DB/E2E belum ada | Blocked |
+| V2-AC-08 | Unit validation dan Import deferred; scoped ServerFn integration belum ada | Needs Fix |
+| V2-AC-09..10 | 46 workspace test files/309 tests; engine eight-row/boundary/golden tests lulus | Done |
+| V2-AC-11..16 | Pure what-if/parity/slot tests ada; full authenticated Dashboard–Riwayat flow belum ada | Needs Fix |
+| V2-AC-17..21 | Deadline/compliance/scheduler pure tests; publish/replay/provider DB belum ada | Blocked |
+| V2-AC-22..23 | Admin server guards dan UI build; scoped read-only/admin E2E belum ada | Blocked |
+| V2-AC-24 | XLSX/PDF signature tests dan production fail-closed guards; scoped export E2E belum ada | Needs Fix |
 
 ## 1. Kebutuhan Fungsional PRD
 

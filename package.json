@@ -14,6 +14,10 @@
     "preview": "npm run preview --workspace apps/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspace @simulator-ikpa/web",
+    "check:generated-routes": "npm run generate-routes && git diff --exit-code -- apps/web/src/routeTree.gen.ts",
+    "check:migrations": "npm run check:migrations --workspace @simulator-ikpa/db",
+    "check:secrets": "node scripts/check-secrets.mjs",
     "format": "biome format .",
     "lint": "biome lint .",
     "check": "npm run typecheck && npm run test && npm run lint"

@@ -21,6 +21,7 @@ export const Route = createFileRoute("/admin-kppn/policy/rule-sets/")({
 
 function AdminRuleSetsPage() {
 	const loaderData = Route.useLoaderData();
+	const productionDataUnavailable = import.meta.env.PROD && loaderData.ruleSets.length === 0;
 	const mockRuleSets = getMockRuleSets();
 
 	const ruleSets =
@@ -54,6 +55,16 @@ function AdminRuleSetsPage() {
 		ruleSets.find((r) => r.status === "published") || ruleSets[0];
 	const draftVersion =
 		ruleSets.find((r) => r.status === "draft") || ruleSets[1];
+
+	if (productionDataUnavailable || !publishedVersion || !draftVersion) {
+		return (
+			<AdminShell currentPath="/admin-kppn/policy/rule-sets">
+				<div role="alert" className="rounded-xl border border-danger/30 bg-danger/10 p-5 text-sm text-danger">
+					Rule set produksi belum tersedia dari sumber terautentikasi. Data contoh tidak ditampilkan.
+				</div>
+			</AdminShell>
+		);
+	}
 
 	return (
 		<AdminShell currentPath="/admin-kppn/policy/rule-sets">

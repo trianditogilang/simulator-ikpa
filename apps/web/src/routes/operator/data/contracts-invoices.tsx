@@ -2439,13 +2439,21 @@ function ContractsInvoicesPage() {
 
 				{/* Modal: Panduan Rumus Belanja Kontraktual */}
 				{isContractGuideOpen && (
+					// biome-ignore lint/a11y/noStaticElementInteractions: modal backdrop intentionally handles click-to-dismiss.
 					<div
 						className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-xs p-4"
+						role="presentation"
 						onClick={() => setIsContractGuideOpen(false)}
+						onKeyDown={(e) => {
+							if (e.key === "Escape") setIsContractGuideOpen(false);
+						}}
 					>
+						{/* biome-ignore lint/a11y/noStaticElementInteractions: dialog surface stops backdrop propagation. */}
 						<div
 							className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-background p-6 shadow-xl space-y-4"
+							role="presentation"
 							onClick={(e) => e.stopPropagation()}
+							onKeyDown={(e) => e.stopPropagation()}
 						>
 							<div className="flex items-center justify-between border-b border-border pb-3">
 								<div className="flex items-center gap-2">
@@ -2532,13 +2540,21 @@ function ContractsInvoicesPage() {
 
 				{/* Modal: Panduan Rumus Penyelesaian Tagihan */}
 				{isTagihanGuideOpen && (
+					// biome-ignore lint/a11y/noStaticElementInteractions: modal backdrop intentionally handles click-to-dismiss.
 					<div
 						className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-xs p-4"
+						role="presentation"
 						onClick={() => setIsTagihanGuideOpen(false)}
+						onKeyDown={(e) => {
+							if (e.key === "Escape") setIsTagihanGuideOpen(false);
+						}}
 					>
+						{/* biome-ignore lint/a11y/noStaticElementInteractions: dialog surface stops backdrop propagation. */}
 						<div
 							className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-background p-6 shadow-xl space-y-4"
+							role="presentation"
 							onClick={(e) => e.stopPropagation()}
+							onKeyDown={(e) => e.stopPropagation()}
 						>
 							<div className="flex items-center justify-between border-b border-border pb-3">
 								<div className="flex items-center gap-2">

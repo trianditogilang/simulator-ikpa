@@ -345,9 +345,9 @@ export function SaveScenarioDialog({
 							{/* Slot Selector */}
 							<div>
 								<div className="flex items-center justify-between">
-									<label className="block text-xs font-semibold text-foreground">
+									<span className="block text-xs font-semibold text-foreground">
 										Pilih Slot Tujuan Simpan (A, B, atau C) <span className="text-danger">*</span>
-									</label>
+									</span>
 									<span className="text-[10px] font-medium text-muted-foreground">
 										Maks. 3 Skenario
 									</span>
@@ -389,10 +389,11 @@ export function SaveScenarioDialog({
 							</div>
 
 							<div>
-								<label className="block text-xs font-semibold text-foreground">
+								<label htmlFor="scenario-name" className="block text-xs font-semibold text-foreground">
 									Nama Skenario <span className="text-danger">*</span>
 								</label>
 								<input
+									id="scenario-name"
 									type="text"
 									required
 									value={scenarioName}
@@ -407,17 +408,17 @@ export function SaveScenarioDialog({
 
 							<div className="grid grid-cols-2 gap-3">
 								<div>
-									<label className="block text-xs font-semibold text-muted-foreground">
+									<span className="block text-xs font-semibold text-muted-foreground">
 										Periode Evaluasi
-									</label>
+									</span>
 									<p className="mt-1 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground">
 										{periodLabel}
 									</p>
 								</div>
 								<div>
-									<label className="block text-xs font-semibold text-muted-foreground">
+									<span className="block text-xs font-semibold text-muted-foreground">
 										Target KPPN
-									</label>
+									</span>
 									<p className="mt-1 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground">
 										{targetScore.toFixed(2)} Poin
 									</p>
@@ -427,12 +428,12 @@ export function SaveScenarioDialog({
 							{/* Summary of Overrides */}
 							{overrideSummaries.length > 0 && (
 								<div className="space-y-1.5">
-									<label className="block text-xs font-semibold text-foreground">
+									<span className="block text-xs font-semibold text-foreground">
 										Ringkasan Asumsi yang Diubah ({overrideSummaries.length})
-									</label>
+									</span>
 									<div className="max-h-32 space-y-1 overflow-y-auto rounded-xl border border-border/70 bg-surface p-2.5 text-xs">
-										{overrideSummaries.map((s, i) => (
-											<div key={i} className="flex items-center justify-between text-[11px]">
+										{overrideSummaries.map((s) => (
+											<div key={`${s.label}-${s.originalValue}-${s.newValue}`} className="flex items-center justify-between text-[11px]">
 												<span className="text-muted-foreground">{s.label}:</span>
 												<span className="font-semibold text-foreground">
 													{s.originalValue} → <strong className="text-primary">{s.newValue}</strong>
@@ -444,10 +445,11 @@ export function SaveScenarioDialog({
 							)}
 
 							<div>
-								<label className="block text-xs font-semibold text-foreground">
+								<label htmlFor="scenario-notes" className="block text-xs font-semibold text-foreground">
 									Catatan Tambahan (Opsional)
 								</label>
 								<textarea
+									id="scenario-notes"
 									rows={2}
 									value={notes}
 									onChange={(e) => setNotes(e.target.value)}

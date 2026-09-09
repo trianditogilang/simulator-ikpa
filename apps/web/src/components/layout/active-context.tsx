@@ -100,20 +100,21 @@ export function ActiveContextProvider({
 
 export function ActiveContextHeader() {
 	const value = useContext(ActiveContext);
-	if (!value) {
-		return null;
-	}
+	const context = value?.context;
 
 	// ponytail: header previously hardcoded ruleSet:null → always "belum tersedia" even though 2026.1 exists
 	// fetch live ruleSet per fiscalYear/org; fallback mock keeps header green in dev without DB
 	const [fetchedRuleSet, setFetchedRuleSet] = useState<GlobalContext["ruleSet"]>(
-		value.context.ruleSet,
+		context?.ruleSet ?? null,
 	);
-	const [fetchedFiscalYear, setFetchedFiscalYear] = useState(value.context.fiscalYear);
+	const [fetchedFiscalYear, setFetchedFiscalYear] = useState<GlobalContext["fiscalYear"]>(
+		context?.fiscalYear ?? { id: FISCAL_YEAR_ID, year: FISCAL_YEAR },
+	);
 
 	useEffect(() => {
-		const orgId = value.context.activeOrganization?.id ?? undefined;
-		const year = value.context.fiscalYear.year;
+		if (!context) return;
+		const orgId = context.activeOrganization?.id ?? undefined;
+		const year = context.fiscalYear.year;
 		getHeaderRuleSetFn({ data: { orgId, year } })
 			.then((res) => {
 				if (res.ruleSet) {
@@ -126,17 +127,21 @@ export function ActiveContextHeader() {
 			.catch(() => {
 				// keep fallback null → dialog will explain
 			});
-	}, [value.context.activeOrganization?.id, value.context.fiscalYear.year]);
+	}, [context]);
 
 	const mergedContext = useMemo(
-		() => ({
-			...value.context,
-			ruleSet: fetchedRuleSet ?? value.context.ruleSet,
-			fiscalYear: fetchedFiscalYear ?? value.context.fiscalYear,
-		}),
-		[value.context, fetchedRuleSet, fetchedFiscalYear],
+		() =>
+			context
+				? {
+						...context,
+						ruleSet: fetchedRuleSet ?? context.ruleSet,
+						fiscalYear: fetchedFiscalYear ?? context.fiscalYear,
+					}
+				: null,
+		[context, fetchedRuleSet, fetchedFiscalYear],
 	);
 
+	if (!mergedContext) return null;
 	return <ContextHeader context={mergedContext} />;
 }
 

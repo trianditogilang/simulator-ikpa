@@ -1229,10 +1229,11 @@ function UpTupPage() {
 
 							<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 								<div className="space-y-1.5">
-									<label className="block text-xs font-semibold text-foreground">
+									<label htmlFor="kkp-status" className="block text-xs font-semibold text-foreground">
 										Status KKP Satker
 									</label>
 									<select
+										id="kkp-status"
 										value={kkpStatus}
 										onChange={(e) => handleKkpStatusChange(e.target.value as never)}
 										className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
@@ -1244,10 +1245,11 @@ function UpTupPage() {
 								</div>
 
 								<div className="space-y-1.5">
-									<label className="block text-xs font-semibold text-foreground">
+									<label htmlFor="monthly-kkp-ceiling" className="block text-xs font-semibold text-foreground">
 										Plafon Bulanan KKP (Rp)
 									</label>
 									<FormattedNumberInput
+										id="monthly-kkp-ceiling"
 										allowDecimal={false}
 										value={monthlyKkpCeiling}
 										onChange={handleMonthlyCeilingChange}
@@ -1262,9 +1264,9 @@ function UpTupPage() {
 								</div>
 
 								<div className="space-y-1.5">
-									<label className="block text-xs font-semibold text-foreground">
+									<span className="block text-xs font-semibold text-foreground">
 										Plafon KKP Tahunan (x12)
-									</label>
+									</span>
 									<div className="min-h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold text-primary font-mono flex items-center">
 										{formatRupiah(annualKkpCeiling)}
 									</div>
@@ -1687,9 +1689,9 @@ function UpTupPage() {
 													<span>Saran Tindakan:</span>
 												</div>
 												<div className="space-y-1.5">
-													{gupAnalysis.actions.map((action, idx) => (
-														<div
-															key={idx}
+														{gupAnalysis.actions.map((action) => (
+															<div
+																key={action.label}
 															className="rounded-lg border border-border/70 bg-background/90 p-2.5 text-xs space-y-0.5"
 														>
 															<p className="font-semibold text-foreground">
@@ -1793,8 +1795,8 @@ function UpTupPage() {
 										{/* Notes */}
 										{gupAnalysis.notes.length > 0 && (
 											<div className="rounded-lg border border-border/60 bg-surface-muted/50 p-2.5 text-[11px] text-muted-foreground space-y-1">
-												{gupAnalysis.notes.map((note, idx) => (
-													<p key={idx} className="leading-relaxed">
+														{gupAnalysis.notes.map((note) => (
+															<p key={note} className="leading-relaxed">
 														• {note}
 													</p>
 												))}
@@ -2024,9 +2026,9 @@ function UpTupPage() {
 					</div>
 
 					<div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-						{recommendations.map((rec, idx) => (
+						{recommendations.map((rec) => (
 							<div
-								key={idx}
+								key={rec.title}
 								className={`rounded-xl border p-3.5 space-y-1 ${
 									rec.type === "warn"
 										? "border-danger/30 bg-danger/5 text-danger"

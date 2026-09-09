@@ -22,6 +22,7 @@ export const Route = createFileRoute("/admin-kppn/policy/rule-sets/$ruleSetId")(
 );
 
 function AdminRuleSetEditorPage() {
+	const productionDataUnavailable = import.meta.env.PROD;
 	const { ruleSetId } = Route.useParams();
 	const initialRuleSet = getMockRuleSetById(ruleSetId);
 
@@ -70,6 +71,16 @@ function AdminRuleSetEditorPage() {
 		);
 		setTimeout(() => setSaveToast(null), 5000);
 	};
+
+	if (productionDataUnavailable) {
+		return (
+			<AdminShell currentPath="/admin-kppn/policy/rule-sets">
+				<div role="alert" className="rounded-xl border border-danger/30 bg-danger/10 p-5 text-sm text-danger">
+					Editor rule set produksi memerlukan data terautentikasi. Data contoh dan kontrol publish tidak ditampilkan.
+				</div>
+			</AdminShell>
+		);
+	}
 
 	return (
 		<AdminShell currentPath="/admin-kppn/policy/rule-sets">

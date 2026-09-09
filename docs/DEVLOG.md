@@ -2,6 +2,90 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+## Current Phase
+
+**Fase 13 — F13-00/F13-01 selesai; F13-02/F13-03 menunggu database test.**
+
+- Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
+- Baseline hijau: typecheck lulus, workspace Vitest 46 test files/309 tests lulus, `npm run lint` exit 0, production build lulus, E2E smoke desktop/mobile 2/2 lulus, dan smoke route `/` sebelumnya HTTP 200.
+- Catatan environment: browser bundled Playwright belum dapat diunduh karena jaringan; smoke tetap reproducible memakai Chrome lokal melalui `channel: "chrome"`. Lint masih memiliki 85 warning legacy tanpa error.
+- F13-01 lulus: konfigurasi test per workspace mencegah E2E masuk Vitest; pure utility/scheduler/workday tests ditambah; bug rounding negatif fixed-point ditutup.
+- F13-06/F13-08 progress: production delivery/import fallback fail-closed, secret/migration/generated-route checks tersedia, dan CI workflow sudah ditulis tetapi belum dijalankan pada remote PR.
+- F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
+- Next action: siapkan environment database/auth terisolasi untuk F13-02/F13-05; task yang membutuhkan persistence tidak boleh dipalsukan dengan fixture in-memory.
+
+## Recent Sessions
+
+Entri terbaru berada di bawah bagian ini. Baca task-specific entry atau beberapa
+entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
+
+### Session 230 - 2026-09-09
+**Status:** Completed — STAB-DOCS-01
+- Menambahkan `docs/README.md` sebagai indeks kanonis, tautan dokumentasi di root `README.md`, dan aturan workflow selective-reading di `AGENTS.md`.
+- Menetapkan revisi-v2 sebagai kontrak aktif, histori sebagai referensi, serta pemisahan tanggung jawab BACKLOG versus DEVLOG.
+- Verifikasi: `git diff --check` bersih; tidak ada file aplikasi berubah.
+
+### Session 231 - 2026-09-09
+**Status:** Completed — STAB-CONTRACT-01
+- Menetapkan dokumen `docs/revisi-v2/` sebagai kontrak aktif dan menambahkan `ACCEPTANCE-CRITERIA.md` berisi 24 kriteria V2-AC untuk UAT/Fase 13.
+- Menandai baseline v1 sebagai histori pada PRD/FSD/TSD/ERD dan memperbarui traceability agar menunjuk acceptance criteria aktif.
+- Verifikasi: seluruh tautan dokumen v2/traceability yang diubah valid; tidak ada kode aplikasi diubah.
+
+### Session 232 - 2026-09-09
+**Status:** Completed — STAB-LOGS-01
+- Menambahkan bagian `Active Tasks` dan `Recent Completions` pada BACKLOG, serta `Current Phase` dan `Recent Sessions` pada DEVLOG.
+- Histori completed tidak dipindahkan atau dihapus; startup agent diarahkan membaca bagian aktif dan mencari histori berdasarkan task ID/path.
+- Verifikasi: `git diff --check` bersih; tidak ada kode aplikasi diubah.
+
+### Session 233 - 2026-09-09
+**Status:** Completed — STAB-F13-01
+- Task list Fase 13 diperbarui dengan mode verification-first, dependency CORR-00..06 + CORR-A-00..05, F13-00 entry gate, V2-AC, scope E2E Operator/Admin, fallback/security, dan CI gate.
+- `docs/operator-freeze.md` diubah menjadi behavior-frozen release stabilization policy yang mengizinkan test/security/lint/defect fix terarah tanpa redesign.
+- Verifikasi: `git diff --check` bersih; tidak ada kode aplikasi diubah.
+
+### Session 234 - 2026-09-09
+**Status:** Needs Fix — F13-00
+- Baseline read-only direkam: typecheck seluruh workspace lulus; `npx vitest run` 40 test files/285 tests lulus; production build lulus; smoke preview `/` HTTP 200 HTML.
+- Blocker dicatat: `npm run lint` gagal 65 error/85 warning; `apps/web` belum memiliki script test; Playwright/Cypress belum ada; runtime mock/fallback dan dependency manifest perlu ditutup.
+- F13-00 tetap Needs Fix sampai tooling, runtime truthfulness, dan discrepancy kontrak terverifikasi.
+
+### Session 235 - 2026-09-09
+**Status:** Completed — STAB-TOOLING
+- Menambahkan script `test` dan `test:e2e` pada workspace web, root `test:e2e`, dependency ExcelJS/PDF renderer/Playwright, serta deklarasi dependency DB → IKPA engine.
+- Menambahkan `playwright.config.ts` (Chromium desktop + Mobile Chrome, webServer, isolation, screenshot/trace/video on failure/retry, CI retry/forbidOnly) dan smoke landing.
+- Menambahkan `vitest.config.ts` agar smoke E2E tidak ikut dieksekusi sebagai test unit.
+- Verifikasi: Vitest 42 file/291 test lulus; E2E smoke 2/2 lulus memakai Chrome lokal. Download browser bundled gagal karena jaringan, dicatat sebagai environment note.
+
+### Session 236 - 2026-09-09
+**Status:** Completed — STAB-RUNTIME
+- Menambahkan `runtime-guards.ts` dan guard production pada server domain yang memiliki fallback DB, export XLSX/PDF, import, active reminder, dan rule-set context.
+- Production export memvalidasi signature ZIP/XLSX atau `%PDF`; production tidak mengembalikan CSV/text sebagai file sukses.
+- Preview Rule Set, workday, dan report Admin tidak menampilkan fixture saat production; QStash signature/provider mock ditolak di production.
+- Verifikasi: typecheck seluruh workspace lulus; Vitest 42 file/291 test lulus.
+
+### Session 237 - 2026-09-09
+**Status:** Completed — F13-00 / STAB-BASELINE
+- Menyelesaikan lint baseline secara manual dan terarah tanpa formatter massal; `npm run lint` sekarang exit 0 dengan 86 warning legacy dan 0 error.
+- Menjalankan ulang gate: `npm run typecheck` lulus; `npx vitest run` lulus 42 file/291 test; `npm run build` lulus untuk client dan SSR; `npm run test:e2e --workspace @simulator-ikpa/web` lulus 2/2 (Chromium desktop + Mobile Chrome) memakai Chrome lokal.
+- Entry gate F13-00 ditutup karena kontrak v2/24 V2-AC aktif, baseline tercatat, runtime production fail-closed, dan seluruh command wajib yang tersedia hijau. Browser Playwright bundled tetap menjadi catatan environment, bukan kegagalan test.
+- Next: F13-01 unit/golden/boundary audit. Task integration/E2E yang membutuhkan database/auth/staging tidak boleh ditandai selesai tanpa bukti environment terisolasi.
+
+### Session 238 - 2026-09-09
+**Status:** Completed — F13-01; Blocked — F13-02/F13-03
+- Menambahkan konfigurasi Vitest lokal untuk `apps/web`, `packages/access-control`, `packages/contracts`, dan `packages/policy-reminder`; `npm run test --workspaces --if-present` kini benar-benar menemukan semua test workspace dan tidak memuat `apps/web/e2e`.
+- Menambah test fixed-point, kalender engine, scheduler, dan production delivery/import guards; total workspace menjadi 46 file/309 test lulus. Regression test menangkap helper `DecimalCalc.roundHalfUp` yang menghasilkan `--1.24`; akar masalah diperbaiki menjadi `-1.24`.
+- Memperketat `reEvaluatePending` agar predicate `orgId` diterapkan di query database, bukan filter pasca-query yang sebelumnya selalu lolos.
+- F13-02/F13-03 ditahan sebagai Blocked karena repository belum memiliki database test terisolasi/provider harness. Guard unit dan pure reminder tests tetap hijau, tetapi belum dianggap bukti integration tenant/policy.
+
+### Session 239 - 2026-09-09
+**Status:** Needs Fix — F13-06/F13-08/F13-11; Blocked — F13-04/F13-05/F13-07/F13-09/F13-10/F13-13/F13-14; Completed — F13-12
+- Menutup jalur produksi QStash daily/send yang sebelumnya bisa mengubah delivery menjadi `sent` tanpa provider nyata; provider tidak terimplementasi sekarang menghasilkan `503 DELIVERY_PROVIDER_UNAVAILABLE`.
+- Menutup import job production tanpa database (`503 DATABASE_UNAVAILABLE`) dan memperketat header rule-set agar `orgId` eksplisit selalu melewati operator scope guard; onboarding tidak dapat mengklaim Satker yang sudah terdaftar tanpa mapping Admin.
+- Menambahkan `.github/workflows/ci.yml` dengan npm ci, typecheck, workspace test, lint, generated-route check, migration check, secret scan, build, Playwright browser install, dan E2E smoke. Local checks: secret scan, migration, generated-route, typecheck, web tests, serta E2E smoke lulus; remote CI belum dijalankan.
+- Menambahkan deployment/Cloudflare/observability/runbook/UAT/go-live docs. `docs/uat-report.md` mencatat V2-AC-01..24 per ID; keputusan tetap `NO-GO` karena DB/auth/staging belum tersedia.
+- Verifikasi akhir: `npm run check` lulus (typecheck, 46 file/309 test, lint exit 0 dengan 85 warning), production build lulus, E2E smoke 2/2 lulus, generated-route/migration/secret checks lulus, dan tautan Markdown lokal OK pada 69 file; `git diff --check` tidak memiliki whitespace error.
+- Arsip PRE-F13 belum dipindahkan: `STAB-ARCHIVE` ditahan sampai inventory inbound-link dan owner release evidence tersedia, sehingga append-only history tetap utuh dan tidak ada perpindahan besar yang berisiko.
+
 ### Session 229 - 2026-09-09
 **Time:** Start: 20:28 UTC | End: 20:35 UTC | Duration: ~7 minutes
 - Status: Completed

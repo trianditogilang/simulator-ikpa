@@ -686,8 +686,9 @@ function AdminReminderPoliciesPage() {
 									</span>
 								</div>
 								<div className="flex items-center gap-2">
-									<label className="text-xs text-muted-foreground font-medium">Tahun Anggaran:</label>
+									<label htmlFor="admin-reminder-year" className="text-xs text-muted-foreground font-medium">Tahun Anggaran:</label>
 									<select
+										id="admin-reminder-year"
 										value={selectedYear}
 										onChange={(e) => {
 											const yr = Number(e.target.value);
@@ -872,10 +873,11 @@ function AdminReminderPoliciesPage() {
 							<div className="space-y-4 text-xs">
 								<div className="grid grid-cols-2 gap-3">
 									<div>
-										<label className="text-muted-foreground block mb-1 font-medium">
+										<label htmlFor="window-opens-at" className="text-muted-foreground block mb-1 font-medium">
 											Tanggal Buka Jendela:
 										</label>
 										<input
+											id="window-opens-at"
 											type="date"
 											value={editingWindow.opensAt}
 											onChange={(e) =>
@@ -889,10 +891,11 @@ function AdminReminderPoliciesPage() {
 									</div>
 
 									<div>
-										<label className="text-muted-foreground block mb-1 font-medium">
+										<label htmlFor="window-closes-at" className="text-muted-foreground block mb-1 font-medium">
 											Batas Akhir / Penutupan:
 										</label>
 										<input
+											id="window-closes-at"
 											type="date"
 											value={editingWindow.closesAt}
 											onChange={(e) =>
@@ -907,10 +910,11 @@ function AdminReminderPoliciesPage() {
 								</div>
 
 								<div>
-									<label className="text-muted-foreground block mb-1 font-medium">
+									<label htmlFor="window-status" className="text-muted-foreground block mb-1 font-medium">
 										Status Akses Pemutakhiran:
 									</label>
 									<select
+										id="window-status"
 										value={editingWindow.status}
 										onChange={(e) =>
 											setEditingWindow({
@@ -927,10 +931,11 @@ function AdminReminderPoliciesPage() {
 								</div>
 
 								<div>
-									<label className="text-muted-foreground block mb-1 font-medium">
+									<label htmlFor="window-source-reference" className="text-muted-foreground block mb-1 font-medium">
 										Dasar Surat / Catatan Kebijakan:
 									</label>
 									<textarea
+										id="window-source-reference"
 										rows={2}
 										value={editingWindow.sourceReference}
 										onChange={(e) =>
@@ -991,10 +996,11 @@ function AdminReminderPoliciesPage() {
 							<div className="space-y-4 text-xs">
 								<div className="grid grid-cols-2 gap-3">
 									<div>
-										<label className="text-muted-foreground block mb-1 font-medium">
+										<label htmlFor="realization-reguler-deadline" className="text-muted-foreground block mb-1 font-medium">
 											Batas Open Period Reguler (HK-7):
 										</label>
 										<input
+											id="realization-reguler-deadline"
 											type="date"
 											value={editingRealizationPeriod.regulerDeadline}
 											onChange={(e) =>
@@ -1007,10 +1013,11 @@ function AdminReminderPoliciesPage() {
 										/>
 									</div>
 									<div>
-										<label className="text-muted-foreground block mb-1 font-medium">
+										<label htmlFor="realization-additional-deadline" className="text-muted-foreground block mb-1 font-medium">
 											Batas Periode Tambahan (M+1):
 										</label>
 										<input
+											id="realization-additional-deadline"
 											type="date"
 											value={editingRealizationPeriod.additionalDeadline}
 											onChange={(e) =>
@@ -1025,10 +1032,11 @@ function AdminReminderPoliciesPage() {
 								</div>
 
 								<div>
-									<label className="text-muted-foreground block mb-1 font-medium">
+									<label htmlFor="realization-status" className="text-muted-foreground block mb-1 font-medium">
 										Status Akses Pelaporan Sistem:
 									</label>
 									<select
+										id="realization-status"
 										value={editingRealizationPeriod.status}
 										onChange={(e) =>
 											setEditingRealizationPeriod({
@@ -1066,10 +1074,11 @@ function AdminReminderPoliciesPage() {
 								</div>
 
 								<div>
-									<label className="text-muted-foreground block mb-1 font-medium">
+									<label htmlFor="realization-source-reference" className="text-muted-foreground block mb-1 font-medium">
 										Dasar Rujukan / Surat Persetujuan:
 									</label>
 									<textarea
+										id="realization-source-reference"
 										rows={2}
 										value={editingRealizationPeriod.sourceReference}
 										onChange={(e) =>
@@ -1141,10 +1150,11 @@ function AdminReminderPoliciesPage() {
 
 								{!toggleAdditionalModal.isAdditionalOpen && (
 									<div>
-										<label className="text-muted-foreground block mb-1 font-medium">
+										<label htmlFor="additional-approval-note" className="text-muted-foreground block mb-1 font-medium">
 											Nomor Surat / ND Persetujuan Pembukaan (Opsional):
 										</label>
 										<input
+											id="additional-approval-note"
 											type="text"
 											value={additionalApprovalNote}
 											onChange={(e) => setAdditionalApprovalNote(e.target.value)}

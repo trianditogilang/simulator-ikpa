@@ -10,6 +10,7 @@ import {
 	type WorkdayCalendar,
 } from "@simulator-ikpa/policy-reminder";
 import { and, eq, isNull, sql } from "drizzle-orm";
+import { failIfProduction } from "../runtime-guards";
 
 export interface ActiveReminderEvent {
 	id: string;
@@ -149,6 +150,7 @@ export async function getActiveReminderEvents(
 	const today = currentDateIso;
 
 	if (!db) {
+		failIfProduction(true, "Production database is not configured for active reminders.");
 		return getMockActiveReminderEvents(today);
 	}
 
@@ -535,6 +537,7 @@ export async function getActiveReminderEvents(
 		});
 	} catch (err) {
 		console.error("Error fetching active reminder events from DB:", err);
+		failIfProduction(true, `Active reminder query failed: ${(err as Error).message}`);
 		return getMockActiveReminderEvents(today);
 	}
 

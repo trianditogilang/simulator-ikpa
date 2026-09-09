@@ -20,6 +20,7 @@ import {
 	getClerkIdentity,
 	getServerAuthSession,
 } from "../auth-session.server";
+import { failIfProduction } from "../runtime-guards";
 
 export interface SatkerSettingsData {
 	satkerId: string;
@@ -37,6 +38,7 @@ export interface SatkerSettingsData {
 function getDatabase() {
 	const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
 	if (!dbUrl) {
+		failIfProduction(true, "Production database is not configured for satker settings.");
 		return null;
 	}
 	return createDbClient(dbUrl);
@@ -95,7 +97,9 @@ export async function handleRegisterSatkerOnboarding(data: {
 			.returning();
 	}
 
-	// 3. Find or create organization
+	// 3. Find or create organization. An unmapped user may create a new satker,
+	// but may not claim an already-registered satker by guessing its code.
+	let createdOrganization = false;
 	let [org] = await db
 		.select()
 		.from(organizations)
@@ -114,6 +118,7 @@ export async function handleRegisterSatkerOnboarding(data: {
 				timezone: "Asia/Jakarta",
 			})
 			.returning();
+		createdOrganization = true;
 	}
 
 	// 4. Ensure Fiscal Year 2026 exists
@@ -147,6 +152,13 @@ export async function handleRegisterSatkerOnboarding(data: {
 			and(eq(userAccesses.userId, user.id), eq(userAccesses.orgId, org.id)),
 		)
 		.limit(1);
+
+	if (!createdOrganization && !existingAccess) {
+		throw Object.assign(
+			new Error("Satker sudah terdaftar. Minta Admin KPPN memetakan akses Anda."),
+			{ statusCode: 409, code: "SATKER_ALREADY_REGISTERED" },
+		);
+	}
 
 	if (!existingAccess) {
 		await db.insert(userAccesses).values({

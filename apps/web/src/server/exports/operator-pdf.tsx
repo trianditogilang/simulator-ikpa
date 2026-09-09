@@ -7,6 +7,7 @@ import { fiscalYears, organizations, ruleSets } from "@simulator-ikpa/db/schema"
 import { getAccessResolutionForSession } from "../access.server";
 import { getServerAuthSession } from "../auth-session.server";
 import { calculateAndPersistSnapshot } from "../simulation/calculate";
+import { assertProductionFileSignature, failIfProduction } from "../runtime-guards";
 
 function getDatabase() {
 	const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
@@ -34,6 +35,7 @@ async function renderPdfBuffer(args: { title: string; orgName: string; orgCode: 
 		ReactPdf = await (Function("m", "return import(m)") as (m: string) => Promise<unknown>)("@react-pdf/renderer");
 	} catch { ReactPdf = null; }
 	if (!ReactPdf) {
+		failIfProduction(true, "PDF renderer is unavailable in production.");
 		const text = `IKPA Report ${args.orgCode} ${args.period}\nScore ${args.totalScore}\n${args.indicators.map(i=>`${i.label}: ${i.score} (${i.weight}%)`).join("\n")}\n${args.disclaimer}\n`;
 		return new TextEncoder().encode(text);
 	}
@@ -45,7 +47,10 @@ async function renderPdfBuffer(args: { title: string; orgName: string; orgCode: 
 	try {
 		// @ts-ignore
 		React = await (Function("m", "return import(m)") as (m: string) => Promise<unknown>)("react");
-	} catch { return new TextEncoder().encode("PDF fallback"); }
+	} catch {
+		failIfProduction(true, "React runtime is unavailable for PDF rendering in production.");
+		return new TextEncoder().encode("PDF fallback");
+	}
 	const h = (React as { createElement: (...a: unknown[])=>unknown }).createElement;
 	const styles = (StyleSheet as { create: (o: Record<string, unknown>)=> Record<string, unknown> }).create({
 		page: { padding: 32, fontSize: 10, fontFamily: "Helvetica" },
@@ -88,6 +93,7 @@ export const requestOperatorPdfFn = createServerFn({ method: "GET" })
 		if (!targetOrgId) throw new Error("Satuan Kerja aktif tidak ditemukan.");
 		assertOperatorOrgScope(access, targetOrgId);
 		const db = getDatabase();
+		failIfProduction(!db, "Production database is not configured for operator PDF export.");
 		const periodMonth = data?.periodMonth ?? 8;
 		const periodLabel = `Bulan ${periodMonth}/2026`;
 		if (!db) {
@@ -110,7 +116,8 @@ export const requestOperatorPdfFn = createServerFn({ method: "GET" })
 			indicators = (snap.output.indicators as unknown as Array<{ label?: string; key: string; score: string | null; weight: string }>).map((i)=>({ label: i.label ?? i.key, score: i.score ?? "0.00", weight: i.weight }));
 			totalScore = snap.output.totalScore ?? "0.00";
 			deduction = snap.output.dispensationDeduction ?? "0.00";
-		} catch {
+		} catch (error) {
+			failIfProduction(true, `Operator snapshot calculation failed: ${(error as Error).message}`);
 			indicators = [{ label: "Revisi DIPA", score: "0.00", weight: "10.00" }];
 		}
 		indicators = [...indicators, { label: "SPM Dispensasi (pengurang)", score: `-${deduction}`, weight: "0.00" }];
@@ -123,5 +130,6 @@ export const requestOperatorPdfFn = createServerFn({ method: "GET" })
 			indicators,
 			disclaimer: `Dicetak ${new Date().toLocaleString("id-ID")} WIB • Disclaimer: Bukan sumber nilai IKPA resmi. Rule set ${rs?.version ?? "2026.1"} ${rs?.sourceRegulation ?? "PER-5/PB/2024"} – internal KPPN Malang.`,
 		});
+		assertProductionFileSignature(buf, new Uint8Array([0x25, 0x50, 0x44, 0x46]), "PDF");
 		return { filename: `IKPA-Executive-${targetOrgId}-${periodMonth}-2026.pdf`, mimeType: "application/pdf", contentBase64: Buffer.from(buf).toString("base64") };
 	});

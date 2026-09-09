@@ -16,10 +16,12 @@ import {
 	listKkp,
 	listUpTup,
 } from "./domains/up-tup-kkp.queries";
+import { failIfProduction } from "./runtime-guards";
 
 function getDatabase() {
 	const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
 	if (!dbUrl) {
+		failIfProduction(true, "Production database is not configured for UP/TUP and KKP.");
 		return null;
 	}
 	return createDbClient(dbUrl);

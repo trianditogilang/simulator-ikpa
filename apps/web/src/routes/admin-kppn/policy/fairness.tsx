@@ -623,10 +623,11 @@ function AdminFairnessPolicyPage() {
 
 							<div className="space-y-3.5 text-xs">
 								<div className="space-y-1">
-									<label className="font-semibold text-foreground">
+									<label htmlFor="policy-name" className="font-semibold text-foreground">
 										Nama Kebijakan
 									</label>
 									<input
+										id="policy-name"
 										type="text"
 										value={editingPolicy.name || ""}
 										onChange={(e) =>
@@ -642,10 +643,11 @@ function AdminFairnessPolicyPage() {
 
 								<div className="grid grid-cols-2 gap-3">
 									<div className="space-y-1">
-										<label className="font-semibold text-foreground">
+										<label htmlFor="policy-match-type" className="font-semibold text-foreground">
 											Metode Pencocokan (Match Type)
 										</label>
 										<select
+											id="policy-match-type"
 											value={editingPolicy.matchType || "exact"}
 											onChange={(e) =>
 												setEditingPolicy({
@@ -663,10 +665,11 @@ function AdminFairnessPolicyPage() {
 									</div>
 
 									<div className="space-y-1">
-										<label className="font-semibold text-foreground">
+										<label htmlFor="policy-status" className="font-semibold text-foreground">
 											Status Kebijakan
 										</label>
 										<select
+											id="policy-status"
 											value={editingPolicy.status || "published"}
 											onChange={(e) =>
 												setEditingPolicy({
@@ -684,10 +687,11 @@ function AdminFairnessPolicyPage() {
 								</div>
 
 								<div className="space-y-1">
-									<label className="font-semibold text-foreground">
+									<label htmlFor="policy-ro-match" className="font-semibold text-foreground">
 										Kode RO yang Dicocokkan (Gunakan koma untuk banyak kode)
 									</label>
 									<input
+										id="policy-ro-match"
 										type="text"
 										value={
 											typeof editingPolicy.roMatchValue === "string"
@@ -709,10 +713,11 @@ function AdminFairnessPolicyPage() {
 
 								<div className="grid grid-cols-2 gap-3">
 									<div className="space-y-1">
-										<label className="font-semibold text-foreground">
+										<label htmlFor="policy-month-start" className="font-semibold text-foreground">
 											Bulan Mulai Berlaku
 										</label>
 										<input
+											id="policy-month-start"
 											type="number"
 											min={1}
 											max={12}
@@ -727,10 +732,11 @@ function AdminFairnessPolicyPage() {
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="font-semibold text-foreground">
+										<label htmlFor="policy-month-end" className="font-semibold text-foreground">
 											Bulan Akhir Berlaku
 										</label>
 										<input
+											id="policy-month-end"
 											type="number"
 											min={1}
 											max={12}
@@ -747,10 +753,11 @@ function AdminFairnessPolicyPage() {
 								</div>
 
 								<div className="space-y-1">
-									<label className="font-semibold text-foreground">
+									<label htmlFor="policy-basis" className="font-semibold text-foreground">
 										Dasar Regulasi / Referensi
 									</label>
 									<input
+										id="policy-basis"
 										type="text"
 										value={editingPolicy.basisReference || ""}
 										onChange={(e) =>
@@ -765,10 +772,11 @@ function AdminFairnessPolicyPage() {
 								</div>
 
 								<div className="space-y-1">
-									<label className="font-semibold text-foreground">
+									<label htmlFor="policy-display-reason" className="font-semibold text-foreground">
 										Keterangan / Alasan Ditampilkan ke Satker
 									</label>
 									<input
+										id="policy-display-reason"
 										type="text"
 										value={editingPolicy.displayReason || ""}
 										onChange={(e) =>
@@ -848,10 +856,11 @@ function AdminFairnessPolicyPage() {
 							</div>
 
 							<div className="space-y-1 text-xs">
-								<label className="font-semibold text-foreground">
+								<label htmlFor="policy-review-note" className="font-semibold text-foreground">
 									Catatan Verifikator KPPN:
 								</label>
 								<textarea
+									id="policy-review-note"
 									rows={3}
 									value={reviewNote}
 									onChange={(e) => setReviewNote(e.target.value)}

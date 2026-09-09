@@ -18,6 +18,7 @@ export const Route = createFileRoute("/admin-kppn/policy/workdays")({
 });
 
 function AdminWorkdaysPage() {
+	const productionDataUnavailable = import.meta.env.PROD;
 	const calendar = getMockWorkdayCalendar();
 
 	const [selectedMonth, setSelectedMonth] = useState<number>(8); // August
@@ -58,6 +59,16 @@ function AdminWorkdaysPage() {
 		setSaveToast(`Tanggal ${selectedOverride.date} berhasil diperbarui.`);
 		setTimeout(() => setSaveToast(null), 4000);
 	};
+
+	if (productionDataUnavailable) {
+		return (
+			<AdminShell currentPath="/admin-kppn/policy/workdays">
+				<div role="alert" className="rounded-xl border border-danger/30 bg-danger/10 p-5 text-sm text-danger">
+					Kalender hari kerja produksi belum tersedia dari sumber terautentikasi. Data contoh tidak ditampilkan.
+				</div>
+			</AdminShell>
+		);
+	}
 
 	return (
 		<AdminShell currentPath="/admin-kppn/policy/workdays">

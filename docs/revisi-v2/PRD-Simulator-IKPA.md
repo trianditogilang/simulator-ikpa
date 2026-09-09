@@ -1,6 +1,6 @@
 # PRD — Product Requirements Document (Revisi v2)
 
-> Salinan baseline v1.3. Isi di bawah garis ini tidak diubah. Seluruh penyesuaian hanya berupa addendum ini. Baseline v1 di `docs/` tetap utuh.
+> Dokumen ini adalah kontrak produk aktif Revisi v2. Baseline v1.3 dipertahankan di bagian bawah hanya untuk histori dan traceability; bila ada konflik, addendum/kontrak aktif v2 berlaku.
 
 ## Addendum Revisi v2 — 2026-09-09
 
@@ -10,6 +10,18 @@
 4. **Freeze operator:** `docs/operator-freeze.md` — kode area operator tidak boleh diubah.
 5. **Excel tidak masuk aplikasi;** direplikasi cara kerjanya (sel kuning, skor instan) satu indikator dulu.
 
+## Kontrak aktif Revisi v2
+
+- Operator menggunakan Dashboard IKPA, delapan indikator, Reminder Center, dan menu Lainnya; tidak ada menu simulasi gabungan.
+- Setiap workspace indikator menampilkan actual yang terkunci, proyeksi/sisa periode yang dapat diubah, skor dari engine, dan panduan rumus singkat.
+- What-if tidak mengubah actual. Skenario disimpan per indikator pada Slot A/B/C dan dirakit menjadi nilai gabungan hanya pada Dashboard.
+- Riwayat membandingkan Evaluasi bulanan dengan proyeksi/skenario; nama slot tersinkron di seluruh indikator.
+- Reminder wajib mencakup Tagihan, Output, dan GUP/PTUP sesuai kalender kerja serta policy aktif.
+- Admin KPPN memantau delapan indikator, gap, sumber aktual/proyeksi/kosong, dan detail satker secara read-only; mutasi policy, kalender, akses, dan retry delivery tetap teraudit.
+- Import Data tetap `Disabled/Deferred intentionally`; input manual dan backend yang ada tidak dianggap sebagai fitur import production aktif.
+
+Acceptance criteria aktif v2 berada di [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md).
+
 **Produk:** Simulator Penilaian IKPA Satker  
 **Versi:** 1.3 Final — MVP Akses Sederhana, Reminder Terkonfigurasi, dan Regulasi Dinamis  
 **Tanggal:** 31 Agustus 2026  
@@ -18,6 +30,8 @@
 **Deploy:** Vercel + Cloudflare
 
 > **Status penilaian:** Aplikasi adalah alat bantu simulasi dan pengendalian internal. Hasilnya bukan nilai resmi OMSPAN/KPPN. Rumus, parameter, deadline, dan kebijakan notifikasi diberi versi per tahun anggaran agar dapat diselaraskan dengan ketentuan IKPA yang berlaku.
+
+> **Catatan histori:** bagian bernomor setelah garis pemisah mempertahankan baseline v1.3. Jangan gunakan requirement lama di bagian tersebut jika bertentangan dengan kontrak aktif v2 di atas.
 
 ---
 

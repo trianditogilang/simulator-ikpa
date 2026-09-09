@@ -27,6 +27,7 @@ export function IndicatorCard({
 	};
 
 	return (
+		// biome-ignore lint/a11y/useSemanticElements: the card contains a nested link and must remain a div while exposing keyboard activation.
 		<div
 			{...props}
 			onClick={(e) => {

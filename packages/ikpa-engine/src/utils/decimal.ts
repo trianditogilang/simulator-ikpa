@@ -51,7 +51,8 @@ export const DecimalCalc = {
 		const roundedAbs = ((absVal + half) / shift) * shift;
 		const finalVal = isNeg ? -roundedAbs : roundedAbs;
 
-		const str = finalVal.toString().padStart(DECIMALS + 1, "0");
+		const absoluteFinalVal = isNeg ? -finalVal : finalVal;
+		const str = absoluteFinalVal.toString().padStart(DECIMALS + 1, "0");
 		const intPart = str.slice(0, -DECIMALS);
 		const fracPart = str.slice(-DECIMALS, -DECIMALS + decimals);
 

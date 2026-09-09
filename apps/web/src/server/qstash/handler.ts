@@ -16,7 +16,8 @@ export function verifyQStashSignature(
 	const current = process.env.QSTASH_CURRENT_SIGNING_KEY;
 	const next = process.env.QSTASH_NEXT_SIGNING_KEY;
 	if (!current && !next) {
-		// dev fallback: allow any non-empty sig
+		// Demo fallback is never acceptable in production.
+		if (process.env.NODE_ENV === "production") return false;
 		return sig.length > 10;
 	}
 	return sig === current || sig === next;
@@ -26,12 +27,27 @@ function newRequestId(): string {
 	return `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function assertProductionDeliveryProvider(): void {
+	if (process.env.NODE_ENV !== "production") return;
+	if (!process.env.RESEND_API_KEY) {
+		throw Object.assign(new Error("Production notification delivery is not configured."), {
+			statusCode: 503,
+			code: "DELIVERY_PROVIDER_UNAVAILABLE",
+		});
+	}
+	throw Object.assign(new Error("Production Resend provider integration is not implemented."), {
+		statusCode: 503,
+		code: "DELIVERY_PROVIDER_UNAVAILABLE",
+	});
+}
+
 // daily: scan due deliveries and mark processing (batch limit 50)
 export async function handleQStashDaily(
 	db: DbClient,
 	headers: Headers,
 	rawBody: string,
 ): Promise<{ requestId: string; processed: number }> {
+	assertProductionDeliveryProvider();
 	if (!verifyQStashSignature(headers, rawBody)) {
 		throw Object.assign(new Error("Invalid QStash signature"), {
 			statusCode: 401,
@@ -82,6 +98,7 @@ export async function handleQStashSend(
 	rawBody: string,
 	opts?: { batchLimit?: number },
 ): Promise<{ requestId: string; sent: number; failed: number }> {
+	assertProductionDeliveryProvider();
 	if (!verifyQStashSignature(headers, rawBody)) {
 		throw Object.assign(new Error("Invalid QStash signature"), {
 			statusCode: 401,
@@ -104,7 +121,7 @@ export async function handleQStashSend(
 		failed = 0;
 	for (const row of rows) {
 		// idempotent replay: if already sent within same idempotencyKey, skip
-		// For now attempt to send via Resend mock
+		// The provider integration is intentionally not simulated in production.
 		try {
 			// ponytail: real Resend call would be fetch("https://api.resend.com/emails", { headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` } ... })
 			// simulate success; error safe logging without leaking payload

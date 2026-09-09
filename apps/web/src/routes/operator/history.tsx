@@ -1582,9 +1582,9 @@ function OperatorHistoryPage() {
 
 										{/* 8 Indicators Value Editor Grid */}
 										<div>
-											<label className="block text-xs font-semibold text-foreground mb-1.5">
+											<span className="block text-xs font-semibold text-foreground mb-1.5">
 												Penyesuaian Skor Nilai per Indikator (0 s.d. 100):
-											</label>
+											</span>
 											<div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto rounded-xl border border-border/70 bg-surface p-2.5">
 												{INDICATOR_CANONICAL_ORDER.map((ind) => {
 													const currentVal = editIndicatorScores[ind.key] ?? 100;

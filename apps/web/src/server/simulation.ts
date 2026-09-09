@@ -14,10 +14,12 @@ import { getAccessResolutionForSession } from "./access.server";
 import { getServerAuthSession } from "./auth-session.server";
 import { writeAudit } from "./audit/write-audit";
 import { calculateAndPersistSnapshot } from "./simulation/calculate";
+import { failIfProduction } from "./runtime-guards";
 
 function getDatabase() {
 	const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
 	if (!dbUrl) {
+		failIfProduction(true, "Production database is not configured for simulation.");
 		return null;
 	}
 	return createDbClient(dbUrl);

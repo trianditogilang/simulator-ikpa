@@ -7,12 +7,14 @@ import { fiscalYears, importJobs, ruleSets } from "@simulator-ikpa/db/schema";
 import { getAccessResolutionForSession } from "./access.server";
 import { getServerAuthSession } from "./auth-session.server";
 import { parseImportFile, type ImportDomain } from "./import/parser";
+import { failIfProduction } from "./runtime-guards";
 
 // ponytail: direct base64 upload (no R2 presigned for <4.5MB); ceiling = Vercel body 4.5MB
 // upgrade path: R2 presigned PUT for 10MB files when R2 env present
 
 function getDatabase() {
 	const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
+	failIfProduction(!dbUrl, "Production database is not configured for import operations.");
 	if (!dbUrl) return null;
 	return createDbClient(dbUrl);
 }

@@ -12,6 +12,13 @@ npm run dev
 The root is an npm workspace. The deployable TanStack Start application lives
 in `apps/web`, while reusable packages live in `packages/*`.
 
+## Documentation
+
+Project specifications, active task guidance, execution records, and the
+historical-document policy are indexed in [docs/README.md](docs/README.md).
+Agents should read the active sections and task-specific history rather than
+loading the complete BACKLOG or DEVLOG by default.
+
 # Building For Production
 
 To build this application for production:

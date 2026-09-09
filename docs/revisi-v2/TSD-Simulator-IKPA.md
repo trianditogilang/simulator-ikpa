@@ -1,6 +1,6 @@
 # TSD — Technical Specification Document (Revisi v2)
 
-> Salinan baseline v1.0. Isi di bawah garis ini tidak diubah. Seluruh penyesuaian hanya berupa addendum ini. Baseline v1 di `docs/` tetap utuh.
+> Dokumen ini adalah spesifikasi teknis aktif Revisi v2. Baseline v1.0 dipertahankan di bagian bawah hanya untuk histori; bila ada konflik, kontrak aktif v2 berlaku.
 
 ## Addendum Revisi v2 — 2026-09-09
 
@@ -8,7 +8,18 @@
 2. **Tanpa rewrite engine/skema:** PRE-F13 hanya addendum; engine, schema DB, kontrak tidak diubah.
 3. **Route lama dipertahankan;** IA domain-centric diarsip di `docs/future_plan.md`.
 4. **Freeze operator:** `docs/operator-freeze.md` — glob area operator dilarang disentuh.
-5. **F13 terkunci** sampai CORR-01..05 dan CORR-A-00..05 selesai (lihat TASK-LIST §17–18).
+5. **F13 terkunci** sampai CORR-00..06 dan CORR-A-00..05 selesai (lihat TASK-LIST §17–18) serta entry gate F13-00 lulus.
+
+## Kontrak teknis aktif Revisi v2
+
+- Server tetap menjadi authority untuk auth, scope, policy, reminder, snapshot, export, dan semua mutasi.
+- Paket engine tetap menghitung delapan baris tampilan (tujuh indikator plus pengurang Dispensasi SPM); tidak ada rewrite engine atau schema hanya karena perubahan IA.
+- Mode actual, proyeksi, dan skenario harus memiliki jalur data yang terpisah; scenario overlay tidak boleh menulis actual.
+- Slot A/B/C dan nama skenario adalah data konteks Operator; Admin hanya membaca agregat/detail scoped.
+- Import tetap disabled dari UI; jalur backend yang tersisa harus fail-safe dan tidak dianggap sebagai alur aktif.
+- Production tidak boleh mengembalikan mock dashboard, mock job, atau file export palsu dengan MIME resmi.
+
+Acceptance criteria aktif v2 berada di [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md). Bagian bernomor setelah garis pemisah adalah baseline v1 historis.
 
 **Produk:** Simulator Penilaian IKPA Satker  
 **Basis:** PRD Final v1.3 dan FSD MVP v1.0  

@@ -17,6 +17,7 @@ import {
 	listBudgets,
 	listRevisions,
 } from "./domains/budget-revisions.queries";
+import { failIfProduction } from "./runtime-guards";
 
 const decimal18_2 = z
 	.string()
@@ -39,6 +40,7 @@ export const createRevisionInputSchema = z.strictObject({
 function getDatabase() {
 	const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
 	if (!dbUrl) {
+		failIfProduction(true, "Production database is not configured for budget revisions.");
 		return null;
 	}
 	return createDbClient(dbUrl);

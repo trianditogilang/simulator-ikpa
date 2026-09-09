@@ -161,31 +161,45 @@ function SectionLabel({ children }: { children: string }) {
 	return <p className="px-3 text-label text-muted-foreground">{children}</p>;
 }
 
-export function AdminNavigation({
+type AdminNavigationProfile = {
+	clerkName?: string | null;
+	clerkEmail?: string | null;
+};
+
+export function AdminNavigation(props: AdminNavigationProps) {
+	if (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
+		return <ClerkAdminNavigation {...props} />;
+	}
+	return <AdminNavigationContent {...props} />;
+}
+
+function ClerkAdminNavigation(props: AdminNavigationProps) {
+	const { user, isLoaded } = useUser();
+	const clerkName =
+		isLoaded && user
+			? ((user.fullName as string | null) ||
+					(user.firstName as string | null) ||
+					(user.primaryEmailAddress?.emailAddress as string | null) ||
+					null)
+			: null;
+	const clerkEmail =
+		isLoaded && user
+				? ((user.primaryEmailAddress?.emailAddress as string | null) ?? null)
+				: null;
+	return <AdminNavigationContent {...props} clerkName={clerkName} clerkEmail={clerkEmail} />;
+}
+
+function AdminNavigationContent({
 	currentPath,
 	className,
+	clerkName = null,
+	clerkEmail = null,
 	...props
-}: AdminNavigationProps) {
+}: AdminNavigationProps & AdminNavigationProfile) {
 	const [isMoreOpen, setIsMoreOpen] = useState(false);
 	const moreIsActive = moreItems.some((item) =>
 		isAdminRouteActive(currentPath, item.href),
 	);
-	let clerkName: string | null = null;
-	let clerkEmail: string | null = null;
-	try {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const { user, isLoaded } = useUser();
-		if (isLoaded && user) {
-			clerkName =
-				(user.fullName as string | null) ||
-				(user.firstName as string | null) ||
-				(user.primaryEmailAddress?.emailAddress as string | null) ||
-				null;
-			clerkEmail = (user.primaryEmailAddress?.emailAddress as string | null) ?? null;
-		}
-	} catch {
-		// demo without ClerkProvider
-	}
 	const displayName = clerkName || "Admin KPPN Malang";
 	const displayEmail = clerkEmail || "admin.kppn@kemenkeu.go.id";
 	const displayInitial = displayName.charAt(0).toUpperCase();

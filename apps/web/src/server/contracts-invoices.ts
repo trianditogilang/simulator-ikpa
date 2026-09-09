@@ -17,10 +17,12 @@ import {
 	listContracts,
 	listSpmLs,
 } from "./domains/contracts-invoices.queries";
+import { failIfProduction } from "./runtime-guards";
 
 function getDatabase() {
 	const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
 	if (!dbUrl) {
+		failIfProduction(true, "Production database is not configured for contracts and invoices.");
 		return null;
 	}
 	return createDbClient(dbUrl);

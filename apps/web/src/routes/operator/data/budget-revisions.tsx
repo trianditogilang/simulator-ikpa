@@ -126,7 +126,9 @@ function BudgetRevisionsPage() {
 	// Current Active Budgets Map
 	const budgetMap = useMemo(() => {
 		const m = new Map<AccountCode, number>();
-		ACCOUNT_CODES.forEach((c) => m.set(c, 0));
+		ACCOUNT_CODES.forEach((c) => {
+			m.set(c, 0);
+		});
 		initialData.budgets.forEach((b) => {
 			if (ACCOUNT_CODES.includes(b.accountCode as AccountCode)) {
 				m.set(
@@ -178,7 +180,7 @@ function BudgetRevisionsPage() {
 				eligibleCodes,
 				initialData.year,
 			),
-		[initialData.revisions, initialData.year, eligibleCodes],
+		[initialData.revisions, initialData.year],
 	);
 	const skor = useMemo(() => calcRevisiScore(s1, s2), [s1, s2]);
 
@@ -224,7 +226,9 @@ function BudgetRevisionsPage() {
 
 	const byId = useMemo(() => {
 		const m = new Map<string, (typeof classified)[number]>();
-		initialData.revisions.forEach((r, i) => m.set(r.id, classified[i]));
+		initialData.revisions.forEach((r, i) => {
+			m.set(r.id, classified[i]);
+		});
 		return m;
 	}, [initialData.revisions, classified]);
 
@@ -241,7 +245,7 @@ function BudgetRevisionsPage() {
 				eligibleCodes,
 				initialData.year,
 			),
-		[revDate, revCodes, formTotalBefore, formTotalAfter, eligibleCodes, initialData.year],
+		[revDate, revCodes, formTotalBefore, formTotalAfter, initialData.year],
 	);
 
 	const revisiNo = useMemo(() => {
@@ -249,7 +253,9 @@ function BudgetRevisionsPage() {
 			a.revisionDate < b.revisionDate ? -1 : a.revisionDate > b.revisionDate ? 1 : 0,
 		);
 		const m = new Map<string, number>();
-		order.forEach((r, i) => m.set(r.id, i + 1));
+		order.forEach((r, i) => {
+			m.set(r.id, i + 1);
+		});
 		return m;
 	}, [initialData.revisions]);
 
@@ -1803,7 +1809,7 @@ function BudgetRevisionsPage() {
 								{/* Status Explanation */}
 								<div className="border-t border-primary/20 pt-2 text-[11px] font-medium text-foreground flex items-center gap-1.5">
 									<Info className="size-3.5 text-primary shrink-0" />
-									<p role="status">
+									<output aria-live="polite">
 										{preview.reason === "pagu-berubah"
 											? `Revisi ini tidak dihitung dalam frekuensi revisi IKPA karena total pagu satker berubah (${formatRupiah(formTotalDelta)}).`
 											: preview.reason === "awal"
@@ -1813,7 +1819,7 @@ function BudgetRevisionsPage() {
 													: preview.semester === 0
 														? "Tanggal di luar TA — tidak dihitung semester ini."
 														: `Revisi ini dihitung sebagai objek Semester ${semesterRoman(preview.semester)}.`}
-									</p>
+									</output>
 								</div>
 							</div>
 						</div>

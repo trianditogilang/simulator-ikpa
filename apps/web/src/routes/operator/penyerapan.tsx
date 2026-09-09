@@ -683,8 +683,9 @@ function PenyerapanPage() {
 											<td className="px-4 py-3 text-right font-mono">
 												<span className="inline-flex items-center gap-1.5 rounded-md bg-surface-muted px-2 py-0.5 text-foreground">
 													{formatRupiah(r.realizedCumulative)}
-													<span
-														aria-label="Terkunci"
+														<span
+															role="img"
+															aria-label="Terkunci"
 														title="Aktual dari database, terkunci"
 														className="text-[10px] text-muted-foreground"
 													>
