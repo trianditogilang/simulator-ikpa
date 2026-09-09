@@ -2,6 +2,53 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 219 - 2026-09-09
+**Time:** Start: 18:04 UTC | End: 18:08 UTC | Duration: ~4 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail
+**Tasks Completed:**
+- [UI-HISTORY-COMPARE-ACCORDION-ITEMS-MOBILE] Transformasi Card Pemilihan Komparasi (Evaluasi Bulanan & Skenario Simulasi) pada `/operator/history` Menjadi Komponen Accordion Item Interaktif yang Dapat Dilipat untuk Menghemat Ruang pada Layar Mobile:
+  1. **Komponen Accordion Interaktif (`apps/web/src/routes/operator/history.tsx`)**:
+     - Mengubah container card *Evaluasi Bulanan* dan *Skenario Simulasi* pada Tab Bandingkan menjadi accordion interaktif dengan state `isEvaluasiAccordionOpen` dan `isSkenarioAccordionOpen` (default terbuka / `true`).
+     - Header accordion responsif dan interaktif (`button` full width dengan fokus bersih dan hover halus) memuat icon emoji, judul kolom, keterangan cakupan (Januari s.d. Desember / Slot A s.d. C), badge jumlah item terpilih (`selectedEvaluasiCount` / `selectedSkenarioCount`), dan icon toggle `ChevronUp` / `ChevronDown`.
+     - Pada perangkat mobile, pengguna dapat dengan mudah melipat accordion *Evaluasi Bulanan* (12 baris) atau *Skenario Simulasi* untuk menghemat ruang vertikal dan langsung melihat tabel komparasi detail di bawahnya.
+  2. **Verifikasi Monorepo**:
+     - `npm run typecheck --workspace @simulator-ikpa/web` $\rightarrow$ 0 error.
+     - `npx vitest run` $\rightarrow$ 39 test files / 282 unit tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/history.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 218 - 2026-09-09
+**Time:** Start: 17:45 UTC | End: 17:53 UTC | Duration: ~8 minutes
+- Status: Completed
+- Agent/Role: Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail
+**Tasks Completed:**
+- [UI-HISTORY-COMPARE-2COL-AND-3SLOT-SYNC] Restrukturisasi Card Pemilihan Item Komparasi Riwayat & Skenario (`/operator/history` Tab Bandingkan) Menjadi 2 Kolom Terstruktur (Evaluasi Bulanan 1-12 & Skenario Simulasi Slot A-C) serta Standardisasi Naming 'Evaluasi':
+  1. **Sinkronisasi 3 Slot Skenario (`apps/web/src/routes/operator/history.tsx`)**:
+     - Membatasi daftar skenario pada pemilih komparasi hanya membaca 3 slot aktif (`Slot A`, `Slot B`, `Slot C`) selaras dengan tab Skenario Simulasi (Slot A, B, C).
+     - Menghindari duplikasi atau kemunculan skenario tak bertuan.
+  2. **Standardisasi Naming 'Evaluasi'**:
+     - Mengubah seluruh penyebutan data historis aktual dari 'Snapshot' menjadi 'Evaluasi' (mis. `Evaluasi Januari`, `Evaluasi Februari`, s.d. `Evaluasi Desember`).
+     - Memperbarui label modal detail inspeksi menjadi `Evaluasi Aktual`.
+  3. **Restrukturisasi 2 Kolom Bersih**:
+     - **Kolom Kiri**: *Evaluasi Bulanan* — menampilkan 12 baris berurutan dari Januari s.d. Desember dengan status ketersediaan data, skor IKPA aktual, dan checkbox seleksi perbandingan.
+     - **Kolom Kanan**: *Skenario Simulasi* — menampilkan 3 baris berurutan dari Slot A, Slot B, s.d. Slot C dengan badge warna slot, nama skenario kustom, jumlah asumsi, dan skor estimasi IKPA.
+  4. **Verifikasi Monorepo**:
+     - `npm run typecheck --workspace @simulator-ikpa/web` $\rightarrow$ 0 error.
+     - `npx vitest run` $\rightarrow$ 39 test files / 282 unit tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/history.tsx`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
 ### Session 217 - 2026-09-09
 **Time:** Start: 17:26 UTC | End: 17:38 UTC | Duration: ~12 minutes
 - Status: Completed

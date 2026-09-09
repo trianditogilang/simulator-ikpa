@@ -3,6 +3,8 @@ import {
 	AlertCircle,
 	AlertTriangle,
 	CheckCircle2,
+	ChevronDown,
+	ChevronUp,
 	ExternalLink,
 	Eye,
 	GitCompare,
@@ -115,6 +117,8 @@ function OperatorHistoryPage() {
 
 	// Selection for comparison (holds item IDs: snapshotId or scenarioId)
 	const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+	const [isEvaluasiAccordionOpen, setIsEvaluasiAccordionOpen] = useState(true);
+	const [isSkenarioAccordionOpen, setIsSkenarioAccordionOpen] = useState(true);
 
 	// Inspect detail modal state
 	const [inspectItem, setInspectItem] = useState<ActualSnapshotItem | SavedScenarioItem | null>(null);
@@ -219,6 +223,14 @@ function OperatorHistoryPage() {
 		return slots;
 	}, [data.savedScenarios]);
 
+	const selectedEvaluasiCount = useMemo(() => {
+		return twelveMonthsList.filter((m) => m.snapshot && selectedItemIds.includes(m.snapshot.id)).length;
+	}, [twelveMonthsList, selectedItemIds]);
+
+	const selectedSkenarioCount = useMemo(() => {
+		return scenarioSlots.filter((s) => s.scenario && selectedItemIds.includes(s.scenario.id)).length;
+	}, [scenarioSlots, selectedItemIds]);
+
 	// All selectable items map for comparison
 	const allItemsMap = useMemo(() => {
 		const map = new Map<string, {
@@ -237,7 +249,7 @@ function OperatorHistoryPage() {
 		for (const s of data.actualSnapshots) {
 			map.set(s.id, {
 				id: s.id,
-				name: `Snapshot ${MONTH_NAMES[s.month - 1] || `Bulan ${s.month}`}`,
+				name: `Evaluasi ${MONTH_NAMES[s.month - 1] || `Bulan ${s.month}`}`,
 				type: "actual",
 				totalScore: s.totalScore,
 				targetScore: s.targetScore,
@@ -248,23 +260,26 @@ function OperatorHistoryPage() {
 			});
 		}
 
-		for (const sc of data.savedScenarios) {
-			map.set(sc.id, {
-				id: sc.id,
-				name: sc.name,
-				type: "scenario",
-				totalScore: sc.totalScore,
-				targetScore: sc.targetScore,
-				periodLabel: MONTH_NAMES[sc.month - 1] || `Bulan ${sc.month}`,
-				ruleSetVersion: sc.ruleSetVersion,
-				createdAt: sc.createdAt,
-				overrides: sc.overrides as unknown as Record<string, unknown>[],
-				breakdownJson: sc.breakdownJson,
-			});
+		for (const slotItem of scenarioSlots) {
+			if (slotItem.scenario) {
+				const sc = slotItem.scenario;
+				map.set(sc.id, {
+					id: sc.id,
+					name: sc.name,
+					type: "scenario",
+					totalScore: sc.totalScore,
+					targetScore: sc.targetScore,
+					periodLabel: MONTH_NAMES[sc.month - 1] || `Bulan ${sc.month}`,
+					ruleSetVersion: sc.ruleSetVersion,
+					createdAt: sc.createdAt,
+					overrides: sc.overrides as unknown as Record<string, unknown>[],
+					breakdownJson: sc.breakdownJson,
+				});
+			}
 		}
 
 		return map;
-	}, [data]);
+	}, [data.actualSnapshots, scenarioSlots]);
 
 	const toggleSelectForCompare = (id: string) => {
 		setSelectedItemIds((prev) => {
@@ -845,7 +860,7 @@ function OperatorHistoryPage() {
 				{/* TAB 3: BANDINGKAN */}
 				{activeTab === "compare" && (
 					<div className="space-y-6">
-						{/* Item Selection Pills */}
+						{/* Item Selection Card */}
 						<div className="rounded-2xl border border-border bg-background p-4 sm:p-5 shadow-xs">
 							<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-border/70 pb-3">
 								<div>
@@ -854,7 +869,7 @@ function OperatorHistoryPage() {
 										<span>Pilih Item Perbandingan (2 s.d. 3 Item)</span>
 									</h3>
 									<p className="text-xs text-muted-foreground">
-										Pilih snapshot aktual atau skenario untuk melihat komparasi detail 8 indikator.
+										Pilih evaluasi bulanan atau skenario simulasi untuk melihat komparasi detail 8 indikator.
 									</p>
 								</div>
 								{selectedItemIds.length > 0 && (
@@ -863,34 +878,225 @@ function OperatorHistoryPage() {
 										onClick={() => setSelectedItemIds([])}
 										className="self-start sm:self-auto text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline"
 									>
-										Reset Pilihan
+										Reset Pilihan ({selectedItemIds.length} Terpilih)
 									</button>
 								)}
 							</div>
 
-							<div className="mt-3 flex flex-wrap gap-2">
-								{Array.from(allItemsMap.values()).map((item) => {
-									const isChecked = selectedItemIds.includes(item.id);
-									return (
-										<button
-											key={item.id}
-											type="button"
-											onClick={() => toggleSelectForCompare(item.id)}
-											className={twMerge(
-												"inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition",
-												isChecked
-													? "border-primary bg-primary text-primary-foreground shadow-xs"
-													: "border-border bg-surface text-muted-foreground hover:bg-surface-muted hover:text-foreground",
-											)}
-										>
-											<span>{item.type === "actual" ? "📸" : "🧪"}</span>
-											<span>{item.name}</span>
-											<span className="text-[10px] opacity-80">
-												({item.totalScore !== null ? formatNumber(item.totalScore) : "—"})
+							<div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2">
+								{/* Kolom 1: Evaluasi Bulanan (Januari s.d. Desember) - Accordion */}
+								<div className="rounded-xl border border-border/80 bg-surface/40 overflow-hidden shadow-2xs transition-all">
+									<button
+										type="button"
+										onClick={() => setIsEvaluasiAccordionOpen((v) => !v)}
+										aria-expanded={isEvaluasiAccordionOpen}
+										className="flex w-full items-center justify-between p-3.5 text-left transition hover:bg-surface/80 focus:outline-hidden"
+									>
+										<div className="flex items-center gap-2">
+											<span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+												<span>📅</span>
+												<span>Evaluasi Bulanan</span>
 											</span>
-										</button>
-									);
-								})}
+											<span className="text-[11px] text-muted-foreground font-medium hidden sm:inline">
+												Januari s.d. Desember 2026
+											</span>
+											{selectedEvaluasiCount > 0 && (
+												<span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+													{selectedEvaluasiCount} dipilih
+												</span>
+											)}
+										</div>
+										<div className="flex items-center gap-2">
+											<span className="text-[11px] text-muted-foreground font-medium sm:hidden">
+												12 Bulan
+											</span>
+											{isEvaluasiAccordionOpen ? (
+												<ChevronUp className="size-4 text-muted-foreground" />
+											) : (
+												<ChevronDown className="size-4 text-muted-foreground" />
+											)}
+										</div>
+									</button>
+									{isEvaluasiAccordionOpen && (
+										<div className="space-y-1.5 border-t border-border/60 p-3.5 pt-3">
+											{twelveMonthsList.map((m) => {
+												const s = m.snapshot;
+												const hasData = Boolean(s && s.totalScore !== null);
+												const isChecked = s ? selectedItemIds.includes(s.id) : false;
+
+												return (
+													<button
+														key={`eval-${m.month}`}
+														type="button"
+														disabled={!hasData}
+														onClick={() => s && toggleSelectForCompare(s.id)}
+														className={twMerge(
+															"flex w-full items-center justify-between rounded-xl border px-3 py-2 text-xs font-medium transition",
+															!hasData && "cursor-not-allowed border-border/40 bg-surface-muted/30 text-muted-foreground/50 opacity-60",
+															hasData && !isChecked && "border-border bg-background hover:border-primary/40 hover:bg-surface text-foreground shadow-2xs",
+															hasData && isChecked && "border-primary bg-primary text-primary-foreground shadow-xs",
+														)}
+													>
+														<div className="flex items-center gap-2">
+															<span className="text-xs">{isChecked ? "✓" : "📅"}</span>
+															<span className="font-semibold">Evaluasi {m.monthName}</span>
+															{hasData && (
+																<span
+																	className={twMerge(
+																		"rounded px-1.5 py-0.2 text-[10px] font-bold",
+																		isChecked ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/10 text-primary",
+																	)}
+																>
+																	Aktual
+																</span>
+															)}
+														</div>
+														<div className="flex items-center gap-1.5">
+															<span
+																className={twMerge(
+																	"text-xs font-bold font-mono",
+																	isChecked ? "text-primary-foreground" : hasData ? "text-primary" : "text-muted-foreground",
+																)}
+															>
+																{s && s.totalScore !== null
+																	? formatNumber(s.totalScore)
+																	: "—"}
+															</span>
+														</div>
+													</button>
+												);
+											})}
+										</div>
+									)}
+								</div>
+
+								{/* Kolom 2: Skenario Simulasi (Slot A s.d. C) - Accordion */}
+								<div className="rounded-xl border border-border/80 bg-surface/40 overflow-hidden shadow-2xs transition-all">
+									<button
+										type="button"
+										onClick={() => setIsSkenarioAccordionOpen((v) => !v)}
+										aria-expanded={isSkenarioAccordionOpen}
+										className="flex w-full items-center justify-between p-3.5 text-left transition hover:bg-surface/80 focus:outline-hidden"
+									>
+										<div className="flex items-center gap-2">
+											<span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+												<span>🧪</span>
+												<span>Skenario Simulasi</span>
+											</span>
+											<span className="text-[11px] text-muted-foreground font-medium hidden sm:inline">
+												Slot A s.d. C (Maks. 3 Skenario)
+											</span>
+											{selectedSkenarioCount > 0 && (
+												<span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+													{selectedSkenarioCount} dipilih
+												</span>
+											)}
+										</div>
+										<div className="flex items-center gap-2">
+											<span className="text-[11px] text-muted-foreground font-medium sm:hidden">
+												3 Slot
+											</span>
+											{isSkenarioAccordionOpen ? (
+												<ChevronUp className="size-4 text-muted-foreground" />
+											) : (
+												<ChevronDown className="size-4 text-muted-foreground" />
+											)}
+										</div>
+									</button>
+									{isSkenarioAccordionOpen && (
+										<div className="space-y-2 border-t border-border/60 p-3.5 pt-3">
+											{scenarioSlots.map((item) => {
+												const sc = item.scenario;
+												const hasData = Boolean(sc && sc.id);
+												const isChecked = sc ? selectedItemIds.includes(sc.id) : false;
+
+												return (
+													<button
+														key={`slot-${item.slot}`}
+														type="button"
+														disabled={!hasData}
+														onClick={() => sc && toggleSelectForCompare(sc.id)}
+														className={twMerge(
+															"flex w-full items-start justify-between rounded-xl border p-3.5 text-xs font-medium transition text-left",
+															!hasData && "cursor-not-allowed border-dashed border-border/60 bg-surface-muted/30 text-muted-foreground/60",
+															hasData && !isChecked && "border-border bg-background hover:border-primary/40 hover:bg-surface text-foreground shadow-2xs",
+															hasData && isChecked && "border-primary bg-primary text-primary-foreground shadow-xs",
+														)}
+													>
+														<div className="space-y-1">
+															<div className="flex items-center gap-2">
+																<span
+																	className={twMerge(
+																		"rounded-md px-2 py-0.5 text-[10px] font-bold uppercase",
+																		isChecked
+																			? "bg-primary-foreground/20 text-primary-foreground"
+																			: item.slot === "A"
+																				? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+																				: item.slot === "B"
+																					? "bg-purple-500/10 text-purple-600 dark:text-purple-400"
+																					: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+																	)}
+																>
+																	Slot {item.slot}
+																</span>
+																{hasData && (
+																	<span
+																		className={twMerge(
+																			"text-[11px]",
+																			isChecked ? "text-primary-foreground/80" : "text-muted-foreground",
+																		)}
+																	>
+																		{MONTH_NAMES[(sc?.month ?? 1) - 1]} 2026
+																	</span>
+																)}
+															</div>
+															<p
+																className={twMerge(
+																	"font-bold text-xs line-clamp-1",
+																	isChecked ? "text-primary-foreground" : "text-foreground",
+																)}
+															>
+																{hasData && sc ? sc.name : `Slot ${item.slot} (Kosong)`}
+															</p>
+															{hasData && sc?.overridesCount !== undefined && (
+																<p
+																	className={twMerge(
+																		"text-[11px]",
+																		isChecked ? "text-primary-foreground/80" : "text-muted-foreground",
+																	)}
+																>
+																	{sc.overridesCount} asumsi diubah · Rule set {sc.ruleSetVersion}
+																</p>
+															)}
+														</div>
+														<div className="text-right shrink-0 ml-3">
+															<span
+																className={twMerge(
+																	"text-sm font-extrabold font-mono",
+																	isChecked ? "text-primary-foreground" : "text-primary",
+																)}
+															>
+																{sc && sc.totalScore !== null
+																	? formatNumber(sc.totalScore)
+																	: "—"}
+															</span>
+															{hasData && (
+																<p
+																	className={twMerge(
+																		"text-[10px]",
+																		isChecked ? "text-primary-foreground/80" : "text-muted-foreground",
+																	)}
+																>
+																	Estimasi IKPA
+																</p>
+															)}
+														</div>
+													</button>
+												);
+											})}
+										</div>
+									)}
+								</div>
 							</div>
 						</div>
 
@@ -915,7 +1121,7 @@ function OperatorHistoryPage() {
 									Pilih Minimal 2 Item untuk Dibandingkan
 								</h3>
 								<p className="mt-1 text-xs text-muted-foreground max-w-md mx-auto">
-									Silakan pilih 2 atau 3 snapshot/skenario dari tombol di atas untuk melihat perbandingan skor total dan rincian 8 indikator IKPA secara berdampingan.
+									Silakan pilih 2 atau 3 evaluasi bulanan / skenario dari pilihan di atas untuk melihat perbandingan skor total dan rincian 8 indikator IKPA secara berdampingan.
 								</p>
 							</div>
 						) : (
@@ -1117,7 +1323,7 @@ function OperatorHistoryPage() {
 										<div className="flex items-center justify-between border-b border-border/80 pb-3">
 											<div>
 												<span className="rounded bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
-													{isScenario ? "Skenario Tersimpan" : "Snapshot Aktual"}
+													{isScenario ? "Skenario Tersimpan" : "Evaluasi Aktual"}
 												</span>
 												<Dialog.Title className="mt-1 text-base font-bold text-foreground sm:text-lg">
 													{"name" in inspectItem ? inspectItem.name : inspectItem.simulationName}
