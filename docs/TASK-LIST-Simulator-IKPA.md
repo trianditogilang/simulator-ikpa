@@ -815,13 +815,37 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Depends:** CORR-05
   **DoD:** H+17 dan 5 hari kerja wajib tampil. Bukan kalkulator opsional. Selesai 2026-09-05.
 
-- [ ] **CORR-A-00 s.d. CORR-A-05 — Admin monitor 8 indikator (parkir).**
-  **Depends:** CORR-01..05 Operator
-  **DoD:** Read-only. Tidak ada sel kuning. Tidak ada mutasi data operasional.
+- [ ] **CORR-A-00 — Bekukan kontrak: Admin monitor 8 indikator + reminder wajib (parkir).** [Role: Frontend Admin Agent]
+  **Depends:** CORR-01..05 [x] + docs/operator-freeze.md
+  **Syarat:** CORR-01
+  **DoD:** Read-only. Tanpa sel kuning. `assertAdminKppnScope` di setiap query. Tanpa mutasi operasional.
+
+- [ ] **CORR-A-01 — Dashboard Admin agregat 8 baris + deadline wajib (parkir).** [Role: Frontend Admin Agent]
+  **Depends:** CORR-01..05 [x] + docs/operator-freeze.md
+  **Syarat:** CORR-02..04
+  **DoD:** Read-only. Tanpa sel kuning. `assertAdminKppnScope` di setiap query. Tanpa mutasi operasional.
+
+- [ ] **CORR-A-02 — Daftar satker: 8 skor, gap, actual vs proyeksi (parkir).** [Role: Frontend Admin Agent]
+  **Depends:** CORR-01..05 [x] + docs/operator-freeze.md, CORR-A-01
+  **Syarat:** Loader bukan mock
+  **DoD:** Read-only. Tanpa sel kuning. `assertAdminKppnScope` di setiap query. Tanpa mutasi operasional.
+
+- [ ] **CORR-A-03 — Detail satker read-only `/admin-kppn/organizations/:orgId` (parkir).** [Role: Frontend Admin Agent]
+  **Depends:** CORR-01..05 [x] + docs/operator-freeze.md, CORR-A-02
+  **DoD:** Read-only. Tanpa sel kuning. `assertAdminKppnScope` di setiap query. Tanpa mutasi operasional.
+
+- [ ] **CORR-A-04 — Monitoring reminder mandatory (parkir).** [Role: Frontend Admin Agent]
+  **Depends:** CORR-01..05 [x] + docs/operator-freeze.md
+  **Syarat:** Policy backend ada
+  **DoD:** Read-only. Tanpa sel kuning. `assertAdminKppnScope` di setiap query. Tanpa mutasi operasional.
+
+- [ ] **CORR-A-05 — Policy, kalender, akses, audit tetap (parkir).** [Role: Frontend Admin Agent]
+  **Depends:** CORR-01..05 [x] + docs/operator-freeze.md, CORR-A-01..03
+  **DoD:** Read-only. Tanpa sel kuning. `assertAdminKppnScope` di setiap query. Tanpa mutasi operasional.
 
 ## 18. Fase 13 — Quality, Security, Deployment, dan UAT
 
-> Depends: PRE-F13 CORR-01..05. Jangan mulai F13 sebelum CORR-01 s.d. CORR-05 selesai; checkbox F13 tetap kosong.
+> Depends: PRE-F13 CORR-01..05 + CORR-A-00..05. Jangan mulai F13 sebelum CORR-01 s.d. CORR-05 dan CORR-A-00 s.d. CORR-A-05 selesai; checkbox F13 tetap kosong.
 
 - [ ] **F13-01 â€” Lengkapi unit test seluruh pure modules.** [Role: QA Agent] [Model: Sol Medium]  
   **Scope:** Engine, rule parser, workday, deadline, compliance, scheduler, access, import parser  
