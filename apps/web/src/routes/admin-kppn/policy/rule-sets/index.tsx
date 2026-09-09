@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	ArrowRight,
-	Copy,
 	GitCompare,
 	Lock,
 	Plus,
@@ -234,18 +233,6 @@ function AdminRuleSetsPage() {
 													</a>
 												)}
 
-												<button
-													type="button"
-													onClick={() => {
-														alert(
-															`Membuat kloning baru dari Rule Set ${rs.version}...`,
-														);
-													}}
-													className="rounded-md p-1 text-muted-foreground hover:bg-surface-muted hover:text-foreground"
-													title="Duplikasi / Clone Rule Set"
-												>
-													<Copy className="size-3.5" />
-												</button>
 											</div>
 										</td>
 									</tr>

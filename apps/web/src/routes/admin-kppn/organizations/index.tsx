@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, Download, Search } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
-import { getMockAdminOrganizations } from "@/mocks/admin-organizations";
 import { fetchAdminDashboard } from "@/services/admin-monitoring-service";
 
 export const Route = createFileRoute("/admin-kppn/organizations/")({
@@ -12,25 +11,58 @@ export const Route = createFileRoute("/admin-kppn/organizations/")({
 	component: AdminOrganizationsPage,
 });
 
+const INDICATOR_SHORT = [
+	{ key: "dipa_revision", label: "Revisi DIPA", short: "Rev" },
+	{ key: "rpd_deviation", label: "Deviasi Hal III", short: "Dev" },
+	{ key: "budget_absorption", label: "Penyerapan Anggaran", short: "Pen" },
+	{ key: "contractual", label: "Belanja Kontraktual", short: "Kon" },
+	{ key: "invoice_timeliness", label: "Penyelesaian Tagihan", short: "Tag" },
+	{ key: "up_tup", label: "UP/TUP & KKP", short: "UP" },
+	{ key: "output_achievement", label: "Capaian Output", short: "Out" },
+	{ key: "spm_dispensasi", label: "Dispensasi SPM", short: "Dis" },
+];
+
+function worstIndicator(indicators: Record<string, number>): {
+	key: string;
+	label: string;
+	score: number | null;
+} {
+	let worst: { key: string; label: string; score: number } | null = null;
+	for (const meta of INDICATOR_SHORT) {
+		const v = indicators[meta.key];
+		if (v === undefined || !Number.isFinite(v)) continue;
+		if (!worst || v < worst.score)
+			worst = { key: meta.key, label: meta.label, score: v };
+	}
+	return worst ?? { key: "none", label: "Belum ada data", score: null };
+}
+
 function AdminOrganizationsPage() {
 	const loaderData = Route.useLoaderData();
-	const mockSatkers = getMockAdminOrganizations();
 
-	const allSatkers =
-		loaderData.satkerSummaries.length > 0
-			? loaderData.satkerSummaries.map((s, idx) => {
-					const mock = mockSatkers[idx % mockSatkers.length] || mockSatkers[0];
-					return {
-						...mock,
-						id: s.id,
-						code: s.code,
-						name: s.name,
-						score: s.score,
-						riskLevel: s.status === "danger" ? "high" : s.status === "warning" ? "medium" : "low",
-						primaryRisk: s.mainRisk,
-					};
-				})
-			: mockSatkers;
+	// read-only server data only (no mock fallback)
+	const allSatkers = loaderData.satkerSummaries.map((s) => {
+		const worst = worstIndicator(s.indicators ?? {});
+		return {
+			id: s.id,
+			code: s.code,
+			name: s.name,
+			isBlu: s.isBlu,
+			lastUpdated: s.lastUpdated,
+			totalScore: s.score,
+			gapScore: s.gap,
+			riskLevel: s.status,
+			primaryIndicatorKey: worst.key,
+			primaryIndicatorLabel:
+				worst.score !== null
+					? `${worst.label} (${worst.score.toFixed(2).replace(".", ",")})`
+					: worst.label,
+			primaryRisk: s.mainRisk,
+			dataKind: s.dataKind,
+			dataCompleteness: s.dataKind === "kosong" ? "incomplete" : "complete",
+			indicators: s.indicators ?? {},
+		};
+	});
 
 	const [searchQuery, setSearchQuery] = useState("");
 	const [riskFilter, setRiskFilter] = useState<string>("all");
@@ -83,21 +115,8 @@ function AdminOrganizationsPage() {
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
 							Monitoring dan evaluasi kinerja {allSatkers.length} Satuan Kerja
-							di bawah KPPN Malang (032)
+							di bawah lingkup KPPN Anda (read-only)
 						</p>
-					</div>
-
-					<div className="flex items-center gap-2">
-						<button
-							type="button"
-							onClick={() => {
-								alert("Mengekspor daftar seluruh satker (XLSX)...");
-							}}
-							className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-surface-muted shadow-xs"
-						>
-							<Download className="size-3.5" />
-							<span>Ekspor Satker</span>
-						</button>
 					</div>
 				</div>
 
@@ -133,9 +152,9 @@ function AdminOrganizationsPage() {
 								className="h-9 rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 							>
 								<option value="all">Semua Status Risiko</option>
-								<option value="danger">Kritis (Skor &lt; 90)</option>
-								<option value="warning">Waspada (90 - 94)</option>
-								<option value="safe">Aman (≥ 95)</option>
+								<option value="danger">Kritis (Skor &lt; 75)</option>
+								<option value="warning">Waspada (75 - 89)</option>
+								<option value="safe">Aman (≥ 90)</option>
 							</select>
 
 							{/* Filter Indikator */}
@@ -149,12 +168,14 @@ function AdminOrganizationsPage() {
 								className="h-9 rounded-lg border border-border bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-none"
 							>
 								<option value="all">Semua Indikator</option>
-								<option value="invoice_timeliness">Penyelesaian Tagihan</option>
+								<option value="dipa_revision">Revisi DIPA</option>
 								<option value="rpd_deviation">Deviasi Hal III DIPA</option>
+								<option value="budget_absorption">Penyerapan Anggaran</option>
+								<option value="contractual">Belanja Kontraktual</option>
+								<option value="invoice_timeliness">Penyelesaian Tagihan</option>
 								<option value="up_tup">Pengelolaan UP/TUP</option>
 								<option value="output_achievement">Capaian Output</option>
-								<option value="budget_absorption">Penyerapan Anggaran</option>
-								<option value="spm_dispensation">Dispensasi SPM</option>
+								<option value="spm_dispensasi">Dispensasi SPM</option>
 							</select>
 
 							{/* Filter Kelengkapan */}
@@ -169,7 +190,6 @@ function AdminOrganizationsPage() {
 							>
 								<option value="all">Semua Kelengkapan</option>
 								<option value="complete">Data Lengkap</option>
-								<option value="warning">Perlu Konfirmasi</option>
 								<option value="incomplete">Incomplete</option>
 							</select>
 						</div>
@@ -216,7 +236,7 @@ function AdminOrganizationsPage() {
 									<th className="px-3 py-3 text-right">Skor IKPA</th>
 									<th className="px-3 py-3 text-right">Gap Target</th>
 									<th className="px-3 py-3">Risiko Utama / Indikator</th>
-									<th className="px-3 py-3">Deadline Terdekat</th>
+									<th className="px-3 py-3">8 Indikator</th>
 									<th className="px-3 py-3 text-center">Kelengkapan</th>
 									<th className="py-3 pl-2 pr-4 text-right">Aksi</th>
 								</tr>
@@ -250,7 +270,7 @@ function AdminOrganizationsPage() {
 													)}
 												</div>
 												<span className="text-[11px] text-muted-foreground">
-													{satker.operatorCount} operator terdaftar
+													Diperbarui {satker.lastUpdated}
 												</span>
 											</td>
 											<td className="px-3 py-3 text-right font-semibold text-foreground">
@@ -282,17 +302,20 @@ function AdminOrganizationsPage() {
 												</div>
 											</td>
 											<td className="px-3 py-3 text-muted-foreground">
-												<div className="flex flex-col">
-													<span>{satker.nearestDeadline}</span>
-													<span
-														className={`text-[11px] font-semibold ${
-															satker.workDaysLeft <= 3
-																? "text-danger"
-																: "text-muted-foreground"
-														}`}
-													>
-														H-{satker.workDaysLeft} hari kerja
-													</span>
+												<div className="flex max-w-56 flex-wrap gap-1">
+													{INDICATOR_SHORT.map((meta) => {
+														const v = satker.indicators[meta.key];
+														return (
+															<span
+																key={meta.key}
+																title={`${meta.label}: ${v !== undefined ? v.toFixed(2) : "—"}`}
+																className="rounded bg-surface-muted px-1.5 py-0.5 text-[10px] font-semibold text-foreground"
+															>
+																{meta.short}{" "}
+																{v !== undefined ? v.toFixed(0) : "—"}
+															</span>
+														);
+													})}
 												</div>
 											</td>
 											<td className="px-3 py-3 text-center">
@@ -300,16 +323,19 @@ function AdminOrganizationsPage() {
 													className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
 														satker.dataCompleteness === "complete"
 															? "bg-success/10 text-success"
-															: satker.dataCompleteness === "warning"
-																? "bg-warning/10 text-warning"
-																: "bg-danger/10 text-danger"
+															: "bg-danger/10 text-danger"
 													}`}
 												>
 													{satker.dataCompleteness === "complete"
 														? "Lengkap"
-														: satker.dataCompleteness === "warning"
-															? "Perlu Konfirmasi"
-															: "Incomplete"}
+														: "Incomplete"}
+												</span>
+												<span className="mt-1 block text-[10px] font-medium text-muted-foreground">
+													{satker.dataKind === "aktual"
+														? "Aktual"
+														: satker.dataKind === "proyeksi"
+															? "Proyeksi"
+															: "Kosong"}
 												</span>
 											</td>
 											<td className="py-3 pl-2 pr-4 text-right">
@@ -372,19 +398,31 @@ function AdminOrganizationsPage() {
 								</div>
 
 								<div className="rounded-lg bg-surface-muted/50 p-2.5 text-xs text-muted-foreground">
-									<div className="flex items-center justify-between">
+									<div className="flex items-center justify-between gap-2">
 										<span className="font-semibold text-foreground">
 											{satker.primaryIndicatorLabel}
 										</span>
-										<span
-											className={`font-semibold ${
-												satker.workDaysLeft <= 3
-													? "text-danger"
-													: "text-muted-foreground"
-											}`}
-										>
-											H-{satker.workDaysLeft} kerja ({satker.nearestDeadline})
+										<span className="font-medium text-muted-foreground">
+											{satker.dataKind === "aktual"
+												? "Aktual"
+												: satker.dataKind === "proyeksi"
+													? "Proyeksi"
+													: "Kosong"}
 										</span>
+									</div>
+									<div className="mt-1.5 flex flex-wrap gap-1">
+										{INDICATOR_SHORT.map((meta) => {
+											const v = satker.indicators[meta.key];
+											return (
+												<span
+													key={meta.key}
+													title={`${meta.label}: ${v !== undefined ? v.toFixed(2) : "—"}`}
+													className="rounded bg-background px-1.5 py-0.5 text-[10px] font-semibold text-foreground"
+												>
+													{meta.short} {v !== undefined ? v.toFixed(0) : "—"}
+												</span>
+											);
+										})}
 									</div>
 									<p className="mt-1 text-[11px] text-foreground/80">
 										{satker.primaryRisk}
@@ -396,16 +434,12 @@ function AdminOrganizationsPage() {
 										className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
 											satker.dataCompleteness === "complete"
 												? "bg-success/10 text-success"
-												: satker.dataCompleteness === "warning"
-													? "bg-warning/10 text-warning"
-													: "bg-danger/10 text-danger"
+												: "bg-danger/10 text-danger"
 										}`}
 									>
 										{satker.dataCompleteness === "complete"
 											? "Data Lengkap"
-											: satker.dataCompleteness === "warning"
-												? "Perlu Konfirmasi"
-												: "Incomplete"}
+											: "Incomplete"}
 									</span>
 									<a
 										href={`/admin-kppn/organizations/${satker.id}`}

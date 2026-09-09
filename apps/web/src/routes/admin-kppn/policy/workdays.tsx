@@ -5,7 +5,6 @@ import {
 	Clock,
 	Plus,
 	Save,
-	Upload,
 } from "lucide-react";
 import { useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
@@ -76,19 +75,6 @@ function AdminWorkdaysPage() {
 					</div>
 
 					<div className="flex items-center gap-2">
-						<button
-							type="button"
-							onClick={() => {
-								alert(
-									"Sinkronisasi kalender hari kerja dari SKB 3 Menteri resmi...",
-								);
-							}}
-							className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-surface-muted shadow-xs"
-						>
-							<Upload className="size-3.5" />
-							<span>Import SKB Kalender</span>
-						</button>
-
 						<button
 							type="button"
 							onClick={() => {

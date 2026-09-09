@@ -5,7 +5,6 @@ import {
 	Clock,
 	Edit,
 	Lock,
-	Plus,
 	RotateCcw,
 	Save,
 	ShieldCheck,
@@ -14,13 +13,16 @@ import {
 import { useState } from "react";
 import { FormattedNumberInput } from "@/components/data/formatted-number-input";
 import { AdminShell } from "@/components/layout/admin-shell";
+import type { ReminderPolicyEventItem } from "@/mocks/reminder-policies";
 import {
-	getMockReminderPolicies,
-	type ReminderPolicyEventItem,
-} from "@/mocks/reminder-policies";
+	fetchAdminReminderPolicies,
+} from "@/services/admin-monitoring-service";
 import { saveTargetUpdateWindow } from "@/services/output-achievement-service";
 
 export const Route = createFileRoute("/admin-kppn/policy/reminders")({
+	loader: async () => {
+		return fetchAdminReminderPolicies();
+	},
 	component: AdminReminderPoliciesPage,
 });
 
@@ -191,7 +193,28 @@ const DEFAULT_2026_REALIZATION_PERIODS: RealizationOpenPeriodItem[] = [
 ];
 
 function AdminReminderPoliciesPage() {
-	const initialPolicies = getMockReminderPolicies();
+	const loaderData = Route.useLoaderData();
+
+	// read-only server data only (no mock fallback)
+	const policies: ReminderPolicyEventItem[] = loaderData.policies.map((p) => ({
+		id: p.id,
+		eventType: p.eventType,
+		eventTitle: p.title ?? p.eventType,
+		indicatorKey: p.indicatorKey ?? "general",
+		indicatorLabel: p.indicatorLabel ?? "Indikator IKPA",
+		category: (p.category as "mandatory" | "recommended" | "optional") ?? "recommended",
+		dayType: (p.dayType as "workday" | "calendar_day" | "schedule") ?? "workday",
+		deadlineFormulaSummary: `H-${p.minLeadDays} s.d. H-${p.maxLeadDays}`,
+		allowedMinLeadDays: p.minLeadDays,
+		allowedMaxLeadDays: p.maxLeadDays,
+		defaultLeadDays: p.defaultLeadDays ?? [],
+		requiredRecipients: p.requiredRecipients ?? [],
+		allowDisable: p.allowDisable,
+		allowRecipientOverride: p.allowRecipientOverride,
+		status: p.isActive ? "published" : "draft",
+		ruleSetVersion: "—",
+		description: "",
+	}));
 
 	const [activeTab, setActiveTab] = useState<
 		"events" | "target_windows" | "realization_windows"
@@ -209,24 +232,9 @@ function AdminReminderPoliciesPage() {
 		useState<RealizationOpenPeriodItem | null>(null);
 	const [additionalApprovalNote, setAdditionalApprovalNote] = useState("");
 
-	const [policies, setPolicies] =
-		useState<ReminderPolicyEventItem[]>(initialPolicies);
 	const [selectedPolicy, setSelectedPolicy] =
 		useState<ReminderPolicyEventItem | null>(null);
-	const [isEditing, setIsEditing] = useState(false);
 	const [saveToast, setSaveToast] = useState<string | null>(null);
-
-	const handleSavePolicy = (updatedPolicy: ReminderPolicyEventItem) => {
-		setPolicies((prev) =>
-			prev.map((p) => (p.id === updatedPolicy.id ? updatedPolicy : p)),
-		);
-		setIsEditing(false);
-		setSelectedPolicy(null);
-		setSaveToast(
-			`Kebijakan reminder untuk event "${updatedPolicy.eventTitle}" berhasil disimpan.`,
-		);
-		setTimeout(() => setSaveToast(null), 4000);
-	};
 
 	const handleSaveRealizationPeriod = (updated: RealizationOpenPeriodItem) => {
 		setRealizationPeriods((prev) =>
@@ -375,38 +383,6 @@ function AdminReminderPoliciesPage() {
 							<Clock className="size-3.5 text-primary" />
 							<span>Lihat Monitoring Pengiriman</span>
 						</a>
-						{activeTab === "events" && (
-							<button
-								type="button"
-								onClick={() => {
-									const newPolicy: ReminderPolicyEventItem = {
-										id: `pol-custom-${Date.now()}`,
-										eventType: "custom_event_alert",
-										eventTitle: "Event Pengingat Baru",
-										indicatorKey: "general",
-										indicatorLabel: "Umum",
-										category: "recommended",
-										dayType: "workday",
-										deadlineFormulaSummary: "H+5 hari kerja",
-										allowedMinLeadDays: 1,
-										allowedMaxLeadDays: 10,
-										defaultLeadDays: [5, 2],
-										requiredRecipients: ["Operator Satker"],
-										allowDisable: true,
-										allowRecipientOverride: true,
-										status: "draft",
-										ruleSetVersion: "2026.1",
-										description: "Deskripsi event pengingat kustom baru.",
-									};
-									setSelectedPolicy(newPolicy);
-									setIsEditing(true);
-								}}
-								className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 shadow-xs"
-							>
-								<Plus className="size-3.5" />
-								<span>Tambah Event Policy</span>
-							</button>
-						)}
 					</div>
 				</div>
 
@@ -572,12 +548,10 @@ function AdminReminderPoliciesPage() {
 														type="button"
 														onClick={() => {
 															setSelectedPolicy(pol);
-															setIsEditing(true);
 														}}
 														className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-semibold text-primary transition hover:bg-surface-muted"
 													>
-														<Edit className="size-3" />
-														<span>Edit</span>
+														<span>Detail</span>
 													</button>
 												</td>
 											</tr>
@@ -1209,22 +1183,25 @@ function AdminReminderPoliciesPage() {
 						</div>
 					</div>
 				)}
-				{isEditing && selectedPolicy && (
+				{selectedPolicy && (
 					<div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4 backdrop-blur-xs">
 						<div className="w-full max-w-xl rounded-xl border border-border bg-background p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
 							<div className="flex items-start justify-between">
 								<div>
 									<h3 className="text-base font-semibold text-foreground">
-										Edit Reminder Policy
+										Detail Reminder Policy
 									</h3>
 									<p className="text-xs text-muted-foreground">
 										{selectedPolicy.eventTitle} ({selectedPolicy.eventType})
+									</p>
+									<p className="text-[11px] text-muted-foreground">
+										Read-only — perubahan kebijakan mengikuti publikasi rule
+										set.
 									</p>
 								</div>
 								<button
 									type="button"
 									onClick={() => {
-										setIsEditing(false);
 										setSelectedPolicy(null);
 									}}
 									className="rounded-lg p-1 text-muted-foreground hover:bg-surface-muted"
@@ -1240,6 +1217,7 @@ function AdminReminderPoliciesPage() {
 									</span>
 									<input
 										type="text"
+										disabled
 										value={selectedPolicy.eventTitle}
 										onChange={(e) =>
 											setSelectedPolicy({
@@ -1257,6 +1235,7 @@ function AdminReminderPoliciesPage() {
 											Kategori Pengingat:
 										</span>
 										<select
+											disabled
 											value={selectedPolicy.category}
 											onChange={(e) =>
 												setSelectedPolicy({
@@ -1286,6 +1265,7 @@ function AdminReminderPoliciesPage() {
 											Jenis Perhitungan Hari:
 										</span>
 										<select
+											disabled
 											value={selectedPolicy.dayType}
 											onChange={(e) =>
 												setSelectedPolicy({
@@ -1311,6 +1291,7 @@ function AdminReminderPoliciesPage() {
 									</span>
 									<input
 										type="text"
+										disabled
 										value={selectedPolicy.deadlineFormulaSummary}
 										onChange={(e) =>
 											setSelectedPolicy({
@@ -1328,6 +1309,7 @@ function AdminReminderPoliciesPage() {
 											Min Lead Time (Hari):
 										</span>
 										<FormattedNumberInput
+											disabled
 											value={selectedPolicy.allowedMinLeadDays}
 											onChange={(raw) =>
 												setSelectedPolicy({
@@ -1345,6 +1327,7 @@ function AdminReminderPoliciesPage() {
 											Max Lead Time (Hari):
 										</span>
 										<FormattedNumberInput
+											disabled
 											value={selectedPolicy.allowedMaxLeadDays}
 											onChange={(raw) =>
 												setSelectedPolicy({
@@ -1373,7 +1356,7 @@ function AdminReminderPoliciesPage() {
 										</div>
 										<input
 											type="checkbox"
-											disabled={selectedPolicy.category === "mandatory"}
+											disabled
 											checked={selectedPolicy.allowDisable}
 											onChange={(e) =>
 												setSelectedPolicy({
@@ -1397,6 +1380,7 @@ function AdminReminderPoliciesPage() {
 										</div>
 										<input
 											type="checkbox"
+											disabled
 											checked={selectedPolicy.allowRecipientOverride}
 											onChange={(e) =>
 												setSelectedPolicy({
@@ -1414,20 +1398,11 @@ function AdminReminderPoliciesPage() {
 								<button
 									type="button"
 									onClick={() => {
-										setIsEditing(false);
 										setSelectedPolicy(null);
 									}}
 									className="rounded-lg border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-muted"
 								>
-									Batal
-								</button>
-								<button
-									type="button"
-									onClick={() => handleSavePolicy(selectedPolicy)}
-									className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-xs"
-								>
-									<Save className="size-3.5" />
-									<span>Simpan Kebijakan</span>
+									Tutup
 								</button>
 							</div>
 						</div>

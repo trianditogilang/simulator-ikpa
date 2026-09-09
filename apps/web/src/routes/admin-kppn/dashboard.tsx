@@ -9,17 +9,41 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
-import { fetchAdminDashboard } from "@/services/admin-monitoring-service";
+import {
+	fetchAdminDashboard,
+	fetchAdminReminderPolicies,
+} from "@/services/admin-monitoring-service";
 
 export const Route = createFileRoute("/admin-kppn/dashboard")({
 	loader: async () => {
-		return fetchAdminDashboard();
+		const [dashboard, reminderPolicies] = await Promise.all([
+			fetchAdminDashboard(),
+			fetchAdminReminderPolicies(),
+		]);
+		return { dashboard, reminderPolicies };
 	},
 	component: AdminDashboardPage,
 });
 
+const INDICATOR_META = [
+	{ key: "dipa_revision", label: "Revisi DIPA", weight: 10 },
+	{ key: "rpd_deviation", label: "Deviasi Hal III", weight: 15 },
+	{ key: "budget_absorption", label: "Penyerapan Anggaran", weight: 20 },
+	{ key: "contractual", label: "Belanja Kontraktual", weight: 10 },
+	{ key: "invoice_timeliness", label: "Penyelesaian Tagihan", weight: 10 },
+	{ key: "up_tup", label: "UP/TUP & KKP", weight: 10 },
+	{ key: "output_achievement", label: "Capaian Output", weight: 25 },
+	{ key: "spm_dispensasi", label: "Dispensasi SPM", weight: 0 },
+];
+
 function AdminDashboardPage() {
-	const data = Route.useLoaderData();
+	const { dashboard: data, reminderPolicies } = Route.useLoaderData();
+	const mandatoryPolicies = (reminderPolicies.policies ?? []).filter(
+		(p) => p.isActive && !p.allowDisable,
+	);
+	const avgByKey = new Map(
+		(data.indicatorAverages ?? []).map((r) => [r.key, r]),
+	);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [statusFilter, setStatusFilter] = useState<
 		"all" | "danger" | "warning" | "safe"
@@ -140,6 +164,85 @@ function AdminDashboardPage() {
 							Tagihan SPM-LS: 1 Satker
 						</span>
 					</div>
+				</div>
+
+				{/* Aggregate 8 Indicators (read-only) */}
+				<div className="space-y-3 rounded-2xl border border-border bg-background p-5 shadow-xs">
+					<div>
+						<h2 className="text-base font-bold text-foreground">
+							Agregat 8 Indikator Wilayah
+						</h2>
+						<p className="text-xs text-muted-foreground">
+							Rata-rata skor snapshot terkini per indikator. Read-only.
+						</p>
+					</div>
+					<div className="overflow-x-auto">
+						<table className="w-full text-left text-xs">
+							<thead>
+								<tr className="border-b border-border text-muted-foreground">
+									<th className="pb-2 font-semibold">Indikator</th>
+									<th className="pb-2 font-semibold text-right">Bobot</th>
+									<th className="pb-2 font-semibold text-right">
+										Rata-rata Wilayah
+									</th>
+									<th className="pb-2 font-semibold text-right">
+										Satker Terdata
+									</th>
+								</tr>
+							</thead>
+							<tbody className="divide-y divide-border">
+								{INDICATOR_META.map((meta) => {
+									const row = avgByKey.get(meta.key);
+									return (
+										<tr key={meta.key} className="hover:bg-surface/60 transition">
+											<td className="py-2 font-semibold text-foreground">
+												{meta.label}
+											</td>
+											<td className="py-2 text-right text-muted-foreground">
+												{meta.weight > 0 ? `${meta.weight}%` : "pengurang"}
+											</td>
+											<td className="py-2 text-right font-bold text-foreground">
+												{row?.avgScore !== null && row?.avgScore !== undefined
+													? row.avgScore.toFixed(2)
+													: "—"}
+											</td>
+											<td className="py-2 text-right text-muted-foreground">
+												{row?.satkerCount ?? 0}
+											</td>
+										</tr>
+									);
+								})}
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				{/* Mandatory Deadlines (read-only, from policy backend) */}
+				<div className="space-y-2 rounded-2xl border border-border bg-background p-5 shadow-xs">
+					<div>
+						<h2 className="text-base font-bold text-foreground">
+							Deadline Wajib Kebijakan Aktif
+						</h2>
+						<p className="text-xs text-muted-foreground">
+							Jadwal lead time yang tidak boleh dinonaktifkan. Read-only.
+						</p>
+					</div>
+					{mandatoryPolicies.length === 0 ? (
+						<p className="text-xs text-muted-foreground">
+							Tidak ada kebijakan mandatory aktif.
+						</p>
+					) : (
+						<div className="flex flex-wrap items-center gap-2">
+							{mandatoryPolicies.map((p) => (
+								<span
+									key={p.id}
+									className="rounded-md bg-surface px-2.5 py-1 text-[11px] font-semibold text-foreground"
+								>
+									{p.eventType} • H-{p.minLeadDays}–H-{p.maxLeadDays}
+								</span>
+							))}
+						</div>
+					)}
 				</div>
 
 				{/* Filter & Satker Rankings Table */}

@@ -10,6 +10,7 @@ import {
 	publishRuleSet,
 	retireRuleSet,
 } from "./policy/rule-set.workflow";
+import { POLICY_INDICATOR_LABELS } from "./reminders";
 
 function getDatabase() {
 	const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
@@ -146,16 +147,33 @@ export const listAdminReminderPoliciesFn = createServerFn({ method: "GET" })
 		const rows = await db.select().from(reminderPolicies);
 
 		return {
-			policies: rows.map((p) => ({
-				id: p.id,
-				eventType: p.eventType,
-				category: p.category,
-				dayType: p.dayType,
-				minLeadDays: p.minLeadDays,
-				maxLeadDays: p.maxLeadDays,
-				allowDisable: p.allowDisable,
-				allowRecipientOverride: p.allowRecipientOverride,
-				isActive: p.isActive,
-			})),
+			policies: rows.map((p) => {
+				const info = POLICY_INDICATOR_LABELS[p.eventType] ?? {
+					label: "Indikator IKPA",
+					title: p.eventType,
+				};
+				const schedule = (p.defaultScheduleJson as {
+					leadDays?: number[];
+				}) ?? {};
+				const recipients = Array.isArray(p.requiredRecipientsJson)
+					? (p.requiredRecipientsJson as string[])
+					: [];
+				return {
+					id: p.id,
+					eventType: p.eventType,
+					title: info.title,
+					indicatorKey: p.indicatorKey,
+					indicatorLabel: info.label,
+					category: p.category,
+					dayType: p.dayType,
+					minLeadDays: p.minLeadDays,
+					maxLeadDays: p.maxLeadDays,
+					defaultLeadDays: schedule.leadDays ?? [],
+					requiredRecipients: recipients,
+					allowDisable: p.allowDisable,
+					allowRecipientOverride: p.allowRecipientOverride,
+					isActive: p.isActive,
+				};
+			}),
 		};
 	});

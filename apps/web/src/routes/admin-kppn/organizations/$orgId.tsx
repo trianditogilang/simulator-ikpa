@@ -1,36 +1,80 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-	ArrowLeft,
-	Bell,
-	CheckCircle2,
-	Clock,
-	Download,
-	FileCode,
-	History,
-	Lock,
-	TrendingUp,
-	Users,
-} from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, History, Lock } from "lucide-react";
 import { AdminShell } from "@/components/layout/admin-shell";
-import { getMockAdminOrganizationDetail } from "@/mocks/admin-organization-detail";
+import {
+	type AdminOrgDetail,
+	fetchAdminOrganizationDetail,
+	fetchAdminOrgSnapshots,
+} from "@/services/admin-monitoring-service";
 
 export const Route = createFileRoute("/admin-kppn/organizations/$orgId")({
+	loader: async ({ params }) => {
+		const [detail, snapshots] = await Promise.all([
+			fetchAdminOrganizationDetail(params.orgId),
+			fetchAdminOrgSnapshots(params.orgId, 1, 10),
+		]);
+		return { detail, snapshots };
+	},
 	component: AdminOrganizationDetailPage,
 });
 
-function AdminOrganizationDetailPage() {
-	const { orgId } = Route.useParams();
-	const org = getMockAdminOrganizationDetail(orgId);
+const INDICATOR_META = [
+	{ key: "dipa_revision", label: "Revisi DIPA", weight: 10 },
+	{ key: "rpd_deviation", label: "Deviasi Hal III", weight: 15 },
+	{ key: "budget_absorption", label: "Penyerapan Anggaran", weight: 20 },
+	{ key: "contractual", label: "Belanja Kontraktual", weight: 10 },
+	{ key: "invoice_timeliness", label: "Penyelesaian Tagihan", weight: 10 },
+	{ key: "up_tup", label: "UP/TUP & KKP", weight: 10 },
+	{ key: "output_achievement", label: "Capaian Output", weight: 25 },
+	{ key: "spm_dispensasi", label: "Dispensasi SPM", weight: 0 },
+];
 
-	const [activeTab, setActiveTab] = useState<
-		"trend" | "snapshots" | "reminders" | "audit"
-	>("trend");
+function simTypeLabel(t: string): string {
+	if (t === "actual") return "Aktual";
+	if (t === "forecast") return "Proyeksi";
+	if (t === "scenario") return "Skenario";
+	return t;
+}
+
+function statusOf(score: number | null): "safe" | "warning" | "danger" | "empty" {
+	if (score === null || !Number.isFinite(score)) return "empty";
+	if (score < 75) return "danger";
+	if (score < 90) return "warning";
+	return "safe";
+}
+
+function AdminOrganizationDetailPage() {
+	const { detail, snapshots } = Route.useLoaderData();
+	const org: AdminOrgDetail | null = detail.organization;
+
+	if (!org) {
+		return (
+			<AdminShell currentPath="/admin-kppn/organizations">
+				<div className="rounded-xl border border-dashed border-border/80 bg-surface p-8 text-center text-xs text-muted-foreground">
+					Satker tidak ditemukan atau di luar lingkup KPPN Anda.
+				</div>
+			</AdminShell>
+		);
+	}
+
+	const snap = org.latestSnapshot;
+	const total = snap?.totalScore !== null && snap?.totalScore !== undefined
+		? parseFloat(snap.totalScore)
+		: null;
+	const target = snap?.targetScore !== null && snap?.targetScore !== undefined
+		? parseFloat(snap.targetScore)
+		: null;
+	const gap = total !== null && target !== null ? total - target : null;
+	const status = statusOf(total);
+	const rowsByKey = new Map((snap?.indicators ?? []).map((r) => [r.key, r]));
+	const latestYear = org.fiscalYears.length > 0
+		? Math.max(...org.fiscalYears.map((f) => f.year))
+		: null;
 
 	return (
 		<AdminShell currentPath="/admin-kppn/organizations">
 			<div className="space-y-6">
-				{/* Top Bar: Back Link, Satker Name, Read-Only Badge, Export Action */}
+				{/* Top Bar */}
 				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 					<div className="space-y-1">
 						<a
@@ -42,7 +86,7 @@ function AdminOrganizationDetailPage() {
 						</a>
 						<div className="flex flex-wrap items-center gap-2 pt-1">
 							<span className="rounded bg-surface-muted px-2 py-0.5 text-xs font-semibold text-foreground">
-								{org.code}
+								{org.kodeSatker}
 							</span>
 							<h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
 								{org.name}
@@ -58,21 +102,6 @@ function AdminOrganizationDetailPage() {
 							</span>
 						</div>
 					</div>
-
-					<div className="flex items-center gap-2">
-						<button
-							type="button"
-							onClick={() => {
-								alert(
-									`Mengekspor laporan evaluasi detail untuk ${org.name} (PDF)...`,
-								);
-							}}
-							className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-surface-muted shadow-xs"
-						>
-							<Download className="size-3.5" />
-							<span>Ekspor Detail (PDF)</span>
-						</button>
-					</div>
 				</div>
 
 				{/* Scope & Context Banner */}
@@ -80,42 +109,38 @@ function AdminOrganizationDetailPage() {
 					<div className="flex flex-wrap items-center gap-3 text-muted-foreground">
 						<span>
 							KPPN Pembina:{" "}
-							<strong className="text-foreground">
-								{org.kppnName} ({org.kppnCode})
-							</strong>
+							<strong className="text-foreground">{org.kppnName}</strong>
 						</span>
 						<span>•</span>
 						<span>
 							Tahun Anggaran:{" "}
-							<strong className="text-foreground">{org.fiscalYear}</strong>
-						</span>
-						<span>•</span>
-						<span>
-							Periode:{" "}
-							<strong className="text-foreground">Agustus (Bulan 8)</strong>
+							<strong className="text-foreground">{latestYear ?? "—"}</strong>
 						</span>
 						<span>•</span>
 						<span>
 							Rule Set:{" "}
-							<strong className="text-foreground">{org.ruleSetVersion}</strong>
+							<strong className="text-foreground">
+								{snap?.ruleSetVersion ?? "—"}
+							</strong>
 						</span>
-					</div>
-					<div className="text-muted-foreground">
-						Data diperbarui:{" "}
-						<span className="text-foreground font-medium">
-							{org.lastUpdated}
+						<span>•</span>
+						<span>
+							Sumber:{" "}
+							<strong className="text-foreground">
+								{snap ? simTypeLabel(snap.simType) : "Kosong"}
+							</strong>
 						</span>
 					</div>
 				</div>
 
-				{/* KPI Cards: Total Score, Target, Gap, Risk Level */}
+				{/* KPI Cards */}
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 					<div className="rounded-xl border border-border/80 bg-surface p-5 shadow-xs">
 						<span className="text-xs font-semibold text-muted-foreground">
 							Skor IKPA Aktual
 						</span>
 						<div className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
-							{org.totalScore.toFixed(2).replace(".", ",")}
+							{total !== null ? total.toFixed(2).replace(".", ",") : "—"}
 						</div>
 						<p className="mt-1 text-xs text-muted-foreground">
 							Dari batas maksimal 100,00 poin
@@ -124,13 +149,13 @@ function AdminOrganizationDetailPage() {
 
 					<div className="rounded-xl border border-border/80 bg-surface p-5 shadow-xs">
 						<span className="text-xs font-semibold text-muted-foreground">
-							Target Nasional IKPA
+							Target Simulasi
 						</span>
 						<div className="mt-2 text-3xl font-semibold tracking-tight text-primary">
-							{org.targetScore.toFixed(2).replace(".", ",")}
+							{target !== null ? target.toFixed(2).replace(".", ",") : "—"}
 						</div>
 						<p className="mt-1 text-xs text-muted-foreground">
-							Target standar Kemenkeu 2026
+							{snap ? snap.simName : "Belum ada snapshot"}
 						</p>
 					</div>
 
@@ -140,41 +165,47 @@ function AdminOrganizationDetailPage() {
 						</span>
 						<div
 							className={`mt-2 text-3xl font-semibold tracking-tight ${
-								org.gapScore < 0 ? "text-danger" : "text-success"
+								gap !== null && gap < 0 ? "text-danger" : "text-success"
 							}`}
 						>
-							{org.gapScore.toFixed(2).replace(".", ",")}
+							{gap !== null ? gap.toFixed(2).replace(".", ",") : "—"}
 						</div>
 						<p className="mt-1 text-xs text-muted-foreground">
-							{org.gapScore < 0
-								? "Perlu percepatan perbaikan"
-								: "Di atas target"}
+							{gap !== null
+								? gap < 0
+									? "Perlu percepatan perbaikan"
+									: "Di atas target"
+								: "Menunggu data snapshot"}
 						</p>
 					</div>
 
 					<div className="rounded-xl border border-border/80 bg-surface p-5 shadow-xs">
 						<span className="text-xs font-semibold text-muted-foreground">
-							Status Kinerja &amp; Risiko
+							Status Kinerja
 						</span>
 						<div className="mt-2 flex items-center gap-2">
 							<span
 								className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-									org.riskLevel === "danger"
+									status === "danger"
 										? "bg-danger/10 text-danger"
-										: org.riskLevel === "warning"
+										: status === "warning"
 											? "bg-warning/10 text-warning"
-											: "bg-success/10 text-success"
+											: status === "safe"
+												? "bg-success/10 text-success"
+												: "bg-surface-muted text-muted-foreground"
 								}`}
 							>
-								{org.riskLevel === "danger"
+								{status === "danger"
 									? "Risiko Tinggi / Kritis"
-									: org.riskLevel === "warning"
+									: status === "warning"
 										? "Perlu Perhatian"
-										: "Kinerja Baik"}
+										: status === "safe"
+											? "Kinerja Baik"
+											: "Belum ada data"}
 							</span>
 						</div>
 						<p className="mt-2 text-xs text-muted-foreground line-clamp-2">
-							{org.riskSummary}
+							Kelengkapan arsip: {org.completeness}
 						</p>
 					</div>
 				</div>
@@ -191,347 +222,106 @@ function AdminOrganizationDetailPage() {
 					</div>
 
 					<div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-						{org.indicators.map((ind) => (
-							<div
-								key={ind.id}
-								className="flex flex-col justify-between rounded-xl border border-border/80 bg-surface p-4 shadow-xs"
-							>
-								<div className="space-y-2">
-									<div className="flex items-start justify-between gap-2">
-										<h3 className="text-xs font-semibold text-foreground">
-											{ind.name}
-										</h3>
-										<span
-											className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-												ind.status === "complete"
-													? "bg-success/10 text-success"
-													: ind.status === "warning"
-														? "bg-warning/10 text-warning"
-														: "bg-danger/10 text-danger"
-											}`}
-										>
-											{ind.statusLabel}
-										</span>
-									</div>
+						{INDICATOR_META.map((meta) => {
+							const row = rowsByKey.get(meta.key);
+							const raw = row?.rawScore ?? null;
+							const contrib = row?.contrib ?? null;
+							const st = statusOf(raw);
+							return (
+								<div
+									key={meta.key}
+									className="flex flex-col justify-between rounded-xl border border-border/80 bg-surface p-4 shadow-xs"
+								>
+									<div className="space-y-2">
+										<div className="flex items-start justify-between gap-2">
+											<h3 className="text-xs font-semibold text-foreground">
+												{meta.label}
+											</h3>
+											<span
+												className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+													st === "safe"
+														? "bg-success/10 text-success"
+														: st === "warning"
+															? "bg-warning/10 text-warning"
+															: st === "danger"
+																? "bg-danger/10 text-danger"
+																: "bg-surface-muted text-muted-foreground"
+												}`}
+											>
+												{st === "safe"
+													? "Baik"
+													: st === "warning"
+														? "Perhatian"
+														: st === "danger"
+															? "Kritis"
+															: "Kosong"}
+											</span>
+										</div>
 
-									<div className="flex items-baseline justify-between">
-										<span className="text-xl font-semibold tracking-tight text-foreground">
-											{ind.rawScore.toFixed(2).replace(".", ",")}
-										</span>
-										<span className="text-xs text-muted-foreground">
-											Bobot: {ind.weight}% (
-											{ind.weightedScore.toFixed(2).replace(".", ",")} poin)
-										</span>
+										<div className="flex items-baseline justify-between">
+											<span className="text-xl font-semibold tracking-tight text-foreground">
+												{raw !== null ? raw.toFixed(2).replace(".", ",") : "—"}
+											</span>
+											<span className="text-xs text-muted-foreground">
+												Bobot: {meta.weight > 0 ? `${meta.weight}%` : "pengurang"} (
+												{contrib !== null
+													? contrib.toFixed(2).replace(".", ",")
+													: "—"}{" "}
+												poin)
+											</span>
+										</div>
 									</div>
-
-									<p className="text-xs text-muted-foreground line-clamp-2">
-										{ind.summary}
-									</p>
 								</div>
-
-								{ind.warnings.length > 0 && (
-									<div className="mt-3 rounded-md bg-danger/5 p-2 text-[11px] text-danger border border-danger/20">
-										{ind.warnings[0]}
-									</div>
-								)}
-							</div>
-						))}
+							);
+						})}
 					</div>
 				</div>
 
-				{/* 2 Middle Columns: Risiko & Deadline vs Kelengkapan Data */}
-				<div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-					{/* Left: Risiko & Deadline Satker */}
-					<div className="space-y-3 rounded-xl border border-border/80 bg-surface p-5 shadow-xs lg:col-span-6">
-						<div className="flex items-center gap-2">
-							<Clock className="size-4 text-primary" />
-							<h3 className="text-sm font-semibold text-foreground">
-								Agenda &amp; Deadline Terdekat Satker
-							</h3>
-						</div>
-						<div className="space-y-2.5 pt-2">
-							{org.risksAndDeadlines.map((rd) => (
-								<div
-									key={rd.id}
-									className={`rounded-lg border p-3 text-xs ${
-										rd.severity === "danger"
-											? "border-danger/30 bg-danger/5"
-											: "border-border/80 bg-background"
-									}`}
-								>
-									<div className="flex items-start justify-between gap-2">
-										<div className="space-y-0.5">
-											<span className="font-semibold text-foreground">
-												{rd.title}
-											</span>
-											<p className="text-muted-foreground">{rd.event}</p>
-										</div>
-										<span
-											className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-												rd.workDaysLeft <= 2
-													? "bg-danger text-primary-foreground"
-													: "bg-warning/10 text-warning"
-											}`}
-										>
-											H-{rd.workDaysLeft} kerja
-										</span>
-									</div>
-									<div className="mt-2 text-[11px] text-muted-foreground">
-										Jatuh tempo:{" "}
-										<strong className="text-foreground">{rd.deadline}</strong>
-									</div>
-								</div>
-							))}
-						</div>
+				{/* Snapshot History (read-only) */}
+				<div className="space-y-3 rounded-xl border border-border/80 bg-surface p-5 shadow-xs">
+					<div className="flex items-center gap-2">
+						<History className="size-4 text-primary" />
+						<h3 className="text-sm font-semibold text-foreground">
+							Riwayat Snapshot ({snapshots.totalItems})
+						</h3>
 					</div>
-
-					{/* Right: Kelengkapan Data */}
-					<div className="space-y-3 rounded-xl border border-border/80 bg-surface p-5 shadow-xs lg:col-span-6">
-						<div className="flex items-center gap-2">
-							<CheckCircle2 className="size-4 text-primary" />
-							<h3 className="text-sm font-semibold text-foreground">
-								Status Kelengkapan Data Operasional
-							</h3>
-						</div>
-						<div className="space-y-2 pt-2">
-							{org.completeness.map((comp) => (
+					{snapshots.items.length === 0 ? (
+						<p className="text-xs text-muted-foreground">
+							Belum ada snapshot untuk satker ini.
+						</p>
+					) : (
+						<div className="space-y-2">
+							{snapshots.items.map((s) => (
 								<div
-									key={comp.domain}
-									className="flex items-center justify-between rounded-lg border border-border/60 bg-background p-2.5 text-xs"
+									key={s.id}
+									className="flex items-center justify-between rounded-lg border border-border/60 bg-background p-3 text-xs"
 								>
 									<div>
 										<span className="font-semibold text-foreground">
-											{comp.domain}
+											{s.simName}
 										</span>
-										<p className="text-[11px] text-muted-foreground">
-											{comp.details}
-										</p>
+										<div className="flex items-center gap-2 text-muted-foreground">
+											<span>Tipe: {simTypeLabel(s.simType)}</span>
+											<span>•</span>
+											<span>
+												Dibuat: {s.createdAt ? s.createdAt.slice(0, 10) : "—"}
+											</span>
+											<span>•</span>
+											<span>Rule Set: {s.ruleSetVersion}</span>
+										</div>
 									</div>
-									<span
-										className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-											comp.isComplete
-												? "bg-success/10 text-success"
-												: "bg-danger/10 text-danger"
-										}`}
-									>
-										{comp.label}
-									</span>
+									<div className="text-right">
+										<div className="font-semibold text-foreground text-sm">
+											Skor:{" "}
+											{s.totalScore !== null && s.totalScore !== undefined
+												? parseFloat(s.totalScore).toFixed(2).replace(".", ",")
+												: "—"}
+										</div>
+									</div>
 								</div>
 							))}
 						</div>
-					</div>
-				</div>
-
-				{/* Operators Info Banner */}
-				<div className="rounded-xl border border-border/80 bg-surface p-4 shadow-xs">
-					<div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-						<Users className="size-4 text-primary" />
-						<span>
-							Operator Satker Terdaftar ({org.operators.length} Pengguna)
-						</span>
-					</div>
-					<div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-						{org.operators.map((op) => (
-							<div
-								key={op.email}
-								className="rounded-lg border border-border/60 bg-background p-3 text-xs"
-							>
-								<p className="font-semibold text-foreground">{op.name}</p>
-								<p className="text-muted-foreground">{op.email}</p>
-								<div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
-									<span>{op.role}</span>
-									<span>Aktif: {op.lastActive}</span>
-								</div>
-							</div>
-						))}
-					</div>
-				</div>
-
-				{/* Bottom Tabs: Tren, Snapshot, Reminder, Audit Relevan */}
-				<div className="rounded-xl border border-border/80 bg-surface p-5 shadow-xs">
-					{/* Tab Buttons */}
-					<div className="flex flex-wrap items-center gap-1 border-b border-border/80 pb-3">
-						<button
-							type="button"
-							onClick={() => setActiveTab("trend")}
-							className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-								activeTab === "trend"
-									? "bg-primary text-primary-foreground shadow-xs"
-									: "text-muted-foreground hover:bg-surface-muted hover:text-foreground"
-							}`}
-						>
-							<TrendingUp className="size-3.5" />
-							<span>Tren Skor Bulanan</span>
-						</button>
-
-						<button
-							type="button"
-							onClick={() => setActiveTab("snapshots")}
-							className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-								activeTab === "snapshots"
-									? "bg-primary text-primary-foreground shadow-xs"
-									: "text-muted-foreground hover:bg-surface-muted hover:text-foreground"
-							}`}
-						>
-							<History className="size-3.5" />
-							<span>Snapshot Simulasi ({org.snapshots.length})</span>
-						</button>
-
-						<button
-							type="button"
-							onClick={() => setActiveTab("reminders")}
-							className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-								activeTab === "reminders"
-									? "bg-primary text-primary-foreground shadow-xs"
-									: "text-muted-foreground hover:bg-surface-muted hover:text-foreground"
-							}`}
-						>
-							<Bell className="size-3.5" />
-							<span>Jadwal Reminder ({org.reminders.length})</span>
-						</button>
-
-						<button
-							type="button"
-							onClick={() => setActiveTab("audit")}
-							className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-								activeTab === "audit"
-									? "bg-primary text-primary-foreground shadow-xs"
-									: "text-muted-foreground hover:bg-surface-muted hover:text-foreground"
-							}`}
-						>
-							<FileCode className="size-3.5" />
-							<span>Audit Log Aktivitas ({org.auditLogs.length})</span>
-						</button>
-					</div>
-
-					{/* Tab Content */}
-					<div className="pt-4">
-						{activeTab === "trend" && (
-							<div className="space-y-4">
-								<p className="text-xs text-muted-foreground">
-									Histori nilai IKPA bulanan satker dibandingkan dengan target
-									Kemenkeu 95,00
-								</p>
-								<div className="grid grid-cols-8 gap-2 pt-2">
-									{org.trend.map((item) => (
-										<div
-											key={item.month}
-											className="flex flex-col items-center gap-1.5"
-										>
-											<span className="text-xs font-semibold text-foreground">
-												{item.score.toFixed(1).replace(".", ",")}
-											</span>
-											<div className="flex h-28 w-full items-end justify-center rounded-md bg-surface-muted p-1">
-												<div
-													style={{
-														height: `${Math.max(15, Math.min(100, item.score))}%`,
-													}}
-													className={`w-full rounded-sm ${
-														item.score >= item.target
-															? "bg-success"
-															: "bg-danger"
-													}`}
-												/>
-											</div>
-											<span className="text-xs text-muted-foreground">
-												{item.month}
-											</span>
-										</div>
-									))}
-								</div>
-							</div>
-						)}
-
-						{activeTab === "snapshots" && (
-							<div className="space-y-2">
-								{org.snapshots.map((snap) => (
-									<div
-										key={snap.id}
-										className="flex items-center justify-between rounded-lg border border-border/60 bg-background p-3 text-xs"
-									>
-										<div>
-											<span className="font-semibold text-foreground">
-												{snap.name}
-											</span>
-											<div className="flex items-center gap-2 text-muted-foreground">
-												<span>Tipe: {snap.type}</span>
-												<span>•</span>
-												<span>Dibuat: {snap.createdAt}</span>
-												<span>•</span>
-												<span>Rule Set: {snap.ruleSet}</span>
-											</div>
-										</div>
-										<div className="text-right">
-											<div className="font-semibold text-foreground text-sm">
-												Skor: {snap.totalScore.toFixed(2).replace(".", ",")}
-											</div>
-										</div>
-									</div>
-								))}
-							</div>
-						)}
-
-						{activeTab === "reminders" && (
-							<div className="space-y-2">
-								{org.reminders.map((rem) => (
-									<div
-										key={rem.id}
-										className="flex items-center justify-between rounded-lg border border-border/60 bg-background p-3 text-xs"
-									>
-										<div>
-											<span className="font-semibold text-foreground">
-												{rem.event}
-											</span>
-											<p className="text-muted-foreground">
-												Penerima: {rem.recipient} • Jadwal: {rem.scheduledFor}
-											</p>
-										</div>
-										<span
-											className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-												rem.status === "sent"
-													? "bg-success/10 text-success"
-													: rem.status === "scheduled"
-														? "bg-primary/10 text-primary"
-														: "bg-danger/10 text-danger"
-											}`}
-										>
-											{rem.status === "sent"
-												? "Terkirim"
-												: rem.status === "scheduled"
-													? "Terjadwal"
-													: "Gagal"}
-										</span>
-									</div>
-								))}
-							</div>
-						)}
-
-						{activeTab === "audit" && (
-							<div className="space-y-2">
-								{org.auditLogs.map((aud) => (
-									<div
-										key={aud.id}
-										className="flex items-center justify-between rounded-lg border border-border/60 bg-background p-3 text-xs"
-									>
-										<div>
-											<div className="flex items-center gap-2">
-												<span className="font-semibold text-foreground">
-													{aud.actor}
-												</span>
-												<span className="rounded bg-surface-muted px-1.5 py-0.2 text-[10px] font-semibold uppercase text-muted-foreground">
-													{aud.action}
-												</span>
-											</div>
-											<p className="mt-0.5 text-foreground/80">{aud.summary}</p>
-										</div>
-										<span className="text-muted-foreground">
-											{aud.timestamp}
-										</span>
-									</div>
-								))}
-							</div>
-						)}
-					</div>
+					)}
 				</div>
 			</div>
 		</AdminShell>

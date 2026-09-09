@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
-import { type AuditLogItem, getMockAuditLogs } from "@/mocks/audit-logs";
 import { fetchAdminAuditLogs } from "@/services/admin-access-service";
 
 export const Route = createFileRoute("/admin-kppn/audit-logs")({
@@ -19,32 +18,55 @@ export const Route = createFileRoute("/admin-kppn/audit-logs")({
 	component: AdminAuditLogsPage,
 });
 
+function actionTypeOf(action: string): string {
+	const a = action.toLowerCase();
+	if (a.includes("publish")) return "publish";
+	if (a.includes("create")) return "create";
+	if (a.includes("import")) return "import";
+	if (a.includes("override") || a.includes("calendar") || a.includes("workday"))
+		return "override";
+	if (a.includes("update") || a.includes("retry") || a.includes("assign"))
+		return "update";
+	return "lainnya";
+}
+
+function formatTimestamp(iso: string): string {
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return iso;
+	return d.toLocaleString("id-ID", {
+		day: "2-digit",
+		month: "short",
+		year: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
+}
+
 function AdminAuditLogsPage() {
 	const loaderData = Route.useLoaderData();
-	const mockLogs = getMockAuditLogs();
 
-	const allLogs: AuditLogItem[] =
-		loaderData.logs.length > 0
-			? loaderData.logs.map((l, idx) => {
-					const mock = mockLogs[idx % mockLogs.length] || mockLogs[0];
-					return {
-						...mock,
-						id: l.id,
-						actorName: l.actorName,
-						actorEmail: l.actorEmail,
-						actorRole: l.actorRole as "admin_kppn" | "operator_satker" | "system",
-						actionName: l.action,
-						entityName: l.entityType,
-						requestId: l.requestId,
-						organizationName: l.organizationName ?? mock.organizationName,
-						timestamp: l.createdAt,
-					};
-				})
-			: mockLogs;
+	// read-only server data only (no mock fallback)
+	const allLogs = loaderData.logs.map((l) => ({
+		id: l.id,
+		actorName: l.actorName,
+		actorEmail: l.actorEmail,
+		actorRole: l.actorRole,
+		actionType: actionTypeOf(l.action),
+		actionLabel: l.action,
+		actionName: l.action,
+		entityName: l.entityType,
+		organizationName: l.organizationName ?? undefined,
+		organizationCode: l.kodeSatker ?? undefined,
+		requestId: l.requestId,
+		timestamp: formatTimestamp(l.createdAt),
+		summary: `${l.action} pada ${l.entityType}${l.organizationName ? ` — ${l.organizationName}` : ""}`,
+		beforeState: l.beforeJson ?? null,
+		afterState: l.afterJson ?? null,
+	}));
 
 	const [searchQuery, setSearchQuery] = useState("");
 	const [actionFilter, setActionFilter] = useState<string>("all");
-	const [selectedLog, setSelectedLog] = useState<AuditLogItem | null>(null);
+	const [selectedLog, setSelectedLog] = useState<(typeof allLogs)[number] | null>(null);
 	const [showRawJson, setShowRawJson] = useState(false);
 
 	const filteredLogs = useMemo(() => {

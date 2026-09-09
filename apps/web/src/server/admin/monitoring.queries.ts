@@ -134,7 +134,13 @@ export async function getOrganizationDetailForAdmin(
 		.from(fiscalYears)
 		.where(eq(fiscalYears.orgId, orgId));
 	// latest snapshot per fiscal year (if any)
-	let latestSnapshot: typeof scoreSnapshots.$inferSelect | null = null;
+	let latestSnapshot:
+		| ((typeof scoreSnapshots.$inferSelect) & {
+				simName: string;
+				simType: string;
+				targetScore: string | null;
+		  })
+		| null = null;
 	if (fYs.length > 0) {
 		const sims = await db
 			.select()
@@ -149,8 +155,14 @@ export async function getOrganizationDetailForAdmin(
 			.limit(5);
 		if (sims.length > 0) {
 			const snaps = await db
-				.select()
+				.select({
+					snapshot: scoreSnapshots,
+					simName: simulations.name,
+					simType: simulations.type,
+					targetScore: simulations.targetScore,
+				})
 				.from(scoreSnapshots)
+				.innerJoin(simulations, eq(scoreSnapshots.simulationId, simulations.id))
 				.where(
 					inArray(
 						scoreSnapshots.simulationId,
@@ -159,7 +171,14 @@ export async function getOrganizationDetailForAdmin(
 				)
 				.orderBy(desc(scoreSnapshots.createdAt))
 				.limit(1);
-			latestSnapshot = snaps[0] ?? null;
+			if (snaps[0]) {
+				latestSnapshot = {
+					...snaps[0].snapshot,
+					simName: snaps[0].simName,
+					simType: snaps[0].simType,
+					targetScore: snaps[0].targetScore,
+				};
+			}
 		}
 	}
 
@@ -223,8 +242,14 @@ export async function listSnapshotsForAdmin(
 		};
 	const offset = (pagination.page - 1) * pagination.pageSize;
 	const items = await db
-		.select()
+		.select({
+			snapshot: scoreSnapshots,
+			simName: simulations.name,
+			simType: simulations.type,
+			targetScore: simulations.targetScore,
+		})
 		.from(scoreSnapshots)
+		.innerJoin(simulations, eq(scoreSnapshots.simulationId, simulations.id))
 		.where(
 			inArray(
 				scoreSnapshots.simulationId,

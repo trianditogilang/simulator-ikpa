@@ -114,18 +114,10 @@ function AdminRuleSetEditorPage() {
 
 					<div className="flex flex-wrap items-center gap-2">
 						{isReadOnly ? (
-							<button
-								type="button"
-								onClick={() => {
-									alert(
-										`Membuat kloning baru dari Rule Set ${ruleSet.version}...`,
-									);
-								}}
-								className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 shadow-xs"
-							>
+							<span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-2 text-xs font-semibold text-muted-foreground">
 								<Copy className="size-3.5" />
-								<span>Buat Versi Baru (Draft)</span>
-							</button>
+								<span>Versi terkunci — duplikasi via publikasi berikutnya</span>
+							</span>
 						) : (
 							<>
 								<button

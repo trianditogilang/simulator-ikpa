@@ -30,6 +30,8 @@ export interface AdminAuditLogRecord {
 	kodeSatker?: string | null;
 	requestId: string;
 	ruleSetVersion?: string | null;
+	beforeJson?: Record<string, string | number | boolean | null> | null;
+	afterJson?: Record<string, string | number | boolean | null> | null;
 	createdAt: string;
 }
 
@@ -48,8 +50,8 @@ export async function assignAccess(input: {
 	return assignUserAccessFn({ data: input });
 }
 
-export async function deactivateAccess(accessId: string) {
-	return removeUserAccessFn({ data: { accessId } });
+export async function deactivateAccess(accessId: string, active = false) {
+	return removeUserAccessFn({ data: { accessId, active } });
 }
 
 export async function fetchAdminAuditLogs(): Promise<{

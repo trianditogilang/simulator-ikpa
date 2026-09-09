@@ -10,16 +10,11 @@ import {
 	ShieldAlert,
 	ShieldCheck,
 	Trash2,
-	UserCheck,
 	X,
 } from "lucide-react";
 import { useUser } from "@clerk/tanstack-react-start";
 import { useMemo, useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
-import {
-	getMockUserAccesses,
-	type UserAccessItem,
-} from "@/mocks/access-management";
 import { mockPermissionMatrix } from "@/mocks/auth-presets";
 import {
 	assignAccess,
@@ -42,34 +37,41 @@ export const Route = createFileRoute("/admin-kppn/access")({
 	component: AdminAccessManagementPage,
 });
 
+interface AccessRow {
+	id: string;
+	userId: string;
+	name: string;
+	email: string;
+	accessType: "operator_satker" | "admin_kppn";
+	accessTypeLabel: string;
+	scopeCode: string;
+	scopeName: string;
+	status: "active" | "inactive";
+	createdAt: string;
+}
+
 function AdminAccessManagementPage() {
 	const router = useRouter();
 	const loaderData = Route.useLoaderData();
-	const mockList = getMockUserAccesses();
 
-	const initialList: UserAccessItem[] =
-		loaderData.accesses.length > 0
-			? loaderData.accesses.map((a, idx) => {
-					const mock = mockList[idx % mockList.length] || mockList[0];
-					return {
-						...mock,
-						id: a.id,
-						name: a.name,
-						email: a.email,
-						accessType: a.accessType,
-						scopeName: a.scopeName,
-						scopeCode: a.scopeCode,
-						status: a.status,
-						createdAt: a.createdAt.slice(0, 10),
-					};
-				})
-			: mockList;
-
-	const [accessList, setAccessList] = useState<UserAccessItem[]>(initialList);
+	// read-only server data only (no mock fallback)
+	const accessList: AccessRow[] = loaderData.accesses.map((a) => ({
+		id: a.id,
+		userId: a.userId,
+		name: a.name,
+		email: a.email,
+		accessType: a.accessType,
+		accessTypeLabel:
+			a.accessType === "admin_kppn" ? "Admin KPPN" : "Operator Satker",
+		scopeCode: a.scopeCode,
+		scopeName: a.scopeName,
+		status: a.status,
+		createdAt: a.createdAt.slice(0, 10),
+	}));
 	const [searchQuery, setSearchQuery] = useState("");
 	const [roleFilter, setRoleFilter] = useState<string>("all");
 	const [statusFilter, setStatusFilter] = useState<string>("all");
-	const [editingItem, setEditingItem] = useState<UserAccessItem | null>(null);
+	const [editingItem, setEditingItem] = useState<AccessRow | null>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [toastMessage, setToastMessage] = useState<string | null>(null);
 	const [lastAdminAlert, setLastAdminAlert] = useState(false);
@@ -79,7 +81,7 @@ function AdminAccessManagementPage() {
 		(a) => a.accessType === "admin_kppn" && a.status === "active",
 	).length;
 
-	// ponytail: resolve current user email via Clerk, fallback to first admin mock for demo (so header & freeze always work)
+	// ponytail: resolve current user email via Clerk, fallback to first active admin in list
 	let currentUserEmail: string | null = null;
 	try {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -93,7 +95,7 @@ function AdminAccessManagementPage() {
 		// demo without ClerkProvider
 	}
 	if (!currentUserEmail) {
-		// fallback: first active admin in initial mock = “admin.kppn@kemenkeu.go.id” (freeze demo)
+		// fallback: first active admin in server list
 		const demoAdmin = accessList.find(
 			(a) => a.accessType === "admin_kppn" && a.status === "active",
 		);
@@ -126,26 +128,34 @@ function AdminAccessManagementPage() {
 		return [me, ...filteredList.slice(0, idx), ...filteredList.slice(idx + 1)];
 	}, [filteredList, currentUserEmail]);
 
-	const handleSaveAccess = async (user: UserAccessItem) => {
+	const handleSaveAccess = async (user: AccessRow) => {
+		const orgId =
+			user.accessType === "operator_satker"
+				? (loaderData.organizations.find((o) => o.kodeSatker === user.scopeCode)?.id ?? null)
+				: null;
 		try {
 			await assignAccess({
 				name: user.name,
 				email: user.email,
-				accessType: user.accessType as "operator_satker" | "admin_kppn",
-				orgId: user.scopeCode !== "032" ? user.id : null,
+				accessType: user.accessType,
+				orgId,
 			});
 			setToastMessage(`Akses pengguna "${user.name}" berhasil disimpan.`);
+			setIsModalOpen(false);
+			setEditingItem(null);
 			await router.invalidate();
-		} catch {
-			setToastMessage(`Akses pengguna "${user.name}" diperbarui.`);
+		} catch (e) {
+			setToastMessage(
+				e instanceof Error
+					? `Gagal menyimpan akses: ${e.message}`
+					: `Gagal menyimpan akses "${user.name}".`,
+			);
 		}
 
-		setIsModalOpen(false);
-		setEditingItem(null);
 		setTimeout(() => setToastMessage(null), 4000);
 	};
 
-	const handleToggleStatus = async (user: UserAccessItem) => {
+	const handleToggleStatus = async (user: AccessRow) => {
 		if (currentUserEmail && user.email.toLowerCase() === currentUserEmail) {
 			setToastMessage("Tidak dapat menonaktifkan akun Anda sendiri – minta admin lain.");
 			setTimeout(() => setToastMessage(null), 4000);
@@ -161,23 +171,25 @@ function AdminAccessManagementPage() {
 		}
 
 		try {
-			await deactivateAccess(user.id);
+			const nextActive = user.status !== "active";
+			await deactivateAccess(user.id, nextActive);
+			const nextStatus = nextActive ? "active" : "inactive";
+			setToastMessage(
+				`Status akses "${user.name}" diubah menjadi ${nextStatus === "active" ? "Aktif" : "Nonaktif"}.`,
+			);
 			await router.invalidate();
-		} catch {
-			// fallback local state
+		} catch (e) {
+			setToastMessage(
+				e instanceof Error
+					? `Gagal mengubah status: ${e.message}`
+					: `Gagal mengubah status "${user.name}".`,
+			);
 		}
 
-		const nextStatus = user.status === "active" ? "inactive" : "active";
-		setAccessList((prev) =>
-			prev.map((a) => (a.id === user.id ? { ...a, status: nextStatus } : a)),
-		);
-		setToastMessage(
-			`Status akses "${user.name}" diubah menjadi ${nextStatus === "active" ? "Aktif" : "Nonaktif"}.`,
-		);
 		setTimeout(() => setToastMessage(null), 4000);
 	};
 
-	const handleDeleteAccess = async (user: UserAccessItem) => {
+	const handleDeleteAccess = async (user: AccessRow) => {
 		if (currentUserEmail && user.email.toLowerCase() === currentUserEmail) {
 			setToastMessage("Tidak dapat menghapus akun Anda sendiri – minta admin lain.");
 			setTimeout(() => setToastMessage(null), 4000);
@@ -195,13 +207,15 @@ function AdminAccessManagementPage() {
 		if (confirm(`Hapus mapping akses untuk ${user.name} (${user.email})?`)) {
 			try {
 				await deactivateAccess(user.id);
+				setToastMessage(`Akses untuk "${user.name}" berhasil dihapus.`);
 				await router.invalidate();
-			} catch {
-				// local fallback
+			} catch (e) {
+				setToastMessage(
+					e instanceof Error
+						? `Gagal menghapus akses: ${e.message}`
+						: `Gagal menghapus akses "${user.name}".`,
+				);
 			}
-			setAccessList((prev) => prev.filter((a) => a.id !== user.id));
-			setToastMessage(`Akses untuk "${user.name}" berhasil dihapus.`);
-			setTimeout(() => setToastMessage(null), 4000);
 		}
 	};
 
@@ -215,8 +229,8 @@ function AdminAccessManagementPage() {
 							Manajemen Akses Pengguna
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Kelola mapping izin akses Operator Satker dan Admin KPPN lingkup
-							KPPN Malang (032)
+							Kelola mapping izin akses Operator Satker dan Admin KPPN dalam
+							lingkup KPPN Anda
 						</p>
 					</div>
 
@@ -233,6 +247,7 @@ function AdminAccessManagementPage() {
 						<button
 							type="button"
 							onClick={() => {
+								const firstOrg = loaderData.organizations[0];
 								setEditingItem({
 									id: `acc-new-${Date.now()}`,
 									userId: `usr-new-${Date.now()}`,
@@ -240,11 +255,10 @@ function AdminAccessManagementPage() {
 									email: "",
 									accessType: "operator_satker",
 									accessTypeLabel: "Operator Satker",
-									scopeCode: "415234",
-									scopeName: "Politeknik Negeri Malang",
+									scopeCode: firstOrg?.kodeSatker ?? "",
+									scopeName: firstOrg?.name ?? "",
 									status: "active",
-									verifiedIdentity: true,
-									createdAt: "01 Sep 2026",
+									createdAt: new Date().toISOString().slice(0, 10),
 								});
 								setIsModalOpen(true);
 							}}
@@ -387,11 +401,6 @@ function AdminAccessManagementPage() {
 													{isCurrentUser && (
 														<span className="inline-flex items-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">
 															Akun Anda
-														</span>
-													)}
-													{user.verifiedIdentity && (
-														<span title="Identitas Terverifikasi">
-															<UserCheck className="size-3.5 text-primary" />
 														</span>
 													)}
 												</div>
@@ -567,6 +576,7 @@ function AdminAccessManagementPage() {
 												const type = e.target.value as
 													| "operator_satker"
 													| "admin_kppn";
+												const firstOrg = loaderData.organizations[0];
 												setEditingItem({
 													...editingItem,
 													accessType: type,
@@ -574,11 +584,14 @@ function AdminAccessManagementPage() {
 														type === "admin_kppn"
 															? "Admin KPPN"
 															: "Operator Satker",
-													scopeCode: type === "admin_kppn" ? "032" : "415234",
+													scopeCode:
+														type === "admin_kppn"
+															? (editingItem.scopeCode || "032")
+															: (firstOrg?.kodeSatker ?? ""),
 													scopeName:
 														type === "admin_kppn"
-															? "KPPN Malang"
-															: "Politeknik Negeri Malang",
+															? "KPPN"
+															: (firstOrg?.name ?? ""),
 												});
 											}}
 											className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none"
@@ -638,40 +651,22 @@ function AdminAccessManagementPage() {
 											value={editingItem.scopeCode}
 											onChange={(e) => {
 												const code = e.target.value;
-												const name =
-													code === "415234"
-														? "Politeknik Negeri Malang"
-														: code === "527812"
-															? "BBTN Bromo Tengger Semeru"
-															: code === "632190"
-																? "Pengadilan Negeri Malang"
-																: code === "411200"
-																	? "Kantor Imigrasi Malang"
-																	: "Universitas Brawijaya";
-
+												const org = loaderData.organizations.find(
+													(o) => o.kodeSatker === code,
+												);
 												setEditingItem({
 													...editingItem,
 													scopeCode: code,
-													scopeName: name,
+													scopeName: org?.name ?? code,
 												});
 											}}
 											className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none"
 										>
-											<option value="415234">
-												415234 — Politeknik Negeri Malang
-											</option>
-											<option value="527812">
-												527812 — BBTN Bromo Tengger Semeru
-											</option>
-											<option value="632190">
-												632190 — Pengadilan Negeri Malang
-											</option>
-											<option value="411200">
-												411200 — Kantor Imigrasi Malang
-											</option>
-											<option value="654321">
-												654321 — Universitas Brawijaya
-											</option>
+											{loaderData.organizations.map((o) => (
+												<option key={o.id} value={o.kodeSatker}>
+													{o.kodeSatker} — {o.name}
+												</option>
+											))}
 										</select>
 									)}
 								</div>
@@ -715,7 +710,7 @@ function AdminAccessManagementPage() {
 										Aksi Ditolak: Proteksi Admin Terakhir
 									</h3>
 									<p className="text-xs text-muted-foreground">
-										Integritas Scope KPPN Malang (032)
+										Integritas Scope KPPN Anda
 									</p>
 								</div>
 							</div>

@@ -1,3 +1,4 @@
+import { useRouter } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	AlertTriangle,
@@ -14,73 +15,111 @@ import {
 import { useMemo, useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
 import {
-	type AdminReminderItem,
-	getMockAdminReminders,
-} from "@/mocks/admin-reminders";
+	type AdminDeliveryItem,
+	fetchAdminDeliveries,
+	retryAdminDelivery,
+} from "@/services/admin-monitoring-service";
 
 export const Route = createFileRoute("/admin-kppn/monitoring/reminders")({
+	loader: async () => {
+		return fetchAdminDeliveries({ pageSize: 100 });
+	},
 	component: AdminMonitoringRemindersPage,
 });
 
-function AdminMonitoringRemindersPage() {
-	const { stats, items: initialItems } = getMockAdminReminders();
+function formatDate(iso: string | null): string {
+	if (!iso) return "—";
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return "—";
+	return d.toLocaleDateString("id-ID", {
+		day: "2-digit",
+		month: "short",
+		year: "numeric",
+	});
+}
 
-	const [items, setItems] = useState<AdminReminderItem[]>(initialItems);
+function statusBadge(status: string): string {
+	if (status === "sent") return "bg-success/10 text-success";
+	if (status === "scheduled" || status === "queued" || status === "pending_provider")
+		return "bg-primary/10 text-primary";
+	return "bg-danger/10 text-danger";
+}
+
+function statusLabel(status: string): string {
+	if (status === "sent") return "✓ Terkirim";
+	if (status === "scheduled") return "Terjadwal";
+	if (status === "queued") return "Antre";
+	if (status === "pending_provider") return "Pending Provider";
+	if (status === "failed") return "⚠ Gagal";
+	if (status === "skipped") return "Dilewati";
+	if (status === "missed") return "Terlewat";
+	if (status === "cancelled") return "Dibatalkan";
+	return status;
+}
+
+function AdminMonitoringRemindersPage() {
+	const router = useRouter();
+	const data = Route.useLoaderData();
+	const items = useMemo(() => data.items ?? [], [data.items]);
+
 	const [searchQuery, setSearchQuery] = useState("");
 	const [categoryFilter, setCategoryFilter] = useState<string>("all");
 	const [statusFilter, setStatusFilter] = useState<string>("all");
-	const [selectedItem, setSelectedItem] = useState<AdminReminderItem | null>(
-		null,
-	);
+	const [selectedItem, setSelectedItem] =
+		useState<AdminDeliveryItem | null>(null);
 	const [retryConfirmItem, setRetryConfirmItem] =
-		useState<AdminReminderItem | null>(null);
-	const [retrySuccessToast, setRetrySuccessToast] = useState<string | null>(
-		null,
-	);
+		useState<AdminDeliveryItem | null>(null);
+	const [toast, setToast] = useState<{
+		kind: "success" | "error";
+		message: string;
+	} | null>(null);
+	const [isRetrying, setIsRetrying] = useState(false);
 
 	const filteredItems = useMemo(() => {
 		return items.filter((item) => {
+			const q = searchQuery.toLowerCase();
 			const matchQuery =
-				item.satkerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				q.length === 0 ||
+				item.satkerName.toLowerCase().includes(q) ||
 				item.satkerCode.includes(searchQuery) ||
-				item.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-				item.recipient.toLowerCase().includes(searchQuery.toLowerCase());
+				item.eventTitle.toLowerCase().includes(q) ||
+				(item.recipientEmail ?? "").toLowerCase().includes(q);
 
 			const matchCategory =
 				categoryFilter === "all" || item.category === categoryFilter;
 			const matchStatus =
-				statusFilter === "all" || item.deliveryStatus === statusFilter;
+				statusFilter === "all" || item.status === statusFilter;
 
 			return matchQuery && matchCategory && matchStatus;
 		});
 	}, [items, searchQuery, categoryFilter, statusFilter]);
 
-	const handleRetryDelivery = (item: AdminReminderItem) => {
-		setRetryConfirmItem(null);
-		setSelectedItem(null);
-
-		// Update item delivery status locally
-		setItems((prev) =>
-			prev.map((i) =>
-				i.id === item.id
-					? {
-							...i,
-							deliveryStatus: "sent",
-							sentTime: "01 Sep 2026, 11.45 WIB",
-							attemptCount: i.attemptCount + 1,
-							errorMessage: undefined,
-						}
-					: i,
-			),
-		);
-
-		setRetrySuccessToast(
-			`Pengiriman ulang notifikasi "${item.eventTitle}" ke ${item.recipient} berhasil diproses.`,
-		);
-
+	const showToast = (kind: "success" | "error", message: string) => {
+		setToast({ kind, message });
 		setTimeout(() => {
-			setRetrySuccessToast(null);
+			setToast(null);
 		}, 5000);
+	};
+
+	const handleRetryDelivery = async (item: AdminDeliveryItem) => {
+		setIsRetrying(true);
+		try {
+			await retryAdminDelivery(item.id);
+			setRetryConfirmItem(null);
+			setSelectedItem(null);
+			showToast(
+				"success",
+				`Pengiriman ulang "${item.eventTitle}" (${item.satkerCode}) berhasil diantrekan.`,
+			);
+			await router.invalidate();
+		} catch (e) {
+			showToast(
+				"error",
+				e instanceof Error ? e.message : "Gagal mengirim ulang notifikasi.",
+			);
+		} finally {
+			setIsRetrying(false);
+		}
 	};
 
 	return (
@@ -94,7 +133,7 @@ function AdminMonitoringRemindersPage() {
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
 							Pengawasan jadwal, notifikasi peringatan dini, dan log pengiriman
-							reminder ke seluruh Satker
+							reminder ke seluruh Satker (read-only, retry tercatat di audit)
 						</p>
 					</div>
 					<div className="flex items-center gap-2">
@@ -109,51 +148,76 @@ function AdminMonitoringRemindersPage() {
 				</div>
 
 				{/* Toast Alert */}
-				{retrySuccessToast && (
-					<div className="flex items-center justify-between rounded-xl border border-success/30 bg-success/10 p-4 text-xs font-medium text-success">
+				{toast && (
+					<div
+						className={`flex items-center justify-between rounded-xl border p-4 text-xs font-medium ${
+							toast.kind === "success"
+								? "border-success/30 bg-success/10 text-success"
+								: "border-danger/30 bg-danger/10 text-danger"
+						}`}
+					>
 						<div className="flex items-center gap-2">
-							<CheckCircle2 className="size-4 shrink-0" />
-							<span>{retrySuccessToast}</span>
+							{toast.kind === "success" ? (
+								<CheckCircle2 className="size-4 shrink-0" />
+							) : (
+								<AlertTriangle className="size-4 shrink-0" />
+							)}
+							<span>{toast.message}</span>
 						</div>
 						<button
 							type="button"
-							onClick={() => setRetrySuccessToast(null)}
-							className="text-success hover:underline"
+							onClick={() => setToast(null)}
+							className="hover:underline"
 						>
 							Tutup
 						</button>
 					</div>
 				)}
 
-				{/* 4 Summary Stat Cards */}
+				{/* 4 Summary Stat Cards (server) */}
 				<div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
 					<div className="rounded-xl border border-border/80 bg-surface p-4 shadow-xs">
 						<div className="flex items-center justify-between">
 							<span className="text-xs font-semibold text-muted-foreground">
-								Total Agenda Aktif
+								Total Agenda
 							</span>
 							<Bell className="size-4 text-primary" />
 						</div>
 						<div className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-							{stats.totalEvents}
+							{data.stats.total}
 						</div>
 						<p className="mt-1 text-xs text-muted-foreground">
-							Event IKPA triwulan berjalan
+							Seluruh delivery dalam lingkup KPPN
 						</p>
 					</div>
 
 					<div className="rounded-xl border border-border/80 bg-surface p-4 shadow-xs">
 						<div className="flex items-center justify-between">
 							<span className="text-xs font-semibold text-muted-foreground">
-								Kategori Mandatory
+								Terkirim
 							</span>
-							<AlertTriangle className="size-4 text-primary" />
+							<CheckCircle2 className="size-4 text-success" />
 						</div>
-						<div className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-							{stats.mandatoryCount}
+						<div className="mt-2 text-2xl font-semibold tracking-tight text-success">
+							{data.stats.sent}
 						</div>
 						<p className="mt-1 text-xs text-muted-foreground">
-							Terkunci oleh regulasi pusat
+							Notifikasi sampai ke penerima
+						</p>
+					</div>
+
+					<div className="rounded-xl border border-border/80 bg-surface p-4 shadow-xs">
+						<div className="flex items-center justify-between">
+							<span className="text-xs font-semibold text-muted-foreground">
+								Terjadwal
+							</span>
+							<Clock className="size-4 text-primary" />
+						</div>
+						<div className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+							{data.stats.scheduled}
+						</div>
+						<p className="mt-1 text-xs text-muted-foreground">
+							Menunggu jadwal pengiriman
 						</p>
 					</div>
 
@@ -165,25 +229,10 @@ function AdminMonitoringRemindersPage() {
 							<MailWarning className="size-4 text-danger" />
 						</div>
 						<div className="mt-2 text-2xl font-semibold tracking-tight text-danger">
-							{stats.failedCount}
+							{data.stats.failed}
 						</div>
 						<p className="mt-1 text-xs text-muted-foreground">
 							Memerlukan percobaan kirim ulang
-						</p>
-					</div>
-
-					<div className="rounded-xl border border-border/80 bg-surface p-4 shadow-xs">
-						<div className="flex items-center justify-between">
-							<span className="text-xs font-semibold text-muted-foreground">
-								Jatuh Tempo &lt; 7 Hari
-							</span>
-							<Clock className="size-4 text-warning" />
-						</div>
-						<div className="mt-2 text-2xl font-semibold tracking-tight text-warning">
-							{stats.dueSoonCount}
-						</div>
-						<p className="mt-1 text-xs text-muted-foreground">
-							Perlu eskalasi pemantauan
 						</p>
 					</div>
 				</div>
@@ -235,7 +284,7 @@ function AdminMonitoringRemindersPage() {
 							<strong className="text-foreground">
 								{filteredItems.length}
 							</strong>{" "}
-							agenda
+							dari {data.totalItems} agenda
 						</span>
 						{(searchQuery ||
 							categoryFilter !== "all" ||
@@ -264,7 +313,7 @@ function AdminMonitoringRemindersPage() {
 									<th className="py-3 pl-4 pr-2">Satker</th>
 									<th className="px-3 py-3">Event Agenda</th>
 									<th className="px-3 py-3">Indikator</th>
-									<th className="px-3 py-3">Jatuh Tempo</th>
+									<th className="px-3 py-3">Jadwal</th>
 									<th className="px-3 py-3 text-center">Kategori</th>
 									<th className="px-3 py-3 text-center">Status Delivery</th>
 									<th className="py-3 pl-2 pr-4 text-right">Aksi</th>
@@ -277,8 +326,7 @@ function AdminMonitoringRemindersPage() {
 											colSpan={7}
 											className="py-12 text-center text-muted-foreground"
 										>
-											Tidak ada agenda pengingat yang cocok dengan kriteria
-											pencarian.
+											Belum ada agenda pengiriman dalam lingkup KPPN Anda.
 										</td>
 									</tr>
 								) : (
@@ -300,23 +348,14 @@ function AdminMonitoringRemindersPage() {
 													{item.eventTitle}
 												</span>
 												<p className="text-[11px] text-muted-foreground truncate max-w-xs">
-													{item.recipient}
+													{item.recipientEmail ?? "—"}
 												</p>
 											</td>
 											<td className="px-3 py-3 text-muted-foreground">
 												{item.indicatorLabel}
 											</td>
 											<td className="px-3 py-3 text-muted-foreground">
-												<div>{item.deadlineDate}</div>
-												<span
-													className={`text-[10px] font-semibold ${
-														item.workDaysLeft <= 2
-															? "text-danger"
-															: "text-muted-foreground"
-													}`}
-												>
-													H-{item.workDaysLeft} hari kerja
-												</span>
+												{formatDate(item.scheduledFor)}
 											</td>
 											<td className="px-3 py-3 text-center">
 												<span
@@ -333,19 +372,9 @@ function AdminMonitoringRemindersPage() {
 											</td>
 											<td className="px-3 py-3 text-center">
 												<span
-													className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
-														item.deliveryStatus === "sent"
-															? "bg-success/10 text-success"
-															: item.deliveryStatus === "scheduled"
-																? "bg-primary/10 text-primary"
-																: "bg-danger/10 text-danger"
-													}`}
+													className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${statusBadge(item.status)}`}
 												>
-													{item.deliveryStatus === "sent"
-														? "✓ Terkirim"
-														: item.deliveryStatus === "scheduled"
-															? "Terjadwal"
-															: "⚠ Gagal"}
+													{statusLabel(item.status)}
 												</span>
 											</td>
 											<td className="py-3 pl-2 pr-4 text-right">
@@ -365,7 +394,7 @@ function AdminMonitoringRemindersPage() {
 					</div>
 				</div>
 
-				{/* Detail Delivery Drawer / Modal */}
+				{/* Detail Delivery Modal */}
 				{selectedItem && (
 					<div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4 backdrop-blur-xs">
 						<div className="w-full max-w-lg rounded-xl border border-border bg-background p-6 shadow-xl space-y-4">
@@ -376,15 +405,9 @@ function AdminMonitoringRemindersPage() {
 											{selectedItem.satkerCode}
 										</span>
 										<span
-											className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
-												selectedItem.deliveryStatus === "sent"
-													? "bg-success/10 text-success"
-													: selectedItem.deliveryStatus === "scheduled"
-														? "bg-primary/10 text-primary"
-														: "bg-danger/10 text-danger"
-											}`}
+											className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${statusBadge(selectedItem.status)}`}
 										>
-											{selectedItem.deliveryStatus}
+											{statusLabel(selectedItem.status)}
 										</span>
 									</div>
 									<h3 className="text-base font-semibold text-foreground">
@@ -410,13 +433,15 @@ function AdminMonitoringRemindersPage() {
 										Jadwal Pengiriman:
 									</span>
 									<p className="font-semibold text-foreground">
-										{selectedItem.scheduledTime}
+										{formatDate(selectedItem.scheduledFor)}
 									</p>
 								</div>
 								<div>
 									<span className="text-muted-foreground">Waktu Terkirim:</span>
 									<p className="font-semibold text-foreground">
-										{selectedItem.sentTime || "Belum Terkirim"}
+										{selectedItem.sentAt
+											? formatDate(selectedItem.sentAt)
+											: "Belum Terkirim"}
 									</p>
 								</div>
 								<div>
@@ -438,15 +463,7 @@ function AdminMonitoringRemindersPage() {
 								<div className="col-span-2">
 									<span className="text-muted-foreground">Email Penerima:</span>
 									<p className="font-semibold text-foreground">
-										{selectedItem.recipient}
-									</p>
-								</div>
-								<div className="col-span-2">
-									<span className="text-muted-foreground">
-										Idempotency Key:
-									</span>
-									<p className="font-mono text-[11px] text-muted-foreground break-all">
-										{selectedItem.idempotencyKey}
+										{selectedItem.recipientEmail ?? "—"}
 									</p>
 								</div>
 
@@ -471,7 +488,7 @@ function AdminMonitoringRemindersPage() {
 									Tutup
 								</button>
 
-								{selectedItem.deliveryStatus === "failed" && (
+								{selectedItem.status === "failed" && (
 									<button
 										type="button"
 										onClick={() => {
@@ -516,28 +533,30 @@ function AdminMonitoringRemindersPage() {
 									ke alamat:
 								</p>
 								<p className="font-semibold text-foreground">
-									{retryConfirmItem.recipient}
+									{retryConfirmItem.recipientEmail ?? "—"}
 								</p>
 								<p className="text-[11px] text-muted-foreground border-t border-border/60 pt-2">
 									Percobaan sebelumnya gagal dengan error:{" "}
-									{retryConfirmItem.errorMessage}
+									{retryConfirmItem.errorMessage ?? "—"}
 								</p>
 							</div>
 
 							<div className="flex items-center justify-end gap-2 border-t border-border pt-3">
 								<button
 									type="button"
+									disabled={isRetrying}
 									onClick={() => setRetryConfirmItem(null)}
-									className="rounded-lg border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-muted"
+									className="rounded-lg border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-muted disabled:opacity-40"
 								>
 									Batal
 								</button>
 								<button
 									type="button"
+									disabled={isRetrying}
 									onClick={() => handleRetryDelivery(retryConfirmItem)}
-									className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-xs"
+									className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-xs disabled:opacity-40"
 								>
-									Ya, Kirim Ulang
+									{isRetrying ? "Memproses..." : "Ya, Kirim Ulang"}
 								</button>
 							</div>
 						</div>

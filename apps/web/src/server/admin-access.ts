@@ -1,6 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
-import { desc, eq } from "drizzle-orm";
-import { assertAdminKppnScope } from "@simulator-ikpa/access-control";
+import { desc, eq, inArray, isNull, or } from "drizzle-orm";
+import {
+	assertAdminKppnScope,
+	grantAdminAccess,
+	grantOperatorAccess,
+	toggleAccessActive,
+} from "@simulator-ikpa/access-control";
 import { createDbClient } from "@simulator-ikpa/db";
 import {
 	auditLogs,
@@ -25,7 +30,7 @@ export const listAdminUserAccessFn = createServerFn({ method: "GET" })
 		const auth = await getServerAuthSession();
 		const access = await getAccessResolutionForSession(auth);
 
-		assertAdminKppnScope(access);
+		const { allowedKppnScopeIds } = assertAdminKppnScope(access);
 
 		const db = getDatabase();
 		if (!db) {
@@ -48,6 +53,12 @@ export const listAdminUserAccessFn = createServerFn({ method: "GET" })
 			.from(userAccesses)
 			.innerJoin(users, eq(userAccesses.userId, users.id))
 			.leftJoin(organizations, eq(userAccesses.orgId, organizations.id))
+			.where(
+				or(
+					inArray(userAccesses.kppnScopeId, allowedKppnScopeIds),
+					inArray(organizations.kppnScopeId, allowedKppnScopeIds),
+				),
+			)
 			.orderBy(desc(userAccesses.createdAt));
 
 		return {
@@ -79,12 +90,14 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 		const auth = await getServerAuthSession();
 		const access = await getAccessResolutionForSession(auth);
 
-		assertAdminKppnScope(access);
+		const { allowedKppnScopeIds } = assertAdminKppnScope(access);
 
 		const db = getDatabase();
 		if (!db) {
 			return { success: true };
 		}
+
+		const actorUserId = access.status === "admin" ? access.userId : "admin";
 
 		// Find or create user
 		let [user] = await db
@@ -104,22 +117,35 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 				.returning();
 		}
 
-		// Insert or update access
-		const [newAccess] = await db
-			.insert(userAccesses)
-			.values({
-				userId: user.id,
-				accessType: data.accessType,
-				orgId: data.orgId ? data.orgId : null,
-				active: true,
-			})
-			.returning();
-
-		return { success: true, accessId: newAccess.id };
+		if (data.accessType === "operator_satker") {
+			if (!data.orgId) {
+				throw new Error("Satker naungan wajib dipilih untuk peran Operator Satker.");
+			}
+			const created = await grantOperatorAccess(db, {
+				actorUserId,
+				targetUserId: user.id,
+				orgId: data.orgId,
+			});
+			return { success: true, accessId: created.id };
+		} else {
+			const kppnScopeId = allowedKppnScopeIds[0];
+			if (!kppnScopeId) {
+				throw new Error("Scope KPPN tidak valid.");
+			}
+			const created = await grantAdminAccess(db, {
+				actorUserId,
+				targetUserId: user.id,
+				kppnScopeId,
+			});
+			return { success: true, accessId: created.id };
+		}
 	});
 
 export const removeUserAccessFn = createServerFn({ method: "POST" })
-	.validator((data: { accessId: string }) => data)
+	.validator(
+		(data: { accessId: string; active?: boolean }) =>
+			data as { accessId: string; active?: boolean },
+	)
 	.handler(async ({ data }) => {
 		const auth = await getServerAuthSession();
 		const access = await getAccessResolutionForSession(auth);
@@ -131,10 +157,12 @@ export const removeUserAccessFn = createServerFn({ method: "POST" })
 			return { success: true };
 		}
 
-		await db
-			.update(userAccesses)
-			.set({ active: false, updatedAt: new Date() })
-			.where(eq(userAccesses.id, data.accessId));
+		const actorUserId = access.status === "admin" ? access.userId : "admin";
+		await toggleAccessActive(db, {
+			actorUserId,
+			userAccessId: data.accessId,
+			active: data.active ?? false,
+		});
 
 		return { success: true };
 	});
@@ -145,7 +173,7 @@ export const listAdminAuditLogsFn = createServerFn({ method: "GET" })
 		const auth = await getServerAuthSession();
 		const access = await getAccessResolutionForSession(auth);
 
-		assertAdminKppnScope(access);
+		const { allowedKppnScopeIds } = assertAdminKppnScope(access);
 
 		const db = getDatabase();
 		if (!db) {
@@ -166,11 +194,19 @@ export const listAdminAuditLogsFn = createServerFn({ method: "GET" })
 				kodeSatker: organizations.kodeSatker,
 				requestId: auditLogs.requestId,
 				ruleSetVersion: auditLogs.ruleSetVersion,
+				beforeJson: auditLogs.beforeJson,
+				afterJson: auditLogs.afterJson,
 				createdAt: auditLogs.createdAt,
 			})
 			.from(auditLogs)
 			.leftJoin(users, eq(auditLogs.actorId, users.id))
 			.leftJoin(organizations, eq(auditLogs.orgId, organizations.id))
+			.where(
+				or(
+					isNull(auditLogs.orgId),
+					inArray(organizations.kppnScopeId, allowedKppnScopeIds),
+				),
+			)
 			.orderBy(desc(auditLogs.createdAt))
 			.limit(50);
 
@@ -187,6 +223,14 @@ export const listAdminAuditLogsFn = createServerFn({ method: "GET" })
 				kodeSatker: r.kodeSatker,
 				requestId: r.requestId ?? "req-auto",
 				ruleSetVersion: r.ruleSetVersion,
+				beforeJson: (r.beforeJson as unknown as Record<
+					string,
+					string | number | boolean | null
+				> | null) ?? null,
+				afterJson: (r.afterJson as unknown as Record<
+					string,
+					string | number | boolean | null
+				> | null) ?? null,
 				createdAt: r.createdAt.toISOString(),
 			})),
 		};

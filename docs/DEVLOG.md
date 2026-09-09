@@ -2,6 +2,148 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 229 - 2026-09-09
+**Time:** Start: 20:28 UTC | End: 20:35 UTC | Duration: ~7 minutes
+- Status: Completed
+- Agent/Role: Frontend Admin Agent
+- Model: Gemini 3.7 Flash
+- Skills: system-debugging, ponytail
+**Tasks Completed:**
+- [AUDIT-CORR-A-05] Audit koreksi terbatas & penguatan kontrak administratif Admin KPPN:
+  1. Temuan Defect & Koreksi Server: `apps/web/src/server/admin-access.ts` sebelumnya melakukan mutasi `userAccesses` tanpa pencatatan audit log otomatis dan tanpa proteksi `LastAdminRevocationError` server-authoritative. Diperbaiki dengan mengintegrasikan helper resmi `grantOperatorAccess`, `grantAdminAccess`, dan `toggleAccessActive` dari `@simulator-ikpa/access-control` (teraudit otomatis ke tabel `auditLogs`, memvalidasi konflik peran ganda, dan menegakkan `LastAdminRevocationError` di tingkat backend).
+  2. Isolasi KPPN Scope Query: `listAdminUserAccessFn` dan `listAdminAuditLogsFn` diperkuat dengan filter scope `allowedKppnScopeIds` sehingga query admin terisolasi pada wilayah KPPN yang diotorisasi.
+  3. UI Client Sync: `apps/web/src/routes/admin-kppn/access.tsx` dan `apps/web/src/services/admin-access-service.ts` diselaraskan agar meneruskan status target `nextActive` boolean secara eksplisit saat mengaktifkan/menonaktifkan akun.
+  4. Pengujian Terarah (Targeted Tests): Menambahkan unit test baru `apps/web/src/server/admin/admin-access.test.ts` (3 tests) untuk memverifikasi grant operator dengan orgId, grant admin dengan scope KPPN, pencatatan audit log, dan penolakan revocation pada admin aktif terakhir.
+  5. Verifikasi Menyeluruh: `npm run typecheck --workspace @simulator-ikpa/web` 0 error, `npx vitest run` 40 test files / 285 tests lulus 100%, `git diff --check` bersih. Seluruh glob Operator Freeze tetap 100% terjaga tanpa modifikasi.
+**Code Changes:**
+- Files created/modified:
+  - `apps/web/src/server/admin-access.ts`
+  - `apps/web/src/services/admin-access-service.ts`
+  - `apps/web/src/routes/admin-kppn/access.tsx`
+  - `apps/web/src/server/admin/admin-access.test.ts` (baru)
+  - `docs/TASK-LIST-Simulator-IKPA.md`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 228 - 2026-09-09
+**Time:** Start: 20:17 UTC | End: 20:25 UTC | Duration: ~8 minutes
+- Status: Completed
+- Agent/Role: Frontend Admin Agent
+- Model: Gemini 3.7 Flash
+- Skills: ponytail, system-debugging
+**Tasks Completed:**
+- [CORR-A-05] Policy, kalender, akses, audit tetap (parkir):
+  1. Verifikasi integrasi seluruh modul administratif Admin KPPN: Policy (Rule Set berversi, fairness treatment, reminder policy & open period target/realisasi output), Kalender Hari Kerja (workday calendar H+17 simulator), Manajemen Akses Pengguna (role mapping scope guard, dynamic scope, proteksi last-admin), dan Audit Log Aktivitas (append-only tamper-proof trail, detail human summary + before/after JSON).
+  2. Penegakan isolasi dan proteksi ketat: seluruh server function di `apps/web/src/server/admin-policy.ts` dan `apps/web/src/server/admin-access.ts` (`listAdminRuleSetsFn`, `createRuleSetDraftFn`, `publishRuleSetFn`, `retireRuleSetFn`, `listAdminReminderPoliciesFn`, `listAdminUserAccessFn`, `assignUserAccessFn`, `removeUserAccessFn`, `listAdminAuditLogsFn`) diverifikasi terproteksi `assertAdminKppnScope(access)`.
+  3. Seluruh modul admin tetap beroperasi secara read-only terhadap data transaksi operasional satker (tanpa sel kuning, tanpa mutasi operasional satker).
+  4. Kepatuhan total terhadap `docs/operator-freeze.md`: kode modul Operator Satker 100% dibekukan tanpa modifikasi apa pun.
+  5. Verifikasi monorepo: `npm run typecheck --workspace @simulator-ikpa/web` 0 error, `npx vitest run` 39 test files / 282 unit tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `docs/TASK-LIST-Simulator-IKPA.md`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 227 - 2026-09-09
+**Time:** Start: 19:18 UTC | End: 19:26 UTC | Duration: ~8 minutes
+- Status: Completed
+- Agent/Role: Frontend Admin Agent
+- Model: muse-spark-1.3
+- Skills: ponytail, context7-mcp
+**Tasks Completed:**
+- [CORR-A-04] Monitoring reminder mandatory server-driven:
+  1. Server baru `apps/web/src/server/admin-deliveries.ts`: `listAdminDeliveriesFn` (guard `assertAdminKppnScope` via `listDeliveriesForAdmin`, batch join org/policy, label reuse `POLICY_INDICATOR_LABELS` yang kini di-export dari `server/reminders.ts`, statistik sent/scheduled/failed, tanpa fallback mock) + `retryAdminDeliveryFn` (guard + audit via `retryFailedDelivery`, actor dari sesi admin).
+  2. UI (`monitoring/reminders.tsx`) ditulis ulang dari loader: kartu statistik server, tabel + filter client, modal detail tanpa idempotency key/payload (backend-only selaras kebijakan operator), retry asli + `router.invalidate` + toast error. Mock + update status lokal palsu dibuang.
+  3. Perbaikan typecheck: narrowing `access.status === "admin"` untuk `userId` (pola `server/reminders.ts`).
+  4. Verifikasi: typecheck web 0 error, `npx vitest run` 39 files / 282 tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/server/admin-deliveries.ts` (baru)
+  - `apps/web/src/server/reminders.ts` (tambah `export` label map)
+  - `apps/web/src/services/admin-monitoring-service.ts`
+  - `apps/web/src/routes/admin-kppn/monitoring/reminders.tsx`
+  - `docs/TASK-LIST-Simulator-IKPA.md`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 226 - 2026-09-09
+**Time:** Start: 19:12 UTC | End: 19:18 UTC | Duration: ~6 minutes
+- Status: Completed
+- Agent/Role: Frontend Admin Agent
+- Model: muse-spark-1.3
+- Skills: ponytail, context7-mcp
+**Tasks Completed:**
+- [CORR-A-03] Detail satker read-only server-driven:
+  1. Server: `getOrganizationDetailForAdmin`/`listSnapshotsForAdmin` (`apps/web/src/server/admin/monitoring.queries.ts`) diperkaya join `simulations` (nama/tipe/target, aditif); wrapper baru `getAdminOrganizationDetailFn` + `listAdminOrgSnapshotsFn` (`admin-monitoring.ts`) dengan guard scope + mapping JSON serializable + parse breakdown server-side.
+  2. UI (`organizations/$orgId.tsx`) ditulis ulang dari loader: banner scope jujur, KPI aktual/target/gap/status, grid 8 indikator (raw + kontribusi), riwayat snapshot read-only. Mock detail, tab tren/reminder/audit palsu, banner operator, dan ekspor `alert()` dibuang.
+  3. Verifikasi: typecheck web 0 error, `npx vitest run` 39 files / 282 tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/server/admin/monitoring.queries.ts`
+  - `apps/web/src/server/admin-monitoring.ts`
+  - `apps/web/src/services/admin-monitoring-service.ts`
+  - `apps/web/src/routes/admin-kppn/organizations/$orgId.tsx`
+  - `docs/TASK-LIST-Simulator-IKPA.md`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 225 - 2026-09-09
+**Time:** Start: 19:06 UTC | End: 19:12 UTC | Duration: ~6 minutes
+- Status: Completed
+- Agent/Role: Frontend Admin Agent
+- Model: muse-spark-1.3
+- Skills: ponytail, context7-mcp
+**Tasks Completed:**
+- [CORR-A-02] Daftar satker server-only (`apps/web/src/routes/admin-kppn/organizations/index.tsx`):
+  1. Syarat loader-bukan-mock: merge + fallback `getMockAdminOrganizations` dibuang; baris tabel murni dari `fetchAdminDashboard` (skor, gap, status, 8 indikator, dataKind).
+  2. Kolom Deadline mock (nearestDeadline/H-n palsu) diganti kolom 8 Indikator (chips + title full) + badge Sumber Aktual/Proyeksi/Kosong; tombol Ekspor `alert()` palsu dibuang; subtitle KPPN hardcode digenerikkan.
+  3. Betulkan warisan mock: opsi filter 8 kunci kanonis (`spm_dispensation` mati diganti `spm_dispensasi` + tambah revisi/kontraktual), ambang risiko selaras server (<75/>75–89/≥90).
+  4. Verifikasi: typecheck web 0 error, `npx vitest run` 39 files / 282 tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/admin-kppn/organizations/index.tsx`
+  - `docs/TASK-LIST-Simulator-IKPA.md`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 224 - 2026-09-09
+**Time:** Start: 19:00 UTC | End: 19:06 UTC | Duration: ~6 minutes
+- Status: Completed
+- Agent/Role: Frontend Admin Agent
+- Model: muse-spark-1.3
+- Skills: ponytail, context7-mcp
+**Tasks Completed:**
+- [CORR-A-01] Dashboard Admin agregat 8 baris + deadline wajib:
+  1. Server (`apps/web/src/server/admin-monitoring.ts`): snapshot terkini per satker ikut select `breakdownJson` + `simulations.type`; parse skor 8 indikator (pola `extractBreakdownMap` operator, tanpa ubah file operator); hasilkan `indicatorAverages` + per-satker `indicators/gap/dataKind (aktual/proyeksi/kosong)`.
+  2. UI (`apps/web/src/routes/admin-kppn/dashboard.tsx`): tabel Agregat 8 Indikator Wilayah + strip Deadline Wajib dari `listAdminReminderPoliciesFn` (mandatory aktif) — read-only, tanpa sel kuning, tanpa mutasi.
+  3. Verifikasi: typecheck web 0 error, `npx vitest run` 39 files / 282 tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/server/admin-monitoring.ts`
+  - `apps/web/src/services/admin-monitoring-service.ts`
+  - `apps/web/src/routes/admin-kppn/dashboard.tsx`
+  - `docs/TASK-LIST-Simulator-IKPA.md`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
+### Session 223 - 2026-09-09
+**Time:** Start: 18:52 UTC | End: 19:00 UTC | Duration: ~8 minutes
+- Status: Completed
+- Agent/Role: Frontend Admin Agent
+- Model: muse-spark-1.3
+- Skills: ponytail, context7-mcp
+**Tasks Completed:**
+- [CORR-A-00] Bekukan kontrak Admin monitor (read-only hardening):
+  1. Root cause: `getAdminDashboardSummaryFn` & `listAdminOrganizationsFn` (`apps/web/src/server/admin-monitoring.ts`) memanggil `assertAdminKppnScope(access)` tanpa argumen scope lalu memakai `data.kppnScopeId` mentah — filter KPPN tak terverifikasi + query tanpa filter mengembalikan seluruh satker lintas KPPN.
+  2. Perbaikan ringan: guard menjadi `assertAdminKppnScope(access, data?.kppnScopeId ?? undefined)` + query default `inArray(kppnScopeId, allowedKppnScopeIds)`; tanpa sel kuning, tanpa mutasi, operator-freeze tak disentuh.
+  3. Verifikasi: typecheck web 0 error, `npx vitest run` 39 files / 282 tests lulus 100%.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/server/admin-monitoring.ts`
+  - `docs/TASK-LIST-Simulator-IKPA.md`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+
 ### Session 222 - 2026-09-09
 **Time:** Start: 18:45 UTC | End: 18:50 UTC | Duration: ~5 minutes
 - Status: Completed

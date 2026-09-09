@@ -73,7 +73,7 @@ async function getOrInitFiscalYear(
 	return fy;
 }
 
-const POLICY_INDICATOR_LABELS: Record<string, { label: string; title: string }> = {
+export const POLICY_INDICATOR_LABELS: Record<string, { label: string; title: string }> = {
 	spm_ls_contract_17d: {
 		label: "Penyelesaian Tagihan",
 		title: "Penyelesaian Tagihan SPM-LS (17 Hari Kerja)",
