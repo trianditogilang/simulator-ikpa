@@ -6,6 +6,7 @@ import {
 	duplicateScenarioFn,
 	listSnapshotsFn,
 	runSimulationFn,
+	updateScenarioFn,
 } from "@/server/simulation";
 
 export type { ActualSnapshotItem, HistoryPageData, SavedScenarioItem };
@@ -92,6 +93,18 @@ export async function deleteScenario(
 	orgId?: string,
 ): Promise<{ success: boolean }> {
 	return deleteScenarioFn({ data: { scenarioId, orgId } });
+}
+
+export async function updateScenario(
+	scenarioId: string,
+	params: {
+		name?: string;
+		targetScore?: string;
+		indicatorScores?: Record<string, number>;
+	},
+	orgId?: string,
+): Promise<{ success: boolean; scenario?: unknown }> {
+	return updateScenarioFn({ data: { scenarioId, ...params, orgId } });
 }
 
 export async function duplicateScenario(

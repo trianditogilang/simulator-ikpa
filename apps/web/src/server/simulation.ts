@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { assertOperatorOrgScope } from "@simulator-ikpa/access-control";
 import { createDbClient } from "@simulator-ikpa/db";
 import {
@@ -268,13 +268,43 @@ export const listSnapshotsFn = createServerFn({ method: "GET" })
 			.filter((r) => r.simulationType === "scenario")
 			.map((r) => r.simulationId);
 
-		const allOverrides = simulationIds.length > 0
-			? await db
-					.select()
-					.from(simulationOverrides)
-					.where(and(isNull(simulationOverrides.createdAt))) // fallback or query
-					.catch(() => [])
-			: [];
+		const allOverrides =
+			simulationIds.length > 0
+				? await db
+						.select()
+						.from(simulationOverrides)
+						.where(inArray(simulationOverrides.simulationId, simulationIds))
+						.catch(() => [])
+				: [];
+
+		// Sanitize breakdown to keep payload ultra-lightweight (omits heavy internal traces)
+		const sanitizeBreakdown = (b: unknown) => {
+			if (!b || typeof b !== "object") return null;
+			const obj = b as {
+				indicators?: Array<{
+					key: string;
+					label?: string;
+					weight: string;
+					score?: string | null;
+					weightedContribution?: string | null;
+					status: string;
+				}>;
+				dispensationDeduction?: string | null;
+			};
+			return {
+				indicators: Array.isArray(obj.indicators)
+					? obj.indicators.map((ind) => ({
+							key: ind.key,
+							label: ind.label,
+							weight: ind.weight,
+							score: ind.score,
+							weightedContribution: ind.weightedContribution,
+							status: ind.status,
+						}))
+					: [],
+				dispensationDeduction: obj.dispensationDeduction ?? "0",
+			};
+		};
 
 		// Map actual snapshots
 		const actualSnapshots: ActualSnapshotItem[] = rows
@@ -298,7 +328,7 @@ export const listSnapshotsFn = createServerFn({ method: "GET" })
 					ruleSetVersion: r.ruleSetVersion,
 					createdByName: r.creatorName || "Sistem / Operator",
 					createdAt: r.createdAt.toISOString(),
-					breakdownJson: r.breakdownJson,
+					breakdownJson: sanitizeBreakdown(r.breakdownJson),
 				};
 			});
 
@@ -352,25 +382,14 @@ export const listSnapshotsFn = createServerFn({ method: "GET" })
 					overridesCount: overrides.length || 1,
 					overrides,
 					impactedIndicators,
-					breakdownJson: r.breakdownJson,
+					breakdownJson: sanitizeBreakdown(r.breakdownJson),
 				};
 			});
-
-		const legacySnapshots = rows.map((r) => ({
-			id: r.snapshotId,
-			simulationId: r.simulationId,
-			simulationName: r.simulationName,
-			simulationType: r.simulationType,
-			periodEnd: r.periodEnd,
-			totalScore: r.totalScore,
-			breakdownJson: r.breakdownJson as never,
-			createdAt: r.createdAt.toISOString(),
-		}));
 
 		return {
 			actualSnapshots,
 			savedScenarios,
-			snapshots: legacySnapshots,
+			snapshots: [],
 		};
 	});
 
@@ -438,6 +457,139 @@ export const deleteScenarioFn = createServerFn({ method: "POST" })
 		});
 
 		return { success: true };
+	});
+
+export const updateScenarioFn = createServerFn({ method: "POST" })
+	.validator(
+		(data: {
+			scenarioId: string;
+			name?: string;
+			targetScore?: string;
+			indicatorScores?: Record<string, number>;
+			orgId?: string;
+		}) => data,
+	)
+	.handler(async ({ data }) => {
+		const auth = await getServerAuthSession();
+		const access = await getAccessResolutionForSession(auth, data.orgId);
+
+		const targetOrgId =
+			data.orgId ||
+			(access.status === "operator_single_scope" ||
+			access.status === "operator_multiple_scopes"
+				? access.activeOrganizationId
+				: null);
+
+		if (!targetOrgId) {
+			throw new Error("Satuan Kerja aktif tidak ditemukan.");
+		}
+
+		assertOperatorOrgScope(access, targetOrgId);
+
+		const db = getDatabase();
+		if (!db) {
+			return { success: true };
+		}
+
+		const [before] = await db
+			.select()
+			.from(simulations)
+			.where(
+				and(
+					eq(simulations.id, data.scenarioId),
+					isNull(simulations.deletedAt),
+				),
+			)
+			.limit(1);
+
+		if (!before) {
+			throw new Error("Skenario tidak ditemukan.");
+		}
+
+		const updates: Record<string, unknown> = {
+			updatedAt: new Date(),
+		};
+		if (data.name !== undefined) updates.name = data.name.trim();
+		if (data.targetScore !== undefined) updates.targetScore = data.targetScore;
+
+		const [after] = await db
+			.update(simulations)
+			.set(updates)
+			.where(eq(simulations.id, data.scenarioId))
+			.returning();
+
+		// If indicatorScores provided, recalculate breakdown and update scoreSnapshots!
+		if (data.indicatorScores && Object.keys(data.indicatorScores).length > 0) {
+			const weights: Record<string, { weight: number; label: string }> = {
+				dipa_revision: { weight: 10, label: "Revisi DIPA" },
+				rpd_deviation: { weight: 15, label: "Deviasi Halaman III DIPA" },
+				absorption: { weight: 10, label: "Penyerapan Anggaran" },
+				contractual: { weight: 10, label: "Belanja Kontraktual" },
+				invoice_timeliness: { weight: 10, label: "Penyelesaian Tagihan" },
+				up_tup: { weight: 10, label: "Pengelolaan UP dan TUP" },
+				output_achievement: { weight: 25, label: "Capaian Output" },
+				spm_dispensation: { weight: 10, label: "Dispensasi SPM" },
+			};
+
+			let totalWeighted = 0;
+			const indicators = Object.entries(weights).map(([key, meta]) => {
+				const rawScore = Math.min(
+					Math.max(Number(data.indicatorScores?.[key] ?? 100), 0),
+					100,
+				);
+				const contrib = (rawScore * meta.weight) / 100;
+				totalWeighted += contrib;
+				return {
+					key,
+					label: meta.label,
+					weight: `${meta.weight}.00`,
+					score: rawScore.toFixed(2),
+					weightedContribution: contrib.toFixed(2),
+					status: "simulated",
+				};
+			});
+
+			const formattedTotal = totalWeighted.toFixed(2);
+			const breakdownJson = {
+				totalScore: formattedTotal,
+				indicators,
+				dispensationDeduction: "0",
+			};
+
+			const [existingSnap] = await db
+				.select()
+				.from(scoreSnapshots)
+				.where(eq(scoreSnapshots.simulationId, data.scenarioId))
+				.limit(1);
+
+			if (existingSnap) {
+				await db
+					.update(scoreSnapshots)
+					.set({
+						totalScore: formattedTotal,
+						breakdownJson: breakdownJson as never,
+					})
+					.where(eq(scoreSnapshots.id, existingSnap.id));
+			}
+		}
+
+		await writeAudit(db, {
+			actorId:
+				access.status === "operator_single_scope" ||
+				access.status === "operator_multiple_scopes" ||
+				access.status === "admin"
+					? access.userId
+					: targetOrgId,
+			actorAccessType: "operator_satker",
+			entityType: "simulations",
+			entityId: data.scenarioId,
+			action: "update_scenario",
+			beforeJson: before,
+			afterJson: after,
+			orgId: targetOrgId,
+		});
+
+		return { success: true, scenario: after };
 	});
 
 export const duplicateScenarioFn = createServerFn({ method: "POST" })

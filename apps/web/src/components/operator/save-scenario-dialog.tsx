@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { type FormEvent, useState } from "react";
+import { twMerge } from "tailwind-merge";
 import { executeSimulation } from "@/services/simulation-service";
 
 export interface ScenarioOverrideSummary {
@@ -68,7 +69,8 @@ export function SaveScenarioDialog({
 	const navigate = useNavigate();
 
 	const periodLabel = `${MONTH_NAMES[activePeriodMonth - 1] || `Bulan ${activePeriodMonth}`} ${fiscalYear}`;
-	const defaultScenarioName = `Tutup gap via ${indicatorName} — ${periodLabel}`;
+	const [selectedSlot, setSelectedSlot] = useState<"A" | "B" | "C">("A");
+	const defaultScenarioName = `Skenario A: Tutup gap via ${indicatorName}`;
 
 	const [scenarioName, setScenarioName] = useState(defaultScenarioName);
 	const [notes, setNotes] = useState("");
@@ -106,7 +108,9 @@ export function SaveScenarioDialog({
 		try {
 			const res = await executeSimulation({
 				simulationType: "scenario",
-				simulationName: cleanName,
+				simulationName: cleanName.startsWith(`Skenario ${selectedSlot}`)
+					? cleanName
+					: `Skenario ${selectedSlot}: ${cleanName}`,
 				period: { kind: "month", value: activePeriodMonth },
 				targetScore: targetScore.toFixed(2),
 				parentSnapshotId,
@@ -133,6 +137,7 @@ export function SaveScenarioDialog({
 		setSavedResult(null);
 		setError(null);
 		setScenarioName(defaultScenarioName);
+		setSelectedSlot("A");
 		setNotes("");
 		onOpenChange(false);
 	};
@@ -238,6 +243,59 @@ export function SaveScenarioDialog({
 								</div>
 							)}
 
+							{/* Slot Selector */}
+							<div>
+								<div className="flex items-center justify-between">
+									<label className="block text-xs font-semibold text-foreground">
+										Pilih Slot Tujuan Simpan (A, B, atau C) <span className="text-danger">*</span>
+									</label>
+									<span className="text-[10px] font-medium text-muted-foreground">
+										Maks. 3 Skenario
+									</span>
+								</div>
+								<div className="mt-1.5 grid grid-cols-3 gap-2">
+									{(["A", "B", "C"] as const).map((slot) => {
+										const isSelected = selectedSlot === slot;
+										return (
+											<button
+												key={slot}
+												type="button"
+												onClick={() => {
+													setSelectedSlot(slot);
+													setScenarioName(`Skenario ${slot}: Tutup gap via ${indicatorName}`);
+												}}
+												className={twMerge(
+													"flex flex-col items-center justify-center rounded-xl border p-2.5 text-center transition cursor-pointer",
+													isSelected
+														? "border-primary bg-primary/10 text-primary shadow-xs ring-1 ring-primary"
+														: "border-border bg-surface text-muted-foreground hover:border-primary/40 hover:text-foreground",
+												)}
+											>
+												<span
+													className={twMerge(
+														"flex size-6 items-center justify-center rounded-full text-xs font-extrabold",
+														slot === "A" && "bg-blue-500/20 text-blue-600 dark:text-blue-400",
+														slot === "B" && "bg-purple-500/20 text-purple-600 dark:text-purple-400",
+														slot === "C" && "bg-amber-500/20 text-amber-600 dark:text-amber-400",
+													)}
+												>
+													{slot}
+												</span>
+												<span className="mt-1 text-xs font-bold text-foreground">
+													Skenario {slot}
+												</span>
+												<span className="text-[10px] text-muted-foreground">
+													(Timpa Slot)
+												</span>
+											</button>
+										);
+									})}
+								</div>
+								<p className="mt-1.5 text-[11px] text-muted-foreground">
+									💡 Memilih slot akan langsung <strong>menimpa (rewrite)</strong> data pada slot terpilih dengan hasil simulasi indikator yang aktif.
+								</p>
+							</div>
+
 							<div>
 								<label className="block text-xs font-semibold text-foreground">
 									Nama Skenario <span className="text-danger">*</span>
@@ -247,7 +305,7 @@ export function SaveScenarioDialog({
 									required
 									value={scenarioName}
 									onChange={(e) => setScenarioName(e.target.value)}
-									placeholder="Contoh: Tutup gap via Penyerapan Anggaran..."
+									placeholder="Contoh: Skenario A: Tutup gap via Penyerapan Anggaran..."
 									className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
 								/>
 							</div>

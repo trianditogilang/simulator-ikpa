@@ -524,7 +524,7 @@ export async function calculateAndPersistSnapshot(
 	const inputHash = hashInput(engineInput);
 	const periodEnd = `${fy.year}-${String(params.period.value).padStart(2, "0")}-01`;
 
-	// Idempotency: for actual simulations, check if identical snapshot already exists
+	// Idempotency: for actual simulations, check if snapshot already exists for this period
 	if (params.simulationType === "actual") {
 		const existing = await db
 			.select({
@@ -538,16 +538,49 @@ export async function calculateAndPersistSnapshot(
 					eq(simulations.fiscalYearId, fy.id),
 					eq(simulations.type, "actual"),
 					eq(scoreSnapshots.periodEnd, periodEnd),
-					eq(scoreSnapshots.inputHash, inputHash),
 					isNull(simulations.deletedAt),
 				),
 			)
 			.limit(1);
 
 		if (existing.length > 0) {
+			const existingItem = existing[0];
+			// If input hash is identical, return directly without DB write
+			if (existingItem.snapshot.inputHash === inputHash) {
+				return {
+					simulation: existingItem.simulation,
+					snapshot: existingItem.snapshot,
+					output,
+					inputHash,
+					domainCounts: {
+						dipa: revisionRows.length,
+						rpd: rpdRows.length,
+						real: realRows.length,
+						contract: contractRows.length,
+						spmLs: spmLsRows.length,
+						upTup: upTupRows.length,
+						output: outputRows.length,
+						spmQ4: spmQ4Rows.length,
+					},
+				};
+			}
+
+			// If data changed, update existing snapshot in-place (no duplicate rows created!)
+			const [updatedSnapshot] = await db
+				.update(scoreSnapshots)
+				.set({
+					totalScore: output.totalScore,
+					breakdownJson: output as never,
+					ruleSetVersion: ruleSetRow.version,
+					ruleSetId: ruleSetRow.id,
+					inputHash,
+				})
+				.where(eq(scoreSnapshots.id, existingItem.snapshot.id))
+				.returning();
+
 			return {
-				simulation: existing[0].simulation,
-				snapshot: existing[0].snapshot,
+				simulation: existingItem.simulation,
+				snapshot: updatedSnapshot || existingItem.snapshot,
 				output,
 				inputHash,
 				domainCounts: {
@@ -572,6 +605,134 @@ export async function calculateAndPersistSnapshot(
 			throw new Error(
 				"Belum ada asumsi yang berubah. Skenario hanya dapat disimpan setelah Anda mengubah minimal satu asumsi.",
 			);
+		}
+
+		// Detect slot letter A, B, or C from simulation name
+		const slotMatch =
+			params.simulationName?.match(/Skenario\s+([A-C])/i) ||
+			params.simulationName?.match(/^\[([A-C])\]/i) ||
+			params.simulationName?.match(/^([A-C]):/i);
+		const slotLetter = slotMatch ? slotMatch[1].toUpperCase() : null;
+
+		// Check if an existing scenario matches this slot in this fiscal year
+		let existingScenarioSim = null;
+		if (slotLetter) {
+			const candidateSims = await db
+				.select()
+				.from(simulations)
+				.where(
+					and(
+						eq(simulations.fiscalYearId, fy.id),
+						eq(simulations.type, "scenario"),
+						isNull(simulations.deletedAt),
+					),
+				);
+
+			existingScenarioSim =
+				candidateSims.find((s) => {
+					const nameUpper = s.name.toUpperCase();
+					return (
+						nameUpper.includes(`SKENARIO ${slotLetter}`) ||
+						nameUpper.startsWith(`[${slotLetter}]`) ||
+						nameUpper.startsWith(`${slotLetter}:`)
+					);
+				}) || null;
+		}
+
+		// If existing slot scenario exists -> REWRITE in-place!
+		if (existingScenarioSim) {
+			const targetSimId = existingScenarioSim.id;
+
+			// 1. Update simulation metadata
+			const [updatedSim] = await db
+				.update(simulations)
+				.set({
+					name: params.simulationName ?? existingScenarioSim.name,
+					targetScore: params.targetScore ?? existingScenarioSim.targetScore,
+					updatedAt: new Date(),
+				})
+				.where(eq(simulations.id, targetSimId))
+				.returning();
+
+			// 2. Overwrite simulation overrides
+			const { simulationOverrides } = await import("@simulator-ikpa/db/schema");
+			await db
+				.delete(simulationOverrides)
+				.where(eq(simulationOverrides.simulationId, targetSimId));
+
+			if (params.overrides) {
+				for (const [k, v] of Object.entries(params.overrides)) {
+					await db.insert(simulationOverrides).values({
+						simulationId: targetSimId,
+						entityType: k,
+						patchJson: { value: v },
+					});
+				}
+			}
+
+			if (params.assumptions) {
+				await db.insert(simulationOverrides).values({
+					simulationId: targetSimId,
+					entityType: "assumptions",
+					patchJson: params.assumptions as never,
+				});
+			}
+
+			// 3. Update or insert snapshot for this scenario
+			const [existingSnap] = await db
+				.select()
+				.from(scoreSnapshots)
+				.where(eq(scoreSnapshots.simulationId, targetSimId))
+				.limit(1);
+
+			let finalSnapshot = existingSnap;
+			if (existingSnap) {
+				const [updatedSnap] = await db
+					.update(scoreSnapshots)
+					.set({
+						periodEnd,
+						totalScore: output.totalScore,
+						breakdownJson: output as never,
+						ruleSetVersion: ruleSetRow.version,
+						ruleSetId: ruleSetRow.id,
+						inputHash,
+					})
+					.where(eq(scoreSnapshots.id, existingSnap.id))
+					.returning();
+				finalSnapshot = updatedSnap || existingSnap;
+			} else {
+				const [newSnap] = await db
+					.insert(scoreSnapshots)
+					.values({
+						simulationId: targetSimId,
+						periodEnd,
+						totalScore: output.totalScore,
+						breakdownJson: output as never,
+						ruleSetVersion: ruleSetRow.version,
+						ruleSetId: ruleSetRow.id,
+						inputHash,
+						createdBy: meta.actorId,
+					})
+					.returning();
+				finalSnapshot = newSnap;
+			}
+
+			return {
+				simulation: updatedSim || existingScenarioSim,
+				snapshot: finalSnapshot,
+				output,
+				inputHash,
+				domainCounts: {
+					dipa: revisionRows.length,
+					rpd: rpdRows.length,
+					real: realRows.length,
+					contract: contractRows.length,
+					spmLs: spmLsRows.length,
+					upTup: upTupRows.length,
+					output: outputRows.length,
+					spmQ4: spmQ4Rows.length,
+				},
+			};
 		}
 	}
 

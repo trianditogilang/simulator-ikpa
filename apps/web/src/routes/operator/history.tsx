@@ -2,16 +2,13 @@ import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import {
 	AlertCircle,
 	AlertTriangle,
-	ArrowRight,
 	CheckCircle2,
-	Copy,
 	ExternalLink,
 	Eye,
 	GitCompare,
-	History as HistoryIcon,
+	Pencil,
 	Scale,
 	Search,
-	Sparkles,
 	Trash2,
 	X,
 } from "lucide-react";
@@ -26,8 +23,8 @@ import {
 	type HistoryPageData,
 	type SavedScenarioItem,
 	deleteScenario,
-	duplicateScenario,
 	fetchHistoryData,
+	updateScenario,
 } from "@/services/simulation-service";
 
 export const Route = createFileRoute("/operator/history")({
@@ -125,31 +122,102 @@ function OperatorHistoryPage() {
 	// Deletion state
 	const [deletingScenario, setDeletingScenario] = useState<SavedScenarioItem | null>(null);
 	const [isProcessingDelete, setIsProcessingDelete] = useState(false);
+
+	// Editing scenario state
+	const [editingScenario, setEditingScenario] = useState<SavedScenarioItem | null>(null);
+	const [editScenarioName, setEditScenarioName] = useState("");
+	const [editTargetScore, setEditTargetScore] = useState("95.00");
+	const [editIndicatorScores, setEditIndicatorScores] = useState<Record<string, number>>({
+		dipa_revision: 100,
+		rpd_deviation: 100,
+		absorption: 100,
+		contractual: 100,
+		invoice_timeliness: 100,
+		up_tup: 100,
+		output_achievement: 100,
+		spm_dispensation: 100,
+	});
+	const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+	const handleOpenEdit = (sc: SavedScenarioItem) => {
+		setEditingScenario(sc);
+		setEditScenarioName(sc.name);
+		setEditTargetScore(sc.targetScore ? String(sc.targetScore) : "95.00");
+		const breakdownMap = extractBreakdownMap(sc.breakdownJson);
+		const initialScores: Record<string, number> = {};
+		for (const ind of INDICATOR_CANONICAL_ORDER) {
+			const item = breakdownMap.get(ind.key);
+			initialScores[ind.key] = item ? item.rawScore : 100;
+		}
+		setEditIndicatorScores(initialScores);
+	};
+
+	const editCalculatedTotal = useMemo(() => {
+		let sum = 0;
+		for (const ind of INDICATOR_CANONICAL_ORDER) {
+			const raw = editIndicatorScores[ind.key] ?? 100;
+			sum += (raw * ind.weight) / 100;
+		}
+		return sum;
+	}, [editIndicatorScores]);
+
 	const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-	// Filtered lists
-	const filteredSnapshots = useMemo(() => {
-		return data.actualSnapshots.filter((s) => {
-			const matchSearch =
-				search === "" ||
-				s.simulationName.toLowerCase().includes(search.toLowerCase()) ||
-				s.ruleSetVersion.toLowerCase().includes(search.toLowerCase());
-			const matchPeriod = selectedPeriod === "all" || s.month === selectedPeriod;
-			return matchSearch && matchPeriod;
+	// 12-Month structured matrix of actual snapshots (Januari s.d. Desember)
+	const twelveMonthsList = useMemo(() => {
+		return Array.from({ length: 12 }, (_, idx) => {
+			const month = idx + 1;
+			const snap = data.actualSnapshots.find((s) => s.month === month);
+			return {
+				month,
+				monthName: MONTH_NAMES[idx],
+				snapshot: snap || null,
+			};
 		});
-	}, [data.actualSnapshots, search, selectedPeriod]);
+	}, [data.actualSnapshots]);
 
-	const filteredScenarios = useMemo(() => {
-		return data.savedScenarios.filter((s) => {
+	const filteredMonthlyList = useMemo(() => {
+		return twelveMonthsList.filter((m) => {
+			const matchPeriod = selectedPeriod === "all" || m.month === selectedPeriod;
 			const matchSearch =
 				search === "" ||
-				s.name.toLowerCase().includes(search.toLowerCase()) ||
-				s.impactedIndicators.some((i) => i.toLowerCase().includes(search.toLowerCase()));
-			const matchPeriod = selectedPeriod === "all" || s.month === selectedPeriod;
-			return matchSearch && matchPeriod;
+				m.monthName.toLowerCase().includes(search.toLowerCase()) ||
+				(m.snapshot?.ruleSetVersion &&
+					m.snapshot.ruleSetVersion.toLowerCase().includes(search.toLowerCase()));
+			return matchPeriod && matchSearch;
 		});
-	}, [data.savedScenarios, search, selectedPeriod]);
+	}, [twelveMonthsList, selectedPeriod, search]);
+
+	// 3-Slot scenario system (Skenario A, Skenario B, Skenario C)
+	const scenarioSlots = useMemo(() => {
+		const slots: Array<{
+			slot: "A" | "B" | "C";
+			label: string;
+			color: "blue" | "purple" | "amber";
+			scenario: SavedScenarioItem | null;
+		}> = [
+			{ slot: "A", label: "Skenario A", color: "blue", scenario: null },
+			{ slot: "B", label: "Skenario B", color: "purple", scenario: null },
+			{ slot: "C", label: "Skenario C", color: "amber", scenario: null },
+		];
+
+		for (const sc of data.savedScenarios) {
+			const nameUpper = sc.name.toUpperCase();
+			if (nameUpper.includes("SKENARIO A") || nameUpper.startsWith("[A]") || nameUpper.startsWith("A:")) {
+				if (!slots[0].scenario) slots[0].scenario = sc;
+			} else if (nameUpper.includes("SKENARIO B") || nameUpper.startsWith("[B]") || nameUpper.startsWith("B:")) {
+				if (!slots[1].scenario) slots[1].scenario = sc;
+			} else if (nameUpper.includes("SKENARIO C") || nameUpper.startsWith("[C]") || nameUpper.startsWith("C:")) {
+				if (!slots[2].scenario) slots[2].scenario = sc;
+			} else {
+				const empty = slots.find((s) => s.scenario === null);
+				if (empty) empty.scenario = sc;
+			}
+		}
+
+		return slots;
+	}, [data.savedScenarios]);
 
 	// All selectable items map for comparison
 	const allItemsMap = useMemo(() => {
@@ -223,19 +291,6 @@ function OperatorHistoryPage() {
 		return selectedCompareItems.some((i) => i.ruleSetVersion !== firstVersion);
 	}, [selectedCompareItems]);
 
-	const handleDuplicate = async (scenario: SavedScenarioItem) => {
-		setFeedbackMessage(null);
-		setErrorMessage(null);
-		try {
-			await duplicateScenario(scenario.id, `Salinan ${scenario.name}`);
-			setFeedbackMessage(`Skenario "${scenario.name}" berhasil diduplikasi.`);
-			await router.invalidate();
-			setTimeout(() => setFeedbackMessage(null), 4000);
-		} catch (err: unknown) {
-			setErrorMessage(err instanceof Error ? err.message : "Gagal menduplikasi skenario.");
-		}
-	};
-
 	const handleDeleteConfirm = async () => {
 		if (!deletingScenario) return;
 		setIsProcessingDelete(true);
@@ -254,26 +309,34 @@ function OperatorHistoryPage() {
 		}
 	};
 
+	const handleSaveEdit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!editingScenario) return;
+		setIsSavingEdit(true);
+		setFeedbackMessage(null);
+		setErrorMessage(null);
+		try {
+			await updateScenario(editingScenario.id, {
+				name: editScenarioName,
+				targetScore: editTargetScore,
+				indicatorScores: editIndicatorScores,
+			});
+			setFeedbackMessage(`Skenario "${editScenarioName}" berhasil diperbarui.`);
+			setEditingScenario(null);
+			await router.invalidate();
+			setTimeout(() => setFeedbackMessage(null), 4000);
+		} catch (err: unknown) {
+			setErrorMessage(err instanceof Error ? err.message : "Gagal memperbarui skenario.");
+		} finally {
+			setIsSavingEdit(false);
+		}
+	};
+
 	return (
 		<OperatorShell currentPath="/operator/history">
 			<div className="space-y-6">
-				{/* Top Header Banner */}
-				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-border bg-surface p-5 shadow-xs">
-					<div className="flex items-center gap-3">
-						<div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-							<HistoryIcon className="size-5" />
-						</div>
-						<div>
-							<h1 className="text-lg font-bold text-foreground sm:text-xl">
-								Riwayat &amp; Skenario IKPA
-							</h1>
-							<p className="text-xs text-muted-foreground">
-								Penyimpanan snapshot aktual, skenario simulasi lokal, dan perbandingan performa IKPA.
-							</p>
-						</div>
-					</div>
-
-					{/* 3-Tab Selector Buttons */}
+				{/* Top Clean Tab Toolbar */}
+				<div className="flex flex-wrap items-center justify-between gap-3">
 					<div className="flex items-center gap-1 rounded-xl bg-surface-muted p-1 border border-border/80">
 						<button
 							type="button"
@@ -285,7 +348,7 @@ function OperatorHistoryPage() {
 									: "text-muted-foreground hover:text-foreground",
 							)}
 						>
-							Snapshot Aktual ({data.actualSnapshots.length})
+							Evaluasi Bulanan (12 Bulan)
 						</button>
 						<button
 							type="button"
@@ -297,7 +360,7 @@ function OperatorHistoryPage() {
 									: "text-muted-foreground hover:text-foreground",
 							)}
 						>
-							Skenario Tersimpan ({data.savedScenarios.length})
+							Skenario Simulasi (Slot A, B, C)
 						</button>
 						<button
 							type="button"
@@ -376,106 +439,134 @@ function OperatorHistoryPage() {
 					</div>
 				)}
 
-				{/* TAB 1: SNAPSHOT AKTUAL */}
+				{/* TAB 1: EVALUASI BULANAN (Matriks 12 Bulan TA 2026) */}
 				{activeTab === "snapshots" && (
-					<div>
-						{filteredSnapshots.length === 0 ? (
-							<div className="rounded-2xl border border-border bg-background p-8 text-center shadow-xs">
-								<HistoryIcon className="mx-auto size-10 text-muted-foreground/50" />
-								<h3 className="mt-3 text-sm font-bold text-foreground">
-									Belum Ada Snapshot Aktual Tersimpan
-								</h3>
-								<p className="mt-1 text-xs text-muted-foreground max-w-md mx-auto">
-									Snapshot aktual akan terbentuk secara idempoten saat data indikator telah diinput dan dihitung di Dashboard atau Menu Indikator.
+					<div className="space-y-4">
+						<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between rounded-xl bg-surface p-3.5 border border-border text-xs">
+							<div>
+								<span className="font-bold text-foreground">
+									Evaluasi Kinerja Aktual 12 Bulan (Tahun Anggaran 2026)
+								</span>
+								<p className="text-[11px] text-muted-foreground">
+									Rekapitulasi nilai IKPA kumulatif per akhir bulan evaluasi (YTD). Data bersih, akurat, dan sinkron dengan kalkulasi resmi.
 								</p>
-								<button
-									type="button"
-									onClick={() => navigate({ to: "/operator/dashboard" as never })}
-									className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary-hover"
-								>
-									<span>Buka Dashboard IKPA</span>
-									<ArrowRight className="size-3.5" />
-								</button>
 							</div>
-						) : (
-							<div className="overflow-x-auto rounded-2xl border border-border bg-background shadow-xs">
-								<table className="w-full text-left text-xs">
-									<thead className="border-b border-border/80 bg-surface-muted/60 text-muted-foreground">
-										<tr>
-											<th className="px-4 py-3 font-semibold text-center w-12">Pilih</th>
-											<th className="px-4 py-3 font-semibold">Periode Evaluasi</th>
-											<th className="px-4 py-3 font-semibold">Nilai IKPA</th>
-											<th className="px-4 py-3 font-semibold">Target &amp; Gap</th>
-											<th className="px-4 py-3 font-semibold">Status Data</th>
-											<th className="px-4 py-3 font-semibold">Rule Set</th>
-											<th className="px-4 py-3 font-semibold">Waktu Pembuatan</th>
-											<th className="px-4 py-3 font-semibold text-right">Aksi</th>
-										</tr>
-									</thead>
-									<tbody className="divide-y divide-border/60 text-foreground">
-										{filteredSnapshots.map((s) => {
-											const isSelected = selectedItemIds.includes(s.id);
-											return (
-												<tr
-													key={s.id}
-													className={twMerge(
-														"transition hover:bg-surface-muted/40",
-														isSelected && "bg-primary/[0.03]",
-													)}
-												>
-													<td className="px-4 py-3 text-center">
+							<span className="shrink-0 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+								12 Periode Evaluasi
+							</span>
+						</div>
+
+						<div className="overflow-x-auto rounded-2xl border border-border bg-background shadow-xs">
+							<table className="w-full text-left text-xs">
+								<thead className="border-b border-border/80 bg-surface-muted/60 text-muted-foreground">
+									<tr>
+										<th className="px-4 py-3 font-semibold text-center w-12">Pilih</th>
+										<th className="px-4 py-3 font-semibold">Bulan Evaluasi</th>
+										<th className="px-4 py-3 font-semibold">Nilai Total IKPA</th>
+										<th className="px-4 py-3 font-semibold">Target &amp; Gap</th>
+										<th className="px-4 py-3 font-semibold">Status Data</th>
+										<th className="px-4 py-3 font-semibold">Rule Set</th>
+										<th className="px-4 py-3 font-semibold">Terakhir Dihitung</th>
+										<th className="px-4 py-3 font-semibold text-right">Aksi</th>
+									</tr>
+								</thead>
+								<tbody className="divide-y divide-border/60 text-foreground">
+									{filteredMonthlyList.map((m) => {
+										const s = m.snapshot;
+										const isEvaluated = s !== null && s.totalScore !== null;
+										const isSelected = s ? selectedItemIds.includes(s.id) : false;
+
+										return (
+											<tr
+												key={m.month}
+												className={twMerge(
+													"transition hover:bg-surface-muted/40",
+													isSelected && "bg-primary/[0.03]",
+													!isEvaluated && "opacity-75",
+												)}
+											>
+												<td className="px-4 py-3 text-center">
+													{isEvaluated && s ? (
 														<input
 															type="checkbox"
 															checked={isSelected}
 															onChange={() => toggleSelectForCompare(s.id)}
-															aria-label={`Pilih ${s.simulationName}`}
-															className="size-4 rounded border-border text-primary focus:ring-primary"
+															aria-label={`Pilih Bulan ${m.monthName}`}
+															className="size-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
 														/>
-													</td>
-													<td className="px-4 py-3 font-semibold">
-														<div>
-															<span>{MONTH_NAMES[s.month - 1] || `Bulan ${s.month}`}</span>
-															<p className="text-[11px] text-muted-foreground font-normal">
-																{s.periodEnd}
-															</p>
-														</div>
-													</td>
-													<td className="px-4 py-3 font-bold text-sm">
-														{s.totalScore !== null ? formatNumber(s.totalScore) : "—"}
-													</td>
-													<td className="px-4 py-3">
-														<span className="text-muted-foreground">
-															{formatNumber(s.targetScore)}
+													) : (
+														<span className="text-muted-foreground/40">—</span>
+													)}
+												</td>
+												<td className="px-4 py-3 font-semibold">
+													<div>
+														<span className="text-foreground">
+															Bulan {m.month} — {m.monthName}
 														</span>
-														<span
-															className={twMerge(
-																"ml-1.5 font-semibold",
-																s.gapScore !== null && s.gapScore >= 0
-																	? "text-success"
-																	: "text-danger",
-															)}
-														>
-															({s.gapScore !== null ? formatPointDelta(s.gapScore) : "—"})
+														<p className="text-[11px] text-muted-foreground font-normal">
+															Akumulasi s.d. 30/31 {m.monthName} 2026
+														</p>
+													</div>
+												</td>
+												<td className="px-4 py-3 font-bold text-sm">
+													{isEvaluated && s?.totalScore !== null ? (
+														<span className="text-foreground font-extrabold text-primary">
+															{formatNumber(s.totalScore)}
 														</span>
-													</td>
-													<td className="px-4 py-3">
+													) : (
+														<span className="text-muted-foreground font-normal">—</span>
+													)}
+												</td>
+												<td className="px-4 py-3">
+													{isEvaluated && s ? (
+														<>
+															<span className="text-muted-foreground">
+																{formatNumber(s.targetScore)}
+															</span>
+															<span
+																className={twMerge(
+																	"ml-1.5 font-semibold",
+																	s.gapScore !== null && s.gapScore >= 0
+																		? "text-success"
+																		: "text-danger",
+																)}
+															>
+																({s.gapScore !== null ? formatPointDelta(s.gapScore) : "—"})
+															</span>
+														</>
+													) : (
+														<span className="text-muted-foreground">95,00</span>
+													)}
+												</td>
+												<td className="px-4 py-3">
+													{isEvaluated ? (
 														<span className="rounded-md bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
-															Lengkap
+															Lengkap (YTD)
 														</span>
-													</td>
-													<td className="px-4 py-3 text-muted-foreground font-mono text-[11px]">
-														{s.ruleSetVersion}
-													</td>
-													<td className="px-4 py-3 text-muted-foreground text-[11px]">
-														{new Date(s.createdAt).toLocaleDateString("id-ID", {
+													) : (
+														<span className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+															Belum Terevaluasi
+														</span>
+													)}
+												</td>
+												<td className="px-4 py-3 text-muted-foreground font-mono text-[11px]">
+													{s?.ruleSetVersion || "2026.1"}
+												</td>
+												<td className="px-4 py-3 text-muted-foreground text-[11px]">
+													{s?.createdAt ? (
+														new Date(s.createdAt).toLocaleDateString("id-ID", {
 															day: "numeric",
 															month: "short",
 															year: "numeric",
 															hour: "2-digit",
 															minute: "2-digit",
-														})}
-													</td>
-													<td className="px-4 py-3 text-right">
+														})
+													) : (
+														"—"
+													)}
+												</td>
+												<td className="px-4 py-3 text-right">
+													{isEvaluated && s ? (
 														<div className="flex items-center justify-end gap-1.5">
 															<button
 																type="button"
@@ -496,203 +587,235 @@ function OperatorHistoryPage() {
 																Bandingkan
 															</button>
 														</div>
-													</td>
-												</tr>
-											);
-										})}
-									</tbody>
-								</table>
-							</div>
-						)}
+													) : (
+														<button
+															type="button"
+															onClick={() => navigate({ to: "/operator/dashboard" as never })}
+															className="rounded-lg border border-border/70 bg-surface px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-primary hover:border-primary/40 transition"
+														>
+															Hitung di Dashboard →
+														</button>
+													)}
+												</td>
+											</tr>
+										);
+									})}
+								</tbody>
+							</table>
+						</div>
 					</div>
 				)}
 
-				{/* TAB 2: SKENARIO TERSIMPAN */}
+				{/* TAB 2: SKENARIO TERSIMPAN (Sistem 3 Slot: Skenario A, B, C) */}
 				{activeTab === "scenarios" && (
-					<div>
-						{filteredScenarios.length === 0 ? (
-							<div className="rounded-2xl border border-dashed border-border bg-background p-8 text-center shadow-xs">
-								<Sparkles className="mx-auto size-10 text-muted-foreground/50" />
-								<h3 className="mt-3 text-sm font-bold text-foreground">
-									Belum Ada Skenario Tersimpan
-								</h3>
-								<p className="mt-1 text-xs text-muted-foreground max-w-md mx-auto">
-									Buat skenario dari masing-masing menu indikator dengan mengaktifkan mode Simulasi Lokal, mengubah asumsi, lalu klik &quot;Simpan sebagai Skenario&quot;.
+					<div className="space-y-4">
+						{/* Slot Overview Banner */}
+						<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between rounded-xl bg-surface p-3.5 border border-border text-xs">
+							<div>
+								<span className="font-bold text-foreground">
+									Skenario Simulasi What-If (Slot A, B, dan C)
+								</span>
+								<p className="text-[11px] text-muted-foreground">
+									Slot skenario What-If lokal yang siap diedit, dibandingkan, atau ditimpa (rewrite) langsung dari simulasi indikator.
 								</p>
-								<div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-									<button
-										type="button"
-										onClick={() => navigate({ to: "/operator/penyerapan" as never })}
-										className="rounded-xl border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-surface-muted transition"
-									>
-										Penyerapan Anggaran
-									</button>
-									<button
-										type="button"
-										onClick={() => navigate({ to: "/operator/deviasi" as never })}
-										className="rounded-xl border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-surface-muted transition"
-									>
-										Deviasi Halaman III
-									</button>
-									<button
-										type="button"
-										onClick={() => navigate({ to: "/operator/up-tup" as never })}
-										className="rounded-xl border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-surface-muted transition"
-									>
-										UP/TUP &amp; KKP
-									</button>
-									<button
-										type="button"
-										onClick={() => navigate({ to: "/operator/data/contracts-invoices?tab=invoices" as never })}
-										className="rounded-xl border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-surface-muted transition"
-									>
-										Penyelesaian Tagihan
-									</button>
-								</div>
 							</div>
-						) : (
-							<div className="overflow-x-auto rounded-2xl border border-border bg-background shadow-xs">
-								<table className="w-full text-left text-xs">
-									<thead className="border-b border-border/80 bg-surface-muted/60 text-muted-foreground">
-										<tr>
-											<th className="px-4 py-3 font-semibold text-center w-12">Pilih</th>
-											<th className="px-4 py-3 font-semibold">Nama Skenario</th>
-											<th className="px-4 py-3 font-semibold">Periode</th>
-											<th className="px-4 py-3 font-semibold">Hasil IKPA</th>
-											<th className="px-4 py-3 font-semibold">Δ vs Baseline</th>
-											<th className="px-4 py-3 font-semibold">Indikator Terdampak</th>
-											<th className="px-4 py-3 font-semibold">Jumlah Asumsi</th>
-											<th className="px-4 py-3 font-semibold">Waktu</th>
-											<th className="px-4 py-3 font-semibold text-right">Aksi</th>
-										</tr>
-									</thead>
-									<tbody className="divide-y divide-border/60 text-foreground">
-										{filteredScenarios.map((sc) => {
-											const isSelected = selectedItemIds.includes(sc.id);
-											return (
-												<tr
-													key={sc.id}
+							<span className="shrink-0 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+								Maks. 3 Skenario
+							</span>
+						</div>
+
+						{/* 3 Scenario Cards Grid */}
+						<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+							{scenarioSlots.map((item) => {
+								const sc = item.scenario;
+								const isSelected = sc ? selectedItemIds.includes(sc.id) : false;
+
+								if (!sc) {
+									return (
+										<div
+											key={item.slot}
+											className="flex flex-col justify-between rounded-2xl border border-dashed border-border bg-background p-5 text-center shadow-xs"
+										>
+											<div>
+												<div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-muted text-muted-foreground font-bold">
+													{item.slot}
+												</div>
+												<h3 className="mt-3 text-sm font-bold text-foreground">
+													{item.label} (Kosong)
+												</h3>
+												<p className="mt-1 text-xs text-muted-foreground">
+													Belum ada simulasi What-If yang disimpan di slot ini.
+												</p>
+											</div>
+
+											<div className="mt-5 space-y-1.5 border-t border-border/60 pt-4 text-left">
+												<p className="text-[11px] font-semibold text-muted-foreground">
+													Uji coba What-If dari menu:
+												</p>
+												<div className="grid grid-cols-2 gap-1.5">
+													<button
+														type="button"
+														onClick={() => navigate({ to: "/operator/deviasi" as never })}
+														className="rounded-lg border border-border bg-surface px-2 py-1 text-[11px] font-semibold text-foreground hover:bg-surface-muted text-center transition"
+													>
+														Deviasi Hal III
+													</button>
+													<button
+														type="button"
+														onClick={() => navigate({ to: "/operator/penyerapan" as never })}
+														className="rounded-lg border border-border bg-surface px-2 py-1 text-[11px] font-semibold text-foreground hover:bg-surface-muted text-center transition"
+													>
+														Penyerapan
+													</button>
+													<button
+														type="button"
+														onClick={() => navigate({ to: "/operator/up-tup" as never })}
+														className="rounded-lg border border-border bg-surface px-2 py-1 text-[11px] font-semibold text-foreground hover:bg-surface-muted text-center transition"
+													>
+														UP/TUP &amp; KKP
+													</button>
+													<button
+														type="button"
+														onClick={() => navigate({ to: "/operator/data/output-achievement" as never })}
+														className="rounded-lg border border-border bg-surface px-2 py-1 text-[11px] font-semibold text-foreground hover:bg-surface-muted text-center transition"
+													>
+														Capaian Output
+													</button>
+												</div>
+											</div>
+										</div>
+									);
+								}
+
+								return (
+									<div
+										key={item.slot}
+										className={twMerge(
+											"flex flex-col justify-between rounded-2xl border bg-background p-5 shadow-xs transition hover:shadow-sm",
+											isSelected ? "border-primary ring-1 ring-primary/40 bg-primary/[0.01]" : "border-border",
+										)}
+									>
+										<div className="space-y-3">
+											<div className="flex items-center justify-between">
+												<span
 													className={twMerge(
-														"transition hover:bg-surface-muted/40",
-														isSelected && "bg-primary/[0.03]",
+														"rounded-md px-2.5 py-0.5 text-xs font-bold",
+														item.slot === "A" && "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+														item.slot === "B" && "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+														item.slot === "C" && "bg-amber-500/10 text-amber-600 dark:text-amber-400",
 													)}
 												>
-													<td className="px-4 py-3 text-center">
-														<input
-															type="checkbox"
-															checked={isSelected}
-															onChange={() => toggleSelectForCompare(sc.id)}
-															aria-label={`Pilih ${sc.name}`}
-															className="size-4 rounded border-border text-primary focus:ring-primary"
-														/>
-													</td>
-													<td className="px-4 py-3 font-semibold">
-														<span className="text-foreground">{sc.name}</span>
-														<p className="text-[10px] text-muted-foreground font-mono">
-															ID: {sc.id.slice(0, 8)}…
-														</p>
-													</td>
-													<td className="px-4 py-3 text-muted-foreground">
-														{MONTH_NAMES[sc.month - 1] || `Bulan ${sc.month}`}
-													</td>
-													<td className="px-4 py-3 font-bold text-sm text-foreground">
+													Slot {item.slot}
+												</span>
+												<span className="text-[11px] text-muted-foreground font-medium">
+													{MONTH_NAMES[sc.month - 1] || `Bulan ${sc.month}`} 2026
+												</span>
+											</div>
+
+											<div>
+												<h4 className="text-sm font-bold text-foreground">
+													{sc.name}
+												</h4>
+												<p className="mt-0.5 text-[11px] text-muted-foreground line-clamp-2">
+													{sc.overridesCount} asumsi diubah · Rule set {sc.ruleSetVersion}
+												</p>
+											</div>
+
+											{/* Score Box */}
+											<div className="rounded-xl border border-border/80 bg-surface p-3">
+												<div className="flex items-baseline justify-between">
+													<span className="text-[11px] text-muted-foreground font-medium">
+														Hasil Estimasi IKPA:
+													</span>
+													<strong className="text-base font-bold text-foreground">
 														{sc.totalScore !== null ? formatNumber(sc.totalScore) : "—"}
-													</td>
-													<td className="px-4 py-3">
-														{sc.deltaFromBaseline !== null && sc.deltaFromBaseline !== undefined ? (
-															<span
-																className={twMerge(
-																	"font-semibold",
-																	sc.deltaFromBaseline >= 0
-																		? "text-success"
-																		: "text-danger",
-																)}
-															>
-																{sc.deltaFromBaseline >= 0 ? "+" : ""}
-																{formatNumber(sc.deltaFromBaseline)} pts
-															</span>
-														) : (
-															<span className="text-muted-foreground">—</span>
-														)}
-													</td>
-													<td className="px-4 py-3">
-														<div className="flex flex-wrap gap-1">
-															{sc.impactedIndicators.length > 0 ? (
-																sc.impactedIndicators.map((indKey) => {
-																	const info = resolveIndicatorRoute(indKey);
-																	return (
-																		<span
-																			key={indKey}
-																			className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary"
-																		>
-																			{info?.label || indKey}
-																		</span>
-																	);
-																})
-															) : (
-																<span className="text-muted-foreground text-[11px]">
-																	Asumsi Umum
+													</strong>
+												</div>
+												{sc.deltaFromBaseline !== null && sc.deltaFromBaseline !== undefined && (
+													<p className="mt-1 text-[11px] font-semibold text-success">
+														▲ {sc.deltaFromBaseline >= 0 ? "+" : ""}
+														{formatNumber(sc.deltaFromBaseline)} pts vs baseline aktual
+													</p>
+												)}
+											</div>
+
+											{/* Impacted Indicators */}
+											<div className="space-y-1">
+												<span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+													Indikator Terdampak:
+												</span>
+												<div className="flex flex-wrap gap-1">
+													{sc.impactedIndicators.length > 0 ? (
+														sc.impactedIndicators.map((indKey) => {
+															const info = resolveIndicatorRoute(indKey);
+															return (
+																<span
+																	key={indKey}
+																	className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary"
+																>
+																	{info?.label || indKey}
 																</span>
-															)}
-														</div>
-													</td>
-													<td className="px-4 py-3 text-muted-foreground">
-														{sc.overridesCount} Asumsi
-													</td>
-													<td className="px-4 py-3 text-muted-foreground text-[11px]">
-														{new Date(sc.createdAt).toLocaleDateString("id-ID", {
-															day: "numeric",
-															month: "short",
-															hour: "2-digit",
-															minute: "2-digit",
-														})}
-													</td>
-													<td className="px-4 py-3 text-right">
-														<div className="flex items-center justify-end gap-1">
-															<button
-																type="button"
-																onClick={() => setInspectItem(sc)}
-																title="Lihat Rincian Skenario"
-																className="rounded-lg border border-border bg-surface p-1.5 text-muted-foreground hover:text-foreground hover:bg-surface-muted transition"
-															>
-																<Eye className="size-3.5" />
-															</button>
-															<button
-																type="button"
-																onClick={() => {
-																	toggleSelectForCompare(sc.id);
-																	setActiveTab("compare");
-																}}
-																title="Bandingkan Skenario"
-																className="rounded-lg bg-primary/10 p-1.5 text-primary hover:bg-primary/20 transition"
-															>
-																<GitCompare className="size-3.5" />
-															</button>
-															<button
-																type="button"
-																onClick={() => handleDuplicate(sc)}
-																title="Duplikasi Skenario"
-																className="rounded-lg border border-border bg-surface p-1.5 text-muted-foreground hover:text-foreground hover:bg-surface-muted transition"
-															>
-																<Copy className="size-3.5" />
-															</button>
-															<button
-																type="button"
-																onClick={() => setDeletingScenario(sc)}
-																title="Hapus Skenario"
-																className="rounded-lg border border-danger/20 bg-danger/5 p-1.5 text-danger hover:bg-danger/10 transition"
-															>
-																<Trash2 className="size-3.5" />
-															</button>
-														</div>
-													</td>
-												</tr>
-											);
-										})}
-									</tbody>
-								</table>
-							</div>
-						)}
+															);
+														})
+													) : (
+														<span className="text-[11px] text-muted-foreground">
+															Asumsi Terbobot
+														</span>
+													)}
+												</div>
+											</div>
+										</div>
+
+										{/* Card Footer Actions */}
+										<div className="mt-4 border-t border-border/60 pt-3 flex items-center justify-between gap-1.5">
+											<div className="flex items-center gap-1.5">
+												<button
+													type="button"
+													onClick={() => handleOpenEdit(sc)}
+													title="Ubah Nama, Target & Nilai Indikator"
+													className="rounded-lg border border-border bg-surface p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition"
+												>
+													<Pencil className="size-4" />
+												</button>
+												<button
+													type="button"
+													onClick={() => setInspectItem(sc)}
+													title="Lihat Detail Skenario"
+													className="rounded-lg border border-border bg-surface p-1.5 text-muted-foreground hover:text-foreground hover:bg-surface-muted transition"
+												>
+													<Eye className="size-4" />
+												</button>
+												<button
+													type="button"
+													onClick={() => setDeletingScenario(sc)}
+													title="Hapus / Kosongkan Slot"
+													className="rounded-lg border border-border bg-surface p-1.5 text-muted-foreground hover:text-danger hover:bg-danger/10 hover:border-danger/30 transition"
+												>
+													<Trash2 className="size-4" />
+												</button>
+											</div>
+
+											<button
+												type="button"
+												onClick={() => {
+													toggleSelectForCompare(sc.id);
+													setActiveTab("compare");
+												}}
+												className={twMerge(
+													"flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition",
+													isSelected
+														? "bg-primary text-primary-foreground"
+														: "bg-primary/10 text-primary hover:bg-primary/20",
+												)}
+											>
+												<GitCompare className="size-3.5" />
+												<span>{isSelected ? "Terpilih" : "Bandingkan"}</span>
+											</button>
+										</div>
+									</div>
+								);
+							})}
+						</div>
 					</div>
 				)}
 
@@ -1014,30 +1137,6 @@ function OperatorHistoryPage() {
 											</div>
 										</div>
 
-										{/* Overrides / Asumsi List (for Scenario) */}
-										{isScenario && inspectItem.overrides && inspectItem.overrides.length > 0 && (
-											<div className="space-y-2">
-												<h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
-													Daftar Asumsi &amp; Overrides
-												</h4>
-												<div className="space-y-1.5">
-													{inspectItem.overrides.map((ov, idx) => (
-														<div
-															key={idx}
-															className="rounded-xl border border-border/70 bg-surface p-3 text-xs"
-														>
-															<span className="font-semibold text-primary">
-																{ov.entityType}
-															</span>
-															<pre className="mt-1 max-h-24 overflow-x-auto text-[11px] text-muted-foreground font-mono">
-																{JSON.stringify(ov.patchJson, null, 2)}
-															</pre>
-														</div>
-													))}
-												</div>
-											</div>
-										)}
-
 										{/* Breakdown 8 Indikator */}
 										<div className="space-y-2">
 											<h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
@@ -1163,6 +1262,211 @@ function OperatorHistoryPage() {
 										</button>
 									</div>
 								</div>
+							)}
+						</Dialog.Content>
+					</Dialog.Portal>
+				</Dialog.Root>
+
+				{/* EDIT SCENARIO MODAL */}
+				<Dialog.Root open={Boolean(editingScenario)} onOpenChange={(open) => !open && setEditingScenario(null)}>
+					<Dialog.Portal>
+						<Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-xs" />
+						<Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[95vw] max-w-xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-background p-6 shadow-2xl outline-none max-h-[88dvh] overflow-y-auto">
+							{editingScenario && (
+								<form onSubmit={handleSaveEdit} className="space-y-4">
+									<div className="flex items-center justify-between border-b border-border/80 pb-3">
+										<div className="flex items-center gap-2.5">
+											<div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+												<Pencil className="size-4" />
+											</div>
+											<div>
+												<Dialog.Title className="text-sm font-bold text-foreground sm:text-base">
+													Edit Skenario &amp; Nilai Indikator
+												</Dialog.Title>
+												<p className="text-[11px] text-muted-foreground">
+													Ubah nama, target, atau sesuaikan langsung estimasi nominal/skor 8 indikator IKPA.
+												</p>
+											</div>
+										</div>
+										<Dialog.Close asChild>
+											<button
+												type="button"
+												className="rounded-lg p-1.5 text-muted-foreground hover:bg-surface-muted hover:text-foreground"
+											>
+												<X className="size-4" />
+											</button>
+										</Dialog.Close>
+									</div>
+
+									<div className="space-y-3">
+										<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+											<div className="sm:col-span-2">
+												<label htmlFor="edit-scenario-name" className="block text-xs font-semibold text-foreground">
+													Nama Skenario <span className="text-danger">*</span>
+												</label>
+												<input
+													id="edit-scenario-name"
+													type="text"
+													value={editScenarioName}
+													onChange={(e) => setEditScenarioName(e.target.value)}
+													placeholder="Contoh: Skenario A: Optimalisasi RPD"
+													className="mt-1 w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+													required
+												/>
+											</div>
+
+											<div>
+												<label htmlFor="edit-scenario-target" className="block text-xs font-semibold text-foreground">
+													Target Nilai IKPA
+												</label>
+												<input
+													id="edit-scenario-target"
+													type="number"
+													step="0.01"
+													min="0"
+													max="100"
+													value={editTargetScore}
+													onChange={(e) => setEditTargetScore(e.target.value)}
+													className="mt-1 w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+												/>
+											</div>
+										</div>
+
+										{/* Total Recalculated Score Banner */}
+										<div className="flex items-center justify-between rounded-xl bg-primary/10 border border-primary/20 p-3 text-xs">
+											<div>
+												<span className="font-bold text-primary">
+													Estimasi Total Nilai IKPA Terbobot
+												</span>
+												<p className="text-[11px] text-muted-foreground">
+													Dihitung otomatis dari akumulasi bobot resmi 8 indikator di bawah
+												</p>
+											</div>
+											<div className="text-right">
+												<strong className="text-lg font-extrabold text-primary">
+													{formatNumber(editCalculatedTotal)}
+												</strong>
+												<span className="text-[10px] text-muted-foreground block">
+													dari 100.00 poin
+												</span>
+											</div>
+										</div>
+
+										{/* 8 Indicators Value Editor Grid */}
+										<div>
+											<label className="block text-xs font-semibold text-foreground mb-1.5">
+												Penyesuaian Skor Nilai per Indikator (0 s.d. 100):
+											</label>
+											<div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto rounded-xl border border-border/70 bg-surface p-2.5">
+												{INDICATOR_CANONICAL_ORDER.map((ind) => {
+													const currentVal = editIndicatorScores[ind.key] ?? 100;
+													const contrib = (currentVal * ind.weight) / 100;
+													return (
+														<div
+															key={ind.key}
+															className="flex items-center justify-between rounded-lg border border-border/60 bg-background p-2 text-xs"
+														>
+															<div className="min-w-0 pr-2">
+																<p className="font-semibold text-foreground truncate text-[11px]">
+																	{ind.label}
+																</p>
+																<span className="text-[10px] text-muted-foreground">
+																	Bobot: {ind.weight}% · Poin: {formatNumber(contrib)} pts
+																</span>
+															</div>
+															<div className="flex items-center gap-1 shrink-0">
+																<input
+																	type="number"
+																	min="0"
+																	max="100"
+																	step="0.1"
+																	value={currentVal}
+																	onChange={(e) => {
+																		const val = parseFloat(e.target.value) || 0;
+																		setEditIndicatorScores((prev) => ({
+																			...prev,
+																			[ind.key]: Math.min(Math.max(val, 0), 100),
+																		}));
+																	}}
+																	aria-label={`Skor ${ind.label}`}
+																	className="w-16 rounded-lg border border-border bg-surface px-2 py-1 text-right text-xs font-bold text-foreground focus:border-primary focus:outline-none"
+																/>
+															</div>
+														</div>
+													);
+												})}
+											</div>
+										</div>
+
+										{/* Quick Jump to Instruments */}
+										<div className="rounded-xl border border-border/80 bg-surface p-3 text-xs space-y-2">
+											<p className="font-semibold text-foreground">
+												Atau Buka Langsung Menu Workspace Indikator:
+											</p>
+											<div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1">
+												<button
+													type="button"
+													onClick={() => {
+														setEditingScenario(null);
+														navigate({ to: "/operator/deviasi" as never });
+													}}
+													className="rounded-lg border border-border bg-background px-2 py-1.5 text-[11px] font-semibold text-foreground hover:bg-surface-muted transition text-center"
+												>
+													Deviasi Hal III
+												</button>
+												<button
+													type="button"
+													onClick={() => {
+														setEditingScenario(null);
+														navigate({ to: "/operator/penyerapan" as never });
+													}}
+													className="rounded-lg border border-border bg-background px-2 py-1.5 text-[11px] font-semibold text-foreground hover:bg-surface-muted transition text-center"
+												>
+													Penyerapan
+												</button>
+												<button
+													type="button"
+													onClick={() => {
+														setEditingScenario(null);
+														navigate({ to: "/operator/up-tup" as never });
+													}}
+													className="rounded-lg border border-border bg-background px-2 py-1.5 text-[11px] font-semibold text-foreground hover:bg-surface-muted transition text-center"
+												>
+													UP/TUP &amp; KKP
+												</button>
+												<button
+													type="button"
+													onClick={() => {
+														setEditingScenario(null);
+														navigate({ to: "/operator/data/output-achievement" as never });
+													}}
+													className="rounded-lg border border-border bg-background px-2 py-1.5 text-[11px] font-semibold text-foreground hover:bg-surface-muted transition text-center"
+												>
+													Capaian Output
+												</button>
+											</div>
+										</div>
+									</div>
+
+									<div className="flex items-center justify-end gap-2 border-t border-border/80 pt-3">
+										<Dialog.Close asChild>
+											<button
+												type="button"
+												disabled={isSavingEdit}
+												className="rounded-xl border border-border bg-surface px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-surface-muted transition"
+											>
+												Batal
+											</button>
+										</Dialog.Close>
+										<button
+											type="submit"
+											disabled={isSavingEdit}
+											className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary-hover transition disabled:opacity-50"
+										>
+											{isSavingEdit ? "Menyimpan..." : "Simpan Perubahan"}
+										</button>
+									</div>
+								</form>
 							)}
 						</Dialog.Content>
 					</Dialog.Portal>

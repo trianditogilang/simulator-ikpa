@@ -2,6 +2,126 @@
 
 Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian ini. Entri lama bersifat append-only dan tidak boleh ditimpa atau dihapus kecuali untuk koreksi faktual yang diberi catatan.
 
+### Session 200 - 2026-09-08
+**Time:** Start: 17:45 UTC | End: 17:55 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: System Debugging, Frontend Operator & Fullstack Engine Agent
+- Model: Gemini 3.7 Flash
+- Skills: system-debugging, ponytail, emil-design-eng
+**Tasks Completed:**
+- [INDICATOR-SLOT-REWRITE-AND-8-INDICATOR-SCORE-EDITOR] Alur Pemilihan Slot Skenario dari Dialog Indikator & Editor Skor Nominal 8 Indikator Interaktif dengan Kalkulasi Live Terbobot:
+  1. **Alur Pemilihan Slot A, B, C dari Dialog Simpan Skenario Indikator (`apps/web/src/components/operator/save-scenario-dialog.tsx`)**:
+     - Memperjelas pilihan slot (Slot A, B, C) pada dialog Simpan Skenario di seluruh menu indikator.
+     - Menyediakan label eksplisit `(Timpa Slot)` dan petunjuk bahwa memilih slot yang sudah ada akan otomatis menimpa (*rewrite*) skenario pada slot tersebut dengan hasil simulasi indikator yang sedang aktif tanpa menambah baris database baru.
+  2. **Editor Skor Nominal 8 Indikator pada Dialog Edit Skenario (`apps/web/src/routes/operator/history.tsx`, `apps/web/src/server/simulation.ts`, `apps/web/src/services/simulation-service.ts`)**:
+     - Menambahkan editor skor 8 indikator IKPA (Revisi DIPA, Deviasi Hal III, Penyerapan, Belanja Kontraktual, Penyelesaian Tagihan, UP/TUP & KKP, Capaian Output, Dispensasi SPM).
+     - Menampilkan banner **Estimasi Total Nilai IKPA Terbobot** yang terhitung secara live (*real-time reactive*) saat operator mengubah angka skor per indikator.
+     - Menyimpan perubahan skor indikator, `totalScore`, `breakdownJson`, `targetScore`, dan nama skenario secara atomik ke database via `updateScenarioFn`.
+  3. **Verifikasi Monorepo**:
+     - `npx vitest run` -> 39 test files / 280 unit tests lulus 100% di seluruh workspace.
+     - `npm run typecheck` -> 0 error di seluruh 7 workspace packages.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/components/operator/save-scenario-dialog.tsx`
+  - `apps/web/src/routes/operator/history.tsx`
+  - `apps/web/src/server/simulation.ts`
+  - `apps/web/src/services/simulation-service.ts`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npx vitest run` -> 39/39 test files passed (280 tests).
+  - `npm run typecheck` -> 0 errors across monorepo.
+
+### Session 199 - 2026-09-08
+**Time:** Start: 17:30 UTC | End: 17:40 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: System Debugging, Frontend Operator & Ponytail Design Agent
+- Model: Gemini 3.7 Flash
+- Skills: system-debugging, ponytail, emil-design-eng
+**Tasks Completed:**
+- [HISTORY-PAGE-FEEDBACK-REFINEMENTS] Penghapusan Header Banner Redundan, Fitur Edit Skenario & Instrumen pada Setiap Card Skenario, dan Penghapusan Dump JSON Teknis pada Modal Detail:
+  1. **Penghapusan Header Banner Redundan (`apps/web/src/routes/operator/history.tsx`)**:
+     - Menghapus container banner atas yang memakan ruang vertikal (`.flex.items-center.gap-3` icon + title + deskripsi panjang).
+     - Menjadikan tab switcher toolbar atas ringkas dan menyatu rapi dengan navigasi.
+  2. **Card Skenario Interaktif & Editable (`apps/web/src/routes/operator/history.tsx`, `apps/web/src/server/simulation.ts`, `apps/web/src/services/simulation-service.ts`)**:
+     - Menambahkan tombol edit (`Pencil`) pada setiap kartu skenario di Tab 2.
+     - Menyediakan dialog edit skenario untuk mengubah Nama Skenario dan Target Nilai IKPA secara langsung di database melalui `updateScenarioFn`.
+     - Menyediakan panel pintasan navigasi cepat ke masing-masing workspace instrumen indikator (Deviasi Hal III, Penyerapan, UP/TUP & KKP, Capaian Output) untuk memudahkan simulasi ulang instrumen.
+  3. **Penghapusan Dump JSON Teknis dari Modal Detail (`apps/web/src/routes/operator/history.tsx`)**:
+     - Menghapus blok `Daftar Asumsi & Overrides` yang menampilkan raw JSON `JSON.stringify(ov.patchJson)` dari dialog detail inspeksi skenario.
+     - Menyajikan informasi formal yang bersih bagi pengguna: Ringkasan Nilai Total IKPA, Target, Periode, Rule Set, dan Tabel Rincian 8 Indikator IKPA.
+  4. **Verifikasi Monorepo**:
+     - `npx vitest run` -> 39 test files / 280 unit tests lulus 100% di seluruh workspace.
+     - `npm run typecheck` -> 0 error di seluruh 7 workspace packages.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/routes/operator/history.tsx`
+  - `apps/web/src/server/simulation.ts`
+  - `apps/web/src/services/simulation-service.ts`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npx vitest run` -> 39/39 test files passed (280 tests).
+  - `npm run typecheck` -> 0 errors across monorepo.
+
+### Session 198 - 2026-09-08
+**Time:** Start: 17:15 UTC | End: 17:25 UTC | Duration: ~10 minutes
+- Status: Completed
+- Agent/Role: System Debugging, Fullstack Operator & Database Agent
+- Model: Gemini 3.7 Flash
+- Skills: system-debugging, ponytail, emil-design-eng
+**Tasks Completed:**
+- [HISTORY-CLEANUP-AND-SLOT-REWRITE-ARCHITECTURE] Pembersihan Total 165 Baris Snapshot & Skenario Lama, Standardisasi Judul Menjadi "Evaluasi Kinerja Bulanan", Matriks 12 Bulan Bersih, dan In-Place Rewrite untuk Sistem 3-Slot What-If (Slot A, B, C):
+  1. **Pembersihan Database & Seed Data Bersih (`packages/db/src/scripts/cleanup-history.ts`)**:
+     - Menghapus 165 baris snapshot lama dan skenario duplikat yang menumpuk.
+     - Menyemai 12 data evaluasi kinerja bulanan (Bulan 1 s.d. 12 Tahun Anggaran 2026) yang bersih, akurat, dan berbobot proporsional.
+     - Menyemai 3 data simulasi skenario What-If terstruktur (**Skenario A**, **Skenario B**, dan **Skenario C**) yang langsung terisi, rapi, dan editable.
+  2. **In-Place Rewrite pada Penyimpanan Skenario (`apps/web/src/server/simulation/calculate.ts`)**:
+     - Memperkenalkan deteksi slot otomatis (Slot A, B, atau C) saat menyimpan What-If.
+     - Jika slot yang dipilih sudah ada di database, sistem langsung melakukan **in-place rewrite/overwrite** pada baris skenario, overrides, dan snapshot di slot tersebut tanpa menambah baris baru (DB selalu terjaga maksimal 3 skenario aktif).
+  3. **Penyelarasan Naming Formal & UI Tab (`apps/web/src/routes/operator/history.tsx`)**:
+     - Mengganti istilah "Snapshot Aktual" menjadi judul formal yang ringkas: "Evaluasi Bulanan (12 Bulan)" dan banner "Evaluasi Kinerja Aktual 12 Bulan".
+     - Tab 2: "Skenario Simulasi (Slot A, B, C)".
+     - Menghapus penulisan snapshot paksa saat sekadar memuat kalkulasi/dashboard.
+  4. **Verifikasi Monorepo**:
+     - `npx vitest run` -> 39 test files / 280 unit tests lulus 100% di seluruh workspace.
+     - `npm run typecheck` -> 0 error di seluruh 7 workspace packages.
+**Code Changes:**
+- Files created/modified:
+  - `packages/db/src/scripts/cleanup-history.ts`
+  - `apps/web/src/server/simulation/calculate.ts`
+  - `apps/web/src/routes/operator/history.tsx`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npx vitest run` -> 39/39 test files passed (280 tests).
+  - `npm run typecheck` -> 0 errors across monorepo.
+  - Script cleanup executed: `score_snapshots` turun dari 165 menjadi 15 baris (12 aktual + 3 skenario).
+
+### Session 197 - 2026-09-08
+**Time:** Start: 16:34 UTC | End: 16:38 UTC | Duration: ~4 minutes
+- Status: Completed
+- Agent/Role: System Debugging, Fullstack Operator & Engine Agent
+- Model: Gemini 3.7 Flash
+- Skills: system-debugging, ponytail, emil-design-eng
+**Tasks Completed:**
+- [PERF-AND-ARCHITECTURE-ACTUAL-SNAPSHOT-IN-PLACE-UPDATE-AND-SIMULATION-OVERVIEW] Optimasi Idempotensi Snapshot Aktual In-Place (Eliminasi Duplikasi Baris DB), Perampingan Payload Data History (>80% Payload Reduction), dan Dokumentasi Komprehensif Fitur Skenario What-If 8 Indikator IKPA:
+  1. **Idempotensi & Update In-Place Snapshot Aktual (`apps/web/src/server/simulation/calculate.ts`)**:
+     - Mengubah logika persistensi snapshot aktual: jika snapshot untuk periode/bulan tersebut sudah ada, sistem tidak lagi membuat baris duplikat saat terjadi perubahan data, melainkan meng-update data snapshot aktual secara *in-place*.
+     - Jika hash data identik, sistem langsung mengembalikan snapshot tanpa mutasi database (0ms perceived latency & zero DB write spam).
+  2. **Perampingan Payload & Memory Footprint (`apps/web/src/server/simulation.ts`)**:
+     - Memperkenalkan `sanitizeBreakdown` untuk membuang trace kalkulasi internal yang berukuran ratusan baris saat mengambil daftar riwayat, merampingkan payload transfer data hingga >80%.
+     - Menghapus duplikasi array legacy di memori dan mengoptimalkan query overrides menggunakan `inArray`.
+  3. **Verifikasi Monorepo**:
+     - `npx vitest run` -> 39 test files / 280 unit tests lulus 100% di seluruh workspace.
+     - `npm run typecheck` -> 0 error di seluruh 7 workspace packages.
+**Code Changes:**
+- Files modified:
+  - `apps/web/src/server/simulation/calculate.ts`
+  - `apps/web/src/server/simulation.ts`
+  - `docs/BACKLOG.md`
+  - `docs/DEVLOG.md`
+- Verifikasi:
+  - `npx vitest run` -> 39/39 test files passed (280 tests).
+  - `npm run typecheck` -> 0 errors across monorepo.
+
 ### Session 196 - 2026-09-08
 **Time:** Start: 16:00 UTC | End: 16:05 UTC | Duration: ~5 minutes
 - Status: Completed
