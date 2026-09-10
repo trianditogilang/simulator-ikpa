@@ -29,7 +29,9 @@ if (
 	process.exit(2);
 }
 
-const targetUrl = env.F13_03_HTTP_URL ?? "http://127.0.0.1:3002";
+const targetUrl =
+	process.argv[2] ?? env.F13_03_HTTP_URL ?? "http://127.0.0.1:3002";
+const useQStash = process.argv.includes("--qstash");
 const localTarget =
 	targetUrl.startsWith("http://127.0.0.1:") ||
 	targetUrl.startsWith("http://localhost:");
@@ -90,6 +92,7 @@ try {
 				...env,
 				F13_03_REAL_PROVIDER_TEST: "1",
 				F13_03_HTTP_URL: targetUrl,
+				F13_03_USE_QSTASH: useQStash ? "1" : "0",
 			},
 			stdio: "inherit",
 			shell: process.platform === "win32",

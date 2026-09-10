@@ -41,6 +41,58 @@ function createQStashSignature(key: string, url: string, body: string): string {
 const providerDescribe = shouldRun ? describe : describe.skip;
 
 providerDescribe("F13-03 real QStash/Resend provider integration", () => {
+	async function waitForTerminalStatus() {
+		if (!db) throw new Error("Provider database was not initialized.");
+		for (let attempt = 0; attempt < 20; attempt++) {
+			const [state] = await db
+				.select({ status: notificationDeliveries.status })
+				.from(notificationDeliveries)
+				.where(eq(notificationDeliveries.id, deliveryId))
+				.limit(1);
+			if (state?.status !== "scheduled") return state?.status ?? "missing";
+			await new Promise((resolvePromise) =>
+				setTimeout(resolvePromise, 1000),
+			);
+		}
+		return "scheduled";
+	}
+
+	async function dispatch(body: string) {
+		if (process.env.F13_03_USE_QSTASH === "1") {
+			const token = process.env.QSTASH_TOKEN;
+			if (!token) throw new Error("QStash publish token is not configured.");
+			const response = await fetch(
+				"https://qstash.upstash.io/v2/publish/" + endpointUrl,
+				{
+					method: "POST",
+					headers: {
+						Authorization: "Bearer " + token,
+						"content-type": "application/json",
+					},
+					body,
+				},
+			);
+			if (!response.ok) {
+				throw new Error(
+					"QStash publish returned status " + response.status + ".",
+				);
+			}
+			return null;
+		}
+		return fetch(endpointUrl, {
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				"upstash-signature": createQStashSignature(
+					signingKey,
+					endpointUrl,
+					body,
+				),
+			},
+			body,
+		});
+	}
+
 	beforeAll(async () => {
 		if (!baseUrl || !testDatabaseUrl) {
 			throw new Error(
@@ -120,28 +172,45 @@ providerDescribe("F13-03 real QStash/Resend provider integration", () => {
 	it("sends one due delivery through Resend and keeps replay idempotent", async () => {
 		if (!db || !endpointUrl) throw new Error("Provider fixture was not initialized.");
 		const body = "{}";
-		const headers = {
-			"content-type": "application/json",
-			"upstash-signature": createQStashSignature(
-				signingKey,
-				endpointUrl,
-				body,
-			),
-		};
-
-		const first = await fetch(endpointUrl, {
-			method: "POST",
-			headers,
-			body,
-		});
-		if (!first.ok) {
-			throw new Error("Resend provider request failed at the HTTP boundary.");
+		const first = await dispatch(body);
+		if (first && !first.ok) {
+			throw new Error(
+				"Provider HTTP boundary returned status " + first.status + ".",
+			);
 		}
-		const firstResult = (await first.json()) as {
-			sent?: number;
-			failed?: number;
-		};
-		if (firstResult.sent !== 1) {
+		if (process.env.F13_03_USE_QSTASH === "1") {
+			await waitForTerminalStatus();
+		} else {
+			const firstResult = (await first?.json()) as {
+				sent?: number;
+				failed?: number;
+			};
+			if (firstResult.sent !== 1 || firstResult.failed !== 0) {
+				const [state] = await db
+					.select({
+						status: notificationDeliveries.status,
+						errorMessage: notificationDeliveries.errorMessage,
+					})
+					.from(notificationDeliveries)
+					.where(eq(notificationDeliveries.id, deliveryId))
+					.limit(1);
+				throw new Error(
+					"Provider delivery did not send: status=" +
+						(state?.status ?? "missing") +
+						" code=" +
+						(state?.errorMessage ?? "none"),
+				);
+			}
+		}
+		const [sent] = await db
+			.select({
+				status: notificationDeliveries.status,
+				attemptCount: notificationDeliveries.attemptCount,
+			})
+			.from(notificationDeliveries)
+			.where(eq(notificationDeliveries.id, deliveryId))
+			.limit(1);
+		if (sent?.status !== "sent") {
 			const [state] = await db
 				.select({
 					status: notificationDeliveries.status,
@@ -157,30 +226,30 @@ providerDescribe("F13-03 real QStash/Resend provider integration", () => {
 					(state?.errorMessage ?? "none"),
 			);
 		}
-		expect(firstResult.sent).toBe(1);
-		expect(firstResult.failed).toBe(0);
-
-		const [sent] = await db
-			.select({
-				status: notificationDeliveries.status,
-				attemptCount: notificationDeliveries.attemptCount,
-			})
-			.from(notificationDeliveries)
-			.where(eq(notificationDeliveries.id, deliveryId))
-			.limit(1);
 		expect(sent).toEqual({ status: "sent", attemptCount: 1 });
 
-		const replay = await fetch(endpointUrl, {
-			method: "POST",
-			headers,
-			body,
-		});
-		expect(replay.ok).toBe(true);
-		const replayResult = (await replay.json()) as {
-			sent?: number;
-			failed?: number;
-		};
-		expect(replayResult.sent).toBe(0);
-		expect(replayResult.failed).toBe(0);
+		const replay = await dispatch(body);
+		if (replay) {
+			expect(replay.ok).toBe(true);
+			const replayResult = (await replay.json()) as {
+				sent?: number;
+				failed?: number;
+			};
+			expect(replayResult.sent).toBe(0);
+			expect(replayResult.failed).toBe(0);
+		} else {
+			await new Promise((resolvePromise) =>
+				setTimeout(resolvePromise, 1500),
+			);
+			const [replayed] = await db
+				.select({
+					status: notificationDeliveries.status,
+					attemptCount: notificationDeliveries.attemptCount,
+				})
+				.from(notificationDeliveries)
+				.where(eq(notificationDeliveries.id, deliveryId))
+				.limit(1);
+			expect(replayed).toEqual({ status: "sent", attemptCount: 1 });
+		}
 	});
 });
