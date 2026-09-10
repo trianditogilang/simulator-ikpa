@@ -14,7 +14,9 @@ export const Route = createFileRoute("/api/qstash/send")({
 					});
 				const db = createDbClient(dbUrl);
 				try {
-					const res = await handleQStashSend(db, request.headers, rawBody);
+					const res = await handleQStashSend(db, request.headers, rawBody, {
+						requestUrl: request.url,
+					});
 					return new Response(JSON.stringify(res), {
 						status: 200,
 						headers: {

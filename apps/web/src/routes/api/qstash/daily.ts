@@ -14,7 +14,12 @@ export const Route = createFileRoute("/api/qstash/daily")({
 					});
 				const db = createDbClient(dbUrl);
 				try {
-					const res = await handleQStashDaily(db, request.headers, rawBody);
+					const res = await handleQStashDaily(
+						db,
+						request.headers,
+						rawBody,
+						request.url,
+					);
 					return new Response(JSON.stringify(res), {
 						status: 200,
 						headers: {
