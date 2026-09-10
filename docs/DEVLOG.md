@@ -60,6 +60,14 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - Preview yang sedang aktif belum memuat commit perbaikan sampai redeploy selesai. Deployment Protection tetap nonaktif selama verifikasi; belum ada secret/token/response sensitif yang dicetak, database production atau deployment manual disentuh.
 - F13-03 dan task Fase 13 lainnya tidak dikerjakan.
 
+### Session 264 - 2026-09-10
+**Status:** Needs Fix - F13-09 (Vercel Preview redeploy smoke)
+- Commit `d456b69` dipush ke branch `staging`; Preview terbaru dapat diakses read-only dengan satu sesi Clerk Operator sementara yang langsung dicabut setelah test.
+- Authenticated HTTP smoke lulus untuk 11 route Operator (`dashboard`, `history`, `analysis`, `penyerapan`, `deviasi`, `up-tup`, lima route data, dan `output-achievement`) dengan HTTP 200 tanpa marker sign-in, configuration, `jsxDEV`, atau `TypeError`. Response body tidak dicetak.
+- `/operator/reminders` merespons HTTP 500 dan terkonfirmasi berasal dari pesan guard produksi `Reminder delivery records are unavailable in production.`; ini perilaku fail-closed yang menunggu delivery/provider F13-03, bukan regresi JSX/Nitro.
+- Deployment Protection tetap nonaktif dan belum aman diaktifkan kembali karena provider gate F13-03 serta mutation/cross-tenant, full ServerFn, dan UAT evidence belum lengkap. Tidak ada secret/token yang dicetak dan tidak ada database production yang disentuh.
+- F13-03 dan task Fase 13 lainnya tidak dikerjakan.
+
 Entri terbaru berada di bawah bagian ini. Baca task-specific entry atau beberapa
 entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 
