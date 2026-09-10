@@ -1,7 +1,7 @@
 import { Buffer } from "node:buffer";
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq, isNull } from "drizzle-orm";
-import { Workbook } from "exceljs";
+import ExcelJS from "exceljs";
 import { assertOperatorOrgScope } from "@simulator-ikpa/access-control";
 import { createDbClient } from "@simulator-ikpa/db";
 import {
@@ -63,7 +63,7 @@ export async function buildOperatorXlsxBuffer(args: { orgId: string; db: ReturnT
 		db.select().from(spmQ4).where(and(eq(spmQ4.fiscalYearId, fiscalYearId), isNull(spmQ4.deletedAt))),
 	]);
 
-	const wb = new Workbook();
+	const wb = new ExcelJS.Workbook();
 
 	// Metadata sheet
 	const meta = wb.addWorksheet("Metadata");

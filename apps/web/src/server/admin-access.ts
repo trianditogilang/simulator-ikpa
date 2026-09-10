@@ -99,6 +99,25 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 			return { success: true };
 		}
 
+		const operatorOrgId =
+			data.accessType === "operator_satker" ? data.orgId : undefined;
+		if (data.accessType === "operator_satker") {
+			if (!operatorOrgId) {
+				throw new Error("Satker naungan wajib dipilih untuk peran Operator Satker.");
+			}
+			const [targetOrganization] = await db
+				.select({ kppnScopeId: organizations.kppnScopeId })
+				.from(organizations)
+				.where(eq(organizations.id, operatorOrgId))
+				.limit(1);
+			if (
+				!targetOrganization ||
+				!allowedKppnScopeIds.includes(targetOrganization.kppnScopeId)
+			) {
+				throw new Error("Satker berada di luar scope admin.");
+			}
+		}
+
 		const actorUserId = access.status === "admin" ? access.userId : "admin";
 
 		// Find or create user
@@ -120,13 +139,13 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 		}
 
 		if (data.accessType === "operator_satker") {
-			if (!data.orgId) {
+			if (!operatorOrgId) {
 				throw new Error("Satker naungan wajib dipilih untuk peran Operator Satker.");
 			}
 			const created = await grantOperatorAccess(db, {
 				actorUserId,
 				targetUserId: user.id,
-				orgId: data.orgId,
+				orgId: operatorOrgId,
 			});
 			return { success: true, accessId: created.id };
 		} else {
@@ -152,11 +171,26 @@ export const removeUserAccessFn = createServerFn({ method: "POST" })
 		const auth = await getServerAuthSession();
 		const access = await getAccessResolutionForSession(auth);
 
-		assertAdminKppnScope(access);
+		const { allowedKppnScopeIds } = assertAdminKppnScope(access);
 
 		const db = getDatabase();
 		if (!db) {
 			return { success: true };
+		}
+
+		const [targetAccess] = await db
+			.select({
+				accessScopeId: userAccesses.kppnScopeId,
+				organizationScopeId: organizations.kppnScopeId,
+			})
+			.from(userAccesses)
+			.leftJoin(organizations, eq(userAccesses.orgId, organizations.id))
+			.where(eq(userAccesses.id, data.accessId))
+			.limit(1);
+		const targetScopeId =
+			targetAccess?.organizationScopeId ?? targetAccess?.accessScopeId;
+		if (!targetScopeId || !allowedKppnScopeIds.includes(targetScopeId)) {
+			throw new Error("Pemetaan akses berada di luar scope admin.");
 		}
 
 		const actorUserId = access.status === "admin" ? access.userId : "admin";

@@ -428,6 +428,10 @@ export const deleteFairnessProposalFn = createServerFn({ method: "POST" })
 export const listFairnessPoliciesFn = createServerFn({ method: "GET" })
 	.validator((data?: { year?: number }) => data)
 	.handler(async ({ data }) => {
+		const auth = await getServerAuthSession();
+		const access = await getAccessResolutionForSession(auth);
+		assertAdminKppnScope(access);
+
 		const db = getDatabase();
 		if (!db) return [];
 		return listFairnessPolicies(db, data?.year ?? 2026);

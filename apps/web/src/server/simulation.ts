@@ -60,6 +60,28 @@ async function getOrInitFiscalYear(
 	return fy;
 }
 
+async function getActiveScenarioForOrg(
+	db: ReturnType<typeof createDbClient>,
+	scenarioId: string,
+	orgId: string,
+) {
+	const [row] = await db
+		.select({ simulation: simulations })
+		.from(simulations)
+		.innerJoin(fiscalYears, eq(simulations.fiscalYearId, fiscalYears.id))
+		.where(
+			and(
+				eq(simulations.id, scenarioId),
+				eq(simulations.type, "scenario"),
+				eq(fiscalYears.orgId, orgId),
+				isNull(simulations.deletedAt),
+			),
+		)
+		.limit(1);
+
+	return row?.simulation;
+}
+
 export interface ScenarioOverrideItem {
 	entityType: string;
 	patchJson: Record<string, any>;
@@ -419,16 +441,11 @@ export const deleteScenarioFn = createServerFn({ method: "POST" })
 			return { success: true };
 		}
 
-		const [before] = await db
-			.select()
-			.from(simulations)
-			.where(
-				and(
-					eq(simulations.id, data.scenarioId),
-					isNull(simulations.deletedAt),
-				),
-			)
-			.limit(1);
+		const before = await getActiveScenarioForOrg(
+			db,
+			data.scenarioId,
+			targetOrgId,
+		);
 
 		if (!before) {
 			throw new Error("Skenario tidak ditemukan.");
@@ -493,16 +510,11 @@ export const updateScenarioFn = createServerFn({ method: "POST" })
 			return { success: true };
 		}
 
-		const [before] = await db
-			.select()
-			.from(simulations)
-			.where(
-				and(
-					eq(simulations.id, data.scenarioId),
-					isNull(simulations.deletedAt),
-				),
-			)
-			.limit(1);
+		const before = await getActiveScenarioForOrg(
+			db,
+			data.scenarioId,
+			targetOrgId,
+		);
 
 		if (!before) {
 			throw new Error("Skenario tidak ditemukan.");
@@ -618,16 +630,11 @@ export const duplicateScenarioFn = createServerFn({ method: "POST" })
 			return { success: true, newSimulationId: "mock-new-id" };
 		}
 
-		const [sourceSim] = await db
-			.select()
-			.from(simulations)
-			.where(
-				and(
-					eq(simulations.id, data.scenarioId),
-					isNull(simulations.deletedAt),
-				),
-			)
-			.limit(1);
+		const sourceSim = await getActiveScenarioForOrg(
+			db,
+			data.scenarioId,
+			targetOrgId,
+		);
 
 		if (!sourceSim) {
 			throw new Error("Skenario asal tidak ditemukan.");

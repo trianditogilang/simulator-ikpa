@@ -101,7 +101,13 @@ export async function updateUpTup(
 	const [existing] = await db
 		.select()
 		.from(upTupTransactions)
-		.where(and(eq(upTupTransactions.id, id), isNull(upTupTransactions.deletedAt)))
+		.where(
+			and(
+				eq(upTupTransactions.id, id),
+				eq(upTupTransactions.fiscalYearId, data.fiscalYearId),
+				isNull(upTupTransactions.deletedAt),
+			),
+		)
 		.limit(1);
 	if (!existing) throw new Error("Transaksi UP/TUP tidak ditemukan.");
 	if ((data.type === "GUP" || data.type === "PTUP") && !data.referenceSp2dAt) {
@@ -118,7 +124,12 @@ export async function updateUpTup(
 			isSettled: data.isSettled ?? false,
 			updatedAt: new Date(),
 		})
-		.where(eq(upTupTransactions.id, id))
+		.where(
+			and(
+				eq(upTupTransactions.id, id),
+				eq(upTupTransactions.fiscalYearId, data.fiscalYearId),
+			),
+		)
 		.returning();
 	await writeAudit(db, {
 		actorId: meta.actorId,

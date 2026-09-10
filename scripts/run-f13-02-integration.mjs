@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 import { createClerkClient } from "@clerk/backend";
+import { neon } from "@neondatabase/serverless";
 
 function waitForHttp(url, timeoutMs = 120_000) {
 	const startedAt = Date.now();
@@ -61,10 +62,37 @@ if (!env.F13_02_CLERK_OPERATOR_USER_ID) {
 }
 
 const clerkClient = createClerkClient({ secretKey: env.CLERK_SECRET_KEY });
-const clerkSession = await clerkClient.sessions.createSession({
+let adminUserId = env.F13_02_CLERK_ADMIN_USER_ID;
+if (!adminUserId) {
+	try {
+		const sql = neon(env.DATABASE_URL);
+		const rows = await sql`
+			SELECT u.clerk_user_id AS "clerkUserId"
+			FROM users u
+			INNER JOIN user_accesses ua ON ua.user_id = u.id
+			WHERE ua.access_type = 'admin_kppn'
+				AND ua.active = true
+			LIMIT 1
+		`;
+		const firstRow = rows[0];
+		adminUserId = firstRow?.clerkUserId ?? firstRow?.clerk_user_id;
+	} catch {
+		// The generic missing-fixture error below avoids exposing provider details.
+	}
+}
+if (!adminUserId) {
+	console.error(
+		"No active Admin KPPN fixture found in the isolated test database.",
+	);
+	process.exit(2);
+}
+
+const operatorSession = await clerkClient.sessions.createSession({
 	userId: env.F13_02_CLERK_OPERATOR_USER_ID,
 });
-const clerkToken = await clerkClient.sessions.getToken(clerkSession.id);
+const adminSession = await clerkClient.sessions.createSession({
+	userId: adminUserId,
+});
 
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const httpUrl = "http://127.0.0.1:3002";
@@ -81,6 +109,16 @@ const httpServer = spawn(
 let resultStatus = 1;
 try {
 	await waitForHttp(`${httpUrl}/`);
+	const operatorToken = await clerkClient.sessions.getToken(
+		operatorSession.id,
+		undefined,
+		3600,
+	);
+	const adminToken = await clerkClient.sessions.getToken(
+		adminSession.id,
+		undefined,
+		3600,
+	);
 	const result = spawnSync(
 		npmCommand,
 		["run", "test:integration", "--workspace", "@simulator-ikpa/web"],
@@ -89,7 +127,9 @@ try {
 			env: {
 				...env,
 				F13_02_HTTP_URL: httpUrl,
-				F13_02_CLERK_SESSION_TOKEN: clerkToken.jwt,
+				F13_02_CLERK_SESSION_TOKEN: operatorToken.jwt,
+				F13_02_CLERK_ADMIN_SESSION_TOKEN: adminToken.jwt,
+				F13_02_CLERK_ADMIN_USER_ID: adminUserId,
 			},
 			stdio: "inherit",
 			shell: process.platform === "win32",
@@ -112,7 +152,12 @@ try {
 		}
 	}
 	try {
-		await clerkClient.sessions.revokeSession(clerkSession.id);
+		await clerkClient.sessions.revokeSession(operatorSession.id);
+	} catch {
+		// Session cleanup is best-effort; never print credentials or tokens.
+	}
+	try {
+		await clerkClient.sessions.revokeSession(adminSession.id);
 	} catch {
 		// Session cleanup is best-effort; never print credentials or tokens.
 	}

@@ -4,7 +4,7 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Current Phase
 
-**Fase 13 — F13-00/F13-01 selesai; F13-02 Needs Fix; F13-03 tetap ditahan sampai F13-02 selesai.**
+**Fase 13 — F13-00/F13-01/F13-02 selesai; F13-03 tetap ditahan.**
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
 - Baseline hijau: typecheck lulus, workspace Vitest 45 test files/307 tests lulus setelah source export retired, `npm run lint` exit 0, production build lulus, E2E smoke desktop/mobile 2/2 lulus, dan smoke route `/` sebelumnya HTTP 200.
@@ -12,13 +12,91 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - F13-01 lulus: konfigurasi test per workspace mencegah E2E masuk Vitest; pure utility/scheduler/workday tests ditambah; bug rounding negatif fixed-point ditutup.
 - F13-06/F13-08 progress: production delivery/import fallback fail-closed, secret/migration/generated-route checks tersedia, dan CI workflow sudah ditulis tetapi belum dijalankan pada remote PR.
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
-- F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; service-level dan authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus. PDF Operator dan ekspor Admin retired dari scope aktif; coverage seluruh ServerFn aktif masih belum lengkap.
-- Next action: lengkapi harness authenticated ServerFn aktif yang tersisa; jangan lanjut ke F13-03 sebelum task ini memenuhi DoD.
+- F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
+- Next action: pertahankan regression suite F13-02; F13-03 tetap ditahan sesuai scope sesi.
 
 ## Recent Sessions
 
 Entri terbaru berada di bawah bagian ini. Baca task-specific entry atau beberapa
 entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
+
+### Session 254 — 2026-09-10
+**Status:** Completed — F13-02
+- Menambahkan `apps/web/src/server/integration/import-access-http.integration.test.ts` dengan 9 authenticated HTTP tests individual untuk seluruh ServerFn `access.ts` dan `import.ts`, menggunakan sesi Clerk Operator nyata serta Neon test terisolasi.
+- Test memverifikasi session Clerk terverifikasi, resolusi organisasi sendiri dan penolakan peer, set/clear cookie scope, upload CSV kontrak valid sesuai parser, list/get job own, commit kontrak own, cancel job own, serta penolakan semua read/mutation peer tanpa kebocoran peer organization ID, fiscal year ID, job ID, filename, atau payload. Job/kontrak peer tetap tidak berubah dan fixture dibersihkan.
+- Audit source menemukan 82 ServerFn aktif dan seluruhnya memiliki test HTTP individual. Tidak ada perubahan perilaku aplikasi atau source produksi pada sesi ini.
+- Verifikasi: `node scripts/run-f13-02-integration.mjs` lulus 14 file/92 test; `npm.cmd test` lulus 45 file/307 test; typecheck lulus; lint exit 0 dengan 79 warning legacy; build client+SSR lulus; `git diff --check` lulus. Peringatan CSRF TanStack Start tetap tidak diubah.
+- F13-03 dan task Fase 13 lainnya tidak dikerjakan; tidak ada token, secret, database production, atau deployment disentuh.
+
+### Session 253 — 2026-09-10
+**Status:** Needs Fix — F13-02
+- Menambahkan `apps/web/src/server/integration/admin-monitoring-policy-deliveries-access-http.integration.test.ts` dengan 15 authenticated HTTP tests individual yang mencakup seluruh 15 ServerFn aktif pada `admin-monitoring.ts`, `admin-policy.ts`, `admin-deliveries.ts`, dan `admin-access.ts`. Sesi Clerk Admin dan Operator nyata dikirim oleh runner; fixture KPPN/org/fiscal year/snapshot/delivery/access/audit/policy dibuat dan dibersihkan pada Neon test terisolasi.
+- Test memverifikasi read scope Admin sendiri, penolakan peer KPPN/organization/snapshot/delivery/access tanpa ID atau data peer bocor, policy draft/publish/retire memakai config valid, retry delivery own, audit/access list terisolasi, dan mutation assign/remove lintas scope tidak mengubah mapping peer. Test menemukan IDOR pada `assignUserAccessFn` dan `removeUserAccessFn`; `apps/web/src/server/admin-access.ts` kini memvalidasi scope organization/mapping sebelum mutation.
+- `scripts/run-f13-02-integration.mjs` kini menemukan fixture Admin aktif dari database test (atau env override), membuat sesi Clerk sementara untuk Operator dan Admin, meneruskan JWT hanya di memori, lalu mencabut keduanya setelah suite; tidak ada credential yang dicetak.
+- Verifikasi: integration runner lulus 13 file/83 test; workspace test lulus 45 file/307 test; typecheck lulus setelah menghapus import/variabel tidak terpakai; lint exit 0 dengan 79 warning legacy; client dan SSR build lulus; `git diff --check` lulus. Peringatan CSRF TanStack Start tetap tidak diubah.
+- F13-02 tetap Needs Fix karena ServerFn aktif lain belum seluruhnya memiliki HTTP/auth test individual. F13-03 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 252 — 2026-09-10
+**Status:** Needs Fix — F13-02
+- Menambahkan `apps/web/src/server/integration/dashboard-active-context-xlsx-http.integration.test.ts` dengan 3 authenticated HTTP tests individual untuk `getOperatorDashboardFn`, `getHeaderRuleSetFn`, dan `requestOperatorXlsxFn` menggunakan sesi Clerk test nyata serta Neon test terisolasi.
+- Fixture peer mencakup organization, fiscal year, dan budget marker. Test memverifikasi own dashboard/fiscal context/workbook, penolakan peer tanpa kebocoran ID atau data, signature ZIP dan MIME XLSX, serta fixture budget peer tetap utuh setelah request lintas tenant; payload mengikuti validator asli dan fixture dibersihkan.
+- `apps/web/src/server/exports/operator-xlsx.ts` memakai default import `exceljs` agar CommonJS interop Vite SSR dapat membangun `Workbook`; perilaku export tidak diubah dan Operator XLSX tetap aktif.
+- Verifikasi: integration runner lulus 12 file/68 test; workspace test lulus 45 file/307 test; typecheck lulus; lint exit 0 dengan 79 warning legacy; client dan SSR build lulus; `git diff --check` lulus. Tidak ada token, secret, database production, atau deployment disentuh.
+- F13-02 tetap Needs Fix karena ServerFn aktif lain belum seluruhnya memiliki HTTP/auth test individual. F13-03 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 251 — 2026-09-10
+**Status:** Needs Fix — F13-02
+- Menambahkan `apps/web/src/server/integration/settings-http.integration.test.ts` dengan 3 authenticated HTTP tests individual untuk `registerSatkerOnboardingFn`, `getSatkerSettingsFn`, dan `updateSatkerSettingsFn` menggunakan sesi Clerk test nyata serta Neon test terisolasi.
+- Menambahkan `apps/web/src/server/integration/reminders-http.integration.test.ts` dengan 3 authenticated HTTP tests individual untuk `listOperatorRemindersFn`, `updateOperatorReminderConfigFn`, dan `resetOperatorReminderConfigFn`. Fixture peer mencakup organization, fiscal year, reminder config, dan notification delivery; own read, peer denial, no-leakage, dan no peer mutation diverifikasi, lalu fixture dibersihkan.
+- Payload mengikuti validator/implementasi asli, termasuk batas kode Satker, schedule reminder, recipient, dan custom message. Tidak ada perubahan source produksi.
+- Verifikasi: integration runner lulus 11 file/65 test; workspace test lulus 45 file/307 test; typecheck lulus; lint exit 0 dengan 79 warning legacy; client dan SSR build lulus; `git diff --check` lulus. Tidak ada token, secret, database production, atau deployment disentuh.
+- F13-02 tetap Needs Fix karena ServerFn aktif lain belum seluruhnya memiliki HTTP/auth test individual. F13-03 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 250 — 2026-09-10
+**Status:** Needs Fix — F13-02
+- Menambahkan `apps/web/src/server/integration/budget-revisions-http.integration.test.ts` dengan 7 authenticated HTTP tests individual untuk seluruh ServerFn `budget-revisions.ts`: list, save initial budget, upsert budget, create/update/delete revision, dan delete budget menggunakan sesi Clerk test nyata serta Neon test terisolasi.
+- Fixture budget dan DIPA revision organisasi sendiri/peer membuktikan own data dapat dibaca, peer ditolak tanpa kebocoran ID fiscal year/kode/note/nilai peer, mutation lintas tenant ditolak, ID peer pada update/delete tidak mengubah atau menghapus data, dan fixture dibersihkan setelah suite. Payload mengikuti validator/implementasi asli; `accountDetails` diuji pada payload create/update.
+- Verifikasi: integration runner lulus 9 file/59 test; workspace test lulus 45 file/307 test; typecheck lulus; lint exit 0 dengan 79 warning legacy; client dan SSR build lulus; `git diff --check` lulus. Tidak ada token, secret, database production, atau deployment disentuh.
+- F13-02 tetap Needs Fix karena ServerFn aktif lain belum seluruhnya memiliki HTTP/auth test individual. F13-03 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 249 — 2026-09-10
+**Status:** Needs Fix — F13-02
+- Menambahkan `apps/web/src/server/integration/output-achievement-http.integration.test.ts` dengan 16 authenticated HTTP tests individual untuk seluruh ServerFn `output-achievement.ts`: output report, target plan/window, PPA, fairness proposal/policy, serta lifecycle submit/confirm/delete.
+- Fixture Neon terisolasi membuktikan data output/target/PPA/proposal organisasi sendiri dapat dibaca, peer organization ditolak tanpa kebocoran ID fiscal year/RO/reference/note, mutation lintas tenant tidak membuat atau mengubah baris peer, dan daftar fairness policy/admin proposal ditolak untuk Operator. Payload mengikuti validator asli; fixture dibersihkan setelah suite.
+- Test menemukan `listFairnessPoliciesFn` belum memiliki guard Admin walau hanya dipakai route Admin. `apps/web/src/server/output-achievement.ts` kini memanggil `getServerAuthSession`, resolver akses, dan `assertAdminKppnScope` sebelum query. `scripts/run-f13-02-integration.mjs` meminta JWT Clerk test sementara ber-expiry 3600 detik agar suite 52 test tidak melewati TTL default; token tetap hanya di memori.
+- Verifikasi: integration runner lulus 8 file/52 test; workspace test lulus 45 file/307 test; typecheck lulus; lint exit 0 dengan 79 warning legacy; client dan SSR build lulus; `git diff --check` lulus. Tidak ada token, secret, database production, atau deployment disentuh.
+- F13-02 tetap Needs Fix karena ServerFn aktif lain belum seluruhnya memiliki HTTP/auth test individual. F13-03 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 248 — 2026-09-10
+**Status:** Needs Fix — F13-02
+- Menambahkan `apps/web/src/server/integration/contracts-invoices-http.integration.test.ts` dengan 7 authenticated HTTP tests individual untuk `listContractsAndSpmFn`, `createContractFn`, `updateContractFn`, `deleteContractFn`, `createSpmLsFn`, `updateSpmLsFn`, dan `deleteSpmLsFn` menggunakan sesi Clerk serta Neon test nyata.
+- Fixture terisolasi membuktikan data kontrak/SPM-LS organisasi sendiri dapat dibaca, akses peer ditolak tanpa kebocoran ID, referensi, nilai, atau tanggal peer, mutation lintas tenant ditolak, dan baris kontrak/SPM-LS peer tetap utuh; payload mengikuti validator serta relasi `contractId` asli dan fixture dibersihkan setelah suite.
+- Implementasi `contracts-invoices.ts` dan mutation helper tidak memerlukan perubahan; guard fiscal year pada objek target menolak mutation peer sebelum data tersentuh.
+- Verifikasi: integration runner lulus 7 file/36 test; workspace test lulus 45 file/307 test; typecheck lulus; lint exit 0 dengan 79 warning legacy; client dan SSR build lulus. Tidak ada token atau secret dicetak.
+- F13-02 tetap Needs Fix karena ServerFn aktif lain belum seluruhnya memiliki HTTP/auth test individual. F13-03 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 247 — 2026-09-10
+**Status:** Needs Fix — F13-02
+- Menambahkan `apps/web/src/server/integration/spm-dispensation-http.integration.test.ts` dengan 4 authenticated HTTP tests individual untuk `listSpmDispensationsFn`, `createSpmDispensasiFn`, `updateSpmDispensasiFn`, dan `deleteSpmDispensasiFn` menggunakan sesi Clerk serta Neon test nyata.
+- Fixture terisolasi membuktikan data SPM Q4 organisasi sendiri dapat dibaca, akses peer ditolak tanpa kebocoran ID/referensi/data peer, mutation lintas tenant ditolak, dan baris peer tetap utuh; payload mengikuti validator asli dan fixture dibersihkan setelah suite.
+- Implementasi `spm-dispensation.ts` dan mutation helper tidak memerlukan perubahan; guard fiscal year pada baris target menolak update/delete peer sebelum mutation.
+- Verifikasi: integration runner lulus 6 file/29 test; workspace test lulus 45 file/307 test; typecheck lulus; lint exit 0 dengan 79 warning legacy; client dan SSR build lulus. Tidak ada token atau secret dicetak.
+- F13-02 tetap Needs Fix karena ServerFn aktif lain belum seluruhnya memiliki HTTP/auth test individual. F13-03 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 246 — 2026-09-10
+**Status:** Needs Fix — F13-02
+- Menambahkan `apps/web/src/server/integration/up-tup-kkp-http.integration.test.ts` dengan 6 authenticated HTTP tests individual untuk `listUpTupAndKkpFn`, `createUpTupFn`, `updateUpTupFn`, `deleteUpTupFn`, `upsertKkpFn`, dan `deleteKkpFn` menggunakan sesi Clerk serta Neon test nyata.
+- Fixture terisolasi membuktikan data organisasi sendiri dapat dibaca, akses peer ditolak tanpa kebocoran ID atau data peer, mutation lintas tenant ditolak, dan baris peer tetap utuh; payload mengikuti validator asli dan fixture dibersihkan setelah suite.
+- Test menemukan IDOR pada update UP/TUP. `apps/web/src/server/domains/up-tup-kkp.mutations.ts` kini membatasi lookup dan update berdasarkan `fiscalYearId` tenant selain ID transaksi.
+- Verifikasi: integration runner lulus 5 file/25 test; workspace test lulus 45 file/307 test; typecheck lulus; lint exit 0 dengan 79 warning legacy; client dan SSR build lulus. Tidak ada token atau secret dicetak.
+- F13-02 tetap Needs Fix karena ServerFn aktif lain belum seluruhnya memiliki HTTP/auth test individual. F13-03 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 245 — 2026-09-10
+**Status:** Needs Fix — F13-02
+- Menambahkan `apps/web/src/server/integration/rpd-realization-http.integration.test.ts` dengan 4 authenticated HTTP tests individual untuk `listRpdAndRealizationFn`, `upsertRpdFn`, `upsertRealizationFn`, dan `batchUpsertRpdRealizationFn` menggunakan Clerk serta Neon test nyata.
+- Fixture terisolasi membuktikan data RPD/realisasi organisasi sendiri dapat dibaca, akses peer ditolak tanpa ID atau nilai peer bocor, dan seluruh mutation peer tidak membuat atau mengubah baris peer; fixture dibersihkan setelah suite. Implementasi `rpd-realization.ts` tidak memerlukan perubahan.
+- Verifikasi: integration runner lulus 4 file/19 test; workspace test lulus 45 file/307 test; typecheck lulus. Tidak ada token atau secret dicetak.
+- F13-02 tetap Needs Fix karena ServerFn aktif lain belum seluruhnya memiliki HTTP/auth test individual. F13-03 dan task lain tidak dikerjakan.
 
 ### Session 244 — 2026-09-10
 **Status:** Needs Fix — F13-02

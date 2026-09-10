@@ -857,9 +857,9 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Scope:** Engine, rule parser, workday, deadline, compliance, scheduler, access, import parser, serta seluruh test workspace web.
   **DoD:** `npm run test` menjalankan semua workspace termasuk web; branch kritis dan boundary regulasi tercakup; golden tests wajib lulus. Selesai 2026-09-09: workspace test configuration diperbaiki agar E2E tidak ikut Vitest dan seluruh package menemukan test-nya; ditambahkan coverage pure utility/scheduler/workday serta production delivery/import guards; rounding negatif fixed-point diperbaiki dari `--1.24` menjadi `-1.24`; 46 file/309 test lulus.
 
-- [ ] **F13-02 â€” Buat integration test tenant isolation.** [Role: QA Agent]
+- [x] **F13-02 â€” Buat integration test tenant isolation.** [Role: QA Agent]
   **Scope:** Seluruh ServerFn query/mutation Operator/Admin, Operator XLSX export, import/job, QStash, delivery retry, dan cross-tenant/cross-KPPN IDs. PDF Operator dan ekspor Admin retired dari scope aktif berdasarkan keputusan 2026-09-10; route lama hanya boleh menjadi stub fail-safe tanpa mock.
-  **DoD:** Read/write lintas satker/scope selalu ditolak tanpa data leakage pada error atau payload.
+  **DoD:** Read/write lintas satker/scope selalu ditolak tanpa data leakage pada error atau payload. Selesai 2026-09-10: 82 ServerFn aktif tercakup oleh 14 file/92 authenticated HTTP integration tests dengan Clerk dan Neon test nyata; fixture peer dibersihkan dan seluruh quality gate lulus.
 
 - [ ] **F13-03 â€” Buat integration test policy/reminder.** [Role: QA Agent]
   **Scope:** Publish/re-evaluate, mandatory lock, Tagihan H+17, Output lima hari kerja, GUP/PTUP, workday, idempotency, retry, stale snapshot, dan policy version.
