@@ -12,6 +12,7 @@
     "build": "vite build",
     "preview": "vite preview",
 		"test": "vitest run --config=vitest.config.ts",
+    "test:integration": "vitest run --config=vitest.integration.config.ts",
     "test:e2e": "playwright test --config=../../playwright.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
@@ -19,7 +20,6 @@
     "@clerk/tanstack-react-start": "^1.5.9",
     "@hookform/resolvers": "5.9.1",
     "@ikpa/ui": "*",
-    "@react-pdf/renderer": "^4.9.0",
     "@simulator-ikpa/access-control": "*",
     "@simulator-ikpa/contracts": "*",
     "@simulator-ikpa/db": "*",
@@ -54,6 +54,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "agentation": "^3.0.2",
     "jsdom": "30.0.1",
+    "seroval": "^1.6.4",
     "shadcn": "4.19.1",
     "vite": "^8.0.0",
     "vitest": "4.1.11"

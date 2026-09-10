@@ -1,6 +1,7 @@
 import { Buffer } from "node:buffer";
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq, isNull } from "drizzle-orm";
+import { Workbook } from "exceljs";
 import { assertOperatorOrgScope } from "@simulator-ikpa/access-control";
 import { createDbClient } from "@simulator-ikpa/db";
 import {
@@ -62,28 +63,6 @@ export async function buildOperatorXlsxBuffer(args: { orgId: string; db: ReturnT
 		db.select().from(spmQ4).where(and(eq(spmQ4.fiscalYearId, fiscalYearId), isNull(spmQ4.deletedAt))),
 	]);
 
-	// Try exceljs, fallback to CSV-like buffer if missing
-	let ExcelJS: unknown;
-	try {
-		// @ts-ignore – optional deps, Function avoids Vite static resolve
-		ExcelJS = await (Function("m", "return import(m)") as (m: string) => Promise<unknown>)("exceljs");
-	} catch { ExcelJS = null; }
-
-	if (!ExcelJS) {
-		failIfProduction(true, "XLSX renderer is unavailable in production.");
-		// fallback: return CSV-like text encoded as xlsx mime (ponytail ceiling)
-		const csv = [
-			"Sheet: Ringkasan",
-			"account_code,amount",
-			...budgetRows.map(r=>`${esc(r.accountCode)},${esc(r.amount)}`),
-			"",
-			"RPD: month,account_code,amount",
-			...rpdRows.map(r=>`${esc(r.month)},${esc(r.accountCode)},${esc(r.amount)}`),
-		].join("\n");
-		return new TextEncoder().encode(csv);
-	}
-
-	const Workbook = (ExcelJS as { Workbook: new()=>{ addWorksheet: (n:string)=>{ addRow: (v:unknown[])=>void; getRow: (n:number)=>{ font: unknown; commitment: unknown }; columns: unknown[]; views: unknown[] }; xlsx: { writeBuffer: ()=>Promise<ArrayBuffer>} } }).Workbook;
 	const wb = new Workbook();
 
 	// Metadata sheet

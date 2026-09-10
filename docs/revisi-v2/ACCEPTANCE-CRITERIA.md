@@ -29,7 +29,7 @@ histori, tetapi tidak boleh digunakan ketika bertentangan dengan daftar ini.
 | V2-AC-21 | Delivery menyimpan policy, rule version, idempotency, retry audit, dan tidak menggandakan replay. | F13-03, F13-05 |
 | V2-AC-22 | Admin melihat agregat delapan indikator, skor, gap, dan sumber aktual/proyeksi/kosong dalam scope. | F13-05 |
 | V2-AC-23 | Admin melihat monitoring mandatory reminder, risiko, failed delivery, audit, dan detail read-only tanpa kontrol operasional. | F13-05 |
-| V2-AC-24 | Export Operator/Admin scoped menghasilkan file valid, MIME/signature sesuai, filter tercantum, tanpa URL publik permanen, dan disclaimer/rule version tersedia. | F13-05, F13-06 |
+| V2-AC-24 | Export Operator XLSX scoped menghasilkan workbook valid dengan MIME/signature ZIP/XLSX, filter tercantum, tanpa URL publik permanen, dan disclaimer/rule version tersedia. PDF Operator dan ekspor Admin tidak termasuk kontrak aktif sejak 2026-09-10. | F13-02, F13-04 |
 
 ## Invariants protected by Fase 13
 

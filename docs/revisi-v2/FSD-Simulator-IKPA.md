@@ -131,7 +131,7 @@ MVP mencakup:
 | OPS-09 | Import Data | `/operator/import` | Import template CSV/XLSX dan validasi hasil import |
 | OPS-10 | Skenario & Riwayat | `/operator/history` | Daftar simulation, snapshot, duplikasi, perbandingan, soft delete |
 | OPS-11 | Analisis & Rekomendasi | `/operator/analysis` | Gap indikator, tindakan prioritas, risiko deadline |
-| OPS-12 | Laporan & Ekspor | `/operator/reports` | Ekspor XLSX dan ringkasan PDF |
+| OPS-12 | Laporan & Ekspor | `/operator/reports` | Ekspor XLSX scoped; PDF tidak termasuk kontrak aktif |
 | OPS-13 | Reminder Center | `/operator/reminders` | Melihat dan mengatur delivery reminder sesuai policy |
 | OPS-14 | Panduan IKPA | `/operator/guides` | Panduan indikator, formula, istilah, dan praktik pengendalian |
 | OPS-15 | Pengaturan Satker | `/operator/settings` | Profil satker, target default, timezone, dan preferensi yang diizinkan |
@@ -144,7 +144,7 @@ MVP mencakup:
 | ADM-02 | Daftar Satker | `/admin-kppn/satker` | Pencarian, filter, dan daftar satker dalam scope KPPN |
 | ADM-03 | Detail Satker | `/admin-kppn/satker/:orgId` | Detail read-only dashboard, indikator, data ringkas, riwayat, reminder |
 | ADM-04 | Risiko & Reminder | `/admin-kppn/monitoring/reminders` | Monitoring event, deadline, eskalasi, dan status delivery lintas satker |
-| ADM-05 | Laporan Agregat | `/admin-kppn/reports` | Rekap skor, indikator, risiko, tren, dan ekspor XLSX/PDF |
+| ADM-05 | Laporan Agregat | `/admin-kppn/reports` | Monitoring agregat read-only; ekspor Admin tidak termasuk kontrak aktif |
 | ADM-06 | Rule Set IKPA | `/admin-kppn/policy/rule-sets` | Daftar, buat, edit draft, bandingkan, publish, retire rule set |
 | ADM-07 | Detail/Edit Rule Set | `/admin-kppn/policy/rule-sets/:id` | Konfigurasi bobot, target, formula, asumsi, dan status aturan |
 | ADM-08 | Reminder Policy | `/admin-kppn/policy/reminders` | Kelola event, kategori, deadline formula, batas lead time, penerima wajib |

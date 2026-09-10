@@ -3,7 +3,9 @@
 **Sumber aktif:** [PRD Revisi v2](revisi-v2/PRD-Simulator-IKPA.md), [FSD Revisi v2](revisi-v2/FSD-Simulator-IKPA.md), [TSD Revisi v2](revisi-v2/TSD-Simulator-IKPA.md), [ERD Revisi v2](revisi-v2/ERD-Simulator-IKPA.md), dan [Acceptance Criteria Revisi v2](revisi-v2/ACCEPTANCE-CRITERIA.md).
 **Referensi historis:** PRD/FSD/TSD/ERD v1.0, UI/UX Design System v1.0, dan UI/UX Wireframes v1.0.
 **Backlog implementasi:** [TASK-LIST-Simulator-IKPA.md](TASK-LIST-Simulator-IKPA.md)  
-**Status baseline:** 9 September 2026; status aktif Revisi v2: 9 September 2026. F13-00/F13-01 sudah diverifikasi lokal (46 file/309 test); integration/E2E authenticated menunggu database dan staging.
+**Status baseline:** 10 September 2026; status aktif Revisi v2: 10 September 2026. F13-00/F13-01 sudah diverifikasi lokal; F13-02 memiliki branch Neon test dan HTTP/auth harness parsial, sedangkan E2E authenticated masih menunggu staging.
+
+**Keputusan scope 2026-09-10:** PDF Operator dan ekspor Admin retired dari kontrak aktif. V2-AC-24 hanya melacak Operator XLSX scoped; Admin tetap monitoring read-only.
 
 Dokumen ini memetakan requirement ke task implementasi. Detail perilaku tetap mengikuti dokumen sumber; matriks ini tidak menduplikasi spesifikasi.
 
@@ -24,11 +26,11 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 
 | Area | Active criteria | Evidence phase | Current status |
 |---|---|---|---|
-| Akses dan scope | V2-AC-01..07 | F13-02, F13-04, F13-05 | Blocked — authenticated DB/E2E fixture belum tersedia |
-| Input dan engine | V2-AC-08..11 | F13-01, F13-02 | Needs Fix — unit/golden hijau; scoped integration belum dijalankan |
+| Akses dan scope | V2-AC-01..07 | F13-02, F13-04, F13-05 | Needs Fix — local DB/auth HTTP partial; full E2E staging belum tersedia |
+| Input dan engine | V2-AC-08..11 | F13-01, F13-02 | Needs Fix — unit/golden dan sebagian scoped integration hijau; seluruh ServerFn belum terwakili |
 | Skenario, dashboard, dan riwayat | V2-AC-12..16 | F13-04 | Blocked — Playwright login/persistence fixture belum tersedia |
 | Policy, deadline, dan delivery | V2-AC-17..21 | F13-03, F13-05 | Blocked — database/provider replay harness belum tersedia |
-| Admin monitoring dan export | V2-AC-22..24 | F13-05, F13-06 | Needs Fix — signature/runtime guard hijau; scoped admin E2E belum dijalankan |
+| Admin monitoring read-only | V2-AC-22..23 | F13-05 | Blocked — scoped admin E2E belum dijalankan |
 
 ### Active v2 evidence ledger
 
@@ -36,12 +38,12 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 |---|---|---|
 | V2-AC-01 | Landing smoke desktop/mobile 2/2; login persistence belum diuji | Needs Fix |
 | V2-AC-02..07 | Access-control unit tests dan server guards; authenticated cross-scope DB/E2E belum ada | Blocked |
-| V2-AC-08 | Unit validation dan Import deferred; scoped ServerFn integration belum ada | Needs Fix |
-| V2-AC-09..10 | 46 workspace test files/309 tests; engine eight-row/boundary/golden tests lulus | Done |
+| V2-AC-08 | Unit validation dan Import deferred; authenticated HTTP/DB ServerFn integration sebagian lulus | Needs Fix |
+| V2-AC-09..10 | 45 workspace test files/307 tests; engine eight-row/boundary/golden tests lulus | Done |
 | V2-AC-11..16 | Pure what-if/parity/slot tests ada; full authenticated Dashboard–Riwayat flow belum ada | Needs Fix |
 | V2-AC-17..21 | Deadline/compliance/scheduler pure tests; publish/replay/provider DB belum ada | Blocked |
 | V2-AC-22..23 | Admin server guards dan UI build; scoped read-only/admin E2E belum ada | Blocked |
-| V2-AC-24 | XLSX/PDF signature tests dan production fail-closed guards; scoped export E2E belum ada | Needs Fix |
+| V2-AC-24 | Operator XLSX signature test dan production fail-closed guard; PDF/Admin export retired; scoped export E2E belum ada | Needs Fix |
 
 ## 1. Kebutuhan Fungsional PRD
 
@@ -84,7 +86,7 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 | OPS-09 | Import Data | F3-15 | F7-13, F12-01–F12-05 | Planned |
 | OPS-10 | Skenario & Riwayat | F3-16 | F7-11, F9-09, F11-09 | Planned |
 | OPS-11 | Analisis & Rekomendasi | F3-17 | F6-12, F11-10 | Planned |
-| OPS-12 | Laporan & Ekspor | F3-19 | F12-06, F12-07, F12-09 | Planned |
+| OPS-12 | Laporan & Ekspor | F3-19 | F12-06, F12-09 | Planned — Operator XLSX only |
 | OPS-13 | Reminder Center | F3-18 | F10-04, F10-10, F11-11 | Planned |
 | OPS-14 | Panduan IKPA | F3-20 | — | Planned |
 | OPS-15 | Pengaturan Satker | F3-21 | F9-02, F11-02 | Planned |
@@ -97,7 +99,7 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 | ADM-02 | Daftar Satker | F4-03 | F9-10, F11-12 | Planned |
 | ADM-03 | Detail Satker read-only | F4-04 | F9-10, F11-12 | Planned |
 | ADM-04 | Monitoring Risiko & Reminder | F4-05 | F10-11, F11-12 | Planned |
-| ADM-05 | Laporan Agregat | F4-06 | F12-08, F12-09 | Planned |
+| ADM-05 | Laporan Agregat | F4-06 | — | Deferred — monitoring read-only, no Admin export |
 | ADM-06 | Daftar Rule Set IKPA | F4-07 | F10-09, F11-13 | Planned |
 | ADM-07 | Editor dan publish Rule Set | F4-08 | F10-09, F11-13 | Planned |
 | ADM-08 | Reminder Policy | F4-09 | F10-03, F10-04, F10-09, F11-13 | Planned |
@@ -115,7 +117,7 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 | PRD-AC-03 | Email tanpa mapping melihat access pending | F2-04, F8-03, F11-01 | Planned |
 | PRD-AC-04 | Operator mengakses semua menu tanpa role operasional | F1-10, F8-05, F13-04 | Planned |
 | PRD-AC-05 | Operator hanya mengakses satker sendiri | F8-04, F13-02, F13-06 | Planned |
-| PRD-AC-06 | Admin memonitor scope, detail read-only, export agregat | F9-10, F11-12, F12-08, F13-05 | Planned |
+| PRD-AC-06 | Admin memonitor scope dan detail read-only; ekspor agregat retired | F9-10, F11-12, F13-05 | Planned |
 | PRD-AC-07 | Beberapa Admin KPPN setara | F8-03, F8-07, F13-05 | Planned |
 | PRD-AC-08 | CRUD mapping akses diaudit | F8-07, F9-01, F11-14, F13-05 | Planned |
 | PRD-AC-09 | Tujuh indikator dan pengurang beserta trace/version | F6-01–F6-11, F9-09, F11-09 | Planned |
@@ -301,7 +303,7 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 | Lead time mandatory termasuk H-0 | F0-05 | Gate |
 | Effective rule set resolver | F0-06 | Gate |
 | Struktur repository | F0-07, F1-01 | Gate → Planned |
-| Decimal/XLSX/PDF/storage | F0-08, F7-01, F12-01–F12-09 | Gate → Planned |
+| Decimal/XLSX/storage | F0-08, F7-01, F12-01–F12-06 | Gate → Planned; PDF retired from active scope |
 | Akses ganda Admin/Operator | F0-09, F8-03 | Gate |
 | Retensi dan klasifikasi data | F0-10, F13-06 | Gate |
 | Kinerja kalkulasi <500 ms | F13-07 | Planned |

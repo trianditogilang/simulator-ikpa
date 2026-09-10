@@ -9,6 +9,7 @@
 3. **Admin monitor (CORR-A-00 s.d. CORR-A-05, parkir):** model 8 indikator yang sama, read-only scope KPPN, tanpa sel kuning, tanpa mutasi operasional.
 4. **Freeze operator:** `docs/operator-freeze.md` — kode area operator tidak boleh diubah.
 5. **Excel tidak masuk aplikasi;** direplikasi cara kerjanya (sel kuning, skor instan) satu indikator dulu.
+6. **Scope ekspor dipersempit (F13-02, 2026-09-10):** ekspor PDF Operator dan seluruh ekspor Admin dihentikan dari kontrak aktif. Operator hanya menyediakan XLSX scoped; Admin tetap monitoring read-only. Route lama boleh dipertahankan sebagai stub kompatibilitas, tanpa preview atau file palsu.
 
 ## Kontrak aktif Revisi v2
 
@@ -214,7 +215,7 @@ Semua menu input dapat diakses penuh oleh setiap Operator Satker pada satker sen
 - **Skenario & Riwayat:** Daftar simulasi, periode, nilai, target, status, pembuat, waktu pembaruan, dan rule set version.
 - **Analisis & Rekomendasi:** Urutkan tindakan berdasarkan bobot × gap × urgensi deadline.
 - **Visualisasi:** Grafik garis nilai IKPA/indikator, batang realisasi versus RPD, radar nilai versus target, waterfall kontribusi, dan pie/donut yang relevan.
-- **Laporan & Ekspor:** Ekspor tabel/grafik XLSX dan ringkasan PDF untuk kebutuhan rapat.
+- **Laporan & Ekspor:** Operator hanya mengekspor tabel scoped ke XLSX. PDF tidak termasuk kontrak aktif.
 
 #### Reminder Center
 
@@ -246,7 +247,7 @@ Semua menu input dapat diakses penuh oleh setiap Operator Satker pada satker sen
 #### Risiko, laporan, dan audit
 
 - **Monitoring Risiko & Reminder:** Risiko lintas satker, event mendekati deadline, delivery status, kegagalan email, dan eskalasi.
-- **Laporan Agregat & Ekspor:** Rekap indikator, tren, target gap, risiko, dan daftar satker ke XLSX/PDF.
+- **Laporan Agregat:** Monitoring indikator, tren, target gap, risiko, dan daftar satker secara read-only. Ekspor Admin tidak termasuk kontrak aktif.
 - **Audit Log:** Aktivitas perubahan policy, akses, konfigurasi reminder, rule set version, dan delivery notifikasi.
 
 #### Admin Policy

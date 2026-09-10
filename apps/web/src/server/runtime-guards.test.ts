@@ -27,16 +27,16 @@ describe("production runtime guards", () => {
 
 		expect(() =>
 			assertProductionFileSignature(
-				new Uint8Array([0x25, 0x50, 0x44, 0x46]),
-				new Uint8Array([0x25, 0x50, 0x44, 0x46]),
-				"PDF",
+				new Uint8Array([0x50, 0x4b, 0x03, 0x04]),
+				new Uint8Array([0x50, 0x4b, 0x03, 0x04]),
+				"XLSX",
 			),
 		).not.toThrow();
 		expect(() =>
 			assertProductionFileSignature(
 				new Uint8Array([0x74, 0x65, 0x78, 0x74]),
-				new Uint8Array([0x25, 0x50, 0x44, 0x46]),
-				"PDF",
+				new Uint8Array([0x50, 0x4b, 0x03, 0x04]),
+				"XLSX",
 			),
 		).toThrow(/invalid file signature/);
 	});

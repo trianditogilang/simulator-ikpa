@@ -34,7 +34,8 @@ Catat commit, hasil command, migration revision, dan deployment ID di DEVLOG.
 
 ## Export and import
 
-- XLSX wajib memiliki signature ZIP (`PK\x03\x04`) dan MIME XLSX.
-- PDF wajib dimulai `%PDF` dan MIME `application/pdf`.
+- Operator XLSX wajib memiliki signature ZIP (`PK\x03\x04`) dan MIME XLSX.
+- Ekspor Admin dan PDF Operator retired dari kontrak aktif; route lama harus tetap
+  read-only/fail-safe tanpa preview atau file palsu.
 - Import tetap `Disabled/Deferred`; job backend yang dipanggil tanpa database
   production harus menghasilkan `DATABASE_UNAVAILABLE`.

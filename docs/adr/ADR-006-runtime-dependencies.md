@@ -1,10 +1,12 @@
 # ADR-006 — Dependency Runtime Decimal, XLSX, PDF, dan Storage Import
 
-- Status: Accepted
+- Status: Accepted for historical baseline; PDF export decision retired 2026-09-10
 - Tanggal: 31 Agustus 2026
 - Pemilik: Solution Architect
 - Task: F0-08
 - Terkait: F7-01, F12-01–F12-06, ADR-005
+
+> **Scope note (2026-09-10):** Revisi v2 tidak mengaktifkan PDF Operator maupun ekspor Admin. Bagian PDF di ADR ini dipertahankan sebagai keputusan historis F0-08; kontrak aktif hanya memakai `exceljs` untuk Operator XLSX scoped, sedangkan Admin tetap read-only.
 
 ## Konteks
 
@@ -233,4 +235,3 @@ Sebelum dependency dipakai di produksi:
 - [Cloudflare R2 presigned URLs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/)
 - [Cloudflare R2 object lifecycles](https://developers.cloudflare.com/r2/buckets/object-lifecycles/)
 - [Cloudflare R2 S3 compatibility](https://developers.cloudflare.com/r2/api/s3/api/)
-

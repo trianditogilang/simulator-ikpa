@@ -4,20 +4,44 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Current Phase
 
-**Fase 13 — F13-00/F13-01 selesai; F13-02/F13-03 menunggu database test.**
+**Fase 13 — F13-00/F13-01 selesai; F13-02 Needs Fix; F13-03 tetap ditahan sampai F13-02 selesai.**
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
-- Baseline hijau: typecheck lulus, workspace Vitest 46 test files/309 tests lulus, `npm run lint` exit 0, production build lulus, E2E smoke desktop/mobile 2/2 lulus, dan smoke route `/` sebelumnya HTTP 200.
-- Catatan environment: browser bundled Playwright belum dapat diunduh karena jaringan; smoke tetap reproducible memakai Chrome lokal melalui `channel: "chrome"`. Lint masih memiliki 85 warning legacy tanpa error.
+- Baseline hijau: typecheck lulus, workspace Vitest 45 test files/307 tests lulus setelah source export retired, `npm run lint` exit 0, production build lulus, E2E smoke desktop/mobile 2/2 lulus, dan smoke route `/` sebelumnya HTTP 200.
+- Catatan environment: browser bundled Playwright belum dapat diunduh karena jaringan; smoke tetap reproducible memakai Chrome lokal melalui `channel: "chrome"`. Lint masih memiliki 79 warning legacy tanpa error.
 - F13-01 lulus: konfigurasi test per workspace mencegah E2E masuk Vitest; pure utility/scheduler/workday tests ditambah; bug rounding negatif fixed-point ditutup.
 - F13-06/F13-08 progress: production delivery/import fallback fail-closed, secret/migration/generated-route checks tersedia, dan CI workflow sudah ditulis tetapi belum dijalankan pada remote PR.
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
-- Next action: siapkan environment database/auth terisolasi untuk F13-02/F13-05; task yang membutuhkan persistence tidak boleh dipalsukan dengan fixture in-memory.
+- F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; service-level dan authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus. PDF Operator dan ekspor Admin retired dari scope aktif; coverage seluruh ServerFn aktif masih belum lengkap.
+- Next action: lengkapi harness authenticated ServerFn aktif yang tersisa; jangan lanjut ke F13-03 sebelum task ini memenuhi DoD.
 
 ## Recent Sessions
 
 Entri terbaru berada di bawah bagian ini. Baca task-specific entry atau beberapa
 entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
+
+### Session 242 — 2026-09-10
+**Status:** Needs Fix — F13-02
+- Fixture `F13_02_CLERK_OPERATOR_USER_ID` tervalidasi dan terpetakan ke akses Operator pada branch Neon test; runner membuat sesi Clerk berumur pendek melalui `@clerk/backend`, mengirim JWT hanya di memori, lalu mencabut sesi setelah test.
+- Verifikasi authenticated HTTP: `node scripts/run-f13-02-integration.mjs` lulus 2 file/10 test (route Operator, query/mutation ServerFn lintas tenant, import/QStash, dan Operator XLSX). Tidak ada token atau secret dicetak.
+- Quality gate: `npm.cmd test` lulus 45 file/307 test; typecheck, lint (0 error; 79 warning legacy), production build, dan `git diff --check` lulus.
+- Unresolved risk: belum semua ServerFn aktif mempunyai HTTP/auth test individual. F13-03 dan task berikutnya tetap tidak dimulai.
+
+### Session 241 — 2026-09-10
+**Status:** Needs Fix — F13-02
+- Menutup scope ekspor yang tidak lagi dibutuhkan: PDF Operator dan ekspor Admin dihapus dari service, route UI, navigasi, mock preview, source export, dan dependency `@react-pdf/renderer`/`pdfkit`. Route Admin dipertahankan sebagai stub read-only tanpa data contoh atau tombol ekspor; Operator tetap menyediakan XLSX scoped.
+- Menambahkan authenticated HTTP harness ke suite F13-02 dengan Vite test server + Clerk bearer fixture terisolasi. Harness memverifikasi route Operator ber-DATABASE nyata, query/mutation ServerFn lintas tenant menolak tanpa peer-ID leakage, serta suite DB menguji import job dan QStash signature.
+- Regression signature guard diselaraskan dari PDF generik menjadi ZIP/XLSX karena hanya Operator XLSX yang masih aktif.
+- Verifikasi: `node scripts/run-f13-02-integration.mjs` lulus 2 file/10 test; `npm.cmd test` lulus 45 file/307 test; web typecheck lulus; lint exit 0 dengan warning legacy; production build lulus. Peringatan CSRF TanStack Start tetap tercatat sebagai risiko terpisah.
+- Unresolved risk: belum semua ServerFn aktif mempunyai HTTP/auth test individual, sehingga F13-02 tetap Needs Fix. F13-03 dan task berikutnya tidak dimulai.
+
+### Session 240 - 2026-09-10
+**Status:** Needs Fix — F13-02
+- Menyiapkan branch Neon terisolasi `f13-02-test-20260910`; migration dan seed berhasil tanpa mencetak nilai secret. File `.env.f13-02.local` tetap ignored dan hanya dipakai runner lokal.
+- Menambahkan `vitest.integration.config.ts`, root/workspace `test:integration`, dan suite DB nyata untuk query/mutation Operator, aggregate/detail/snapshot Admin, delivery retry, cross-tenant/cross-KPPN rejection, serta guard sebelum export XLSX.
+- Menutup defect yang terungkap oleh integration test: `operator-xlsx.ts` kini memakai ExcelJS terdeklarasi secara statis dan menghasilkan signature ZIP/XLSX valid; fallback CSV-like tidak lagi dikembalikan sebagai MIME XLSX.
+- Verifikasi: `npm run test:integration` 1 file/7 test lulus; `npm run test` 46 file/309 test lulus; `npm run typecheck` lulus; lint exit 0; production build lulus; `git diff --check` bersih.
+- Gap yang sengaja ditahan: authenticated HTTP ServerFn harness serta import/job, QStash, PDF, dan Admin export belum tercakup, sehingga F13-02 belum Completed dan task berikutnya tidak dilanjutkan.
 
 ### Session 230 - 2026-09-09
 **Status:** Completed — STAB-DOCS-01

@@ -3,7 +3,6 @@ import {
 	Building2,
 	CalendarRange,
 	ClipboardList,
-	FileText,
 	KeyRound,
 	LayoutDashboard,
 	LockKeyhole,
@@ -73,7 +72,6 @@ const policyItems: readonly NavigationItem[] = [
 
 
 const secondaryItems: readonly NavigationItem[] = [
-	{ label: "Laporan Agregat", href: "/admin-kppn/reports", icon: FileText },
 	{ label: "Audit Log", href: "/admin-kppn/audit-logs", icon: ClipboardList },
 	{ label: "Manajemen Akses", href: "/admin-kppn/access", icon: KeyRound },
 ];

@@ -9,10 +9,11 @@
 3. **Route lama dipertahankan;** IA domain-centric diarsip di `docs/future_plan.md`.
 4. **Freeze operator:** `docs/operator-freeze.md` — glob area operator dilarang disentuh.
 5. **F13 terkunci** sampai CORR-00..06 dan CORR-A-00..05 selesai (lihat TASK-LIST §17–18) serta entry gate F13-00 lulus.
+6. **Scope ekspor dipersempit (F13-02, 2026-09-10):** hanya ServerFn XLSX Operator yang aktif. PDF Operator dan ekspor Admin dihapus; route lama, bila dipertahankan, harus fail-safe sebagai stub tanpa mock atau file palsu.
 
 ## Kontrak teknis aktif Revisi v2
 
-- Server tetap menjadi authority untuk auth, scope, policy, reminder, snapshot, export, dan semua mutasi.
+- Server tetap menjadi authority untuk auth, scope, policy, reminder, snapshot, Operator XLSX export, dan semua mutasi.
 - Paket engine tetap menghitung delapan baris tampilan (tujuh indikator plus pengurang Dispensasi SPM); tidak ada rewrite engine atau schema hanya karena perubahan IA.
 - Mode actual, proyeksi, dan skenario harus memiliki jalur data yang terpisah; scenario overlay tidak boleh menulis actual.
 - Slot A/B/C dan nama skenario adalah data konteks Operator; Admin hanya membaca agregat/detail scoped.

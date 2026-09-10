@@ -40,7 +40,7 @@ export const mockAuthPresets: AuthPresetUser[] = [
 			"Kelola & publikasikan Rule Set IKPA berversi",
 			"Konfigurasi Reminder Policy & Kalender Hari Kerja",
 			"Manajemen akses pengguna & audit trail",
-			"Ekspor laporan agregat KPPN (XLSX/PDF)",
+			"Monitoring agregat KPPN secara read-only",
 		],
 	},
 	{
@@ -60,7 +60,7 @@ export const mockAuthPresets: AuthPresetUser[] = [
 			"Input & edit data operasional (Pagu, RPD, Kontrak, UP, Output, SPM)",
 			"Simulasi perhitungan interaktif What-If & komparasi skenario",
 			"Pengaturan jadwal reminder & notifikasi satker",
-			"Unduh laporan eksekutif dan matriks satker",
+			"Unduh matriks data satker (XLSX)",
 			"Read-only pada Rule Set & Kalender KPPN",
 		],
 	},
