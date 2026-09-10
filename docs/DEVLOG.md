@@ -8,7 +8,7 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
 - Baseline hijau: typecheck lulus, workspace Vitest 45 test files/310 tests lulus setelah source export retired, `npm run lint` exit 0, production build lulus, E2E smoke desktop/mobile 2/2 lulus, dan smoke route `/` sebelumnya HTTP 200.
-- Catatan environment: browser bundled Playwright belum dapat diunduh karena jaringan; smoke tetap reproducible memakai Chrome lokal melalui `channel: "chrome"`. Lint masih memiliki 79 warning legacy tanpa error.
+- Catatan environment: browser bundled Playwright belum dapat diunduh karena jaringan; smoke tetap reproducible memakai Chrome lokal melalui `channel: "chrome"`. Lint masih memiliki 77 warning legacy tanpa error.
 - F13-01 lulus: konfigurasi test per workspace mencegah E2E masuk Vitest; pure utility/scheduler/workday tests ditambah; bug rounding negatif fixed-point ditutup.
 - F13-06/F13-08 progress: production delivery/import fallback fail-closed, secret/migration/generated-route checks tersedia, dan CI workflow sudah ditulis tetapi belum dijalankan pada remote PR.
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
