@@ -33,6 +33,33 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - Project Vercel, environment Preview, URL, dan authenticated staging belum tersedia karena memerlukan setup manual owner. Tidak ada credential, token, database production, deployment, atau schedule QStash disentuh.
 - F13-03 tetap ditahan dan task Fase 13 lainnya tidak dikerjakan.
 
+### Session 260 - 2026-09-10
+**Status:** Blocked - F13-09 (Vercel Deployment Protection)
+- Smoke check read-only ke URL Preview yang diberikan owner berhasil mencapai Vercel, tetapi halaman utama dan `/api/qstash/daily` sama-sama merespons HTTP 302 ke Vercel SSO Deployment Protection.
+- Nilai cookie/nonce, credential, token, response body, database, dan provider tidak dicatat atau dicetak. Authenticated Clerk staging verification belum dapat dijalankan sampai owner mengatur akses Preview (atau menyediakan jalur bypass yang tidak dibagikan melalui chat).
+- BACKLOG tetap menahan F13-09; F13-03 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 261 - 2026-09-10
+**Status:** Needs Fix - F13-09 (Vercel Preview smoke)
+- Setelah owner membuka Deployment Protection, URL Preview merespons HTTP 200 untuk root.
+- Satu sesi Clerk Operator sementara dipakai hanya di memori dan langsung dicabut; `/operator/dashboard`, `/operator/data/rpd-realization`, dan `/operator/data/contracts-invoices` semuanya merespons HTTP 200 tanpa indikator konfigurasi database/Clerk yang hilang. Response body tidak dicetak.
+- Full ServerFn/mutation/cross-tenant, browser/UAT, dan provider verification belum dijalankan. Deployment Protection sebaiknya tetap nonaktif sementara; jika diaktifkan kembali, gunakan bypass automation hanya melalui secret manager lokal/CI.
+- F13-03 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 262 - 2026-09-10
+**Status:** Needs Fix - F13-09 (authenticated browser smoke)
+- Browser smoke read-only pada URL Preview menggunakan Chrome headless dan sesi Clerk Operator sementara lulus untuk `/operator/dashboard` dan `/operator/data/rpd-realization`; kedua halaman HTTP 200, judul aplikasi benar, tanpa tampilan sign-in atau internal/configuration error.
+- Session Clerk langsung dicabut setelah test; tidak ada mutation, response body, cookie, nonce, credential, token, atau data produksi yang dicetak.
+- Deployment Protection belum perlu diaktifkan kembali selama authenticated staging verification berlanjut. F13-09 belum Completed karena full ServerFn/mutation/cross-tenant, UAT, dan provider gate belum diverifikasi.
+
+### Session 263 - 2026-09-10
+**Status:** Needs Fix - F13-09 (Nitro/Vercel production SSR)
+- Akar 500 pada build SSR diisolasi ke `NODE_ENV=development` dari environment project yang membuat Vite menghasilkan `jsxDEV` untuk React production runtime. `apps/web/vite.config.ts` kini memaksa `NODE_ENV=production` dan mengosongkan `VITE_USER_NODE_ENV` hanya pada command `build`; mode development tidak diubah.
+- Build Node dan `NITRO_PRESET=vercel` lulus; artefak Vercel tidak memiliki marker `jsxDEV`. Smoke authenticated lokal menunjukkan `/operator/dashboard` dan route data RPD 200; `/operator/reminders` tetap 500 karena guard produksi sengaja fail-closed saat delivery/provider belum tersedia, sehingga F13-03 tetap blocker.
+- Quality gate: integration 14 file/92 test lulus; workspace 45 file/307 test lulus; typecheck, lint (0 error; 79 warning legacy), build, dan `git diff --check` lulus.
+- Preview yang sedang aktif belum memuat commit perbaikan sampai redeploy selesai. Deployment Protection tetap nonaktif selama verifikasi; belum ada secret/token/response sensitif yang dicetak, database production atau deployment manual disentuh.
+- F13-03 dan task Fase 13 lainnya tidak dikerjakan.
+
 Entri terbaru berada di bawah bagian ini. Baca task-specific entry atau beberapa
 entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 

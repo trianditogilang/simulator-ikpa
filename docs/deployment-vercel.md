@@ -33,6 +33,8 @@ project, environment Preview, dan domain produksi belum tersedia di repository.
 
 ## Current blocker
 
-Tidak ada `vercel.json`, project ID, Preview URL, atau deployment credential di
-repository. F13-09 tetap `Blocked` sampai owner deployment menyediakan semua
-input tersebut dan menjalankan authenticated staging verification.
+Project dan Preview URL sudah tersedia, dan smoke read-only authenticated pada
+route Operator sudah lulus. F13-09 tetap `Needs Fix` sampai seluruh ServerFn,
+mutation/cross-tenant, browser/UAT, serta provider gate diverifikasi. Jika
+Deployment Protection diaktifkan kembali, gunakan bypass automation hanya dari
+secret manager lokal/CI dan jangan memasukkan secret ke URL atau repository.
