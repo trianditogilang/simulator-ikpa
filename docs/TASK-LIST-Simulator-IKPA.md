@@ -9,14 +9,14 @@
 ## 1. Cara Menggunakan Task List
 
 - Kerjakan task sesuai dependensi, bukan hanya urutan nomor.
-- Task **[Model: Luna Max]** dibatasi maksimal **1-2 file**. File hasil generate, lockfile, dan migration SQL tetap dihitung sebagai file yang disentuh.
-- Jika saat eksekusi task Luna ternyata membutuhkan file ketiga, pecah menjadi task baru. Jangan memperluas scope diam-diam.
-- Task **[Model: Sol Medium]** dipakai untuk migrasi struktur, perubahan lintas-modul, investigasi regulasi, integrasi kompleks, security review, E2E, atau pekerjaan long-running.
+- Task kecil dibatasi maksimal **1-2 file**. File hasil generate, lockfile, dan migration SQL tetap dihitung sebagai file yang disentuh.
+- Jika saat eksekusi task kecil ternyata membutuhkan file ketiga, pecah menjadi task baru. Jangan memperluas scope diam-diam.
+- Task besar dipakai untuk migrasi struktur, perubahan lintas-modul, investigasi regulasi, integrasi kompleks, security review, E2E, atau pekerjaan long-running.
 - Pada Fase UI, komponen hanya membaca kontrak dan mock service. Komponen dilarang mengimpor fixture mentah secara langsung agar penggantian ke backend tidak memerlukan rewrite UI.
 - Setiap task harus lulus Definition of Done-nya sebelum task dependen dimulai.
 - Setiap agent yang menyelesaikan task **wajib** memperbarui `docs/BACKLOG.md` dan menambahkan catatan append-only ke `docs/DEVLOG.md` sebelum menyerahkan hasil.
 - Agent juga menandai checkbox task pada file ini setelah seluruh DoD dan verifikasi lulus. Task yang masih gagal verifikasi tidak boleh ditandai selesai.
-- `TASK-LIST-Simulator-IKPA.md`, `BACKLOG.md`, dan `DEVLOG.md` adalah **file metadata operasional**. Ketiganya wajib diperbarui tetapi tidak dihitung dalam batas 1â€“2 file implementasi untuk task Luna Max.
+- `TASK-LIST-Simulator-IKPA.md`, `BACKLOG.md`, dan `DEVLOG.md` adalah **file metadata operasional**. Ketiganya wajib diperbarui tetapi tidak dihitung dalam batas 1–2 file implementasi untuk task kecil.
 - `src/routeTree.gen.ts`, migration, snapshot, dan file generator lain tidak diedit manual.
 
 ### Protokol Penyelesaian Task untuk Semua Agent
@@ -25,12 +25,12 @@ Sebelum menyatakan task selesai, agent harus menjalankan urutan berikut:
 
 1. Pastikan scope file, acceptance criteria, dan Definition of Done task terpenuhi.
 2. Jalankan verifikasi yang relevan dan catat command serta hasil ringkasnya.
-3. Perbarui baris task di `docs/BACKLOG.md` menjadi `Completed`, termasuk tanggal, agent/role, model, file implementasi, dan bukti verifikasi.
+3. Perbarui baris task di `docs/BACKLOG.md` menjadi `Completed`, termasuk tanggal, agent/role, file implementasi, dan bukti verifikasi.
 4. Tambahkan entri baru di bagian paling atas log `docs/DEVLOG.md`; entri lama tidak boleh ditimpa atau dihapus.
 5. Tandai checkbox task pada file ini dari `[ ]` menjadi `[x]`.
 6. Bila task diblokir atau gagal verifikasi, gunakan status `Blocked`/`Needs Fix` di backlog dan tulis penyebab serta next action di devlog; checkbox tetap `[ ]`.
 
-Minimum isi entri DEVLOG: task ID, ringkasan hasil, role/agent, model, file yang berubah, keputusan penting, verifikasi, risiko/known issue, dan task berikutnya yang terbuka.
+Minimum isi entri DEVLOG: task ID, ringkasan hasil, role/agent, file yang berubah, keputusan penting, verifikasi, risiko/known issue, dan task berikutnya yang terbuka.
 
 ## 2. Role Agent
 
@@ -70,596 +70,596 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
 
 ## 4. Fase 0 â€” Governance, Kontrak, dan Keputusan Arsitektur
 
-- [x] **F0-01 â€” Buat matriks traceability requirement-ke-fitur.** [Role: Product & IKPA Analyst] [Model: Sol Medium]  
+- [x] **F0-01 â€” Buat matriks traceability requirement-ke-fitur.** [Role: Product & IKPA Analyst]
   **File:** `docs/traceability-matrix.md`  
   **DoD:** Seluruh PUB/OPS/ADM, acceptance criteria PRD/FSD, tabel ERD, state wireframe, dan test TSD memiliki ID implementasi serta status MVP.
 
-- [x] **F0-02 â€” Dokumentasikan status verifikasi parameter IKPA 2026.** [Role: Product & IKPA Analyst] [Model: Sol Medium]  
+- [x] **F0-02 â€” Dokumentasikan status verifikasi parameter IKPA 2026.** [Role: Product & IKPA Analyst]
   **File:** `docs/regulatory-verification-2026.md`  
   **DoD:** Setiap parameter memiliki nilai sementara, sumber, pemilik verifikasi, status `verified/needs_verification`, dan larangan go-live bila belum valid.
 
-- [x] **F0-03 â€” Putuskan interpretasi kalender kerja dan H+17/H-0.** [Role: Product & IKPA Analyst] [Model: Luna Max]  
+- [x] **F0-03 â€” Putuskan interpretasi kalender kerja dan H+17/H-0.** [Role: Product & IKPA Analyst]
   **File:** `docs/adr/ADR-001-workday-boundaries.md`  
   **Depends:** F0-02  
   **DoD:** Inklusivitas tanggal awal/akhir, weekend, override hari kerja, timezone, dan contoh lintas bulan terdokumentasi tanpa ambiguitas.
 
-- [x] **F0-04 â€” Putuskan versioning kalender kerja.** [Role: Solution Architect] [Model: Luna Max]
+- [x] **F0-04 â€” Putuskan versioning kalender kerja.** [Role: Solution Architect]
   **File:** `docs/adr/ADR-002-workday-versioning.md`  
   **Depends:** F0-03  
   **DoD:** Memilih kalender immutable per rule set atau calendar version terpisah, termasuk dampak ERD dan snapshot.
 
-- [x] **F0-05 â€” Putuskan semantik lead time termasuk H-0.** [Role: Solution Architect] [Model: Luna Max]
+- [x] **F0-05 â€” Putuskan semantik lead time termasuk H-0.** [Role: Solution Architect]
   **File:** `docs/adr/ADR-003-reminder-lead-days.md`  
   **DoD:** Konflik `minLeadDays >= 1` versus H-0 diselesaikan dan schema final dijelaskan.
 
-- [x] **F0-06 â€” Putuskan resolver versi rule set.** [Role: Solution Architect] [Model: Luna Max]
+- [x] **F0-06 â€” Putuskan resolver versi rule set.** [Role: Solution Architect]
   **File:** `docs/adr/ADR-004-rule-set-resolution.md`  
   **DoD:** Aturan effective range, publish, retire, overlap, rollback, dan histori snapshot eksplisit.
 
-- [x] **F0-07 â€” Tetapkan struktur monorepo dan package manager.** [Role: Solution Architect] [Model: Luna Max]
+- [x] **F0-07 â€” Tetapkan struktur monorepo dan package manager.** [Role: Solution Architect]
   **File:** `docs/adr/ADR-005-repository-structure.md`  
   **DoD:** Memilih npm workspaces atau alternatif, mapping starter saat ini ke `apps/web`, serta boundary `db`, `ikpa-engine`, `policy-reminder`, `access-control`, dan `ui`.
 
-- [x] **F0-08 â€” Pilih dependency decimal, XLSX, PDF, dan storage import.** [Role: Solution Architect] [Model: Sol Medium]
+- [x] **F0-08 â€” Pilih dependency decimal, XLSX, PDF, dan storage import.** [Role: Solution Architect]
   **File:** `docs/adr/ADR-006-runtime-dependencies.md`  
   **DoD:** Pilihan dibandingkan dari presisi, keamanan, serverless compatibility, ukuran bundle, lisensi, dan maintenance.
 
-- [x] **F0-09 â€” Putuskan akses ganda Admin/Operator.** [Role: Product & IKPA Analyst] [Model: Luna Max]
+- [x] **F0-09 â€” Putuskan akses ganda Admin/Operator.** [Role: Product & IKPA Analyst]
   **File:** `docs/adr/ADR-007-access-precedence.md`  
   **DoD:** Redirect default, pilihan satker, pergantian konteks, dan session behavior ditetapkan.
 
-- [x] **F0-10 â€” Tetapkan kebijakan retensi dan klasifikasi data.** [Role: Security Agent] [Model: Sol Medium]
+- [x] **F0-10 â€” Tetapkan kebijakan retensi dan klasifikasi data.** [Role: Security Agent]
   **File:** `docs/data-retention-and-classification.md`  
   **DoD:** Retensi audit/snapshot/import/delivery, data personal, redaction log, dan prosedur penghapusan disetujui.
 
-- [x] **F0-11 â€” Definisikan kontrak frontend bersama.** [Role: Solution Architect] [Model: Sol Medium]
+- [x] **F0-11 â€” Definisikan kontrak frontend bersama.** [Role: Solution Architect]
   **Files:** `packages/contracts/src/index.ts`, `packages/contracts/src/schemas.ts`  
   **Depends:** F0-03â€“F0-09  
   **DoD:** DTO akses, konteks global, indikator, snapshot, policy, delivery, pagination, filter, dan structured error tersedia tanpa dependensi UI/database.
 
-- [x] **F0-12 â€” Buat katalog mock scenario.** [Role: UI/UX Designer] [Model: Luna Max]
+- [x] **F0-12 â€” Buat katalog mock scenario.** [Role: UI/UX Designer]
   **File:** `docs/mock-scenarios.md`  
   **Depends:** F0-11  
   **DoD:** Scenario normal, empty, incomplete, risky, stale rule set, policy locked, delivery failed, unauthorized, dan server error memiliki expected UI.
 
 ## 5. Fase 1 â€” Workspace dan UI Foundation
 
-- [x] **F1-01 â€” Migrasikan starter ke workspace target.** [Role: Solution Architect] [Model: Sol Medium]
+- [x] **F1-01 â€” Migrasikan starter ke workspace target.** [Role: Solution Architect]
   **Scope:** Struktur root, `apps/web`, dan `packages/*` sesuai ADR-005  
   **Depends:** F0-07  
   **DoD:** `npm install`, dev server, route generation, typecheck, lint, dan build starter lulus tanpa kehilangan riwayat source.
 
-- [x] **F1-02 â€” Pasang dependency UI yang sudah disetujui.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F1-02 â€” Pasang dependency UI yang sudah disetujui.** [Role: Frontend Foundation Agent]
   **Files:** `package.json`, `package-lock.json`  
   **Depends:** F1-01  
   **DoD:** shadcn/Radix, lucide-react, Recharts, form/validation, dan test UI tersedia dengan versi terkunci.
 
-- [x] **F1-03 â€” Konfigurasi token warna dan typography.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F1-03 â€” Konfigurasi token warna dan typography.** [Role: Frontend Foundation Agent]
   **Files:** `apps/web/src/styles.css`, `apps/web/src/lib/design-tokens.ts`  
   **DoD:** Token sesuai design system, Inter, tabular numbers, focus ring, semantic statuses, dan reduced motion tersedia.
 
-- [x] **F1-04 â€” Buat primitive status dan badge.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F1-04 â€” Buat primitive status dan badge.** [Role: Frontend Foundation Agent]
   **Files:** `packages/ui/src/components/status-badge.tsx`, `packages/ui/src/components/rule-set-badge.tsx`  
   **Depends:** F1-03  
   **DoD:** Status tidak bergantung warna saja dan memiliki label serta accessible name.
 
-- [x] **F1-05 â€” Buat komponen context header.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F1-05 â€” Buat komponen context header.** [Role: Frontend Foundation Agent]
   **Files:** `packages/ui/src/components/context-header.tsx`, `packages/ui/src/components/context-selector.tsx`  
   **Depends:** F0-11, F1-03  
   **DoD:** Satker/KPPN, tahun, periode, mode akses, dan rule set tampil responsif.
 
-- [x] **F1-06 â€” Buat state loading dan error.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F1-06 â€” Buat state loading dan error.** [Role: Frontend Foundation Agent]
   **Files:** `packages/ui/src/components/loading-state.tsx`, `packages/ui/src/components/error-state.tsx`  
   **DoD:** Skeleton mempertahankan layout; error menampilkan retry dan request ID aman.
 
-- [x] **F1-07 â€” Buat state empty dan incomplete.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F1-07 â€” Buat state empty dan incomplete.** [Role: Frontend Foundation Agent]
   **Files:** `packages/ui/src/components/empty-state.tsx`, `packages/ui/src/components/incomplete-state.tsx`  
   **DoD:** Kedua state memiliki penjelasan, domain terdampak, dan CTA kontekstual.
 
-- [x] **F1-08 â€” Buat komponen disclaimer dan policy lock.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F1-08 â€” Buat komponen disclaimer dan policy lock.** [Role: Frontend Foundation Agent]
   **Files:** `packages/ui/src/components/simulation-disclaimer.tsx`, `packages/ui/src/components/policy-lock-alert.tsx`  
   **DoD:** Disclaimer nilai tidak resmi dan alasan field terkunci dapat dipakai lintas halaman.
 
-- [x] **F1-09 â€” Buat shell publik.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F1-09 â€” Buat shell publik.** [Role: Frontend Foundation Agent]
   **Files:** `apps/web/src/components/layout/public-shell.tsx`, `apps/web/src/components/layout/public-header.tsx`  
   **DoD:** Header, content width, mobile layout, dan CTA login sesuai wireframe.
 
-- [x] **F1-10 â€” Buat shell Operator.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F1-10 â€” Buat shell Operator.** [Role: Frontend Foundation Agent]
   **Files:** `apps/web/src/components/layout/operator-shell.tsx`, `apps/web/src/components/layout/operator-navigation.tsx`  
   **Depends:** F1-05  
   **DoD:** Sidebar desktop, sheet/bottom navigation mobile, dan active route lengkap.
 
-- [x] **F1-11 â€” Buat shell Admin KPPN.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F1-11 â€” Buat shell Admin KPPN.** [Role: Frontend Foundation Agent]
   **Files:** `apps/web/src/components/layout/admin-shell.tsx`, `apps/web/src/components/layout/admin-navigation.tsx`  
   **Depends:** F1-05  
   **DoD:** Mode Admin terlihat jelas dan shortcut policy tersedia pada mobile.
 
-- [x] **F1-12 â€” Buat format lokal Indonesia.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F1-12 â€” Buat format lokal Indonesia.** [Role: Frontend Foundation Agent]
   **Files:** `apps/web/src/lib/format.ts`, `apps/web/src/lib/format.test.ts`  
   **DoD:** Rupiah, persen, permil, nilai, tanggal, waktu WIB, dan selisih poin teruji.
 
-- [x] **F1-13 â€” Buat antarmuka mock service.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F1-13 â€” Buat antarmuka mock service.** [Role: Frontend Foundation Agent]
   **Files:** `apps/web/src/mocks/service.ts`, `apps/web/src/mocks/scenario.ts`  
   **Depends:** F0-11, F0-12  
   **DoD:** UI dapat memilih scenario dan menerima Promise/structured error seperti backend.
 
 ## 6. Fase 2 â€” UI Publik dan Akses dengan Dummy Data
 
-- [x] **F2-01 â€” Buat landing page content component.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F2-01 â€” Buat landing page content component.** [Role: Frontend Foundation Agent]
   **Files:** `apps/web/src/components/public/landing-content.tsx`, `apps/web/src/components/public/indicator-summary.tsx`  
   **Depends:** F1-09  
   **DoD:** Hero, manfaat, indikator, disclaimer, dan CTA sesuai WF-01.
 
-- [x] **F2-02 â€” Hubungkan route landing page.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F2-02 â€” Hubungkan route landing page.** [Role: Frontend Foundation Agent]
   **Files:** `apps/web/src/routes/index.tsx`, `apps/web/src/routeTree.gen.ts`  
   **Depends:** F2-01  
   **DoD:** Route publik responsif dan metadata dasar benar.
 
-- [x] **F2-03 â€” Buat UI sign-in dummy.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F2-03 â€” Buat UI sign-in dummy.** [Role: Frontend Foundation Agent]
   **Files:** `apps/web/src/components/public/sign-in-panel.tsx`, `apps/web/src/routes/sign-in.tsx`  
   **DoD:** Loading, error, reset/MFA placeholder, dan redirect intent divisualisasikan tanpa auth nyata.
 
-- [x] **F2-04 â€” Buat halaman akses belum diberikan.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F2-04 â€” Buat halaman akses belum diberikan.** [Role: Frontend Foundation Agent]
   **Files:** `apps/web/src/components/access/access-pending.tsx`, `apps/web/src/routes/access-pending.tsx`  
   **DoD:** Email tersamarkan, instruksi Admin KPPN, logout dummy, dan state mobile tersedia.
 
-- [x] **F2-05 â€” Buat halaman pilih satker.** [Role: Frontend Foundation Agent] [Model: Luna Max]
+- [x] **F2-05 â€” Buat halaman pilih satker.** [Role: Frontend Foundation Agent]
   **Files:** `apps/web/src/components/access/org-picker.tsx`, `apps/web/src/routes/select-organization.tsx`  
   **Depends:** F0-09  
   **DoD:** Search, daftar satker, empty state, dan active selection sesuai WF-04.
 
 ## 7. Fase 3 â€” UI Operator dengan Dummy Data
 
-- [x] **F3-01 â€” Buat fixture konteks dan dashboard Operator.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-01 â€” Buat fixture konteks dan dashboard Operator.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/mocks/operator-context.ts`, `apps/web/src/mocks/operator-dashboard.ts`  
   **Depends:** F1-13  
   **DoD:** Scenario lengkap, incomplete, risky, dan no-deadline memenuhi kontrak bersama.
 
-- [x] **F3-02 â€” Buat kartu skor utama dan indikator.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-02 â€” Buat kartu skor utama dan indikator.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/components/operator/score-card.tsx`, `apps/web/src/components/operator/indicator-card.tsx`  
   **DoD:** Target, gap, kontribusi, tren, kelengkapan, rule set, dan disclaimer tampil.
 
-- [x] **F3-03 â€” Buat panel deadline dan rekomendasi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-03 â€” Buat panel deadline dan rekomendasi.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/components/operator/deadline-panel.tsx`, `apps/web/src/components/operator/recommendation-list.tsx`  
   **DoD:** Urgensi, indikator, deadline absolut/relatif, serta CTA input tersedia.
 
-- [x] **F3-04 â€” Buat halaman Dashboard Operator.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-04 â€” Buat halaman Dashboard Operator.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/dashboard.tsx`, `apps/web/src/routeTree.gen.ts`  
   **Depends:** F3-01â€“F3-03  
   **DoD:** Semua state WF-OPS-01 dapat dipilih melalui mock scenario.
 
-- [x] **F3-05 â€” Buat form konteks simulasi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-05 â€” Buat form konteks simulasi.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/components/operator/simulation-context-form.tsx`, `apps/web/src/components/operator/simulation-mode-tabs.tsx`  
   **DoD:** Actual/forecast/scenario, target, periode, BLU, dan unsaved state tampil jelas.
 
-- [x] **F3-06 â€” Buat panel hasil simulasi dummy.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-06 â€” Buat panel hasil simulasi dummy.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/components/operator/simulation-result.tsx`, `apps/web/src/components/operator/formula-trace.tsx`  
   **DoD:** Breakdown, override highlight, delta poin, warning, missing data, dan trace formula tersedia.
 
-- [x] **F3-07 â€” Buat route Simulasi IKPA.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-07 â€” Buat route Simulasi IKPA.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/simulation.tsx`, `apps/web/src/routeTree.gen.ts`  
   **Depends:** F3-05, F3-06  
   **DoD:** Panel hasil sticky desktop dan summary expandable mobile sesuai WF-OPS-02.
 
-- [x] **F3-08 â€” Buat pola tabel/form input reusable.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-08 â€” Buat pola tabel/form input reusable.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/components/data/domain-data-table.tsx`, `apps/web/src/components/data/domain-form-drawer.tsx`  
   **DoD:** Loading, empty, error, pagination, filter, CRUD dummy, dirty state, dan confirmation tersedia.
 
-- [x] **F3-09 â€” Buat UI Pagu & Revisi DIPA.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-09 â€” Buat UI Pagu & Revisi DIPA.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/data/budget-revisions.tsx`, `apps/web/src/mocks/budget-revisions.ts`  
   **Depends:** F3-08  
   **DoD:** Pagu 51/52/53/57, histori revisi, eligibility, semester, dan NKRA dummy tampil.
 
-- [x] **F3-10 â€” Buat UI RPD & Realisasi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-10 â€” Buat UI RPD & Realisasi.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/data/rpd-realization.tsx`, `apps/web/src/mocks/rpd-realization.ts`  
   **Depends:** F3-08  
   **DoD:** Grid bulanan, edit massal dummy, deviasi, penyerapan, dan chart placeholder responsif.
 
-- [x] **F3-11 â€” Buat UI Kontrak & Tagihan.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-11 â€” Buat UI Kontrak & Tagihan.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/data/contracts-invoices.tsx`, `apps/web/src/mocks/contracts-invoices.ts`  
   **Depends:** F3-08  
   **DoD:** Tabs kontrak/tagihan/risiko, detail drawer, H+17, eligibility, dan status deadline tampil.
 
-- [x] **F3-12 â€” Buat UI UP/TUP & KKP.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-12 â€” Buat UI UP/TUP & KKP.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/data/up-tup-kkp.tsx`, `apps/web/src/mocks/up-tup-kkp.ts`  
   **Depends:** F3-08  
   **DoD:** Transaksi, interval, ringkasan tunai, target KKP, dan deadline dummy tampil.
 
-- [x] **F3-13 â€” Buat UI Capaian Output.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-13 â€” Buat UI Capaian Output.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/data/output-achievement.tsx`, `apps/web/src/mocks/output-achievement.ts`  
   **Depends:** F3-08  
   **DoD:** RO bulanan, konfirmasi, deadline, nilai eligibility, dan warning tampil.
 
-- [x] **F3-14 â€” Buat UI SPM Dispensasi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-14 â€” Buat UI SPM Dispensasi.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/data/spm-dispensation.tsx`, `apps/web/src/mocks/spm-dispensation.ts`  
   **Depends:** F3-08  
   **DoD:** Total Q4, dispensasi, rasio permil, pengurang, dan proyeksi risiko tampil.
 
-- [x] **F3-15 â€” Buat wizard Import Data dummy.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-15 â€” Buat wizard Import Data dummy.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/import.tsx`, `apps/web/src/mocks/import-job.ts`  
   **DoD:** Pilih file, validasi, preview, error row, confirm commit, progress async, dan result state tersedia.
 
-- [x] **F3-16 â€” Buat UI Skenario & Riwayat.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-16 â€” Buat UI Skenario & Riwayat.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/history.tsx`, `apps/web/src/mocks/simulations.ts`  
   **DoD:** List, filter, soft-delete dialog, duplicate, compare dua skenario, dan stale rule set banner tersedia.
 
-- [x] **F3-17 â€” Buat UI Analisis & Rekomendasi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-17 â€” Buat UI Analisis & Rekomendasi.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/analysis.tsx`, `apps/web/src/mocks/analysis.ts`  
   **DoD:** Filter, prioritas, dampak, urgensi, deadline, dan deep-link ke input tampil.
 
-- [x] **F3-18 â€” Buat UI Reminder Center.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-18 â€” Buat UI Reminder Center.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/reminders.tsx`, `apps/web/src/mocks/reminders.ts`  
   **DoD:** Mandatory lock, preview jadwal, recipient, lead time, escalation, digest, reset default, dan invalid policy state tersedia.
 
-- [x] **F3-19 â€” Buat UI Laporan & Ekspor.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-19 â€” Buat UI Laporan & Ekspor.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/reports.tsx`, `apps/web/src/mocks/reports.ts`  
   **DoD:** Filter, preview isi laporan, pilihan XLSX/PDF, disclaimer, dan status generate dummy tersedia.
 
-- [x] **F3-20 â€” Buat UI Panduan IKPA.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-20 â€” Buat UI Panduan IKPA.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/guides.tsx`, `apps/web/src/mocks/guides.ts`  
   **DoD:** Delapan topik, formula, contoh, istilah, tips, source, dan verification badge tersedia.
 
-- [x] **F3-21 â€” Buat UI Pengaturan Satker.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F3-21 â€” Buat UI Pengaturan Satker.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/settings.tsx`, `apps/web/src/mocks/settings.ts`  
   **DoD:** Profil, BLU, timezone, target, rule set, source regulation, dan daftar operator read-only tersedia.
 
 ## 8. Fase 4 — UI Admin KPPN dengan Dummy Data
 
-- [x] **F4-01 — Buat fixture dashboard dan scope Admin.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-01 — Buat fixture dashboard dan scope Admin.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/mocks/admin-context.ts`, `apps/web/src/mocks/admin-dashboard.ts`  
   **DoD:** Normal, no-data, risky, delivery-failed, dan policy-changed tersedia.
 
-- [x] **F4-02 — Buat UI Dashboard Monitoring Admin.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-02 — Buat UI Dashboard Monitoring Admin.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/dashboard.tsx`, `apps/web/src/components/admin/risk-overview.tsx`  
   **Depends:** F4-01  
   **DoD:** Agregat, distribusi status, tren, satker prioritas, deadline, delivery, dan rule set tampil.
 
-- [x] **F4-03 — Buat UI Daftar Satker.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-03 — Buat UI Daftar Satker.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/organizations/index.tsx`, `apps/web/src/mocks/admin-organizations.ts`  
   **DoD:** Search/filter/pagination, card mobile, skor, gap, risiko, deadline, dan update time tersedia.
 
-- [x] **F4-04 — Buat UI Detail Satker read-only.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-04 — Buat UI Detail Satker read-only.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/organizations/$orgId.tsx`, `apps/web/src/mocks/admin-organization-detail.ts`  
   **DoD:** Dashboard, indikator, snapshot, reminder, audit relevan, export, dan tanpa aksi edit operasional.
 
-- [x] **F4-05 — Buat UI Monitoring Risiko & Reminder.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-05 — Buat UI Monitoring Risiko & Reminder.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/monitoring/reminders.tsx`, `apps/web/src/mocks/admin-reminders.ts`  
   **DoD:** Filter lintas satker, detail delivery drawer, error aman, dan retry confirmation dummy tersedia.
 
-- [x] **F4-06 — Buat UI Laporan Agregat.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-06 — Buat UI Laporan Agregat.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/reports.tsx`, `apps/web/src/mocks/admin-reports.ts`  
   **DoD:** Rekap nilai, indikator, risiko, kelengkapan, delivery, filter scope, dan preview export tersedia.
 
-- [x] **F4-07 — Buat UI daftar Rule Set.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-07 — Buat UI daftar Rule Set.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/policy/rule-sets/index.tsx`, `apps/web/src/mocks/rule-sets.ts`  
   **DoD:** Draft/published/retired, version, effective date, source, compare, clone, dan action availability tampil.
 
-- [x] **F4-08 — Buat UI editor dan publish Rule Set.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-08 — Buat UI editor dan publish Rule Set.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/policy/rule-sets/$ruleSetId.tsx`, `apps/web/src/components/admin/rule-set-publish-dialog.tsx`  
   **DoD:** Sectioned editor, validation summary, assumptions, diff, impact reminder, dan explicit confirmation tersedia.
 
-- [x] **F4-09 — Buat UI Reminder Policy.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-09 — Buat UI Reminder Policy.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/policy/reminders.tsx`, `apps/web/src/mocks/reminder-policies.ts`  
   **DoD:** Event, category, deadline DSL summary, allowed lead days, recipient, active state, dan validation preview tersedia.
 
-- [x] **F4-10 — Buat UI Kalender Hari Kerja.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-10 — Buat UI Kalender Hari Kerja.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/policy/workdays.tsx`, `apps/web/src/mocks/workdays.ts`  
   **Depends:** F0-04  
   **DoD:** Kalender desktop/mobile, import preview, holiday/workday override, version, dan deadline impact tersedia.
 
-- [x] **F4-11 — Buat UI Riwayat Versi Policy.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-11 — Buat UI Riwayat Versi Policy.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/policy/history.tsx`, `apps/web/src/mocks/policy-history.ts`  
   **DoD:** Diff versi, snapshot/delivery usage, publish actor, dan upcoming schedule impact tampil.
 
-- [x] **F4-12 — Buat UI Audit Log.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-12 — Buat UI Audit Log.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/audit-logs.tsx`, `apps/web/src/mocks/audit-logs.ts`  
   **DoD:** Filter, actor/action/entity/time, before-after drawer, rule set, policy, dan request ID tersedia tanpa JSON mentah default.
 
-- [x] **F4-13 — Buat UI Manajemen Akses.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F4-13 — Buat UI Manajemen Akses.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/access.tsx`, `apps/web/src/mocks/access-management.ts`  
   **DoD:** Add/edit/disable/delete dummy, dynamic scope field, verified identity state, dan proteksi admin terakhir divisualisasikan.
 
 ## 9. Fase 5 â€” UI Review dan Prototype Acceptance
 
-- [x] **F5-01 â€” Audit konsistensi desktop/tablet/mobile seluruh P0.** [Role: UI/UX Designer] [Model: Sol Medium]  
+- [x] **F5-01 â€” Audit konsistensi desktop/tablet/mobile seluruh P0.** [Role: UI/UX Designer]
   **Scope:** Seluruh route UI Fase 2â€“4  
-  **DoD:** Temuan dikelompokkan blocker/major/minor dan setiap perbaikan dibuat sebagai task Luna 1â€“2 file.
+  **DoD:** Temuan dikelompokkan blocker/major/minor dan setiap perbaikan dibuat sebagai task kecil 1–2 file.
 
-- [x] **F5-02 â€” Audit aksesibilitas UI.** [Role: QA Agent] [Model: Sol Medium]  
+- [x] **F5-02 â€” Audit aksesibilitas UI.** [Role: QA Agent]
   **Scope:** Keyboard, focus, semantics, contrast, label, dialog, table/card mobile, reduced motion  
   **DoD:** Alur P0 dapat digunakan keyboard dan tidak menggunakan warna sebagai satu-satunya penanda.
 
-- [x] **F5-03 — Buat component test untuk system states.** [Role: QA Agent] [Model: Luna Max]  
+- [x] **F5-03 — Buat component test untuk system states.** [Role: QA Agent]
   **Files:** `packages/ui/src/components/system-states.test.tsx`, `packages/ui/src/components/system-states.stories.tsx`  
   **DoD:** Loading, empty, incomplete, error, policy lock, dan stale rule set tervalidasi visual/fungsional.
 
-- [x] **F5-04 — Buat smoke test navigasi mock.** [Role: QA Agent] [Model: Sol Medium]  
+- [x] **F5-04 — Buat smoke test navigasi mock.** [Role: QA Agent]
   **Scope:** Login dummy → Operator/Admin → seluruh route P0  
   **DoD:** Tidak ada route putus, console error, overflow kritis, atau state tanpa CTA.
 
-- [x] **F5-05 â€” Laksanakan acceptance UI bersama stakeholder.** [Role: Product & IKPA Analyst] [Model: Sol Medium]  
+- [x] **F5-05 â€” Laksanakan acceptance UI bersama stakeholder.** [Role: Product & IKPA Analyst]
   **File:** `docs/ui-acceptance-report.md`  
   **Depends:** F5-01â€“F5-04  
   **DoD:** Setiap wireframe P0 diterima atau memiliki change request bernomor sebelum backend dimulai.
 
 ### Task Perbaikan Hasil Audit F5-01
 
-- [x] **F5-FIX-01 â€” Perbaiki responsivitas dan heading Dashboard Operator.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F5-FIX-01 â€” Perbaiki responsivitas dan heading Dashboard Operator.** [Role: Frontend Operator Agent]
   **File:** `apps/web/src/routes/operator/dashboard.tsx`  
   **DoD:** Pemilih skenario membungkus pada mobile dan halaman memiliki satu `h1`.
 
-- [x] **F5-FIX-02 â€” Tambahkan accessible name search reusable.** [Role: Frontend Foundation Agent] [Model: Luna Max]  
+- [x] **F5-FIX-02 â€” Tambahkan accessible name search reusable.** [Role: Frontend Foundation Agent]
   **File:** `apps/web/src/components/data/domain-data-table.tsx`  
   **DoD:** Search memiliki accessible name kontekstual pada seluruh tabel domain.
 
-- [x] **F5-FIX-04 â€” Tambahkan label filter daftar Admin.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F5-FIX-04 â€” Tambahkan label filter daftar Admin.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/organizations/index.tsx`, `apps/web/src/routes/admin-kppn/policy/rule-sets/index.tsx`  
   **DoD:** Search dan seluruh select filter memiliki accessible name eksplisit.
 
-- [x] **F5-FIX-05 â€” Tambahkan label editor policy dan kalender.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F5-FIX-05 â€” Tambahkan label editor policy dan kalender.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/policy/rule-sets/$ruleSetId.tsx`, `apps/web/src/routes/admin-kppn/policy/workdays.tsx`  
   **DoD:** Seluruh input/select/textarea P0 memiliki label programatis.
 
-- [x] **F5-FIX-06 â€” Tambahkan label kontrol Dashboard Admin dan Manajemen Akses.** [Role: Frontend Admin Agent] [Model: Luna Max]  
+- [x] **F5-FIX-06 â€” Tambahkan label kontrol Dashboard Admin dan Manajemen Akses.** [Role: Frontend Admin Agent]
   **Files:** `apps/web/src/routes/admin-kppn/dashboard.tsx`, `apps/web/src/routes/admin-kppn/access.tsx`  
   **DoD:** Search/filter form memiliki accessible name dan pilihan skenario menyampaikan state terpilih.
 
 ## 10. Fase 6 â€” Domain Engine IKPA
 
-- [x] **F6-01 â€” Buat schema input/output engine.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-01 â€” Buat schema input/output engine.** [Role: Domain Engine Agent]
   **Files:** `packages/ikpa-engine/src/schemas.ts`, `packages/ikpa-engine/src/types.ts`  
   **Depends:** F0-02, F0-11  
   **DoD:** Decimal-safe, incomplete state, formula trace, warning, recommendation, rule set ID/version tervalidasi.
 
-- [x] **F6-02 â€” Buat rule set parser dan invariant.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-02 â€” Buat rule set parser dan invariant.** [Role: Domain Engine Agent]
   **Files:** `packages/ikpa-engine/src/rule-set.ts`, `packages/ikpa-engine/src/rule-set.test.ts`  
   **DoD:** Bobot, bucket overlap, rounding, assumption status, dan parameter money diuji.
 
-- [x] **F6-03 â€” Implementasikan indikator Revisi DIPA.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-03 â€” Implementasikan indikator Revisi DIPA.** [Role: Domain Engine Agent]
   **Files:** `packages/ikpa-engine/src/indicators/dipa-revision.ts`, `packages/ikpa-engine/src/indicators/dipa-revision.test.ts`  
   **DoD:** Eligibility, semester, non-kumulatif, trace, incomplete, dan golden score 80 lulus.
 
-- [x] **F6-04 â€” Implementasikan Deviasi Halaman III DIPA.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-04 â€” Implementasikan Deviasi Halaman III DIPA.** [Role: Domain Engine Agent]
   **Files:** `packages/ikpa-engine/src/indicators/rpd-deviation.ts`, `packages/ikpa-engine/src/indicators/rpd-deviation.test.ts`  
   **DoD:** Janâ€“Nov, proporsi pagu, kurva rule set, zero denominator, dan rounding teruji.
 
-- [x] **F6-05 — Implementasikan Penyerapan Anggaran.** [Role: Domain Engine Agent] [Model: Sol Medium]  
+- [x] **F6-05 — Implementasikan Penyerapan Anggaran.** [Role: Domain Engine Agent]
   **Files:** `packages/ikpa-engine/src/indicators/absorption.ts`, `packages/ikpa-engine/src/indicators/absorption.test.ts`  
   **DoD:** Kumulatif triwulan, target akun, cap 100, weighted result, dan golden 92,67 lulus.
 
-- [x] **F6-06 — Implementasikan Belanja Kontraktual.** [Role: Domain Engine Agent] [Model: Sol Medium]  
+- [x] **F6-06 — Implementasikan Belanja Kontraktual.** [Role: Domain Engine Agent]
   **Files:** `packages/ikpa-engine/src/indicators/contractual.ts`, `packages/ikpa-engine/src/indicators/contractual.test.ts`  
   **DoD:** Tiga komponen, bucket, kontrak dini, eligibility akun 53, termin, dan assumption warning teruji.
 
-- [x] **F6-07 — Implementasikan Penyelesaian Tagihan.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-07 — Implementasikan Penyelesaian Tagihan.** [Role: Domain Engine Agent]
   **Files:** `packages/ikpa-engine/src/indicators/invoice-timeliness.ts`, `packages/ikpa-engine/src/indicators/invoice-timeliness.test.ts`  
   **Depends:** F0-03  
   **DoD:** Non-pegawai, H+17, kalender, boundary, dan golden 13/15 = 86,67 lulus.
 
-- [x] **F6-08 — Implementasikan Pengelolaan UP/TUP.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-08 — Implementasikan Pengelolaan UP/TUP.** [Role: Domain Engine Agent]
   **Files:** `packages/ikpa-engine/src/indicators/up-tup.ts`, `packages/ikpa-engine/src/indicators/up-tup.test.ts`  
   **DoD:** Komponen 50/25/25, weight 90/10, interval, setoran, KKP, incomplete, dan asumsi teruji.
 
-- [x] **F6-09 â€” Implementasikan Capaian Output.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-09 â€” Implementasikan Capaian Output.** [Role: Domain Engine Agent]
   **Files:** `packages/ikpa-engine/src/indicators/output-achievement.ts`, `packages/ikpa-engine/src/indicators/output-achievement.test.ts`  
   **DoD:** Timeliness 30%, achievement 70%, confirmation, PCRO/TPCRO, Desember, dan zero case teruji.
 
-- [x] **F6-10 â€” Implementasikan pengurang Dispensasi SPM.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-10 â€” Implementasikan pengurang Dispensasi SPM.** [Role: Domain Engine Agent]
   **Files:** `packages/ikpa-engine/src/indicators/spm-dispensation.ts`, `packages/ikpa-engine/src/indicators/spm-dispensation.test.ts`  
   **DoD:** Permil, bucket boundaries, zero denominator, dan golden 24/5200 â†’ 0,75 lulus.
 
-- [x] **F6-11 â€” Implementasikan orchestrator engine.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-11 â€” Implementasikan orchestrator engine.** [Role: Domain Engine Agent]
   **Files:** `packages/ikpa-engine/src/calculate.ts`, `packages/ikpa-engine/src/calculate.test.ts`  
   **Depends:** F6-01â€“F6-10  
   **DoD:** Overlay scenario, seven scores, deduction, total, incomplete flag, rounding, dan determinisme teruji.
 
-- [x] **F6-12 â€” Implementasikan recommendation ranking.** [Role: Domain Engine Agent] [Model: Luna Max]  
+- [x] **F6-12 â€” Implementasikan recommendation ranking.** [Role: Domain Engine Agent]
   **Files:** `packages/ikpa-engine/src/recommendations.ts`, `packages/ikpa-engine/src/recommendations.test.ts`  
   **DoD:** Weight Ã— gap Ã— urgency, stable tie-break, missing data, dan deep-link key teruji.
 
 ## 11. Fase 7 â€” Database dan Backend Foundation
 
-- [x] **F7-01 — Pasang dependency backend yang disetujui.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-01 — Pasang dependency backend yang disetujui.** [Role: Database Agent]
   **Files:** `package.json`, `package-lock.json`  
   **Depends:** F0-08  
   **DoD:** Drizzle/Neon, Zod, decimal, auth, queue, email, import/export dependency terpasang tanpa duplicate runtime.
 
-- [x] **F7-02 — Konfigurasi environment tervalidasi.** [Role: DevOps Agent] [Model: Luna Max]  
+- [x] **F7-02 — Konfigurasi environment tervalidasi.** [Role: DevOps Agent]
   **Files:** `.env.example`, `apps/web/src/env.server.ts`  
   **DoD:** Public/server secret dipisah, startup gagal jelas bila env wajib tidak ada, dan tidak ada nilai rahasia di repo.
 
-- [x] **F7-03 — Konfigurasi Drizzle dan client Neon.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-03 — Konfigurasi Drizzle dan client Neon.** [Role: Database Agent]
   **Files:** `packages/db/drizzle.config.ts`, `packages/db/src/client.ts`  
   **DoD:** Generate/migrate dapat dijalankan pada database kosong dan koneksi server-only.
 
-- [x] **F7-04 — Buat enum dan tabel identitas/scope.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-04 — Buat enum dan tabel identitas/scope.** [Role: Database Agent]
   **Files:** `packages/db/src/schema/enums.ts`, `packages/db/src/schema/identity.ts`  
   **DoD:** `kppn_scopes`, `organizations`, `users`, `user_accesses` beserta check/unique/index sesuai ERD.
 
-- [x] **F7-05 — Buat tabel rule set, policy, dan kalender.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-05 — Buat tabel rule set, policy, dan kalender.** [Role: Database Agent]
   **Files:** `packages/db/src/schema/policy.ts`, `packages/db/src/schema/workdays.ts`  
   **Depends:** F0-04–F0-06  
   **DoD:** Versioning final, effective resolver support, immutable published policy, dan JSONB columns terdefinisi.
 
-- [x] **F7-06 — Buat tabel fiscal year, budget, dan revisi.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-06 — Buat tabel fiscal year, budget, dan revisi.** [Role: Database Agent]
   **Files:** `packages/db/src/schema/fiscal-years.ts`, `packages/db/src/schema/budget-revisions.ts`  
   **DoD:** FK, numeric, dates, soft delete, unique active rows, dan index tersedia.
 
-- [x] **F7-07 — Buat tabel RPD dan realisasi.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-07 — Buat tabel RPD dan realisasi.** [Role: Database Agent]
   **File:** `packages/db/src/schema/rpd-realizations.ts`  
   **DoD:** Month/account constraints, numeric precision, soft-delete uniqueness, dan index tersedia.
 
-- [x] **F7-08 — Buat tabel kontrak dan SPM-LS.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-08 — Buat tabel kontrak dan SPM-LS.** [Role: Database Agent]
   **Files:** `packages/db/src/schema/contracts.ts`, `packages/db/src/schema/spm-ls.ts`  
   **DoD:** Referential fields, payment type, soft delete, uniqueness, dan deadline query index tersedia.
 
-- [x] **F7-09 — Buat tabel UP/TUP dan KKP.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-09 — Buat tabel UP/TUP dan KKP.** [Role: Database Agent]
   **Files:** `packages/db/src/schema/up-tup.ts`, `packages/db/src/schema/kkp.ts`  
   **DoD:** Transaction type, dates, numeric precision, monthly uniqueness, dan index tersedia.
 
-- [x] **F7-10 — Buat tabel output dan SPM Q4.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-10 — Buat tabel output dan SPM Q4.** [Role: Database Agent]
   **Files:** `packages/db/src/schema/output-reports.ts`, `packages/db/src/schema/spm-q4.ts`  
   **DoD:** Range checks, confirmation, Q4 validation boundary, uniqueness, dan index tersedia.
 
-- [x] **F7-11 — Buat tabel simulation dan snapshot.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-11 — Buat tabel simulation dan snapshot.** [Role: Database Agent]
   **Files:** `packages/db/src/schema/simulations.ts`, `packages/db/src/schema/score-snapshots.ts`  
   **Depends:** F0-06  
   **DoD:** Simulation type, parent snapshot lineage, override patch JSONB, snapshot immutability, input hash, dan index tersedia.
 
-- [x] **F7-12 — Buat tabel reminder config dan delivery.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-12 — Buat tabel reminder config dan delivery.** [Role: Database Agent]
   **Files:** `packages/db/src/schema/reminder-configs.ts`, `packages/db/src/schema/notification-deliveries.ts`  
   **DoD:** Unique config, idempotency key, scheduling index, attempts, status, payload, dan immutable version tersedia.
 
-- [x] **F7-13 — Buat tabel import dan audit.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-13 — Buat tabel import dan audit.** [Role: Database Agent]
   **Files:** `packages/db/src/schema/import-jobs.ts`, `packages/db/src/schema/audit-logs.ts`  
   **DoD:** Import lifecycle, error report, append-only audit fields, request ID, actor, before/after, dan index tersedia.
 
-- [x] **F7-14 — Buat relations dan schema barrel.** [Role: Database Agent] [Model: Luna Max]  
+- [x] **F7-14 — Buat relations dan schema barrel.** [Role: Database Agent]
   **Files:** `packages/db/src/schema/relations.ts`, `packages/db/src/schema/index.ts`  
   **Depends:** F7-04–F7-13  
   **DoD:** Semua relasi ERD dapat di-query dan tidak menggantikan authorization guard.
 
-- [x] **F7-15 — Generate dan review migration awal.** [Role: Database Agent] [Model: Sol Medium]  
+- [x] **F7-15 — Generate dan review migration awal.** [Role: Database Agent]
   **Scope:** Generated Drizzle migration + metadata  
   **Depends:** F7-14  
   **DoD:** Urutan FK valid, migration kosong lulus, constraint/index cocok ERD/ADR, dan rollback strategy terdokumentasi.
 
-- [x] **F7-16 — Buat seed minimum 2026.** [Role: Database Agent] [Model: Sol Medium]  
+- [x] **F7-16 — Buat seed minimum 2026.** [Role: Database Agent]
   **Scope:** Seed scope, dua admin, satker, operator, fiscal year, rule set, policy, dan kalender  
   **Depends:** F0-02, F7-15  
   **DoD:** Seed idempotent, parameter belum valid diberi `needs_verification`, dan tidak membuat mandatory tanpa keputusan formal.
 
 ## 12. Fase 8 â€” Authentication dan Access Control
 
-- [x] **F8-01 — Pasang Clerk provider dan middleware global.** [Role: Auth & Access Agent] [Model: Luna Max]  
+- [x] **F8-01 — Pasang Clerk provider dan middleware global.** [Role: Auth & Access Agent]
   **Files:** `apps/web/src/start.ts`, `apps/web/src/routes/__root.tsx`  
   **Depends:** F7-02  
   **DoD:** Clerk middleware aktif untuk request, provider tersedia, route tetap public sampai guard diterapkan.
 
-- [x] **F8-02 — Implementasikan sinkronisasi user Clerk.** [Role: Auth & Access Agent] [Model: Luna Max]  
+- [x] **F8-02 — Implementasikan sinkronisasi user Clerk.** [Role: Auth & Access Agent]
   **Files:** `packages/access-control/src/sync-user.ts`, `packages/access-control/src/sync-user.test.ts`  
   **DoD:** Verified identity di-upsert aman dan perubahan email memiliki aturan konflik.
 
-- [x] **F8-03 — Implementasikan access resolver.** [Role: Auth & Access Agent] [Model: Luna Max]  
+- [x] **F8-03 — Implementasikan access resolver.** [Role: Auth & Access Agent]
   **Files:** `packages/access-control/src/access-resolver.ts`, `packages/access-control/src/access-resolver.test.ts`  
   **Depends:** F0-09, F7-04  
   **DoD:** Unauthorized, satu/multi operator, admin precedence/switching, inactive mapping, dan structured context teruji.
 
-- [x] **F8-04 — Implementasikan scope guard.** [Role: Auth & Access Agent] [Model: Luna Max]  
+- [x] **F8-04 — Implementasikan scope guard.** [Role: Auth & Access Agent]
   **Files:** `packages/access-control/src/scope-guard.ts`, `packages/access-control/src/scope-guard.test.ts`  
   **DoD:** Operator org isolation dan Admin KPPN scope isolation memiliki positive/negative tests.
 
-- [x] **F8-05 — Terapkan route guard Operator.** [Role: Auth & Access Agent] [Model: Luna Max]  
+- [x] **F8-05 — Terapkan route guard Operator.** [Role: Auth & Access Agent]
   **Files:** `apps/web/src/routes/operator/route.tsx`, `apps/web/src/routeTree.gen.ts`  
   **Depends:** F8-03  
   **DoD:** `beforeLoad` memverifikasi auth server-side dan redirect tidak membocorkan data.
 
-- [x] **F8-06 — Terapkan route guard Admin.** [Role: Auth & Access Agent] [Model: Luna Max]  
+- [x] **F8-06 — Terapkan route guard Admin.** [Role: Auth & Access Agent]
   **Files:** `apps/web/src/routes/admin-kppn/route.tsx`, `apps/web/src/routeTree.gen.ts`  
   **Depends:** F8-03  
   **DoD:** Hanya admin aktif dengan scope valid dapat merender area Admin.
 
-- [x] **F8-07 — Implementasikan mutasi akses dan proteksi admin terakhir.** [Role: Auth & Access Agent] [Model: Sol Medium]  
+- [x] **F8-07 — Implementasikan mutasi akses dan proteksi admin terakhir.** [Role: Auth & Access Agent]
   **Scope:** Transaction, lock/count, CRUD mapping, audit, structured error  
   **Depends:** F7-13, F8-04  
   **DoD:** Tidak mungkin menghasilkan scope tanpa admin aktif; seluruh perubahan atomik dan teraudit.
 
 ## 13. Fase 9 â€” Backend Domain Operasional
 
-- [x] **F9-01 â€” Buat helper audit mutation.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-01 â€” Buat helper audit mutation.** [Role: Backend Domain Agent]
   **Files:** `apps/web/src/server/audit/write-audit.ts`, `apps/web/src/server/audit/write-audit.test.ts`  
   **DoD:** Actor, scope, before/after redacted, entity, version, policy, request ID tersimpan dalam transaksi pemanggil.
 
-- [x] **F9-02 â€” Buat query/mutation fiscal year dan settings.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-02 â€” Buat query/mutation fiscal year dan settings.** [Role: Backend Domain Agent]
   **Files:** `apps/web/src/server/domains/settings.queries.ts`, `apps/web/src/server/domains/settings.mutations.ts`  
   **Depends:** F8-04, F9-01  
   **DoD:** Scoped read/update, timezone/BLU/target validation, uniqueness, dan audit tersedia.
 
-- [x] **F9-03 â€” Buat query/mutation Pagu & Revisi.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-03 â€” Buat query/mutation Pagu & Revisi.** [Role: Backend Domain Agent]
   **Files:** `apps/web/src/server/domains/budget-revisions.queries.ts`, `apps/web/src/server/domains/budget-revisions.mutations.ts`  
   **DoD:** CRUD scoped, rule-set eligibility preview, soft delete, validation, dan audit tersedia.
 
-- [x] **F9-04 â€” Buat query/mutation RPD & Realisasi.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-04 â€” Buat query/mutation RPD & Realisasi.** [Role: Backend Domain Agent]
   **Files:** `apps/web/src/server/domains/rpd-realization.queries.ts`, `apps/web/src/server/domains/rpd-realization.mutations.ts`  
   **DoD:** Upsert bulanan, batch edit, scoped uniqueness, decimal-safe, soft delete, dan audit tersedia.
 
-- [x] **F9-05 â€” Buat query/mutation Kontrak & Tagihan.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-05 â€” Buat query/mutation Kontrak & Tagihan.** [Role: Backend Domain Agent]
   **Files:** `apps/web/src/server/domains/contracts-invoices.queries.ts`, `apps/web/src/server/domains/contracts-invoices.mutations.ts`  
   **DoD:** Same-fiscal-year relation, H+17 projection, eligibility, CRUD scoped, soft delete, dan audit tersedia.
 
-- [x] **F9-06 â€” Buat query/mutation UP/TUP & KKP.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-06 â€” Buat query/mutation UP/TUP & KKP.** [Role: Backend Domain Agent]
   **Files:** `apps/web/src/server/domains/up-tup-kkp.queries.ts`, `apps/web/src/server/domains/up-tup-kkp.mutations.ts`  
   **DoD:** Type/date/reference validation, monthly KKP, scoped CRUD, soft delete, dan audit tersedia.
 
-- [x] **F9-07 â€” Buat query/mutation Capaian Output.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-07 â€” Buat query/mutation Capaian Output.** [Role: Backend Domain Agent]
   **Files:** `apps/web/src/server/domains/output-achievement.queries.ts`, `apps/web/src/server/domains/output-achievement.mutations.ts`  
   **DoD:** Range, confirmation, deadline, unique month/RO, scoped CRUD, soft delete, dan audit tersedia.
 
-- [x] **F9-08 â€” Buat query/mutation SPM Dispensasi.** [Role: Backend Domain Agent] [Model: Luna Max]  
+- [x] **F9-08 â€” Buat query/mutation SPM Dispensasi.** [Role: Backend Domain Agent]
   **Files:** `apps/web/src/server/domains/spm-dispensation.queries.ts`, `apps/web/src/server/domains/spm-dispensation.mutations.ts`  
   **DoD:** Q4 validation, ratio preview, scoped CRUD, soft delete, dan audit tersedia.
 
-- [x] **F9-09 â€” Buat service kalkulasi dan snapshot.** [Role: Backend Domain Agent] [Model: Sol Medium]  
+- [x] **F9-09 â€” Buat service kalkulasi dan snapshot.** [Role: Backend Domain Agent]
   **Scope:** Load scoped input, resolve rule set/calendar, call pure engine, hash input, persist immutable snapshot  
   **Depends:** F6-11, F7-11, F9-02â€“F9-08  
   **DoD:** Actual/forecast/scenario tidak saling menimpa; snapshot lama tidak dihitung ulang.
 
-- [x] **F9-10 â€” Buat query monitoring Admin KPPN.** [Role: Backend Domain Agent] [Model: Sol Medium]  
+- [x] **F9-10 â€” Buat query monitoring Admin KPPN.** [Role: Backend Domain Agent]
   **Scope:** Dashboard aggregate, organization list/detail read-only, risk, completeness, snapshot, reminder  
   **Depends:** F8-04, F9-09  
   **DoD:** Semua query terbatasi `kppn_scope_id`, paginated, terindeks, dan tidak menyediakan mutasi data operasional.
 
 ## 14. Fase 10 â€” Policy, Reminder, Scheduler, dan Email
 
-- [x] **F10-01 â€” Implementasikan workday calendar.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-01 â€” Implementasikan workday calendar.** [Role: Policy & Reminder Agent]
   **Files:** `packages/policy-reminder/src/workday-calendar.ts`, `packages/policy-reminder/src/workday-calendar.test.ts`  
   **Depends:** F0-03, F0-04  
   **DoD:** Add/subtract/count, weekend, holiday, explicit working day, boundary, dan timezone teruji.
 
-- [x] **F10-02 â€” Implementasikan rule set resolver.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-02 â€” Implementasikan rule set resolver.** [Role: Policy & Reminder Agent]
   **Files:** `packages/policy-reminder/src/rule-set-resolver.ts`, `packages/policy-reminder/src/rule-set-resolver.test.ts`  
   **Depends:** F0-06  
   **DoD:** Year/effective date, overlap rejection, retired fallback, dan no-rule error teruji.
 
-- [x] **F10-03 â€” Implementasikan deadline calculator.** [Role: Policy & Reminder Agent] [Model: Sol Medium]  
+- [x] **F10-03 â€” Implementasikan deadline calculator.** [Role: Policy & Reminder Agent]
   **Scope:** DSL parser/evaluator dan tests seluruh event 2026  
   **Depends:** F10-01  
   **DoD:** Workday/calendar/event/schedule formula deterministic, bounded, dan tidak mengeksekusi JavaScript bebas.
 
-- [x] **F10-04 â€” Implementasikan Compliance Guard.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-04 â€” Implementasikan Compliance Guard.** [Role: Policy & Reminder Agent]
   **Files:** `packages/policy-reminder/src/compliance-guard.ts`, `packages/policy-reminder/src/compliance-guard.test.ts`  
   **Depends:** F0-05  
   **DoD:** Mandatory, allowed lead, deadline, required recipients, overrides, channel, dan actionable errors teruji.
 
-- [x] **F10-05 â€” Implementasikan idempotency key dan scheduler.** [Role: Policy & Reminder Agent] [Model: Sol Medium]  
+- [x] **F10-05 â€” Implementasikan idempotency key dan scheduler.** [Role: Policy & Reminder Agent]
   **Scope:** Eligibility, timezone schedule, unique insert, due delivery selection, re-evaluation  
   **Depends:** F10-02â€“F10-04  
   **DoD:** Replay aman, tidak ada duplikat, rule set version tersimpan, dan pending schedule dapat dievaluasi ulang.
 
-- [x] **F10-06 â€” Buat template email reminder.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-06 â€” Buat template email reminder.** [Role: Policy & Reminder Agent]
   **Files:** `apps/web/src/emails/reminder-email.tsx`, `apps/web/src/emails/reminder-email.test.tsx`  
   **DoD:** Event, satker, deadline/type hari, action, secure link, source/version, dan sanitized custom message tersedia.
 
-- [x] **F10-07 â€” Buat template digest dan escalation.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-07 â€” Buat template digest dan escalation.** [Role: Policy & Reminder Agent]
   **Files:** `apps/web/src/emails/digest-email.tsx`, `apps/web/src/emails/escalation-email.tsx`  
   **DoD:** Grouping, priority, deadline, required context, text fallback, dan no-sensitive-log rules tersedia.
 
-- [x] **F10-08 â€” Buat endpoint QStash daily/send.** [Role: Policy & Reminder Agent] [Model: Sol Medium]  
+- [x] **F10-08 â€” Buat endpoint QStash daily/send.** [Role: Policy & Reminder Agent]
   **Scope:** Dua endpoint signed, batch limit, request ID, retry, status transition, Resend call  
   **Depends:** F10-05â€“F10-07  
   **DoD:** Signature invalid ditolak; replay idempotent; error aman dicatat; success/failed status konsisten.
 
-- [x] **F10-09 â€” Buat mutasi Rule Set dan publish workflow.** [Role: Policy & Reminder Agent] [Model: Sol Medium]  
+- [x] **F10-09 â€” Buat mutasi Rule Set dan publish workflow.** [Role: Policy & Reminder Agent]
   **Scope:** Draft/validate/diff/publish/retire, audit, transaction, schedule re-evaluation  
   **Depends:** F6-02, F10-02, F10-05  
   **DoD:** Published immutable, source/change notes wajib, verification warning, dan snapshot historis tidak berubah.
 
-- [x] **F10-10 â€” Buat mutasi konfigurasi reminder satker.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-10 â€” Buat mutasi konfigurasi reminder satker.** [Role: Policy & Reminder Agent]
   **Files:** `apps/web/src/server/reminders/config.queries.ts`, `apps/web/src/server/reminders/config.mutations.ts`  
   **Depends:** F10-04  
   **DoD:** Preview server-authoritative, reset default, required recipients, audit, dan invalid policy rejection tersedia.
 
-- [x] **F10-11 â€” Buat retry delivery Admin.** [Role: Policy & Reminder Agent] [Model: Luna Max]  
+- [x] **F10-11 â€” Buat retry delivery Admin.** [Role: Policy & Reminder Agent]
   **Files:** `apps/web/src/server/reminders/delivery.queries.ts`, `apps/web/src/server/reminders/delivery.mutations.ts`  
   **DoD:** Hanya failed delivery dalam scope, attempt trace, derived idempotency, confirmation data, dan audit tersedia.
 
@@ -667,116 +667,116 @@ Temuan berikut harus diakomodasi sebelum implementasi terkait dianggap final:
 
 > Pada fase ini mock service diganti per domain. Mock tetap dipertahankan untuk component test dan demo scenario.
 
-- [x] **F11-01 â€” Integrasikan auth, routing, dan active context.** [Role: Auth & Access Agent] [Model: Sol Medium]
+- [x] **F11-01 â€” Integrasikan auth, routing, dan active context.** [Role: Auth & Access Agent]
   **Scope:** Sign-in, access pending, org picker, Operator/Admin guard, context header  
   **Depends:** F5-05, F8-01â€“F8-06  
   **DoD:** Seluruh jalur akses nyata menggantikan dummy tanpa mengubah layout yang sudah diterima.
 
-- [x] **F11-02 — Integrasikan Pengaturan Satker.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-02 — Integrasikan Pengaturan Satker.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/settings.tsx`, `apps/web/src/services/settings-service.ts`  
   **Depends:** F9-02  
   **DoD:** Load/save/error/audit feedback nyata; UI tidak mengakses DB langsung.
 
-- [x] **F11-03 — Integrasikan Pagu & Revisi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-03 — Integrasikan Pagu & Revisi.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/data/budget-revisions.tsx`, `apps/web/src/services/budget-revisions-service.ts`  
   **Depends:** F9-03  
   **DoD:** CRUD, eligibility, optimistic policy, structured errors, dan invalidation bekerja.
 
-- [x] **F11-04 — Integrasikan RPD & Realisasi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-04 — Integrasikan RPD & Realisasi.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/data/rpd-realization.tsx`, `apps/web/src/services/rpd-realization-service.ts`  
   **Depends:** F9-04  
   **DoD:** Batch save, dirty state, server validation, decimal display, dan refresh impact bekerja.
 
-- [x] **F11-05 — Integrasikan Kontrak & Tagihan.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-05 — Integrasikan Kontrak & Tagihan.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/data/contracts-invoices.tsx`, `apps/web/src/services/contracts-invoices-service.ts`  
   **Depends:** F9-05  
   **DoD:** CRUD, relation validation, deadline status, risk detail, dan deep-link bekerja.
 
-- [x] **F11-06 — Integrasikan UP/TUP & KKP.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-06 — Integrasikan UP/TUP & KKP.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/data/up-tup-kkp.tsx`, `apps/web/src/services/up-tup-kkp-service.ts`  
   **Depends:** F9-06  
   **DoD:** CRUD, interval validation, monthly KKP, status, dan refresh impact bekerja.
 
-- [x] **F11-07 — Integrasikan Capaian Output.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-07 — Integrasikan Capaian Output.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/data/output-achievement.tsx`, `apps/web/src/services/output-achievement-service.ts`  
   **Depends:** F9-07  
   **DoD:** CRUD, confirmation, deadline, eligibility, dan incomplete CTA bekerja.
 
-- [x] **F11-08 — Integrasikan SPM Dispensasi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-08 — Integrasikan SPM Dispensasi.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/data/spm-dispensation.tsx`, `apps/web/src/services/spm-dispensation-service.ts`  
   **Depends:** F9-08  
   **DoD:** CRUD, Q4 validation, ratio, deduction preview, dan risk state bekerja.
 
-- [x] **F11-09 — Integrasikan Simulasi & Snapshot.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-09 — Integrasikan Simulasi & Snapshot.** [Role: Frontend Operator Agent]
   **Scope:** Simulation, history, compare, formula trace, stale version, scenario overlay  
   **Depends:** F9-09  
   **DoD:** Actual tidak termutasi oleh scenario; save snapshot immutable; result sama dengan golden engine.
 
-- [x] **F11-10 — Integrasikan Dashboard Operator, Analisis, dan Rekomendasi.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-10 — Integrasikan Dashboard Operator, Analisis, dan Rekomendasi.** [Role: Frontend Operator Agent]
   **Scope:** Dashboard aggregates, trends, deadlines, incomplete data, recommendations  
   **Depends:** F11-03–F11-09  
   **DoD:** Semua CTA menuju sumber data benar dan state estimasi transparan.
 
-- [x] **F11-11 — Integrasikan Reminder Center.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F11-11 — Integrasikan Reminder Center.** [Role: Frontend Operator Agent]
   **Scope:** List/detail/config/preview/save/reset/audit  
   **Depends:** F10-10  
   **DoD:** Client tidak dapat melewati Compliance Guard dan jadwal preview sama dengan hasil server.
 
-- [x] **F11-12 — Integrasikan monitoring Admin.** [Role: Frontend Admin Agent] [Model: Sol Medium]  
+- [x] **F11-12 — Integrasikan monitoring Admin.** [Role: Frontend Admin Agent]
   **Scope:** Dashboard, organization list/detail, risk/reminder, delivery retry  
   **Depends:** F9-10, F10-11  
   **DoD:** Scope isolation, read-only operational detail, pagination/filter, dan retry audit bekerja.
 
-- [x] **F11-13 — Integrasikan Admin Policy.** [Role: Frontend Admin Agent] [Model: Sol Medium]  
+- [x] **F11-13 — Integrasikan Admin Policy.** [Role: Frontend Admin Agent]
   **Scope:** Rule set list/editor/diff/publish, policy, workdays, history  
   **Depends:** F10-09  
   **DoD:** Published read-only, preview impact, source required, validation, confirmation, dan version history bekerja.
 
-- [x] **F11-14 — Integrasikan Audit Log dan Manajemen Akses.** [Role: Frontend Admin Agent] [Model: Sol Medium]  
+- [x] **F11-14 — Integrasikan Audit Log dan Manajemen Akses.** [Role: Frontend Admin Agent]
   **Scope:** Audit filters/detail dan access CRUD/protection  
   **Depends:** F8-07, F9-01  
   **DoD:** Last-admin error jelas, before/after redacted, dan seluruh aksi terbatasi scope.
 
 ## 16. Fase 12 â€” Import, Export, dan Laporan
 
-- [x] **F12-01 â€” Buat schema template dan parser CSV/XLSX per domain.** [Role: Import & Export Agent] [Model: Sol Medium]  
+- [x] **F12-01 â€” Buat schema template dan parser CSV/XLSX per domain.** [Role: Import & Export Agent]
   **Scope:** Enam domain, header/type/reference validation, formula injection defense, error cap  
   **Depends:** F0-08, F9-03â€“F9-08  
   **DoD:** Parser tidak menulis DB dan menghasilkan preview/error terstruktur yang sama dengan kontrak UI.
 
-- [x] **F12-02 â€” Implementasikan upload dan preview import.** [Role: Import & Export Agent] [Model: Sol Medium]  
+- [x] **F12-02 â€” Implementasikan upload dan preview import.** [Role: Import & Export Agent]
   **Scope:** MIME/size validation, temporary storage, sync/async threshold, job creation, scoped preview  
   **Depends:** F12-01  
   **DoD:** 10 MB/10.000 row rules diterapkan atau disesuaikan ADR; file tidak menjadi URL publik permanen.
 
-- [x] **F12-03 â€” Implementasikan commit import.** [Role: Import & Export Agent] [Model: Sol Medium]  
+- [x] **F12-03 â€” Implementasikan commit import.** [Role: Import & Export Agent]
   **Scope:** Batch transaction, valid-row-only policy, duplicate handling, audit, idempotency  
   **Depends:** F12-02  
   **DoD:** Tidak ada write sebelum konfirmasi; partial/batch semantics terdokumentasi dan teruji.
 
-- [x] **F12-04 â€” Buat endpoint QStash import.** [Role: Import & Export Agent] [Model: Luna Max]  
+- [x] **F12-04 â€” Buat endpoint QStash import.** [Role: Import & Export Agent]
   **Files:** `apps/web/src/routes/api/jobs/import/process.ts`, `apps/web/src/server/import/process-job.ts`  
   **Depends:** F12-02  
   **DoD:** Signature, replay, status transition, stuck job handling, dan safe error tersedia.
 
-- [x] **F12-05 â€” Integrasikan UI Import.** [Role: Frontend Operator Agent] [Model: Luna Max]  
+- [x] **F12-05 â€” Integrasikan UI Import.** [Role: Frontend Operator Agent]
   **Files:** `apps/web/src/routes/operator/import.tsx`, `apps/web/src/services/import-service.ts`  
   **Depends:** F12-03, F12-04  
   **DoD:** Upload, polling, preview, errors, confirm, cancel, completion, dan retry sesuai backend.
 
-- [x] **F12-06 â€” Implementasikan export XLSX Operator.** [Role: Import & Export Agent] [Model: Luna Max]  
+- [x] **F12-06 â€” Implementasikan export XLSX Operator.** [Role: Import & Export Agent]
   **Files:** `apps/web/src/server/exports/operator-xlsx.ts`, `apps/web/src/server/exports/operator-xlsx.test.ts`  
   **DoD:** Scoped data, filter, score/indicator/risk/recommendation, metadata, disclaimer, version, dan injection defense teruji.
 
-- [x] **F12-07 â€” Implementasikan export PDF Operator.** [Role: Import & Export Agent] [Model: Luna Max]  
+- [x] **F12-07 â€” Implementasikan export PDF Operator.** [Role: Import & Export Agent]
   **Files:** `apps/web/src/server/exports/operator-pdf.tsx`, `apps/web/src/server/exports/operator-pdf.test.tsx`  
   **DoD:** Executive summary, chart-safe fallback, period, print time, disclaimer, dan rule set version tersedia.
 
-- [x] **F12-08 â€” Implementasikan export agregat Admin.** [Role: Import & Export Agent] [Model: Sol Medium]  
+- [x] **F12-08 â€” Implementasikan export agregat Admin.** [Role: Import & Export Agent]
   **Scope:** XLSX/PDF agregat dan detail read-only dengan KPPN scope  
   **DoD:** Filter tercantum, data lintas scope tidak mungkin masuk, dan large export strategy teruji.
 
-- [x] **F12-09 â€” Integrasikan UI laporan Operator/Admin.** [Role: Frontend Foundation Agent] [Model: Sol Medium]  
+- [x] **F12-09 â€” Integrasikan UI laporan Operator/Admin.** [Role: Frontend Foundation Agent]
   **Scope:** Preview, request, authenticated download, progress, error, filename  
   **Depends:** F12-06â€“F12-08  
   **DoD:** Tidak ada permanent public URL dan hasil cocok dengan filter UI.
@@ -849,64 +849,64 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
 >
 > **Depends:** PRE-F13 CORR-00..06 + CORR-A-00..05. Jangan mulai task F13 selain F13-00 sebelum CORR-00..06, CORR-A-00..05, dan kontrak aktif Revisi v2 siap; checkbox F13 tetap kosong sampai entry gate lulus.
 
-- [x] **F13-00 — Bekukan kontrak rilis dan baseline aplikasi.** [Role: Release Readiness Agent] [Model: Sol Medium]
+- [x] **F13-00 — Bekukan kontrak rilis dan baseline aplikasi.** [Role: Release Readiness Agent]
   **Scope:** Kontrak `docs/revisi-v2`, acceptance criteria aktif, traceability, baseline typecheck/test/lint/build/smoke, runtime mock/fallback, dependency manifest, dan E2E harness.
   **DoD:** `docs/revisi-v2/ACCEPTANCE-CRITERIA.md` menjadi rujukan UAT; seluruh discrepancy memiliki task/status/owner; jumlah test dan workspace tercatat; tidak ada redesign atau perubahan formula; production blocker terinventarisasi. Selesai 2026-09-09: typecheck, Vitest 42 file/291 test, lint 0 error/86 warning, production build, dan E2E smoke desktop/mobile 2/2 lulus; smoke memakai Chrome lokal karena browser bundled gagal diunduh akibat jaringan.
 
-- [x] **F13-01 â€” Lengkapi unit test seluruh pure modules.** [Role: QA Agent] [Model: Sol Medium]
+- [x] **F13-01 â€” Lengkapi unit test seluruh pure modules.** [Role: QA Agent]
   **Scope:** Engine, rule parser, workday, deadline, compliance, scheduler, access, import parser, serta seluruh test workspace web.
   **DoD:** `npm run test` menjalankan semua workspace termasuk web; branch kritis dan boundary regulasi tercakup; golden tests wajib lulus. Selesai 2026-09-09: workspace test configuration diperbaiki agar E2E tidak ikut Vitest dan seluruh package menemukan test-nya; ditambahkan coverage pure utility/scheduler/workday serta production delivery/import guards; rounding negatif fixed-point diperbaiki dari `--1.24` menjadi `-1.24`; 46 file/309 test lulus.
 
-- [ ] **F13-02 â€” Buat integration test tenant isolation.** [Role: QA Agent] [Model: Sol Medium]  
+- [ ] **F13-02 â€” Buat integration test tenant isolation.** [Role: QA Agent]
   **Scope:** Seluruh ServerFn query/mutation Operator/Admin, Operator XLSX export, import/job, QStash, delivery retry, dan cross-tenant/cross-KPPN IDs. PDF Operator dan ekspor Admin retired dari scope aktif berdasarkan keputusan 2026-09-10; route lama hanya boleh menjadi stub fail-safe tanpa mock.
   **DoD:** Read/write lintas satker/scope selalu ditolak tanpa data leakage pada error atau payload.
 
-- [ ] **F13-03 â€” Buat integration test policy/reminder.** [Role: QA Agent] [Model: Sol Medium]  
+- [ ] **F13-03 â€” Buat integration test policy/reminder.** [Role: QA Agent]
   **Scope:** Publish/re-evaluate, mandatory lock, Tagihan H+17, Output lima hari kerja, GUP/PTUP, workday, idempotency, retry, stale snapshot, dan policy version.
   **DoD:** V2-AC-17..21 lulus pada database test; delivery replay tidak menggandakan notifikasi.
 
-- [ ] **F13-04 â€” Buat E2E Operator.** [Role: QA Agent] [Model: Sol Medium]  
+- [ ] **F13-04 â€” Buat E2E Operator.** [Role: QA Agent]
   **Scope:** Login, navigasi 8 indikator, actual/proyeksi, what-if tanpa mutasi actual, Slot A/B/C, sinkronisasi nama, Dashboard 8 indikator, parity Dashboardâ€“Riwayat, compare Evaluasi bulanan dengan skenario, mandatory reminder, dan Operator XLSX export sesuai konteks.
   **DoD:** Skenario Playwright terisolasi lulus pada Chromium desktop dan Mobile Chrome dengan data tenant terisolasi; screenshot/trace tersedia saat gagal.
 
-- [ ] **F13-05 â€” Buat E2E Admin KPPN.** [Role: QA Agent] [Model: Sol Medium]  
+- [ ] **F13-05 â€” Buat E2E Admin KPPN.** [Role: QA Agent]
   **Scope:** Login, agregat 8 indikator, skor/gap/sumber aktual-proyeksi-kosong, detail read-only, mandatory reminder, access, publish policy, failed delivery retry, cross-scope rejection, dan audit. Ekspor Admin tidak termasuk scope aktif.
   **DoD:** Tidak ada kontrol mutasi operasional/sel kuning; last-admin protection, scope, audit, snapshot immutability, dan Admin V2-AC-22..23 terverifikasi.
 
-- [ ] **F13-06 â€” Lakukan security review aplikasi.** [Role: Security Agent] [Model: Sol Medium]  
+- [ ] **F13-06 â€” Lakukan security review aplikasi.** [Role: Security Agent]
   **Scope:** Auth/session, tenant isolation, upload, export signature/MIME, runtime mock/fallback, webhook, SSR data, XSS, CSV injection, secrets, dependency manifest, rate limits.
   **DoD:** Tidak ada critical/high terbuka; production tidak mengembalikan mock sukses atau file palsu; medium memiliki owner dan due date.
 
-- [ ] **F13-07 â€” Lakukan performance test.** [Role: QA Agent] [Model: Sol Medium]  
+- [ ] **F13-07 â€” Lakukan performance test.** [Role: QA Agent]
   **Scope:** Kalkulasi satu satker, dashboard agregat, 10k import, scheduler batch, export  
   **DoD:** Kalkulasi normal <500 ms atau bottleneck/mitigasi terdokumentasi; query plan index ditinjau.
 
-- [ ] **F13-08 â€” Konfigurasi CI quality gate.** [Role: DevOps Agent] [Model: Luna Max]  
+- [ ] **F13-08 â€” Konfigurasi CI quality gate.** [Role: DevOps Agent]
   **Files:** `.github/workflows/ci.yml`, `package.json`  
   **DoD:** `npm ci`, typecheck seluruh workspace, lint tanpa error, unit/golden termasuk web, integration, E2E smoke, production build, secret scan, generated-route check, dan migration check berjalan tanpa `continue-on-error` pada gate wajib.
 
-- [ ] **F13-09 â€” Konfigurasi deployment Vercel.** [Role: DevOps Agent] [Model: Luna Max]  
+- [ ] **F13-09 â€” Konfigurasi deployment Vercel.** [Role: DevOps Agent]
   **Files:** `vercel.json`, `docs/deployment-vercel.md`  
   **DoD:** Preview/staging/production env, runtime limits, cron/job endpoints, domain, dan rollback terdokumentasi.
 
-- [ ] **F13-10 â€” Konfigurasi Cloudflare security baseline.** [Role: DevOps Agent] [Model: Sol Medium]  
+- [ ] **F13-10 â€” Konfigurasi Cloudflare security baseline.** [Role: DevOps Agent]
   **File:** `docs/cloudflare-security-baseline.md`  
   **DoD:** DNS/TLS/CDN/WAF/rate limit rules untuk login, upload, export, webhook/job, dan cache bypass data sensitif terdokumentasi serta diterapkan.
 
-- [ ] **F13-11 â€” Tambahkan observability dan alert.** [Role: DevOps Agent] [Model: Sol Medium]  
+- [ ] **F13-11 â€” Tambahkan observability dan alert.** [Role: DevOps Agent]
   **Scope:** Structured logs, request ID, redaction, calculation latency, job/delivery/import failures, publish errors  
   **DoD:** Alert harian/job gagal, delivery threshold, stuck import, dan publish failure dapat diuji.
 
-- [x] **F13-12 â€” Buat runbook operasional.** [Role: Technical Writer] [Model: Luna Max]
+- [x] **F13-12 â€” Buat runbook operasional.** [Role: Technical Writer]
   **Files:** `docs/runbook-operations.md`, `docs/runbook-incidents.md`  
   **DoD:** Seed/admin recovery, failed migration/job/email/import, rule rollback, secret rotation, dan escalation owner tersedia. Selesai 2026-09-09; runbook sengaja menyatakan preview/staging sebagai prasyarat dan tidak mengasumsikan credential vendor.
 
-- [ ] **F13-13 â€” Laksanakan UAT berbasis acceptance criteria.** [Role: Product & IKPA Analyst] [Model: Sol Medium]  
+- [ ] **F13-13 â€” Laksanakan UAT berbasis acceptance criteria.** [Role: Product & IKPA Analyst]
   **File:** `docs/uat-report.md`  
   **Depends:** F13-00â€“F13-12
   **DoD:** Seluruh `V2-AC-01..24` pada `docs/revisi-v2/ACCEPTANCE-CRITERIA.md` memiliki bukti pass/fail, environment, owner defect, severity, dan keputusan rilis; acceptance criteria v1 yang historis tidak digunakan sebagai kontrak aktif.
 
-- [ ] **F13-14 â€” Verifikasi go-live regulasi dan data.** [Role: Product & IKPA Analyst] [Model: Sol Medium]  
+- [ ] **F13-14 â€” Verifikasi go-live regulasi dan data.** [Role: Product & IKPA Analyst]
   **Files:** `docs/go-live-checklist.md`, `docs/regulatory-verification-2026.md`  
   **Depends:** F0-02, F13-13  
   **DoD:** Tidak ada parameter mandatory/score produksi berstatus belum diverifikasi; source dan approver tercatat.
@@ -946,5 +946,5 @@ Sebuah fitur baru dianggap selesai hanya bila:
 - rule set version serta disclaimer terlihat pada hasil/snapshot/laporan;
 - unit/integration/E2E yang proporsional lulus;
 - tidak ada secret atau data sensitif pada client bundle dan log;
-- task tidak menyentuh file di luar scope yang disetujui tanpa dipecah atau dinaikkan ke Sol Medium.
+- task tidak menyentuh file di luar scope yang disetujui tanpa dipecah atau dinaikkan menjadi task besar.
 - `BACKLOG.md` dan `DEVLOG.md` telah diperbarui, serta checkbox task telah ditandai sesuai status sebenarnya.

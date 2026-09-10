@@ -20,6 +20,19 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 Entri terbaru berada di bawah bagian ini. Baca task-specific entry atau beberapa
 entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 
+### Session 244 — 2026-09-10
+**Status:** Needs Fix — F13-02
+- Menambahkan `apps/web/src/server/integration/simulation-http.integration.test.ts` dengan 5 authenticated HTTP tests untuk `runSimulationFn`, `listSnapshotsFn`, `updateScenarioFn`, `duplicateScenarioFn`, dan `deleteScenarioFn` terhadap Clerk serta Neon test nyata. Coverage membuktikan read own snapshot, penolakan peer tanpa ID/payload/transaksi bocor, actual tetap immutable saat what-if, scenario terpisah, dan mutation peer tidak mengubah/menggandakan/menghapus data.
+- Menutup defect IDOR pada mutation scenario di `apps/web/src/server/simulation.ts` dengan lookup scenario aktif yang di-scope melalui fiscal year organisasi. Runner memintakan JWT setelah server siap agar sesi pendek tidak habis selama startup; tidak ada token atau secret dicetak.
+- Verifikasi: integration runner lulus 3 file/15 test; workspace test lulus 45 file/307 test; typecheck lulus; lint exit 0 dengan 79 warning legacy; client dan SSR build lulus; `git diff --check` lulus.
+- F13-02 tetap Needs Fix karena ServerFn aktif non-simulation belum seluruhnya memiliki HTTP/auth test individual. F13-03 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 243 — 2026-09-10
+**Status:** Completed — STAB-DOCS-02
+- Menghapus seluruh metadata jenis/model AI dari `docs/TASK-LIST-Simulator-IKPA.md` (label per-task, aturan klasifikasi, field pada protokol dan minimum isi DEVLOG), `docs/BACKLOG.md` (kolom tracker termasuk histori), dan `docs/DEVLOG.md` (field entri dan template); penanda ukuran task kini netral (kecil/besar) tanpa nama model.
+- Mempertahankan role/owner, task ID, status, dependency, DoD, tanggal, file, keputusan, verifikasi, risiko, dan next action; kata "model" pada konteks domain (mis. model kanonis, threat model) tidak dihapus.
+- Tidak ada kode aplikasi, konfigurasi runtime, arsip, atau histori Git yang diubah; tidak ada dokumen yang dipindahkan.
+
 ### Session 242 — 2026-09-10
 **Status:** Needs Fix — F13-02
 - Fixture `F13_02_CLERK_OPERATOR_USER_ID` tervalidasi dan terpetakan ke akses Operator pada branch Neon test; runner membuat sesi Clerk berumur pendek melalui `@clerk/backend`, mengirim JWT hanya di memori, lalu mencabut sesi setelah test.
@@ -114,7 +127,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 20:28 UTC | End: 20:35 UTC | Duration: ~7 minutes
 - Status: Completed
 - Agent/Role: Frontend Admin Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: system-debugging, ponytail
 **Tasks Completed:**
 - [AUDIT-CORR-A-05] Audit koreksi terbatas & penguatan kontrak administratif Admin KPPN:
@@ -137,7 +150,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 20:17 UTC | End: 20:25 UTC | Duration: ~8 minutes
 - Status: Completed
 - Agent/Role: Frontend Admin Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, system-debugging
 **Tasks Completed:**
 - [CORR-A-05] Policy, kalender, akses, audit tetap (parkir):
@@ -156,7 +169,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 19:18 UTC | End: 19:26 UTC | Duration: ~8 minutes
 - Status: Completed
 - Agent/Role: Frontend Admin Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail, context7-mcp
 **Tasks Completed:**
 - [CORR-A-04] Monitoring reminder mandatory server-driven:
@@ -178,7 +191,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 19:12 UTC | End: 19:18 UTC | Duration: ~6 minutes
 - Status: Completed
 - Agent/Role: Frontend Admin Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail, context7-mcp
 **Tasks Completed:**
 - [CORR-A-03] Detail satker read-only server-driven:
@@ -199,7 +212,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 19:06 UTC | End: 19:12 UTC | Duration: ~6 minutes
 - Status: Completed
 - Agent/Role: Frontend Admin Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail, context7-mcp
 **Tasks Completed:**
 - [CORR-A-02] Daftar satker server-only (`apps/web/src/routes/admin-kppn/organizations/index.tsx`):
@@ -218,7 +231,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 19:00 UTC | End: 19:06 UTC | Duration: ~6 minutes
 - Status: Completed
 - Agent/Role: Frontend Admin Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail, context7-mcp
 **Tasks Completed:**
 - [CORR-A-01] Dashboard Admin agregat 8 baris + deadline wajib:
@@ -238,7 +251,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 18:52 UTC | End: 19:00 UTC | Duration: ~8 minutes
 - Status: Completed
 - Agent/Role: Frontend Admin Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail, context7-mcp
 **Tasks Completed:**
 - [CORR-A-00] Bekukan kontrak Admin monitor (read-only hardening):
@@ -256,7 +269,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 18:45 UTC | End: 18:50 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: Technical Writer
-- Model: muse-spark-1.3
+
 - Skills: -
 **Tasks Completed:**
 - [DOCS-REVISI-V2] Salinan PRD/FSD/TSD/ERD ke `docs/revisi-v2/` (docs-only):
@@ -276,7 +289,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 18:35 UTC | End: 18:40 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: Frontend Admin Agent
-- Model: muse-spark-1.3
+
 - Skills: -
 **Tasks Completed:**
 - [DOCS-CORR-A-SPLIT] Pecah 1 baris CORR-A-00 s.d. 05 menjadi 6 task Admin (parkir, docs-only):
@@ -296,7 +309,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 18:25 UTC | End: 18:30 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail
 **Tasks Completed:**
 - [DOCS-OPERATOR-FREEZE] Buat `docs/operator-freeze.md` berisi glob freeze operator:
@@ -313,7 +326,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 18:04 UTC | End: 18:08 UTC | Duration: ~4 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail
 **Tasks Completed:**
 - [UI-HISTORY-COMPARE-ACCORDION-ITEMS-MOBILE] Transformasi Card Pemilihan Komparasi (Evaluasi Bulanan & Skenario Simulasi) pada `/operator/history` Menjadi Komponen Accordion Item Interaktif yang Dapat Dilipat untuk Menghemat Ruang pada Layar Mobile:
@@ -334,7 +347,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 17:45 UTC | End: 17:53 UTC | Duration: ~8 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail
 **Tasks Completed:**
 - [UI-HISTORY-COMPARE-2COL-AND-3SLOT-SYNC] Restrukturisasi Card Pemilihan Item Komparasi Riwayat & Skenario (`/operator/history` Tab Bandingkan) Menjadi 2 Kolom Terstruktur (Evaluasi Bulanan 1-12 & Skenario Simulasi Slot A-C) serta Standardisasi Naming 'Evaluasi':
@@ -360,7 +373,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 17:26 UTC | End: 17:38 UTC | Duration: ~12 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail
 **Tasks Completed:**
 - [UI-CONTRACTS-GUIDE-DISTRIBUSI-AK-SCALE-TEXT] Penambahan List Skala Rasio Penilaian Distribusi A.K. (Format Bullet List ul) pada Modal Panduan Belanja Kontraktual:
@@ -385,7 +398,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 16:49 UTC | End: 16:55 UTC | Duration: ~6 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail
 **Tasks Completed:**
 - [UI-HEADER-BUTTONS-REORDER-AND-UPTUP-STYLE-ALIGNMENT] Penyelarasan Urutan Tombol Aksi & Panduan Rumus (Revisi DIPA & Kontrak/Tagihan) serta Standardisasi Warna Tombol UP/TUP (Kelola Data Biru Tua & Panduan Rumus Putih):
@@ -414,7 +427,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 16:30 UTC | End: 16:42 UTC | Duration: ~12 minutes
 - Status: Completed
 - Agent/Role: Fullstack Engine, Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, system-debugging
 **Tasks Completed:**
 - [ENGINE-REVISI-DIPA-NKRA-110-BUCKET] Penyesuaian Logika Matriks NKRA Revisi DIPA Semesteran (0–1x: 110, 2x: 100, >=3x: 50) dan Nilai IKPA Tahunan Maksimal 100.00:
@@ -446,7 +459,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 16:01 UTC | End: 16:08 UTC | Duration: ~7 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail
 **Tasks Completed:**
 - [UI-PANDUAN-RUMUS-REVISI-DIPA-AND-SPM-DISPENSASI] Penambahan Tombol & Modal Dialog 'Panduan & Rumus' pada Header Halaman Revisi DIPA dan Dispensasi SPM:
@@ -479,7 +492,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 15:45 UTC | End: 15:52 UTC | Duration: ~7 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail
 **Tasks Completed:**
 - [UI-PENYERAPAN-CARD-REMOVE-AND-HEADER-CARDS-ALIGNMENT] Penghapusan Card 'Jarak ke 100' pada Penyerapan Anggaran (Simetri 4 Kolom) dan Penyelarasan Vertikal Sempurna Nilai Angka Header Score Cards Seluruh Indikator IKPA:
@@ -519,7 +532,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 15:15 UTC | End: 15:19 UTC | Duration: ~4 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Claude Opus 4.6
+
 - Skills: ponytail
 **Tasks Completed:**
 - [UI-TABLE-HEADER-CONTRAST-FIX] Perbaikan Kontras Font Judul Kolom Tabel (th) Menjadi Hitam:
@@ -536,7 +549,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 14:58 UTC | End: 15:05 UTC | Duration: ~7 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail
 **Tasks Completed:**
 - [UI-UPTUP-REMOVE-DATA-ROUTE-INPAGE-SCROLL] Hapus Jalur /operator/data/up-tup-kkp:
@@ -555,7 +568,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 14:48 UTC | End: 14:56 UTC | Duration: ~8 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail
 **Tasks Completed:**
 - [UI-WHATIF-DISPENSASI-EXPANDABLE-DIRECT] Panel Dispensasi Expandable Langsung:
@@ -572,7 +585,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 13:45 UTC | End: 13:58 UTC | Duration: ~13 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail
 **Tasks Completed:**
 - [UI-WHATIF-PANEL-EXPANDABLE-MINIMIZED] Card Simulasi What-If Expandable di 4 Menu:
@@ -592,7 +605,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 13:25 UTC | End: 13:35 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail
 **Tasks Completed:**
 - [UI-KONTRAKTUAL-TERM-ORDER-RENAME] Urutan & Istilah Subkomponen Tab Kontrak (`?tab=contracts`):
@@ -610,7 +623,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 13:05 UTC | End: 13:20 UTC | Duration: ~15 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail, context7-mcp
 **Tasks Completed:**
 - [UI-WHATIF-DISPENSASI-SIMULATION] Fitur Simulasi What-If Dispensasi SPM (`/operator/data/spm-dispensation`):
@@ -627,7 +640,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 12:45 UTC | End: 13:05 UTC | Duration: ~20 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail, context7-mcp
 **Tasks Completed:**
 - [UI-WHATIF-KONTRAKTUAL-SIMULATION] Fitur Simulasi What-If Belanja Kontraktual (tab Kontrak):
@@ -647,7 +660,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 12:35 UTC | End: 12:45 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail, context7-mcp
 **Tasks Completed:**
 - [UI-WHATIF-REVISI-DIPA-SIMULATION] Fitur Simulasi What-If Revisi DIPA (`/operator/data/budget-revisions`):
@@ -664,7 +677,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 12:20 UTC | End: 12:28 UTC | Duration: ~8 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: muse-spark-1.3
+
 **Tasks Completed:**
 - [UI-SCENARIO-SLOT-NAME-GLOBAL-SYNC] Sinkronisasi Global Nama Skenario per Slot:
   1. Masalah: isian nama di dialog tiap indikator selalu me-reset ke default ("Tutup gap via ...") sehingga nama terakhir ("1", "2", "C") tidak terbawa antar indikator / Riwayat.
@@ -685,7 +698,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 12:12 UTC | End: 12:18 UTC | Duration: ~6 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: muse-spark-1.3
+
 **Tasks Completed:**
 - [FIX-HISTORY-EDIT-SCENARIO-DECIMAL-COMMA] Perbaikan Simpan Perubahan Skenario di `/operator/history` Tab Skenario Simulasi:
   1. Akar masalah: input skor memakai `type=number step=0.1` sehingga nilai dua desimal (mis. 95.55) gagal validasi step native dan koma desimal Indonesia ditolak browser — tombol Simpan tidak bisa submit.
@@ -704,7 +717,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 12:00 UTC | End: 12:10 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail
 **Tasks Completed:**
 - [UI-SAVE-DIALOG-REMOVE-REDUNDANT-SLOT-TEXTS-AND-SYNC] Hapus Teks Redundan & Sinkronisasi Slot Dialog Simpan Skenario:
@@ -724,7 +737,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 11:40 UTC | End: 11:55 UTC | Duration: ~15 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: muse-spark-1.3
+
 - Skills: ponytail, context7-mcp
 **Tasks Completed:**
 - [UI-WHATIF-SAVE-SLOT-ABC-INFO-4-INDICATORS] Info Slot A/B/C Sebelum Simpan Skenario What-If pada 4 Menu Indikator:
@@ -750,7 +763,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 17:45 UTC | End: 17:55 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: System Debugging, Frontend Operator & Fullstack Engine Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: system-debugging, ponytail, emil-design-eng
 **Tasks Completed:**
 - [INDICATOR-SLOT-REWRITE-AND-8-INDICATOR-SCORE-EDITOR] Alur Pemilihan Slot Skenario dari Dialog Indikator & Editor Skor Nominal 8 Indikator Interaktif dengan Kalkulasi Live Terbobot:
@@ -779,7 +792,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 17:30 UTC | End: 17:40 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: System Debugging, Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: system-debugging, ponytail, emil-design-eng
 **Tasks Completed:**
 - [HISTORY-PAGE-FEEDBACK-REFINEMENTS] Penghapusan Header Banner Redundan, Fitur Edit Skenario & Instrumen pada Setiap Card Skenario, dan Penghapusan Dump JSON Teknis pada Modal Detail:
@@ -810,7 +823,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 17:15 UTC | End: 17:25 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: System Debugging, Fullstack Operator & Database Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: system-debugging, ponytail, emil-design-eng
 **Tasks Completed:**
 - [HISTORY-CLEANUP-AND-SLOT-REWRITE-ARCHITECTURE] Pembersihan Total 165 Baris Snapshot & Skenario Lama, Standardisasi Judul Menjadi "Evaluasi Kinerja Bulanan", Matriks 12 Bulan Bersih, dan In-Place Rewrite untuk Sistem 3-Slot What-If (Slot A, B, C):
@@ -843,7 +856,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 16:34 UTC | End: 16:38 UTC | Duration: ~4 minutes
 - Status: Completed
 - Agent/Role: System Debugging, Fullstack Operator & Engine Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: system-debugging, ponytail, emil-design-eng
 **Tasks Completed:**
 - [PERF-AND-ARCHITECTURE-ACTUAL-SNAPSHOT-IN-PLACE-UPDATE-AND-SIMULATION-OVERVIEW] Optimasi Idempotensi Snapshot Aktual In-Place (Eliminasi Duplikasi Baris DB), Perampingan Payload Data History (>80% Payload Reduction), dan Dokumentasi Komprehensif Fitur Skenario What-If 8 Indikator IKPA:
@@ -870,7 +883,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 16:00 UTC | End: 16:05 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: System Debugging, Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: system-debugging, ponytail, emil-design-eng
 **Tasks Completed:**
 - [UI-AND-ENGINE-DASHBOARD-FEEDBACK-REFINEMENTS] Penghapusan Tombol Redundan pada 8 Card Indikator, Pembatasan Nilai Asli Maks 100 & Skor Terbobot Maks 10 Pts (Revisi DIPA 10%), serta Standardisasi Tombol Aksi Prioritas Menjadi Icon Panah Kanan Saja:
@@ -905,7 +918,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 15:28 UTC | End: 15:42 UTC | Duration: ~14 minutes
 - Status: Completed
 - Agent/Role: System Debugging & Fullstack Engine Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: system-debugging, ponytail, emil-design-eng
 **Tasks Completed:**
 - [FIX-DASHBOARD-MONTHLY-DATA-COMPLETENESS-AND-EVAL-PERIOD] Kelengkapan Data 9 Bulan (Jan–Sep 2026) Seluruh Domain IKPA, Integrasi `evalPeriod` Capaian Output, dan Penyelarasan Belanja Kontraktual AK53/KD/DAK:
@@ -941,7 +954,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 14:54 UTC | End: 14:58 UTC | Duration: ~4 minutes
 - Status: Completed
 - Agent/Role: System Debugging & Fullstack Engine Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: system-debugging, ponytail, emil-design-eng
 **Tasks Completed:**
 - [FIX-DASHBOARD-PREVIOUS-MONTH-DELTA-SYNC] Penyelarasan Perhitungan Delta Bulan Sebelumnya Berbasis Live Engine & Format Keterangan 'Tetap vs [Bulan]' pada Dashboard Operator (`/operator/dashboard`):
@@ -971,7 +984,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 14:48 UTC | End: 14:50 UTC | Duration: ~2 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, emil-design-eng
 **Tasks Completed:**
 - [UI-INDICATOR-CARD-REMOVE-PRIORITY-1-BADGE] Penghapusan Penanda/Badge 'Prioritas 1' pada Card 8 Indikator IKPA (`IndicatorCard`):
@@ -992,7 +1005,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 14:35 UTC | End: 14:38 UTC | Duration: ~3 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, emil-design-eng
 **Tasks Completed:**
 - [UI-DASHBOARD-REMOVE-SCORE-TREND-PANEL] Penghapusan Card Tren Perkembangan IKPA pada Halaman Dashboard Operator (`/operator/dashboard`):
@@ -1016,7 +1029,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 14:21 UTC | End: 14:26 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: System Debugging & Fullstack Engine Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: system-debugging, ponytail, emil-design-eng
 **Tasks Completed:**
 - [FIX-RPD-DEVIATION-ENGINE-STATUS-AND-DASHBOARD-PARITY] Perbaikan Akar Masalah Status `rpd_deviation` di Engine IKPA & Sinkronisasi Paritas Nilai Deviasi Halaman III pada Dashboard Operator:
@@ -1044,7 +1057,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 13:48 UTC | End: 14:02 UTC | Duration: ~14 minutes
 - Status: Completed
 - Agent/Role: System Debugging, Fullstack Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: system-debugging, ponytail, emil-design-eng
 **Tasks Completed:**
 - [PERF-AND-SEED-COMPLETE-IKPA-DOMAINS-AND-INSTANT-CACHE] Database Seeding Lengkap 8 Domain Data IKPA (Jan–Sep 2026), Penyediaan Snapshot Historis Lengkap, dan Caching Multi-Tier untuk Loading Halaman & Selector Bulan Instan (0ms Perceived Latency):
@@ -1085,7 +1098,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 13:30 UTC | End: 13:41 UTC | Duration: ~11 minutes
 - Status: Completed
 - Agent/Role: System Debugging, Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: system-debugging, ponytail, emil-design-eng
 **Tasks Completed:**
 - [PERF-AND-UI-OPERATOR-DASHBOARD-MONTH-SELECTOR-AND-PARALLEL-QUERIES] Optimasi Kinerja Loading Dashboard Operator, Penambahan Selector Periode Bulan Kumulatif (Jan - Des), dan Klarifikasi Visual Tombol Aksi Prioritas:
@@ -1118,7 +1131,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 12:20 UTC | End: 13:02 UTC | Duration: ~42 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator, Engine & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, emil-design-eng, system-debugging
 **Tasks Completed:**
 - [UI-OPERATOR-DASHBOARD-AND-HISTORY-PARITY-UPGRADE] Pembaruan Menyeluruh Dashboard Operator (`/operator/dashboard`) dan Riwayat & Skenario (`/operator/history`):
@@ -1179,7 +1192,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 11:27 UTC | End: 11:31 UTC | Duration: ~4 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, emil-design-eng
 **Tasks Completed:**
 - [UI-OPERATOR-NAV-REMOVE-REPORTS-MENU] Penghapusan Menu 'Laporan & Ekspor' pada Navigasi Operator Satker (`OperatorNavigation`):
@@ -1200,7 +1213,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 11:15 UTC | End: 11:25 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, emil-design-eng, system-debugging
 **Tasks Completed:**
 - [UI-INDICATORS-HEADER-ALIGNMENT-AND-UP-TUP-HEADING] Penyelarasan Ketinggian & Tata Letak Card Header Indikator IKPA (flex flex-col justify-between min-h-[110px]), Format Angka Murni Nilai IKPA (Maks 100), Format Akhir (pts), dan Redaksi Heading Pengelolaan UP TUP:
@@ -1236,7 +1249,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 10:45 UTC | End: 10:56 UTC | Duration: ~11 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng
 **Tasks Completed:**
 - [UI-INDICATORS-HEADER-SCORE-CARDS-STANDARDIZATION] Standardisasi 2 Header Score Card Paling Kanan Seluruh 8 Menu Indikator IKPA (Nilai IKPA Indikator & Nilai Akhir Bobot %) Selaras Gaya Visual Revisi DIPA:
@@ -1283,7 +1296,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 10:40 UTC | End: 10:43 UTC | Duration: ~3 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng
 **Tasks Completed:**
 - [UI-FEEDBACK-CO-FORMULA-PARENTHESIS] Penambahan Tanda Kurung pada Formula 1 NK-CRO `(PCRO/ TPCRO) x 100%` pada Tab Panduan PER-5 Halaman Capaian Output (`apps/web/src/routes/operator/data/output-achievement.tsx`):
@@ -1303,7 +1316,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 10:15 UTC | End: 10:22 UTC | Duration: ~7 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng
 **Tasks Completed:**
 - [UI-FEEDBACK-STRATEGY-TITLES-AND-CO-FORMULAS] Penyesuaian Judul Strategi Optimalisasi pada Menu Penyerapan Anggaran & Dispensasi SPM serta Penyelarasan Formula NK-CRO (Formula 1: `PCRO/ TPCRO x 100%` & Formula 2: `(RVRO/ TRVRO) x 100%`) pada Panduan Capaian Output:
@@ -1332,7 +1345,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 09:55 UTC | End: 10:05 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng
 **Tasks Completed:**
 - [UI-OPTIMIZATION-STRATEGY-CARDS-BOTTOM] Penambahan Card Berjejer Strategi Optimalisasi Nilai IKPA di Bagian Bawah Menu Revisi DIPA, Deviasi Halaman III DIPA, Belanja Kontraktual, Penyelesaian Tagihan, dan Capaian Output:
@@ -1388,7 +1401,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 09:40 UTC | End: 09:50 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator, Policy & Fullstack Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng, system-debugging
 **Tasks Completed:**
 - [UI-REMINDERS-LEAD-DAYS-0-TO-20-MAX-4] Perluasan Batas Izin Lead Day Notifikasi Pengingat Menjadi 0 (Hari-H) s.d. 20 Hari Kerja/Kalender pada Seluruh Kebijakan & Database Seed dengan Pembatasan Isian Reminder Maksimal 4 Kali:
@@ -1428,7 +1441,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 09:20 UTC | End: 09:38 UTC | Duration: ~18 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator, Policy & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng, system-debugging
 **Tasks Completed:**
 - [UI-REMINDERS-LEAD-DAYS-0-TO-17-MAX-4] Standardisasi Rentang Lead Day Notifikasi Pengingat (Minimal 0 Hari/Hari-H s.d. Maksimal 17 Hari Kerja/Kalender Sesuai Siklus Tagihan SPM-LS & Kebijakan Global) dan Pembatasan Isian Reminder Maksimal 4 Kali dengan Live Milestone Chips:
@@ -1468,7 +1481,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 09:00 UTC | End: 09:05 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng
 **Tasks Completed:**
 - [UI-REMINDERS-ACTIVE-EVENTS-COLUMN-WIDTHS] Penyesuaian Presisi Proporsi Lebar Kolom Tabel Event Aktif Reminder Center (`/operator/reminders`) dan Penerapan Wrap Text Rapi pada Kolom Objek/Entitas (Menghilangkan Truncate Ambigu):
@@ -1501,7 +1514,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 08:50 UTC | End: 08:58 UTC | Duration: ~8 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator, Fullstack & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng, system-debugging
 **Tasks Completed:**
 - [UI-REMINDERS-SCROLL-AND-LEAD-DAYS-FIX] Pengkondisian Scroll Vertikal Card Tabel (>5 Baris), Pembatasan Lead Days Capaian Output (Min 2 Hari & Max 4 Hari), Perbaikan Penyimpanan Konfigurasi Server, dan Alert Dialog Internal Drawer:
@@ -1536,7 +1549,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 08:38 UTC | End: 08:44 UTC | Duration: ~6 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng
 **Tasks Completed:**
 - [UI-REMINDERS-REFINEMENTS-FEEDBACK] Penyempurnaan Tampilan Menu Reminder Center (`/operator/reminders`):
@@ -1565,7 +1578,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 08:00 UTC | End: 08:25 UTC | Duration: ~25 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator, Fullstack & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng, system-debugging
 **Tasks Completed:**
 - [UI-REMINDERS-CENTER-4TAB-UPGRADE] Pembaruan Menyeluruh Menu Reminder Center (`/operator/reminders`) Sesuai Penyelarasan Indikator 2026, Penegakan Ketat Guard Belanja Kontraktual vs Penyelesaian Tagihan, Struktur 4-Tab Ponytail, Server-Authoritative Query Engine, Delivery History Log, dan Drawer Konfigurasi Interaktif:
@@ -1611,7 +1624,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 07:53 UTC | End: 07:57 UTC | Duration: ~4 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng
 **Tasks Completed:**
 - [UI-CO-RESPONSIVE-VALIDATION-CARDS-AND-TABLE-TITLE] Optimasi Responsivitas Mobile 8 Variabel Validasi Data dan Penyederhanaan Judul/Header Panel Open Periode:
@@ -1637,7 +1650,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 07:42 UTC | End: 07:46 UTC | Duration: ~4 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng
 **Tasks Completed:**
 - [UI-CO-TARGET-CARD-DYNAMIC-QUARTER] Sinkronisasi Dinamis Card Pemutakhiran Target Triwulanan Berdasarkan Bulan Terpilih, Penghapusan Huruf b, Penghapusan Double Parenthesis:
@@ -1664,7 +1677,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 06:15 UTC | End: 06:56 UTC | Duration: ~41 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator, Fullstack & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng, system-debugging
 **Tasks Completed:**
 - [UI-CO-PREVIEW-GRAYSCALE-REFACTOR-AND-FUTURE-PLAN] Refactor Menyeluruh Modul Capaian Output (`/operator/data/output-achievement`) Fokus Jadwal & Kepatuhan, Fitur Simulasi Tema Abu-abu Sandbox Non-Persistent (Preview), Panduan Reaktivasi Persistent `docs/future_plan/future_plan_caput.md`, dan Input Makro Dual-Source (Mode A & B):
@@ -1709,7 +1722,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 04:40 UTC | End: 04:48 UTC | Duration: ~8 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng
 **Tasks Completed:**
 - [UI-CO-RELOCATE-FAIRNESS-BUTTON-TO-TAB] Pemindahan Tombol 'Atur Fairness RO' dari Header Utama Halaman Masuk ke Dalam Tab Navigasi Fairness Treatment (`/operator/data/output-achievement`):
@@ -1733,7 +1746,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 04:20 UTC | End: 04:30 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng
 **Tasks Completed:**
 - [UI-CO-GUIDE-MODAL-8-VALIDATION-RULES] Standardisasi Menyeluruh 8 Variabel Kualitas Validasi Data Capaian Output pada Modal Panduan PER-5/PB/2024 (`/operator/data/output-achievement`):
@@ -1766,7 +1779,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 04:00 UTC | End: 04:10 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Fullstack Admin & Operator Policy Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng
 **Tasks Completed:**
 - [CO-REALIZATION-OPEN-PERIOD-GUIDANCE-AND-REMINDER] Penyesuaian Menyeluruh Panduan Reminder & Jadwal Periodisasi Pelaporan Capaian Output (Open Period Reguler 7 HK & Periode Tambahan KPPN):
@@ -1827,7 +1840,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 03:40 UTC | End: 03:50 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Fullstack Admin & Operator Policy Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng
 **Tasks Completed:**
 - [ADMIN-OP-TARGET-REMINDER-FLEXIBILITY] Fleksibilitas Konfigurasi Jadwal Pemutakhiran Target Kinerja bagi Admin KPPN & Jalur Khusus Pemutakhiran Fleksibel bagi Operator Satker saat Perubahan DIPA:
@@ -1865,7 +1878,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 03:30 UTC | End: 03:40 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Fullstack Operator & Policy Reminder Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, context7, emil-design-eng
 **Tasks Completed:**
 - [CO-TARGET-UPDATE-REMINDER-SCHEDULE-ALIGNMENT] Penyelarasan Menyeluruh Reminder & Jadwal Pemutakhiran Proyeksi Target Capaian Output TA 2026:
@@ -1910,7 +1923,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 02:50 UTC | End: 02:56 UTC | Duration: ~6 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 - Skills: ponytail, emil-design-eng
 **Tasks Completed:**
 - [UI-HEADER-REMOVE-REDUNDANT-YEAR-PERIOD-SELECTOR] Penghapusan Opsi Dropdown Tahun dan Periode yang Redundan pada Header Shell (`ActiveContextHeader` & `ContextHeader`):
@@ -1940,7 +1953,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 02:30 UTC | End: 02:45 UTC | Duration: ~15 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Ponytail Design Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-CO-TAB-SIMPLIFICATION-AND-INLINE-VALIDATION] Penyederhanaan Tab Navigasi Capaian Output Menjadi 4 Tab & Integrasi Penuh Validasi Engine Rules 00–08 + Konfirmasi PPK ke Dalam Tab Realisasi Kinerja Bulanan:
   1. **Penghapusan Tab Redundan**:
@@ -1981,7 +1994,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 02:15 UTC | End: 02:20 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: System Debugging & Fullstack Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [FIX-DB-MIGRATION-OUTPUT-REPORTS-ORGANIZATION-ID] Penyelarasan Skema PostgreSQL Database & Eksekusi Migrasi Drizzle:
   1. **Root Cause Analysis**:
@@ -2014,7 +2027,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 02:00 UTC | End: 02:15 UTC | Duration: ~15 minutes
 - Status: Completed
 - Agent/Role: Fullstack Operator & Engine Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UPGRADE-CAPAIAN-OUTPUT-MODULE] Upgrade Komprehensif Modul Indikator Capaian Output (Bobot 25% IKPA) Sesuai Spesifikasi Resmi & Best-Practice Ponytail UI:
   1. **Pemisahan Model Target Kinerja Fisik & Realisasi Bulanan**:
@@ -2076,7 +2089,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 16:47 UTC | End: 16:58 UTC | Duration: ~11 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-TABLE-REFINEMENT-AND-DATE-STANDARD] Penghapusan 4 Summary Metric Cards, Penataan Kolom Tabel UP/TUP (Tambah Kolom No, Hapus Kolom SP2D Asal, Scroll Internal Card >5 Data), dan Standardisasi Seluruh Format Tanggal Menjadi DD-MM-YYYY:
   1. **Penghapusan 4 Summary Metric Cards (`apps/web/src/routes/operator/up-tup.tsx`)**:
@@ -2112,7 +2125,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 16:35 UTC | End: 16:44 UTC | Duration: ~9 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Engine Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [FIX-UP-TUP-SETORAN-AND-TUNAI-FORMULA] Presisi Perhitungan Kanonis Kinerja Setoran TUP, %GUP Disebulankan, dan Rincian Subkomponen Tunai (`/operator/up-tup` & `@simulator-ikpa/ikpa-engine`):
   1. **Kanonisasi Tipe Transaksi UP/TUP di Seluruh Layer Schema & Engine (`packages/ikpa-engine/src/schemas.ts` & `packages/ikpa-engine/src/indicators/up-tup.ts`)**:
@@ -2151,7 +2164,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 16:05 UTC | End: 16:18 UTC | Duration: ~13 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Engine Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [FIX-UP-TUP-ACTUAL-SCORING-SYNC] Sinkronisasi dan Perhitungan Real-Time NK Tunai & Skor Agregat UP/TUP dari Input Data Transaksi Aktual (`/operator/up-tup`):
   1. **Pemetaan Transaksi Aktual ke Engine (`apps/web/src/lib/simulation/up-tup-workspace.ts`)**:
@@ -2181,7 +2194,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 15:52 UTC | End: 16:01 UTC | Duration: ~9 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-WORKSPACE-DATA-CONSOLIDATION] Konsolidasi Seluruh Komponen dan Manajemen Data `/operator/data/up-tup-kkp` ke Halaman `/operator/up-tup` (Mereplace Card Objek Transaksi Terkunci):
   1. **Penggantian Objek Transaksi Terkunci (`apps/web/src/routes/operator/up-tup.tsx`)**:
@@ -2213,7 +2226,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 15:00 UTC | End: 15:04 UTC | Duration: ~4 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-SCORE-CARDS-ALIGN] Penataan Urutan 4 Score Cards Indikator UP/TUP & KKP (`/operator/up-tup`):
   1. **Penataan Ulang Urutan Kartu Metrik (`apps/web/src/routes/operator/up-tup.tsx`)**:
@@ -2240,7 +2253,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 14:38 UTC | End: 14:45 UTC | Duration: ~7 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-DRAWER-STRICT-VALIDATION] Pengkondisian 1 Date Picker 'Tanggal Rencana SP2D' untuk Non-GUP dan Validasi Wajib Isi Semua Field (`/operator/data/up-tup-kkp`):
   1. **Pengkondisian Date Picker Transaksi Non-GUP vs GUP (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
@@ -2267,7 +2280,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 14:24 UTC | End: 14:30 UTC | Duration: ~6 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-DRAWER-DATE-LABELS-REF] Penyesuaian Label Tanggal Form Drawer UP/TUP (Tanggal SP2D Terakhir & Tanggal Rencana SP2D) dan Opsi Referensi Data UP/GUP Sebelumnya (`/operator/data/up-tup-kkp`):
   1. **Pembaruan Label Tanggal Modal Drawer (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
@@ -2296,7 +2309,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 13:40 UTC | End: 13:48 UTC | Duration: ~8 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-MODAL-GUP-SIMULATION] Simulasi dan Rekomendasi Real-Time pada Modal Input GUP (Pre-Save Guidance) serta Penghapusan 3 Tombol Header (`/operator/data/up-tup-kkp`):
   1. **Penghapusan 3 Tombol Header Banner (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
@@ -2330,7 +2343,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 12:44 UTC | End: 12:47 UTC | Duration: ~3 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-SIMULATION-SUBTITLE] Penghapusan Frasa 'dan porsi belanja KKP' pada Deskripsi Subtitle Section Simulasi %GUP Disebulankan (`/operator/up-tup`):
   1. **Penyelarasan Teks Deskripsi Subtitle (`apps/web/src/routes/operator/up-tup.tsx`)**:
@@ -2351,7 +2364,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 11:12 UTC | End: 11:18 UTC | Duration: ~6 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-SIMULATION-REFINEMENT] Penyempurnaan Tampilan Panel Simulasi %GUP Disebulankan (Penghapusan Card Status/Nilai/Dampak Bottom, Penghapusan Badge Dampak Rencana & Tombol Reset Header yang Duplikat, dan Pengubahan Background Menjadi Biru Muda):
   1. **Penghapusan Card Bawah Duplikat (`apps/web/src/components/operator/up-tup-assumption-panel.tsx`)**:
@@ -2377,7 +2390,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 10:33 UTC | End: 10:42 UTC | Duration: ~9 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Simulation Engine Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-GUP-ANALYSIS-REC] Penyempurnaan Mesin Analisis & Rekomendasi Simulasi GUP (%GUP Disebulankan · Interaktif), Pemisahan Status Kelayakan Operasional & Kualitas IKPA, Rekomendasi Aksi Nominal/Tanggal Otomatis, dan Card Hasil Analisis GUP Ponytail:
   1. **Pure Calculation Engine & Model Status (`apps/web/src/lib/simulation/up-tup-assumptions.ts`)**:
@@ -2416,7 +2429,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 10:21 UTC | End: 10:28 UTC | Duration: ~7 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-ASSUMPTION-SIMPLIFY] Penghapusan Dropdown Asumsi Opsional TUP/PTUP/GUP Nihil/Setoran/KKP pada Panel Asumsi Simulasi UP/TUP (`UpTupAssumptionPanel`):
   1. **Penyederhanaan UI Panel Asumsi (`apps/web/src/components/operator/up-tup-assumption-panel.tsx`)**:
@@ -2442,7 +2455,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 09:46 UTC | End: 09:51 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-DRAWER-SIMPLIFY] Standardisasi Istilah 'Setoran TUP' (Tanpa Sisa & Hapus SSBP), Penghapusan Field Opsional/Checkbox Drawer UP/TUP, dan Penukaran Posisi Date Picker (SP2D Asal di Kiri):
   1. **Standardisasi Istilah Setoran TUP (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`, `apps/web/src/routes/operator/up-tup.tsx`, `apps/web/src/components/operator/up-tup-assumption-panel.tsx`)**:
@@ -2475,7 +2488,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 09:30 UTC | End: 09:37 UTC | Duration: ~7 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-KKP-TAB-CONSOLIDATE] Konsolidasi Pengaturan Plafon KKP & Matriks Target ke Dalam Tab 'Penggunaan KKP' pada Halaman `/operator/data/up-tup-kkp`:
   1. **Penyederhanaan Tab Navigasi (`apps/web/src/routes/operator/data/up-tup-kkp.tsx`)**:
@@ -2504,7 +2517,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 09:15 UTC | End: 09:23 UTC | Duration: ~8 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Engine Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-NO-KKP-DEFAULT] Pengaturan Default Konfigurasi UP KKP Menjadi 'Tidak Memiliki UP KKP' (Pembatasan Skor Maksimal 90% dari Tunai & Peluang 100% saat KKP Diaktifkan):
   1. **Engine & Schemas (`packages/ikpa-engine/src/schemas.ts`, `indicators/up-tup.ts`, `up-tup.test.ts`)**:
@@ -2550,7 +2563,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 09:09 UTC | End: 09:12 UTC | Duration: ~3 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-REC-POSITION] Penataan Posisi Panel Strategi & Rekomendasi Pengendalian UP/TUP ke Bagian Paling Bawah Halaman (`/operator/up-tup`):
   1. **Reposisi Container Rekomendasi (`apps/web/src/routes/operator/up-tup.tsx`)**:
@@ -2573,7 +2586,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 09:04 UTC | End: 09:07 UTC | Duration: ~3 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-FORMULA-DESC] Penyempurnaan Teks Penjelasan Rumus Modal Dialog UP/TUP (NK Ketepatan Waktu & Penjelasan Kinerja Setoran TUP):
   1. **Teks Formula NK Tunai (`apps/web/src/routes/operator/up-tup.tsx`)**:
@@ -2597,7 +2610,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 08:25 UTC | End: 08:40 UTC | Duration: ~15 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Fullstack Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-UP-TUP-REDESIGN] Pembaruan Menyeluruh Menu Indikator UP/TUP & KKP (Bobot 10% IKPA) Sesuai Spesifikasi Perbaikan & Ponytail Design:
   1. **Engine & Subkomponen (`packages/ikpa-engine/src/indicators/up-tup.ts`, `up-tup.test.ts`)**:
@@ -2648,7 +2661,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 08:10 UTC | End: 08:16 UTC | Duration: ~6 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Backend Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-INTEGER-VOL-RVRO] Pembatasan Target Volume RO DIPA dan RVRO Menjadi Bilangan Bulat Murni (Integer) Tanpa Desimal:
   1. **Komponen `FormattedNumberInput` (`apps/web/src/components/data/formatted-number-input.tsx`, `formatted-number-input.test.ts`)**:
@@ -2682,7 +2695,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 07:55 UTC | End: 08:05 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Fullstack Integration & Backend Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-FAIRNESS-DEDUP-LIFECYCLE] Idempotent Upsert Usulan Fairness Satker, Penghapusan Bersih saat Nonaktif, dan Reactivasi Tanpa Duplikasi Data:
   1. **Upsert Idempotent & Anti-Duplikasi (`apps/web/src/server/domains/output-achievement.mutations.ts`)**:
@@ -2715,7 +2728,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 07:41 UTC | End: 07:50 UTC | Duration: ~9 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Backend Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-FAIRNESS-TOGGLE-AND-FILTER] Integrasi Pengecualian Fairness Satker, Opsi Edit Fairness Kolom Aksi, dan Sinkronisasi Filter/Penilaian:
   1. **Integrasi Fairness Resolver dengan Pengecualian Satker (`apps/web/src/server/policy/fairness-resolver.ts`)**:
@@ -2751,7 +2764,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 07:37 UTC | End: 07:41 UTC | Duration: ~4 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-PROPOSAL-FORM-VALIDATION] Pencegahan Alert Banner Merah saat Form Kosong dan Penonaktifan Tombol Simpan pada Modal Dialog:
   1. **Penonaktifan Tombol Simpan Modal Usulan (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
@@ -2778,7 +2791,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 07:26 UTC | End: 07:29 UTC | Duration: ~3 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-PROPOSAL-BTN-SAVE] Perubahan Teks Tombol Aksi Modal Usulan Pengecualian Capaian Output menjadi "Simpan":
   1. **Pembaruan Label Tombol Modal Usulan (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
@@ -2802,7 +2815,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 07:12 UTC | End: 07:18 UTC | Duration: ~6 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-NO-TRAILING-DECIMALS] Format Dinamis Desimal Tanpa Trailing Zeros pada Input dan Tampilan Capaian Output:
   1. **Utilitas Format Dinamis (`apps/web/src/lib/format.ts`, `format.test.ts`)**:
@@ -2831,7 +2844,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 07:06 UTC | End: 07:09 UTC | Duration: ~3 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-DRAWER-GRID-CONSTRAINTS] Penataan Grid Form Target di Kiri & Batasan Max 100 serta 2 Desimal untuk PCRO/TPCRO:
   1. **Penataan Layout Grid Form Drawer (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
@@ -2861,7 +2874,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 06:45 UTC | End: 06:49 UTC | Duration: ~4 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-DATE-FORMAT] Standardisasi Format Tanggal DD-MM-YYYY pada Halaman Capaian Output:
   1. **Date Formatter Utility (`apps/web/src/lib/format.ts`, `format.test.ts`)**:
@@ -2889,7 +2902,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 06:41 UTC | End: 06:45 UTC | Duration: ~4 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-INPUT-THOUSANDS] Separasi Ribuan Otomatis Real-Time pada Input Angka (`FormattedNumberInput`):
   1. **Perbaikan Parsing & Format (`apps/web/src/components/data/formatted-number-input.tsx`)**:
@@ -2916,7 +2929,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 06:37 UTC | End: 06:40 UTC | Duration: ~3 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-LABEL-UPDATE] Pembaruan Label Input Target Volume RO DIPA pada Halaman Capaian Output:
   1. Mengubah label form drawer dari `Target Volume DIPA` menjadi `Target Volume RO DIPA` pada form input/edit rincian output di [`output-achievement.tsx`](file:///E:/Vibe%20Coding/simulator-ikpa/apps/web/src/routes/operator/data/output-achievement.tsx).
@@ -2938,7 +2951,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 06:24 UTC | End: 06:29 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [UI-TERMINOLOGY-UPDATE] Standardisasi Istilah NK-ROKW dan NK-CRO pada Halaman Capaian Output:
   1. **Halaman Operator Capaian Output (`apps/web/src/routes/operator/data/output-achievement.tsx`)**:
@@ -2968,7 +2981,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 06:10 UTC | End: 06:15 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: Backend & Integration Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [BUGFIX] Perbaikan Error `relation "assessment_exclusion_policies" does not exist` pada Dashboard Operator:
   1. **Database Migration (`packages/db/drizzle/0001_workable_black_tarantula.sql`)**:
@@ -2997,7 +3010,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 05:25 UTC | End: 05:55 UTC | Duration: ~30 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Engine Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [FIX-CO-01 / PER-5/PB/2024] Perbaikan Menyeluruh Menu Capaian Output (Bobot 25% IKPA) & Fairness Treatment (RO Khusus):
   1. **Canonical IKPA Engine Overhaul (`packages/ikpa-engine/src/indicators/output-achievement.ts`, `schemas.ts`, `types.ts`, `calculate.ts`)**:
@@ -3073,7 +3086,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 05:14 UTC | End: 05:24 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [FIX-09 / Page Feedback] Penyesuaian Styling Status Banner Belum Ada SPM Q4 (`/operator/data/spm-dispensation`):
   1. **Background & Border Biru Muda (Sky)**:
@@ -3097,7 +3110,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 05:08 UTC | End: 05:13 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [FIX-09 / Page Feedback] Penambahan Tombol Edit di Kolom Aksi Tabel SPM Dispensasi (`/operator/data/spm-dispensation`):
   1. **UI Action Column**:
@@ -3126,7 +3139,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 04:46 UTC | End: 05:00 UTC | Duration: ~14 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator & Engine Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [FIX-09] Perbaikan Menyeluruh Menu Dispensasi SPM (Pengurang Nilai IKPA):
   1. **Canonical Engine Implementation (`packages/ikpa-engine/src/indicators/spm-dispensation.ts`, `rule-set.ts`)**:
@@ -3198,7 +3211,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 12:14 UTC | End: 12:35 UTC | Duration: ~21 minutes
 - Status: Completed
 - Agent/Role: Fullstack Integration Agent & Engine Specialist
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [TAG-FIX] Perbaikan Menyeluruh Indikator IKPA Penyelesaian Tagihan (SPM-LS Bobot 10%):
   1. **Canonical Engine Implementation (`packages/ikpa-engine/src/indicators/invoice-timeliness.ts`)**:
@@ -3270,7 +3283,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 11:03 UTC | End: 11:07 UTC | Duration: ~4 minutes
 - Status: Completed
 - Agent/Role: Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [KON-FIX-3] Penataan Urutan Metric Cards Belanja Kontraktual, Penyesuaian Nama, dan Standarisasi Typography/Height Alignment:
   1. **Urutan Metric Cards Baru**:
@@ -3299,7 +3312,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 10:31 UTC | End: 10:34 UTC | Duration: ~3 minutes
 - Status: Completed
 - Agent/Role: Fullstack Integration Agent & Engine Specialist
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [KON-FIX-2] Pembatasan (Cap) Nilai Tertimbang Kontribusi IKPA Belanja Kontraktual Maksimal 10.00 Pts:
   1. **Engine Update (`packages/ikpa-engine/src/indicators/contractual.ts`)**:
@@ -3328,7 +3341,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 09:30 UTC | End: 09:47 UTC | Duration: ~17 minutes
 - Status: Completed
 - Agent/Role: Fullstack Integration Agent & Engine Specialist
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [KON-FIX] Perbaikan Menyeluruh Indikator IKPA Belanja Kontraktual (Bobot 10%):
   1. **Canonical Engine Implementation (`packages/ikpa-engine/src/indicators/contractual.ts`)**:
@@ -3382,7 +3395,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 14:52 UTC | End: 14:55 UTC | Duration: ~3 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [SCORE-CARD-ALIGN] Standardisasi Desain Metric Cards IKPA & Penempatan 2 Kartu Paling Kanan (Nilai IKPA & Kontribusi IKPA) di `/operator/penyerapan` dan `/operator/data/budget-revisions`:
   1. Halaman **Penyerapan Anggaran** (`/operator/penyerapan`):
@@ -3417,7 +3430,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 14:43 UTC | End: 14:46 UTC | Duration: ~3 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [ABS-FIX-2] Sinkronisasi Periode Bulan Header Otomatis ke Akhir Triwulan saat Tab Triwulan Diklik di `/operator/penyerapan`:
   1. Menambahkan fungsi `handleSelectQuarter` di `apps/web/src/routes/operator/penyerapan.tsx` yang memanggil `activeContext.setPeriod({ kind: "month", value: endMonth })`:
@@ -3444,7 +3457,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 14:35 UTC | End: 14:40 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [DEV-FIX-4] Penataan Metrik Status Penilaian Deviasi Hal III: Menukar Posisi Kartu Nilai IKPA Deviasi Hal III dengan Total s.d. [Bulan]
   1. Menukar posisi kartu metrik pada container "Status Penilaian Deviasi Hal III" di `/operator/deviasi`:
@@ -3470,7 +3483,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 12:45 UTC | End: 13:25 UTC | Duration: ~40 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator & Engine Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [ABS-FIX] Perbaikan Menyeluruh Menu & Engine Indikator Penyerapan Anggaran (Bobot 20%):
   1. Agregasi Realisasi Akumulatif: Realisasi yang dibandingkan dengan target dihitung secara kumulatif dari Januari sampai dengan akhir triwulan berjalan (TW1: Jan–Mar, TW2: Jan–Jun, TW3: Jan–Sep, TW4: Jan–Des).
@@ -3511,7 +3524,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 12:23 UTC | End: 12:28 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [DEV-FIX-3] Penataan Tata Letak Deviasi Hal III (`/operator/deviasi`): Box Status Penilaian Deviasi Dipindah ke Paling Atas Horizontal 5-Kartu di Atas Pagu Terkini, Tabel Rincian 4 Jenis Belanja Tampil Full-Width Lapang Tanpa Terpotong/Geser
 **Code Changes:**
@@ -3539,7 +3552,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 12:03 UTC | End: 12:08 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [NAV-RESP-01] Perbaikan Responsivitas Mobile Dialog Menu "Lainnya" (`operator-navigation` & `admin-navigation`) dengan Bottom-Sheet Scrollable `max-h-[85dvh]` & Header/Footer Sticky
 **Code Changes:**
@@ -3568,7 +3581,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 11:35 UTC | End: 11:55 UTC | Duration: ~20 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [DEV-FIX-2] Unifikasi Menu Deviasi Halaman III DIPA: Halaman Data & Perhitungan Riil sebagai Tampilan Utama Default di `/operator/deviasi` dengan Proporsi Pagu Terkini, What-If Simulasi sebagai Opsi Tab, dan Auto-Redirect `/operator/data/rpd-realization`
 **Code Changes:**
@@ -3599,7 +3612,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 11:12 UTC | End: 11:15 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [REV-FIX-6] Penyederhanaan kolom tabel riwayat revisi DIPA (menghapus kolom Rincian pergeseran akun dan Catatan Perubahan dari tabel)
 **Code Changes:**
@@ -3619,7 +3632,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 11:00 UTC | End: 11:15 UTC | Duration: ~15 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [REV-FIX-5] Optimasi Responsivitas Horizontal & Pencegahan Zoom-Out pada Modal Dialog Tambah Data Revisi DIPA (`/operator/data/budget-revisions`)
 **Code Changes:**
@@ -3649,7 +3662,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 10:40 UTC | End: 11:00 UTC | Duration: ~20 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator & Backend Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [REV-FIX-4] Pengaturan Pagu Awal TA sekali/edit setahun & integrasi revisi DIPA wajib rincian akun 51/52/53/57 yang memutakhirkan pagu belanja aktif TA
 **Code Changes:**
@@ -3682,7 +3695,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 09:00 UTC | End: 09:30 UTC | Duration: ~30 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator & Engine Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [DEV-FIX] [DH-01..DH-13] Perbaikan Menu & Engine Deviasi Halaman III DIPA (Aturan 2026, Divisor n Dinamis, Layout 2 Zona, Sticky Cards, Step Trace, Target Projection, Validasi Input, Reminder Triwulanan H+10, Sinkronisasi Workspace)
 **Code Changes:**
@@ -3712,7 +3725,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 03:00 UTC | End: 03:20 UTC | Duration: ~20 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Gemini 3.7 Flash
+
 **Tasks Completed:**
 - [REV-FIX-3] [RD-08] Edit catatan pengesahan revisi DIPA di halaman `/operator/data/budget-revisions`
 **Code Changes:**
@@ -3737,7 +3750,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 02:00 UTC | End: 02:30 UTC | Duration: ~30 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [REV-FIX-2] 10 feedback tabel Revisi DIPA (Revisi Ke-, Jenis Revisi, romawi, Objek Perhitungan, multi-select)
 **Code Changes:**
@@ -3755,7 +3768,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 01:00 UTC | End: 01:30 UTC | Duration: ~30 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [REV-FIX] Perbaiki menu Revisi DIPA RD-01..05+09+12 (filter 14 kode + pagu tetap, kartu NKRA, badge, preview)
 **Code Changes:**
@@ -3778,7 +3791,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 19:00 UTC | End: 19:30 UTC | Duration: ~30 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [CORR-06] Strip reminder + rekomendasi kontekstual di Tagihan dan Output
 **Code Changes:**
@@ -3798,7 +3811,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 18:30 UTC | End: 19:00 UTC | Duration: ~30 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [CORR-05] Dashboard merakit 8 baris, 5 rekomendasi, Simpan skenario IKPA
 **Code Changes:**
@@ -3817,7 +3830,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 18:25 UTC | End: 18:30 UTC | Duration: ~5 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [COPY] Saran GUP sesuai redaksi baru (1 feedback annotation, tanpa task baru)
 **Code Changes:**
@@ -3833,7 +3846,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 16:35 UTC | End: 16:50 UTC | Duration: ~15 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [COPY] Rapikan `/operator/up-tup` (5 feedback annotation, tanpa task baru)
 **Code Changes:**
@@ -3850,7 +3863,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 16:20 UTC | End: 16:35 UTC | Duration: ~15 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [CORR-04 fix] Tabel acuan persis gambar + Nilai Kualitas GUP % merah/hijau (feedback annotation, tanpa task baru)
 **Code Changes:**
@@ -3867,7 +3880,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 16:00 UTC | End: 16:20 UTC | Duration: ~20 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [CORR-04 fix] Lengkapi panel UP/TUP ala gambar Excel: Nilai IKPA Kualitas GUP + saran + tabel disebulankan + Catatan (feedback annotation, tanpa task baru)
 **Code Changes:**
@@ -3886,7 +3899,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 15:20 UTC | End: 16:00 UTC | Duration: ~40 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [CORR-04] Workspace UP/TUP & KKP (reuse panel GUP/KKP; reminder GUP/PTUP wajib)
 **Code Changes:**
@@ -3908,7 +3921,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 13:30 UTC | End: 14:00 UTC | Duration: ~30 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [CORR-03] Workspace Deviasi Halaman III (Jan–Nov; pagu sama dengan Penyerapan)
 **Code Changes:**
@@ -3936,7 +3949,6 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: [TIME] | End: [TIME] | Duration: [DURATION]
 - Status: Completed | Blocked | Needs Fix
 - Agent/Role: ...
-- Model: Luna Max | Sol Medium
 **Tasks Completed:**
 - [TASK-ID] Task description
 - [TASK-ID] Task description
@@ -3959,7 +3971,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 11:30 UTC | End: 11:40 UTC | Duration: ~10 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [COPY] Bahasa Indonesia di `/operator/penyerapan` (3 feedback annotation, tanpa task baru)
 **Code Changes:**
@@ -3978,7 +3990,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 11:00 UTC | End: 11:20 UTC | Duration: ~20 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [PERIOD-01 Fase-1] Dropdown Periode header jadi single source global untuk Penyerapan + RPD (tanpa task baru)
 **Code Changes:**
@@ -4000,7 +4012,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 10:00 UTC | End: 10:45 UTC | Duration: ~45 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [FORMAT] Separator ribuan otomatis di semua input angka (tanpa task baru)
 **Code Changes:**
@@ -4022,7 +4034,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 09:00 UTC | End: 09:20 UTC | Duration: ~20 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [CORR-02 follow-up] Link persisten RPD → Penyerapan di banner header (tanpa task baru)
 **Code Changes:**
@@ -4043,7 +4055,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 08:00 UTC | End: 08:35 UTC | Duration: ~35 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [CORR-02] Workspace Penyerapan (actual YTD terkunci, sisa tahun editable, skor via engine)
 **Code Changes:**
@@ -4070,7 +4082,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 07:30 UTC | End: 07:50 UTC | Duration: ~20 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [CORR-01] Ubah navigasi Operator sesuai sidebar 8 indikator + Reminder + Lainnya
 **Code Changes:**
@@ -4093,7 +4105,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 07:00 UTC | End: 07:20 UTC | Duration: ~20 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Technical Writer / Product
-- Model: opencode (muse-spark)
+
 **Tasks Completed:**
 - [CORR-00] Arsipkan IA lama ke future_plan dan kunci keputusan PRE-F13 di task list + backlog (tanpa ubah navigation/kode, tanpa sentuh F13)
 **Code Changes:**
@@ -4116,7 +4128,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 19:00 WIB | End: 19:40 WIB | Duration: ~40 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [PRE-F13-08] Nonaktifkan menu Import Data (hemat penyimpanan Neon) + arsip alur lengkap ke `docs/future_plan.md` tanpa ubah catatan lama
 **Code Changes:**
@@ -4141,7 +4153,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 17:30 WIB | End: 18:10 WIB | Duration: ~40 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent + Backend Domain Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [PRE-F13-01] Hapus periode khusus + ringkas tampilan Simulasi/Panel (hanya esensial)
 - [PRE-F13-03] Dashboard 8 indikator (server + heading)
@@ -4169,7 +4181,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 16:30 WIB | End: 17:30 WIB | Duration: ~60 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [PRE-F13-01] Panel Atur Asumsi UP/TUP + breakdown 8 indikator di Simulasi (tahap UP/TUP, tanpa ubah nomor F-existing)
 - [PRE-F13-02] Bedakan Simpan Hasil Saat Ini vs Simpan Skenario + isolasi mode Aktual/Proyeksi/Skenario
@@ -4199,7 +4211,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 15:00 WIB | End: 16:30 WIB | Duration: ~90 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Import & Export Agent
-- Model: Luna Max & Sol Medium
+
 **Tasks Completed:**
 - [F12-01] Parser CSV/XLSX 6 domain dengan template header, formula injection defense, decimal 18,2/18,4, range & Q4 checks, error cap 100, 10MB/10k guards – `apps/web/src/server/import/parser.ts`
 - [F12-02] Upload & preview import – MIME/size, base64 direct (R2 presigned upgrade path), validasi header/type/reference, no DB write sampai preview – `apps/web/src/server/import.ts:uploadImportFn`
@@ -4238,7 +4250,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 13:30 WIB | End: 14:45 WIB | Duration: ~75 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Fullstack Integration Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F11-03] Integrasi Pagu & Revisi DIPA (`/operator/data/budget-revisions`) dengan database Drizzle/Neon dan mutasi CRUD riil
 - [F11-04] Integrasi RPD & Realisasi (`/operator/data/rpd-realization`) dengan grid 12 bulan 4 akun belanja (51, 52, 53, 57)
@@ -4300,7 +4312,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 12:50 WIB | End: 13:10 WIB | Duration: ~20 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Fullstack Integration Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - Fitur Onboarding Registrasi Satker Mandiri untuk pengguna baru/unmapped pada `/access-pending`
 - [F11-02] Integrasi Pengaturan Satuan Kerja (`/operator/settings`) dengan backend queries & mutations riil, form update profil Satker, BLU, target IKPA, dan daftar operator riil dari DB
@@ -4318,7 +4330,7 @@ entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 **Time:** Start: 00:08 WIB | End: 00:42 WIB | Duration: ~34 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - Koreksi positioning dan responsive behavior Clerk SignIn pada landing page
 - Uji tipografi hero dengan Inter Extra-Bold
@@ -4340,7 +4352,7 @@ Path `/` dipakai sebagai redirect internal agar otomatis mengikuti origin lokal 
 **Time:** Start: 23:50 WIB | End: 00:07 WIB | Duration: ~17 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - Koreksi pemakaian font semi-bold pada judul hero landing page
 **Code Changes:**
@@ -4360,7 +4372,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 23:28 WIB | End: 23:44 WIB | Duration: ~16 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - Koreksi form autentikasi dan tipografi landing page sesuai feedback UI
 **Code Changes:**
@@ -4381,7 +4393,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 23:20 WIB | End: 23:23 WIB | Duration: ~3 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - Perbaikan entrypoint seed database lintas platform
 **Code Changes:**
@@ -4402,7 +4414,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 17:13 WIB | End: 19:05 WIB | Duration: ~112 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Auth & Access Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [F11-01] Integrasikan auth, routing, dan active context
 **Code Changes:**
@@ -4432,7 +4444,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 16:45 WIB | End: 17:12 WIB | Duration: 27 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Policy & Reminder Agent
-- Model: Luna Max & Sol Medium
+
 **Tasks Completed:**
 - [F10-01] Implementasikan workday calendar
 - [F10-02] Implementasikan rule set resolver
@@ -4471,7 +4483,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 16:25 WIB | End: 16:42 WIB | Duration: 17 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Backend Domain Agent
-- Model: Luna Max & Sol Medium
+
 **Tasks Completed:**
 - [F9-01] Buat helper audit mutation
 - [F9-02] Buat query/mutation fiscal year dan settings
@@ -4507,7 +4519,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:58 WIB | End: 16:08 WIB | Duration: 10 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Auth & Access Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [F8-07] Implementasikan mutasi akses dan proteksi admin terakhir
 **Code Changes:**
@@ -4526,7 +4538,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:56 WIB | End: 15:58 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Auth & Access Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F8-06] Terapkan route guard Admin
 **Code Changes:**
@@ -4543,7 +4555,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:54 WIB | End: 15:56 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Auth & Access Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F8-05] Terapkan route guard Operator
 **Code Changes:**
@@ -4560,7 +4572,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:52 WIB | End: 15:54 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Auth & Access Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F8-04] Implementasikan scope guard
 **Code Changes:**
@@ -4577,7 +4589,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:50 WIB | End: 15:52 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Auth & Access Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F8-03] Implementasikan access resolver
 **Code Changes:**
@@ -4594,7 +4606,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:48 WIB | End: 15:50 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Auth & Access Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F8-02] Implementasikan sinkronisasi user Clerk
 **Code Changes:**
@@ -4611,7 +4623,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:44 WIB | End: 15:48 WIB | Duration: 4 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Auth & Access Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F8-01] Pasang Clerk provider dan middleware global
 **Code Changes:**
@@ -4628,7 +4640,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:16 WIB | End: 15:23 WIB | Duration: 7 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [F7-16] Buat seed minimum 2026
 **Code Changes:**
@@ -4645,7 +4657,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:14 WIB | End: 15:16 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [F7-15] Generate dan review migration awal
 **Code Changes:**
@@ -4662,7 +4674,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:13 WIB | End: 15:15 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-14] Buat relations dan schema barrel
 **Code Changes:**
@@ -4679,7 +4691,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:11 WIB | End: 15:13 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-13] Buat tabel import dan audit
 **Code Changes:**
@@ -4696,7 +4708,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:09 WIB | End: 15:11 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-12] Buat tabel reminder config dan delivery
 **Code Changes:**
@@ -4713,7 +4725,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:07 WIB | End: 15:09 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-11] Buat tabel simulation dan snapshot
 **Code Changes:**
@@ -4730,7 +4742,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:06 WIB | End: 15:07 WIB | Duration: 1 minute
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-10] Buat tabel output dan SPM Q4
 **Code Changes:**
@@ -4747,7 +4759,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:04 WIB | End: 15:06 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-09] Buat tabel UP/TUP dan KKP
 **Code Changes:**
@@ -4764,7 +4776,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:04 WIB | End: 15:05 WIB | Duration: 1 minute
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-08] Buat tabel kontrak dan SPM-LS
 **Code Changes:**
@@ -4781,7 +4793,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:03 WIB | End: 15:04 WIB | Duration: 1 minute
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-07] Buat tabel RPD dan realisasi
 **Code Changes:**
@@ -4798,7 +4810,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:02 WIB | End: 15:03 WIB | Duration: 1 minute
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-06] Buat tabel fiscal year, budget, dan revisi
 **Code Changes:**
@@ -4815,7 +4827,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:01 WIB | End: 15:03 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-05] Buat tabel rule set, policy, dan kalender
 **Code Changes:**
@@ -4832,7 +4844,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 15:00 WIB | End: 15:02 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-04] Buat enum dan tabel identitas/scope
 **Code Changes:**
@@ -4849,7 +4861,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 14:59 WIB | End: 15:01 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-03] Konfigurasi Drizzle dan client Neon
 **Code Changes:**
@@ -4866,7 +4878,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 14:57 WIB | End: 14:59 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / DevOps Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-02] Konfigurasi environment tervalidasi
 **Code Changes:**
@@ -4883,7 +4895,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 14:48 WIB | End: 14:57 WIB | Duration: 9 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Database Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F7-01] Pasang dependency backend yang disetujui
 **Code Changes:**
@@ -4900,7 +4912,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 14:03 WIB | End: 14:08 WIB | Duration: 5 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Domain Engine Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F6-11] Implementasikan orchestrator engine
 - [F6-12] Implementasikan recommendation ranking
@@ -4919,7 +4931,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 13:58 WIB | End: 14:02 WIB | Duration: 4 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Domain Engine Agent
-- Model: Luna Max & Sol Medium
+
 **Tasks Completed:**
 - [F6-05] Implementasikan Penyerapan Anggaran
 - [F6-06] Implementasikan Belanja Kontraktual
@@ -4942,7 +4954,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 13:53 WIB | End: 13:59 WIB | Duration: 6 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Domain Engine Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F6-03] Implementasikan indikator Revisi DIPA
 - [F6-04] Implementasikan Deviasi Halaman III DIPA
@@ -4963,7 +4975,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 13:46 WIB | End: 13:52 WIB | Duration: 6 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Domain Engine Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F6-01] Buat schema input/output engine.
 - [F6-02] Buat rule set parser dan invariant.
@@ -4985,7 +4997,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 13:50 WIB | End: 13:52 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Product & IKPA Analyst
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [F5-05] Laksanakan acceptance UI bersama stakeholder.
 **Code Changes:**
@@ -5002,7 +5014,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 13:48 WIB | End: 13:50 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / QA Agent
-- Model: Luna Max & Sol Medium
+
 **Tasks Completed:**
 - [F5-03] Buat component test untuk system states.
 - [F5-04] Buat smoke test navigasi mock.
@@ -5020,7 +5032,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 13:46 WIB | End: 13:48 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / QA Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [F5-02] Audit aksesibilitas UI.
 **Code Changes:**
@@ -5037,7 +5049,7 @@ Form Clerk, wrapper card, dan struktur hero tetap tidak berubah. Warning lint ya
 **Time:** Start: 13:28 WIB | End: 13:30 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Admin Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F5-FIX-06] Tambahkan label kontrol Dashboard Admin dan Manajemen Akses.
 **Code Changes:**
@@ -5057,7 +5069,7 @@ Perubahan dibatasi pada dua file implementasi.
 **Time:** Start: 13:27 WIB | End: 13:28 WIB | Duration: 1 minute
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Admin Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F5-FIX-05] Tambahkan label editor policy dan kalender.
 **Code Changes:**
@@ -5077,7 +5089,7 @@ Perubahan dibatasi pada dua file implementasi.
 **Time:** Start: 13:25 WIB | End: 13:27 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Admin Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F5-FIX-04] Tambahkan label filter daftar Admin.
 **Code Changes:**
@@ -5097,7 +5109,7 @@ Perubahan dibatasi pada dua file implementasi.
 **Time:** Start: 13:23 WIB | End: 13:25 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F5-FIX-02] Tambahkan accessible name search reusable.
 **Code Changes:**
@@ -5117,7 +5129,7 @@ Perubahan implementasi hanya satu baris dan dipakai empat route P0.
 **Time:** Start: 13:21 WIB | End: 13:23 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F5-FIX-01] Perbaiki responsivitas dan heading Dashboard Operator.
 **Code Changes:**
@@ -5137,7 +5149,7 @@ Perubahan dibatasi pada satu file implementasi.
 **Time:** Start: 12:50 WIB | End: 13:21 WIB | Duration: 31 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / UI/UX Designer
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [F5-01] Audit konsistensi desktop/tablet/mobile seluruh P0.
 **Code Changes:**
@@ -5159,7 +5171,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 12:26 WIB | End: 12:32 WIB | Duration: 6 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [UI-Iterasi-06] Perbaikan Arah Link "Keluar" & Penyediaan Mock Data Perbedaan Hak Akses Admin vs Operator:
   1. Memperbaiki link "Keluar" pada sidebar desktop dan bottom sheet mobile di `apps/web/src/components/layout/admin-navigation.tsx` agar mengarah ke `/sign-in`.
@@ -5182,7 +5194,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 11:35 WIB | End: 11:53 WIB | Duration: 18 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Admin Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F4-01] Buat fixture dashboard dan scope Admin (`apps/web/src/mocks/admin-context.ts`, `apps/web/src/mocks/admin-dashboard.ts`).
 - [F4-02] Buat UI Dashboard Monitoring Admin (`apps/web/src/routes/admin-kppn/dashboard.tsx`, `apps/web/src/components/admin/risk-overview.tsx`).
@@ -5235,7 +5247,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 11:19 WIB | End: 11:21 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [UI-Iterasi-05] Update class heading landing page `h1#hero-heading` menjadi murni `font-semibold`.
 **Code Changes:**
@@ -5250,7 +5262,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 10:45 WIB | End: 10:56 WIB | Duration: 11 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [UI-Iterasi-04] Penyesuaian Tipografi Inter Murni & Perbaikan Feedback UI Operator:
   1. Ekstrak font resmi dari `apps/web/src/Inter.zip` ke `apps/web/public/fonts/inter/static/`.
@@ -5284,7 +5296,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 09:36 WIB | End: 10:02 WIB | Duration: 26 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Operator Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F3-01] Buat fixture konteks dan dashboard Operator
 - [F3-02] Buat kartu skor utama dan indikator
@@ -5332,7 +5344,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 03:24 WIB | End: 03:25 WIB | Duration: 1 minute
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [UI-Iterasi-03] Menebalkan dan memperbesar heading hero landing page
 **Code Changes:**
@@ -5351,7 +5363,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 03:12 WIB | End: 03:16 WIB | Duration: 4 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F2-05] Buat halaman pilih satker
 - Fase 2 â€” UI Publik dan Akses dengan Dummy Data selesai sampai F2-05.
@@ -5372,7 +5384,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 03:10 WIB | End: 03:12 WIB | Duration: 2 minutes
 - Status: In Progress
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F2-04] Buat halaman akses belum diberikan
 **Code Changes:**
@@ -5392,7 +5404,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 03:06 WIB | End: 03:10 WIB | Duration: 4 minutes
 - Status: In Progress
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F2-03] Buat UI sign-in dummy
 **Code Changes:**
@@ -5411,7 +5423,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 03:06 WIB | End: â€” | Duration: â€”
 - Status: In Progress
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - Belum ada; pekerjaan F2-03 dimulai setelah persetujuan desain.
 **Code Changes:**
@@ -5431,7 +5443,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 02:44 WIB | End: 02:46 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [UI-Iterasi-02] Optimasi Landing Page fit-to-viewport & simplifikasi konten disclaimer
 **Code Changes:**
@@ -5454,7 +5466,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 02:32 WIB | End: 02:44 WIB | Duration: 12 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [UI-Iterasi-01] Penyesuaian layout dan form sign-in/sign-up landing page publik
 **Code Changes:**
@@ -5479,7 +5491,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 01:36 WIB | End: 01:42 WIB | Duration: 6 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F2-01] Buat landing page content component
 - [F2-02] Hubungkan route landing page
@@ -5505,7 +5517,7 @@ Koreksi faktual 13:24 WIB: false positive MAJ-04 dan F5-FIX-03 dihapus setelah p
 **Time:** Start: 00:25 WIB | End: 00:28 WIB | Duration: 3 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F1-13] Buat antarmuka mock service
 **Code Changes:**
@@ -5526,7 +5538,7 @@ Scenario metadata tetap typed dan tidak mengimpor fixture mentah ke komponen UI;
 **Time:** Start: 00:19 WIB | End: 00:22 WIB | Duration: 3 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F1-12] Buat format lokal Indonesia
 **Code Changes:**
@@ -5547,7 +5559,7 @@ Timezone tanggal dan waktu dipaksa ke `Asia/Jakarta`; formatter menolak angka no
 **Time:** Start: 00:15 WIB | End: 00:18 WIB | Duration: 3 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F1-11] Buat shell Admin KPPN
 **Code Changes:**
@@ -5568,7 +5580,7 @@ Shortcut `Policy` tetap berada pada bottom navigation mobile, sedangkan seluruh 
 **Time:** Start: 00:10 WIB | End: 00:14 WIB | Duration: 4 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F1-10] Buat shell Operator
 **Code Changes:**
@@ -5589,7 +5601,7 @@ Dialog Radix dipakai hanya sebagai primitive sheet aksesibel; styling responsive
 **Time:** Start: 00:07 WIB | End: 00:08 WIB | Duration: 1 minute
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F1-09] Buat shell publik
 **Code Changes:**
@@ -5610,7 +5622,7 @@ Shell publik tidak mengimpor router atau fixture; ia hanya menyediakan struktur 
 **Time:** Start: 00:05 WIB | End: 00:06 WIB | Duration: 1 minute
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F1-08] Buat komponen disclaimer dan policy lock
 **Code Changes:**
@@ -5631,7 +5643,7 @@ Disclaimer memakai copy canonical dari wireframe; policy lock tidak mengandalkan
 **Time:** Start: 00:01 WIB | End: 00:04 WIB | Duration: 3 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F1-07] Buat state empty dan incomplete
 **Code Changes:**
@@ -5652,7 +5664,7 @@ Komponen state hanya menerima data siap tampil dan callback dari parent; fixture
 **Time:** Start: 23:55 WIB | End: 00:00 WIB | Duration: 5 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F1-06] Buat state loading dan error
 **Code Changes:**
@@ -5673,7 +5685,7 @@ Scope tetap foundation-only; fixture, route wiring, dan test suite komponen perm
 **Time:** Start: 23:41 WIB | End: 23:45 WIB | Duration: 4 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F1-05] Buat komponen context header
 **Code Changes:**
@@ -5683,7 +5695,7 @@ Scope tetap foundation-only; fixture, route wiring, dan test suite komponen perm
 - Verifikasi: Direct TypeScript pada seluruh source component package dengan `--allowImportingTsExtensions`, smoke render Vitest/jsdom untuk Operator/Admin serta perubahan selector, Biome pada source task, `npm.cmd run check`, `npm.cmd run build`, dan `git diff --check` lulus.
 **Issues Encountered:**
 - Issue: `packages/ui` belum memiliki manifest npm workspace.
-- Solution: Menjaga scope Luna pada dua file source yang diminta; komponen memakai dependency yang sudah tersedia dan divalidasi langsung seperti F1-04.
+- Solution: Menjaga scope kecil pada dua file source yang diminta; komponen memakai dependency yang sudah tersedia dan divalidasi langsung seperti F1-04.
 - Issue: Kontrak `GlobalContext` memiliki scope nullable dan access state lebih luas daripada dua mode valid.
 - Solution: Header merender fallback aman `Satker/KPPN scope belum dipilih` dan `Akses belum ditetapkan`, sementara konteks valid menampilkan nama, kode, serta mode yang sesuai.
 **Next Session Plan:**
@@ -5696,7 +5708,7 @@ Selector memakai elemen native agar keyboard/accessibility dan responsive behavi
 **Time:** Start: 23:25 WIB | End: 23:34 WIB | Duration: 9 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F1-04] Buat primitive status dan badge
 **Code Changes:**
@@ -5706,7 +5718,7 @@ Selector memakai elemen native agar keyboard/accessibility dan responsive behavi
 - Verifikasi: Direct TypeScript pada dua source package, smoke render Vitest/jsdom untuk seluruh variant, Biome pada file task, `npm.cmd run check`, `npm.cmd run build`, dan `git diff --check` lulus.
 **Issues Encountered:**
 - Issue: `packages/ui` belum memiliki manifest npm workspace.
-- Solution: Menjaga scope Luna pada dua file source yang diminta; validasi komponen dilakukan secara langsung tanpa memperkenalkan package boundary baru.
+- Solution: Menjaga scope kecil pada dua file source yang diminta; validasi komponen dilakukan secara langsung tanpa memperkenalkan package boundary baru.
 - Issue: Direct TypeScript awal mendeteksi `tsconfig.json` root saat file source diberikan eksplisit (`TS5112`).
 - Solution: Menjalankan pemeriksaan terisolasi dengan `--ignoreConfig`; tidak ada error source.
 **Next Session Plan:**
@@ -5719,7 +5731,7 @@ Status badge memakai label dan ikon selain warna agar tetap terbaca bagi penggun
 **Time:** Start: 23:13 WIB | End: 23:20 WIB | Duration: 7 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F1-03] Konfigurasi token warna dan typography
 **Code Changes:**
@@ -5740,7 +5752,7 @@ Nilai aktual disimpan sebagai CSS custom properties agar dapat dipakai Tailwind 
 **Time:** Start: 22:53 WIB | End: 23:08 WIB | Duration: 15 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Frontend Foundation Agent
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F1-02] Pasang dependency UI yang sudah disetujui
 **Code Changes:**
@@ -5761,7 +5773,7 @@ Dependency UI dideklarasikan pada manifest workspace aplikasi; root package teta
 **Time:** Start: 21:59 WIB | End: 22:20 WIB | Duration: 21 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [F1-01] Migrasikan starter ke workspace target
 **Code Changes:**
@@ -5782,7 +5794,7 @@ Package domain lain tidak dibuat sebagai placeholder. Dependency backend selain 
 **Time:** Start: 21:59 WIB | End: ongoing
 - Status: In Progress
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Sol Medium
+
 **Tasks Completed:**
 - Belum ada; F1-01 sedang dikerjakan.
 **Code Changes:**
@@ -5803,7 +5815,7 @@ Hanya `apps/web` dan `packages/contracts` yang dibuat sebagai workspace nyata; p
 **Time:** Start: 21:22 WIB | End: 21:26 WIB | Duration: 4 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / UI/UX Designer
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F0-12] Buat katalog mock scenario
 **Code Changes:**
@@ -5824,7 +5836,7 @@ F0-12 tidak menetapkan nilai regulasi baru. Fixture/mock service dan komponen te
 **Time:** Start: 21:22 WIB | End: ongoing
 - Status: In Progress
 - Agent/Role: Primary Agent / UI/UX Designer
-- Model: Luna Max
+
 **Tasks Completed:**
 - Belum ada; F0-12 sedang dikerjakan.
 **Code Changes:**
@@ -5845,7 +5857,7 @@ Katalog menjadi sumber skenario untuk mock service/UI berikutnya; tidak membuat 
 **Time:** Start: 21:12 WIB | End: 21:18 WIB | Duration: 6 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [F0-11] Definisikan kontrak frontend bersama
 **Code Changes:**
@@ -5866,7 +5878,7 @@ Manifest workspace dan deklarasi dependency langsung tetap menjadi scope F1-01/F
 **Time:** Start: 21:12 WIB | End: ongoing
 - Status: In Progress
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Sol Medium
+
 **Tasks Completed:**
 - Belum ada; F0-11 sedang dikerjakan.
 **Code Changes:**
@@ -5887,7 +5899,7 @@ Kontrak tidak boleh bergantung pada React, database, router, atau provider deliv
 **Time:** Start: 20:40 WIB | End: 20:44 WIB | Duration: 4 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Security Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [F0-10] Tetapkan kebijakan retensi dan klasifikasi data
 **Code Changes:**
@@ -5908,7 +5920,7 @@ Production go-live tetap membutuhkan mapping record class ke JRA dan persetujuan
 **Time:** Start: 20:40 WIB | End: ongoing
 - Status: In Progress
 - Agent/Role: Primary Agent / Security Agent
-- Model: Sol Medium
+
 **Tasks Completed:**
 - Belum ada; F0-10 sedang dikerjakan.
 **Code Changes:**
@@ -5929,7 +5941,7 @@ Baseline aplikasi tidak menggantikan JRA resmi; policy organisasi yang disetujui
 **Time:** Start: 20:22 WIB | End: 20:26 WIB | Duration: 4 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Product & IKPA Analyst
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F0-09] Putuskan akses ganda Admin/Operator
 **Code Changes:**
@@ -5950,7 +5962,7 @@ Implementasi resolver, schema, middleware, dan scope guard tetap menjadi task do
 **Time:** Start: 20:22 WIB | End: ongoing
 - Status: In Progress
 - Agent/Role: Primary Agent / Product & IKPA Analyst
-- Model: Luna Max
+
 **Tasks Completed:**
 - Belum ada; F0-09 sedang dikerjakan.
 **Code Changes:**
@@ -5971,7 +5983,7 @@ F0-09 hanya menetapkan kontrak akses; implementasi resolver, schema, middleware,
 **Time:** Start: 20:06 WIB | End: 20:12 WIB | Duration: 6 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [F0-08] Pilih dependency decimal, XLSX, PDF, dan storage import
 **Code Changes:**
@@ -5992,7 +6004,7 @@ Dependency belum dipasang. Versi konkret, audit package, manifest, dan lockfile 
 **Time:** Start: 20:06 WIB | End: ongoing
 - Status: In Progress
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Sol Medium
+
 **Tasks Completed:**
 - Belum ada; F0-08 sedang dikerjakan.
 **Code Changes:**
@@ -6013,7 +6025,7 @@ F0-08 hanya memilih dependency; instalasi manifest/lockfile tetap menjadi F7-01.
 **Time:** Start: 19:53 WIB | End: 19:55 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F0-07] Tetapkan struktur monorepo dan package manager
 **Code Changes:**
@@ -6034,7 +6046,7 @@ F0-07 hanya menghasilkan keputusan repository; source starter, package manifest,
 **Time:** Start: 19:53 WIB | End: ongoing
 - Status: In Progress
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Luna Max
+
 **Tasks Completed:**
 - Belum ada; F0-07 sedang dikerjakan.
 **Code Changes:**
@@ -6055,7 +6067,7 @@ F0-07 hanya menghasilkan keputusan repository; source starter, package manifest,
 **Time:** Start: 19:50 WIB | End: 19:52 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F0-06] Putuskan resolver versi rule set
 **Code Changes:**
@@ -6076,7 +6088,7 @@ Rollback wajib menerbitkan versi baru; pointer `active_rule_set_id` hanya conven
 **Time:** Start: 19:50 WIB | End: ongoing
 - Status: In Progress
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Luna Max
+
 **Tasks Completed:**
 - Belum ada; F0-06 sedang dikerjakan.
 **Code Changes:**
@@ -6097,7 +6109,7 @@ Status akan diperbarui setelah Definition of Done dan verifikasi dokumen lulus.
 **Time:** Start: 19:47 WIB | End: 19:49 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F0-05] Putuskan semantik lead time termasuk H-0
 **Code Changes:**
@@ -6118,7 +6130,7 @@ Preview H-0 tanpa `deadlineTime` resmi boleh ditampilkan dengan warning, tetapi 
 **Time:** Start: 19:47 WIB | End: ongoing
 - Status: In Progress
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Luna Max
+
 **Tasks Completed:**
 - Belum ada; F0-05 sedang dikerjakan.
 **Code Changes:**
@@ -6139,7 +6151,7 @@ Status akan diperbarui setelah Definition of Done dan verifikasi dokumen lulus.
 **Time:** Start: 19:37 WIB | End: 19:40 WIB | Duration: 3 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F0-04] Putuskan versioning kalender kerja
 **Code Changes:**
@@ -6160,7 +6172,7 @@ Kalender global per tahun dipilih untuk MVP sesuai ERD saat ini; kalender per KP
 **Time:** Start: 19:37 WIB | End: ongoing
 - Status: In Progress
 - Agent/Role: Primary Agent / Solution Architect
-- Model: Luna Max
+
 **Tasks Completed:**
 - Belum ada; F0-04 sedang dikerjakan.
 **Code Changes:**
@@ -6181,7 +6193,7 @@ Status akan diperbarui setelah Definition of Done dan verifikasi dokumen lulus.
 **Time:** Start: 19:26 WIB | End: 19:28 WIB | Duration: 2 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Product & IKPA Analyst
-- Model: Luna Max
+
 **Tasks Completed:**
 - [F0-03] Putuskan interpretasi kalender kerja dan H+17/H-0
 **Code Changes:**
@@ -6202,7 +6214,7 @@ BAST/BAPP diperlakukan sebagai hari ke-0; deadline adalah hari kerja eligible ke
 **Time:** Start: 19:16 WIB | End: 19:24 WIB | Duration: 8 minutes
 - Status: Completed
 - Agent/Role: Primary Agent / Product & IKPA Analyst
-- Model: Sol Medium
+
 **Tasks Completed:**
 - [F0-02] Dokumentasikan status verifikasi parameter IKPA 2026
 **Code Changes:**
@@ -6223,7 +6235,7 @@ Parameter `needs_verification` hanya boleh dipakai pada UI dummy/draft rule set 
 
 - Status: Completed
 - Agent/Role: Primary Agent / Product & IKPA Analyst
-- Model: Sol Medium
+
 - Ringkasan: Memetakan requirement fungsional PRD, seluruh fitur PUB/OPS/ADM, acceptance criteria PRD/FSD, 25 tabel ERD, seluruh wireframe halaman/state, test TSD, serta gate regulasi/NFR ke task implementasi.
 - File berubah: `docs/traceability-matrix.md`, `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`.
 - Keputusan penting: Matriks hanya menjadi indeks pelacakan; detail normatif tetap berada pada PRD/FSD/TSD/ERD dan dokumen UI/UX untuk mencegah duplikasi spesifikasi.
@@ -6235,7 +6247,7 @@ Parameter `needs_verification` hanya boleh dipakai pada UI dummy/draft rule set 
 
 - Status: In Progress
 - Agent/Role: Primary Agent / Product & IKPA Analyst
-- Model: Sol Medium
+
 - Ringkasan: Memulai pemetaan seluruh requirement produk, spesifikasi fungsional, tabel ERD, state UI, dan test TSD ke task implementasi.
 - File berubah: `docs/BACKLOG.md`, `docs/DEVLOG.md`.
 - Keputusan penting: Matriks dibuat sebagai satu dokumen Markdown tanpa generator atau dependency tambahan.
@@ -6247,10 +6259,10 @@ Parameter `needs_verification` hanya boleh dipakai pada UI dummy/draft rule set 
 
 - Status: Completed
 - Agent/Role: Primary Agent / Technical Writer
-- Model: Sol Medium
+
 - Ringkasan: Menetapkan kewajiban semua agent untuk memperbarui backlog, devlog, dan checkbox task sebelum pekerjaan dinyatakan selesai.
 - File berubah: `docs/TASK-LIST-Simulator-IKPA.md`, `docs/BACKLOG.md`, `docs/DEVLOG.md`.
-- Keputusan penting: Ketiga file tracking dikategorikan sebagai metadata operasional dan tidak dihitung dalam batas 1â€“2 file implementasi task Luna Max.
+- Keputusan penting: Ketiga file tracking dikategorikan sebagai metadata operasional dan tidak dihitung dalam batas 1–2 file implementasi task kecil.
 - Verifikasi: Pemeriksaan manual terhadap aturan penyelesaian, status backlog, template devlog, dan konsistensi nama file.
 - Risiko/known issue: Belum ada task implementasi yang dimulai; tracker akan bertambah saat task diambil.
 - Next action/dependensi terbuka: Mulai Fase 0 dari `F0-01` dan isi owner/status saat task diambil.
