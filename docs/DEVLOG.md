@@ -20,6 +20,24 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 Entri terbaru berada di bawah bagian ini. Baca task-specific entry atau beberapa
 entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 
+### Session 257 — 2026-09-10
+**Status:** Completed — ADM-ITER-01/ADM-ITER-02/ADM-ITER-03
+- Evidence screenshot pengguna (:3001 desktop): badge dashboard tampil judul formal tanpa snake_case; tabel reminders eventTitle-only; kolom Penerima Wajib sudah hilang pada build berjalan. Label "Hari Kerja" ADM-ITER-03 live menyusul refresh berikutnya; kode + typecheck sudah hijau.
+- DoD display-only terpenuhi; tanpa formula/IA/mutasi; perubahan F13-02 dipertahankan; port 3001 dan Rule Set tetap ditunda.
+
+### Session 256 — 2026-09-10
+**Status:** Needs Fix — ADM-ITER-03 (screenshot pending)
+- `apps/web/src/routes/admin-kppn/policy/reminders.tsx` (display-only, 1 file): hapus kolom Penerima Wajib (th + td; `requiredRecipients` tetap di mapping data) + label sel "Hari Kerja (Workday)" → "Hari Kerja" (konsisten dengan opsi modal); tanpa formula/IA/mutasi.
+- Verifikasi: typecheck web exit 0; grep "Penerima Wajib" nol, "(Workday)" hanya sisa nama fungsi Target Windows yang tak terkait; `git diff --check` menyusul; perubahan F13-02/ADM-ITER-01/02 pengguna dipertahankan.
+- Screenshot desktop/mobile belum dijalankan; port 3001 dan Rule Set tetap ditunda.
+
+### Session 255 — 2026-09-10
+**Status:** Needs Fix — ADM-ITER-01/ADM-ITER-02 (screenshot pending)
+- ADM-ITER-01: `apps/web/src/routes/admin-kppn/dashboard.tsx` badge `{p.eventType}` → `{p.title ?? p.indicatorLabel ?? "Kebijakan Reminder"}`; tanpa tooltip; display-only.
+- ADM-ITER-02: `apps/web/src/routes/admin-kppn/policy/reminders.tsx` hapus subteks mono `pol.eventType` dan header modal `({eventType})` → hanya `eventTitle`; `eventType` tersisa hanya di mapping logic; display-only tanpa formula/IA/mutasi.
+- Verifikasi: typecheck web exit 0; grep `eventType` nol di `dashboard.tsx` dan 2 di logic `reminders.tsx`; grep 6 snake_case seed nol di kedua route; screenshot desktop/mobile belum dijalankan; perubahan F13-02 pengguna dipertahankan.
+- Depends CORR-A-00..05 + F13-00 terpenuhi; F13-03 tetap ditahan; port 3001 dan Rule Set tetap ditunda.
+
 ### Session 254 — 2026-09-10
 **Status:** Completed — F13-02
 - Menambahkan `apps/web/src/server/integration/import-access-http.integration.test.ts` dengan 9 authenticated HTTP tests individual untuk seluruh ServerFn `access.ts` dan `import.ts`, menggunakan sesi Clerk Operator nyata serta Neon test terisolasi.

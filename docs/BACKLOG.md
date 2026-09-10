@@ -24,6 +24,9 @@ Dokumen ini adalah tracker operasional pelaksanaan [TASK-LIST-Simulator-IKPA.md]
 | F13-00 | Completed | Lanjutkan F13-06 security review dan F13-08 CI gate; pertahankan baseline hijau | Lint exit 0 dengan 85 warning legacy; browser bundled Playwright gagal diunduh, Chrome lokal lulus |
 | STAB-TOOLING | Completed | Pertahankan test script web, manifest dependency, dan E2E smoke harness | Browser bundled download gagal jaringan; Chrome lokal lulus |
 | STAB-RUNTIME | Completed | Lanjutkan audit fallback saat F13-06 | Production database/provider/dependency fallback kini fail-closed; demo hanya non-production |
+| ADM-ITER-01 | Completed | Pertahankan badge title formal dashboard | Badge display-only selesai (`title ?? indicatorLabel ?? fallback`); screenshot user desktop konfirmasi judul formal tanpa snake_case; typecheck exit 0 |
+| ADM-ITER-02 | Completed | Pertahankan agenda eventTitle-only | Subteks mono + header modal display-only selesai; `eventType` tersisa hanya di logic; screenshot user konfirmasi; typecheck exit 0 |
+| ADM-ITER-03 | Completed | Pertahankan tabel tanpa kolom Penerima Wajib | Kolom Penerima Wajib dihapus (th + td, data model utuh) + label "Hari Kerja (Workday)" → "Hari Kerja" (sel + opsi modal); display-only; screenshot user konfirmasi; typecheck exit 0 |
 
 ## Recent Completions
 

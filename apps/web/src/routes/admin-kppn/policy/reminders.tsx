@@ -479,9 +479,8 @@ function AdminReminderPoliciesPage() {
 											<th className="px-3 py-3">Indikator IKPA</th>
 											<th className="px-3 py-3">Formula Deadline</th>
 											<th className="px-3 py-3">Jenis Hari</th>
-											<th className="px-3 py-3 text-center">Kategori</th>
-											<th className="px-3 py-3">Penerima Wajib</th>
-											<th className="py-3 pl-2 pr-4 text-right">Aksi</th>
+										<th className="px-3 py-3 text-center">Kategori</th>
+										<th className="py-3 pl-2 pr-4 text-right">Aksi</th>
 										</tr>
 									</thead>
 									<tbody className="divide-y divide-border/60">
@@ -501,9 +500,6 @@ function AdminReminderPoliciesPage() {
 															</span>
 														)}
 													</div>
-													<p className="text-[11px] text-muted-foreground font-mono">
-														{pol.eventType}
-													</p>
 												</td>
 												<td className="px-3 py-3 text-muted-foreground">
 													{pol.indicatorLabel}
@@ -512,8 +508,8 @@ function AdminReminderPoliciesPage() {
 													{pol.deadlineFormulaSummary}
 												</td>
 												<td className="px-3 py-3 text-muted-foreground capitalize">
-													{pol.dayType === "workday"
-														? "Hari Kerja (Workday)"
+												{pol.dayType === "workday"
+													? "Hari Kerja"
 														: pol.dayType === "calendar_day"
 															? "Hari Kalender"
 															: "Jadwal Berkala"}
@@ -530,20 +526,8 @@ function AdminReminderPoliciesPage() {
 													>
 														{pol.category}
 													</span>
-												</td>
-												<td className="px-3 py-3 text-muted-foreground">
-													<div className="flex flex-wrap gap-1">
-														{pol.requiredRecipients.map((rec) => (
-															<span
-																key={rec}
-																className="rounded bg-surface-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground"
-															>
-																{rec}
-															</span>
-														))}
-													</div>
-												</td>
-												<td className="py-3 pl-2 pr-4 text-right">
+											</td>
+											<td className="py-3 pl-2 pr-4 text-right">
 													<button
 														type="button"
 														onClick={() => {
@@ -1202,7 +1186,7 @@ function AdminReminderPoliciesPage() {
 										Detail Reminder Policy
 									</h3>
 									<p className="text-xs text-muted-foreground">
-										{selectedPolicy.eventTitle} ({selectedPolicy.eventType})
+										{selectedPolicy.eventTitle}
 									</p>
 									<p className="text-[11px] text-muted-foreground">
 										Read-only — perubahan kebijakan mengikuti publikasi rule
@@ -1288,7 +1272,7 @@ function AdminReminderPoliciesPage() {
 											}
 											className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none"
 										>
-											<option value="workday">Hari Kerja (Workday)</option>
+											<option value="workday">Hari Kerja</option>
 											<option value="calendar_day">Hari Kalender</option>
 											<option value="schedule">Jadwal Berkala</option>
 										</select>

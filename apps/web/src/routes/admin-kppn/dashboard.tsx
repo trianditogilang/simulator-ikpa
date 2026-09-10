@@ -238,7 +238,7 @@ function AdminDashboardPage() {
 									key={p.id}
 									className="rounded-md bg-surface px-2.5 py-1 text-[11px] font-semibold text-foreground"
 								>
-									{p.eventType} • H-{p.minLeadDays}–H-{p.maxLeadDays}
+									{p.title ?? p.indicatorLabel ?? "Kebijakan Reminder"} • H-{p.minLeadDays}–H-{p.maxLeadDays}
 								</span>
 							))}
 						</div>
