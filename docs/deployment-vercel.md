@@ -1,8 +1,14 @@
 # Deployment Vercel — Simulator IKPA
 
-**Status:** Preview/staging checklist only. Belum diterapkan ke project Vercel
-karena kredensial project, environment staging, dan domain produksi belum
-tersedia di repository.
+**Status:** Preview/staging checklist only. Adapter Nitro untuk TanStack Start
+sudah tersedia, tetapi belum diterapkan ke project Vercel karena kredensial
+project, environment Preview, dan domain produksi belum tersedia di repository.
+
+## Build adapter
+
+- `apps/web/vite.config.ts` memakai `nitro()` setelah `tanstackStart()`.
+- `nitro` tercatat sebagai dev dependency workspace web; Vercel dapat memakai
+  preset TanStack Start dan mendeteksi output server tanpa Start Command manual.
 
 ## Required preview gate
 
@@ -27,6 +33,6 @@ tersedia di repository.
 
 ## Current blocker
 
-Tidak ada `vercel.json`, project ID, staging URL, atau deployment credential di
+Tidak ada `vercel.json`, project ID, Preview URL, atau deployment credential di
 repository. F13-09 tetap `Blocked` sampai owner deployment menyediakan semua
-input tersebut.
+input tersebut dan menjalankan authenticated staging verification.

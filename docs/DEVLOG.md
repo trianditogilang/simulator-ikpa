@@ -17,6 +17,22 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 258 - 2026-09-10
+**Status:** Blocked - F13-03
+- Melanjutkan audit Fase 13 setelah F13-02 selesai. Neon/Clerk test branch dan nama env provider terdeteksi tanpa mencetak nilai credential.
+- Verifikasi source menemukan `apps/web/src/server/qstash/handler.ts` masih mengubah delivery menjadi `sent` melalui simulasi pada test/non-production; production sengaja menolak dengan `DELIVERY_PROVIDER_UNAVAILABLE`. Tidak ada adapter Resend nyata, sehingga provider replay/idempotency end-to-end V2-AC-21 belum aman untuk diuji.
+- Verifikasi lokal: QStash safeguard 5 test lulus; package `policy-reminder` 5 file/33 test lulus. Tidak ada source behavior, provider call, database production, deployment, token, atau secret disentuh.
+- Manual setup yang diperlukan: sediakan adapter delivery server-side yang benar-benar terhubung ke sandbox QStash/Resend (dengan sender terverifikasi dan test recipient) pada environment terisolasi; credential tetap hanya di secret manager/.env lokal, tidak melalui chat. Setelah tersedia, ulangi suite F13-03.
+- F13-04 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 259 - 2026-09-10
+**Status:** Needs Fix - F13-09 (Vercel Hobby Preview setup)
+- Menambahkan adapter Nitro untuk target Vercel TanStack Start: dependency `nitro` pada `apps/web/package.json`/`package-lock.json`, plugin `nitro()` pada `apps/web/vite.config.ts`, dan checklist `docs/deployment-vercel.md`.
+- Verifikasi `npm.cmd run build` lulus pada preset Node dan preset Vercel sementara (`NITRO_PRESET=vercel`), dengan artefak `.vercel/output` berisi static assets dan server function.
+- Workspace test 45 file/307 test lulus; typecheck lulus; lint exit 0 dengan 79 warning legacy; `git diff --check` lulus.
+- Project Vercel, environment Preview, URL, dan authenticated staging belum tersedia karena memerlukan setup manual owner. Tidak ada credential, token, database production, deployment, atau schedule QStash disentuh.
+- F13-03 tetap ditahan dan task Fase 13 lainnya tidak dikerjakan.
+
 Entri terbaru berada di bawah bagian ini. Baca task-specific entry atau beberapa
 entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 
