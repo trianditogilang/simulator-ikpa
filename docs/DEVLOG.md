@@ -68,6 +68,13 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - Deployment Protection tetap nonaktif dan belum aman diaktifkan kembali karena provider gate F13-03 serta mutation/cross-tenant, full ServerFn, dan UAT evidence belum lengkap. Tidak ada secret/token yang dicetak dan tidak ada database production yang disentuh.
 - F13-03 dan task Fase 13 lainnya tidak dikerjakan.
 
+### Session 265 - 2026-09-10
+**Status:** Blocked - F13-09 (manual Production/provider setup)
+- `docs/deployment-vercel.md` diperbarui dengan project/branch/Preview URL, build command, Nitro runtime, daftar environment variable, endpoint job, batasan Cron QStash, dan prosedur rollback.
+- Preview tetap lulus smoke authenticated read-only; Production/domain publik dan environment provider belum tersedia untuk diverifikasi otomatis. `/operator/reminders` tetap fail-closed sesuai guard produksi.
+- Sisa langkah memerlukan akses owner Vercel/Neon/Clerk/QStash/Resend dan keputusan domain/sender. Tidak ada credential yang dicetak, tidak ada perubahan database production, dan tidak ada perubahan perilaku aplikasi.
+- F13-03 dan task Fase 13 lainnya tidak dikerjakan.
+
 Entri terbaru berada di bawah bagian ini. Baca task-specific entry atau beberapa
 entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.
 
