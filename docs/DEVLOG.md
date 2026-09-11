@@ -39,6 +39,13 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - Signed HTTP langsung ke Preview/Resend tetap menjadi pembanding yang lulus; perubahan token belum membuat callback QStash memproses fixture. BACKLOG mengarahkan pemeriksaan delivery log/status QStash, URL callback, signing key/workspace, dan redeploy Preview bila env berubah.
 - Tidak ada source behavior atau database production yang disentuh; fixture Neon test dibersihkan. F13-04 dan task Fase 13 lainnya tidak dikerjakan.
 
+### Session 269 - 2026-09-11
+**Status:** Blocked - F13-03 provider callback
+- Runner F13-03 diulang setelah pesan retry lama dibatalkan dan Preview memakai signing key bersih. Fixture Neon baru tetap `scheduled`; test berakhir aman setelah retry window tanpa kebocoran data.
+- Diagnostik message baru menunjukkan publish QStash HTTP 201 dengan event delivery `ERROR/RETRY` (bukan pesan lama). Signed HTTP langsung ke Preview/Resend tetap menjadi pembanding lulus.
+- BACKLOG tetap `Blocked`; pemeriksaan manual delivery log/status callback QStash, destination URL, signing key/workspace, dan redeploy Preview bila env berubah masih diperlukan. Tidak ada source behavior atau database production yang disentuh.
+- F13-04 dan task Fase 13 lainnya tidak dikerjakan.
+
 ### Session 258 - 2026-09-10
 **Status:** Blocked - F13-03
 - Melanjutkan audit Fase 13 setelah F13-02 selesai. Neon/Clerk test branch dan nama env provider terdeteksi tanpa mencetak nilai credential.
