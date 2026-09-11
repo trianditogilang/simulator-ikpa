@@ -33,6 +33,12 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - `docs/BACKLOG.md` dipertahankan `Blocked`: owner perlu menyelaraskan token dan current/next signing key QStash pada workspace yang sama dengan Preview, redeploy bila env berubah, lalu mengulang probe provider. Tidak ada source behavior baru pada sesi ini.
 - F13-04 dan task Fase 13 lainnya tidak dikerjakan.
 
+### Session 268 - 2026-09-11
+**Status:** Blocked - F13-03 provider callback
+- Probe QStash nyata diulang setelah owner memperbaiki token; publish melewati boundary auth, tetapi test tetap gagal aman dengan delivery `status=scheduled` setelah retry window. Tidak ada token, secret, credential, atau response body yang dicetak.
+- Signed HTTP langsung ke Preview/Resend tetap menjadi pembanding yang lulus; perubahan token belum membuat callback QStash memproses fixture. BACKLOG mengarahkan pemeriksaan delivery log/status QStash, URL callback, signing key/workspace, dan redeploy Preview bila env berubah.
+- Tidak ada source behavior atau database production yang disentuh; fixture Neon test dibersihkan. F13-04 dan task Fase 13 lainnya tidak dikerjakan.
+
 ### Session 258 - 2026-09-10
 **Status:** Blocked - F13-03
 - Melanjutkan audit Fase 13 setelah F13-02 selesai. Neon/Clerk test branch dan nama env provider terdeteksi tanpa mencetak nilai credential.
