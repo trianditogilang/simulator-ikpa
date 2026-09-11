@@ -26,6 +26,13 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - Probe provider nyata lokal Resend HTTP 401, signed callback ke Preview HTTP 401, dan publish QStash HTTP 401. Status F13-03 tetap Blocked sampai owner memverifikasi/merotasi QStash token + signing keys dan Resend API key + sender terverifikasi pada environment yang sama, lalu menjalankan ulang `node scripts/run-f13-03-provider-integration.mjs <preview-url>`.
 - F13-04 dan task Fase 13 lainnya tidak dikerjakan.
 
+### Session 267 - 2026-09-11
+**Status:** Blocked - F13-03 provider callback
+- Setelah owner memperbaiki credential, signed HTTP probe langsung ke Preview lulus; jalur Resend melalui handler juga lulus dan fixture Neon test dibersihkan.
+- Probe QStash nyata (`--qstash`) diterima publish HTTP 201, tetapi log delivery aman menunjukkan state `ERROR/RETRY` dan fixture tetap `scheduled` setelah retry window. Tidak ada response body, token, secret, atau credential yang dicetak.
+- `docs/BACKLOG.md` dipertahankan `Blocked`: owner perlu menyelaraskan token dan current/next signing key QStash pada workspace yang sama dengan Preview, redeploy bila env berubah, lalu mengulang probe provider. Tidak ada source behavior baru pada sesi ini.
+- F13-04 dan task Fase 13 lainnya tidak dikerjakan.
+
 ### Session 258 - 2026-09-10
 **Status:** Blocked - F13-03
 - Melanjutkan audit Fase 13 setelah F13-02 selesai. Neon/Clerk test branch dan nama env provider terdeteksi tanpa mencetak nilai credential.
