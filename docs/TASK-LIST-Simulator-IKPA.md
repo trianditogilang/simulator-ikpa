@@ -861,9 +861,9 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Scope:** Seluruh ServerFn query/mutation Operator/Admin, Operator XLSX export, import/job, QStash, delivery retry, dan cross-tenant/cross-KPPN IDs. PDF Operator dan ekspor Admin retired dari scope aktif berdasarkan keputusan 2026-09-10; route lama hanya boleh menjadi stub fail-safe tanpa mock.
   **DoD:** Read/write lintas satker/scope selalu ditolak tanpa data leakage pada error atau payload. Selesai 2026-09-10: 82 ServerFn aktif tercakup oleh 14 file/92 authenticated HTTP integration tests dengan Clerk dan Neon test nyata; fixture peer dibersihkan dan seluruh quality gate lulus.
 
-- [ ] **F13-03 â€” Buat integration test policy/reminder.** [Role: QA Agent]
+- [x] **F13-03 â€” Buat integration test policy/reminder.** [Role: QA Agent]
   **Scope:** Publish/re-evaluate, mandatory lock, Tagihan H+17, Output lima hari kerja, GUP/PTUP, workday, idempotency, retry, stale snapshot, dan policy version.
-  **DoD:** V2-AC-17..21 lulus pada database test; delivery replay tidak menggandakan notifikasi.
+  **DoD:** V2-AC-17..21 lulus pada database test; delivery replay tidak menggandakan notifikasi. Selesai 2026-09-12: policy/reminder tests dan probe QStash + Resend remote lulus setelah callback memakai raw body serta URL publik kanonis.
 
 - [ ] **F13-04 â€” Buat E2E Operator.** [Role: QA Agent]
   **Scope:** Login, navigasi 8 indikator, actual/proyeksi, what-if tanpa mutasi actual, Slot A/B/C, sinkronisasi nama, Dashboard 8 indikator, parity Dashboardâ€“Riwayat, compare Evaluasi bulanan dengan skenario, mandatory reminder, dan Operator XLSX export sesuai konteks.

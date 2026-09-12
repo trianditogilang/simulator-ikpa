@@ -4,18 +4,26 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Current Phase
 
-**Fase 13 — F13-00/F13-01/F13-02 selesai; F13-03 diblokir pada verifikasi provider eksternal.**
+**Fase 13 — F13-00/F13-01/F13-02/F13-03 selesai; F13-04 dan task berikutnya tetap ditahan.**
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
-- Baseline hijau: typecheck lulus, workspace Vitest 45 test files/310 tests lulus setelah source export retired, `npm run lint` exit 0, production build lulus, E2E smoke desktop/mobile 2/2 lulus, dan smoke route `/` sebelumnya HTTP 200.
+- Baseline hijau: typecheck lulus, workspace Vitest 45 test files/311 tests lulus setelah source export retired, `npm run lint` exit 0, production build lulus, E2E smoke desktop/mobile 2/2 lulus, dan smoke route `/` sebelumnya HTTP 200.
 - Catatan environment: browser bundled Playwright belum dapat diunduh karena jaringan; smoke tetap reproducible memakai Chrome lokal melalui `channel: "chrome"`. Lint masih memiliki 77 warning legacy tanpa error.
 - F13-01 lulus: konfigurasi test per workspace mencegah E2E masuk Vitest; pure utility/scheduler/workday tests ditambah; bug rounding negatif fixed-point ditutup.
 - F13-06/F13-08 progress: production delivery/import fallback fail-closed, secret/migration/generated-route checks tersedia, dan CI workflow sudah ditulis tetapi belum dijalankan pada remote PR.
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
 - F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
-- Next action: perbaiki credential/token provider secara manual, lalu ulangi probe F13-03; pertahankan regression suite F13-02.
+- Next action: pertahankan regression provider/policy; F13-04 dan task Fase 13 lain tetap di luar sesi ini.
 
 ## Recent Sessions
+
+### Session 270 - 2026-09-12
+**Status:** Completed - F13-03 provider callback
+- Memperbaiki `apps/web/src/routes/api/qstash/send.ts` agar membaca body sekali sebagai raw string dan memverifikasi dengan official `@upstash/qstash` `Receiver.verify`; URL signature dinormalisasi ke `APP_URL` publik atau `x-forwarded-host`/`x-forwarded-proto`. Route daily/import memakai helper yang sama.
+- Menambahkan regression test raw-body, URL kanonis, expiry, issuer, body hash, dan current/next key rotation pada `apps/web/src/server/qstash/handler.test.ts`; dependency `@upstash/qstash` dicatat pada manifest dan lockfile.
+- Verifikasi provider: `node scripts/run-f13-03-provider-integration.mjs https://simulator-ikpa-web-git-staging-trianditogilang.vercel.app --qstash` lulus 1 file/1 test setelah commit `5b53359` dideploy ulang; QStash callback memproses delivery melalui Resend dan replay tidak menggandakan attempt.
+- Quality gate: `npm.cmd test` lulus 45 file/311 test; typecheck lulus; lint exit 0 (0 error, warning legacy); build client+SSR lulus; `git diff --check` lulus. Tidak ada token, secret, response body sensitif, database production, atau deployment manual disentuh.
+- F13-04 dan task Fase 13 lainnya tidak dikerjakan.
 
 ### Session 266 - 2026-09-11
 **Status:** Blocked - F13-03; Needs Fix - F13-09
