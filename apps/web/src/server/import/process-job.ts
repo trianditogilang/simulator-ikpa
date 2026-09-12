@@ -16,7 +16,7 @@ export async function handleQStashImport(
 	rawBody: string,
 	requestUrl?: string,
 ): Promise<{ requestId: string; processed: number; stuckRecovered: number }> {
-	if (!verifyQStashSignature(headers, rawBody, requestUrl)) {
+	if (!(await verifyQStashSignature(headers, rawBody, requestUrl))) {
 		throw Object.assign(new Error("Invalid QStash signature"), { statusCode: 401, code: "INVALID_SIGNATURE" });
 	}
 	const requestId = headers.get("x-request-id") ?? newRequestId();

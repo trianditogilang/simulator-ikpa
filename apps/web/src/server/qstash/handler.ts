@@ -1,8 +1,5 @@
-import {
-	createHash,
-	createHmac,
-	timingSafeEqual,
-} from "node:crypto";
+import { createHash } from "node:crypto";
+import { Receiver } from "@upstash/qstash";
 import type { DbClient } from "@simulator-ikpa/db";
 import { notificationDeliveries } from "@simulator-ikpa/db/schema";
 import { and, eq, lte } from "drizzle-orm";
@@ -21,24 +18,6 @@ class DeliveryError extends Error {
 	}
 }
 
-function decodeJwtPart(value: string): Record<string, unknown> | null {
-	try {
-		const parsed: unknown = JSON.parse(
-			Buffer.from(value, "base64url").toString("utf8"),
-		);
-		return parsed && typeof parsed === "object"
-			? (parsed as Record<string, unknown>)
-			: null;
-	} catch {
-		return null;
-	}
-}
-
-function constantTimeEqual(left: Uint8Array, right: Uint8Array): boolean {
-	if (left.byteLength !== right.byteLength) return false;
-	return timingSafeEqual(Buffer.from(left), Buffer.from(right));
-}
-
 function getQStashSignature(headers: Headers): string | null {
 	return (
 		headers.get("upstash-signature") ??
@@ -47,70 +26,91 @@ function getQStashSignature(headers: Headers): string | null {
 	);
 }
 
+function firstHeaderValue(headers: Headers, name: string): string | null {
+	return headers.get(name)?.split(",", 1)[0]?.trim() || null;
+}
+
 /**
- * Verify the JWT sent by QStash. HTTP routes pass their exact request URL so
- * the signed subject is bound to the endpoint and cannot be replayed elsewhere.
+ * Resolve the public URL signed by QStash. APP_URL is authoritative for the
+ * deployed app; forwarded headers keep this usable behind a proxy in other
+ * environments. The route path and query are always normalized exactly.
  */
-export function verifyQStashSignature(
+export function getPublicQStashUrl(
+	request: Request,
+	pathname: string,
+): string {
+	const normalizedPath = pathname.startsWith("/") ? pathname : `/${pathname}`;
+	const appUrl = process.env.APP_URL?.trim();
+	const requestUrl = new URL(request.url);
+
+	if (appUrl && process.env.NODE_ENV === "production") {
+		try {
+			const publicUrl = new URL(appUrl);
+			if (publicUrl.protocol === "http:" || publicUrl.protocol === "https:") {
+				publicUrl.pathname = normalizedPath;
+				publicUrl.search = "";
+				publicUrl.hash = "";
+				return publicUrl.toString();
+			}
+		} catch {
+			// Fall through to proxy/request URL resolution.
+		}
+	}
+
+	const forwardedHost = firstHeaderValue(request.headers, "x-forwarded-host");
+	const forwardedProto = firstHeaderValue(
+		request.headers,
+		"x-forwarded-proto",
+	);
+	if (forwardedHost) {
+		const protocol = forwardedProto === "http" ? "http:" : "https:";
+		try {
+			return new URL(`${protocol}//${forwardedHost}${normalizedPath}`).toString();
+		} catch {
+			// Fall through to the request URL if forwarded values are malformed.
+		}
+	}
+
+	requestUrl.pathname = normalizedPath;
+	requestUrl.search = "";
+	requestUrl.hash = "";
+	return requestUrl.toString();
+}
+
+/**
+ * Verify the raw QStash request with the official Receiver implementation.
+ * Callers must pass the untouched body returned by request.text().
+ */
+export async function verifyQStashSignature(
 	headers: Headers,
 	rawBody: string,
 	requestUrl?: string,
-): boolean {
+): Promise<boolean> {
 	const signature = getQStashSignature(headers);
 	if (!signature) return false;
 
 	const currentKey = process.env.QSTASH_CURRENT_SIGNING_KEY?.trim();
 	const nextKey = process.env.QSTASH_NEXT_SIGNING_KEY?.trim();
-	if (!currentKey && !nextKey) {
-		// Demo fallback is never acceptable in production.
-		return process.env.NODE_ENV !== "production" && signature.length > 10;
-	}
+	if (!currentKey && !nextKey) return false;
 
-	const parts = signature.split(".");
-	if (parts.length !== 3) return false;
-	const [encodedHeader, encodedClaims, encodedSignature] = parts;
-	const jwtHeader = decodeJwtPart(encodedHeader);
-	const claims = decodeJwtPart(encodedClaims);
-	if (
-		!jwtHeader ||
-		jwtHeader.alg !== "HS256" ||
-		!claims ||
-		claims.iss !== "Upstash"
-	) {
-		return false;
-	}
-
-	const now = Math.floor(Date.now() / 1000);
-	if (
-		typeof claims.exp !== "number" ||
-		claims.exp <= now ||
-		(typeof claims.nbf === "number" && claims.nbf > now)
-	) {
-		return false;
-	}
-	if (requestUrl && claims.sub !== requestUrl) return false;
-	if (typeof claims.body !== "string") return false;
-
-	const bodyHash = createHash("sha256")
-		.update(rawBody)
-		.digest("base64url");
-	if (claims.body !== bodyHash) return false;
-
-	let actualSignature: Buffer;
 	try {
-		actualSignature = Buffer.from(encodedSignature, "base64url");
+		const receiver = new Receiver({
+			currentSigningKey: currentKey,
+			nextSigningKey: nextKey,
+			devMode: false,
+		});
+		await receiver.verify({
+			body: rawBody,
+			signature,
+			...(requestUrl ? { url: requestUrl } : {}),
+			...(firstHeaderValue(headers, "upstash-region")
+				? { upstashRegion: firstHeaderValue(headers, "upstash-region")! }
+				: {}),
+		});
+		return true;
 	} catch {
 		return false;
 	}
-	const signingInput = encodedHeader + "." + encodedClaims;
-	return [currentKey, nextKey].filter(Boolean).some((key) =>
-		constantTimeEqual(
-			actualSignature,
-			createHmac("sha256", key as string)
-				.update(signingInput)
-				.digest(),
-		),
-	);
 }
 
 function newRequestId(): string {
@@ -370,7 +370,7 @@ export async function handleQStashDaily(
 	rawBody: string,
 	requestUrl?: string,
 ): Promise<{ requestId: string; processed: number }> {
-	if (!verifyQStashSignature(headers, rawBody, requestUrl)) {
+	if (!(await verifyQStashSignature(headers, rawBody, requestUrl))) {
 		throw new DeliveryError(
 			"INVALID_SIGNATURE",
 			"Invalid QStash signature.",
@@ -389,7 +389,7 @@ export async function handleQStashSend(
 	rawBody: string,
 	opts?: { batchLimit?: number; requestUrl?: string },
 ): Promise<{ requestId: string; sent: number; failed: number }> {
-	if (!verifyQStashSignature(headers, rawBody, opts?.requestUrl)) {
+	if (!(await verifyQStashSignature(headers, rawBody, opts?.requestUrl))) {
 		throw new DeliveryError(
 			"INVALID_SIGNATURE",
 			"Invalid QStash signature.",

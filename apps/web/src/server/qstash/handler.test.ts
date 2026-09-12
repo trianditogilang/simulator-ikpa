@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
 	handleQStashDaily,
 	handleQStashSend,
+	getPublicQStashUrl,
 	sendNotificationWithResend,
 	verifyQStashSignature,
 } from "./handler";
@@ -10,6 +11,7 @@ import { handleQStashImport } from "../import/process-job";
 
 const envKeys = [
 	"NODE_ENV",
+	"APP_URL",
 	"QSTASH_CURRENT_SIGNING_KEY",
 	"QSTASH_NEXT_SIGNING_KEY",
 	"RESEND_API_KEY",
@@ -63,69 +65,69 @@ function signedHeaders(
 }
 
 describe("QStash production safeguards", () => {
-	it("does not accept an unsigned production request", () => {
+	it("does not accept an unsigned production request", async () => {
 		process.env.NODE_ENV = "production";
 		delete process.env.QSTASH_CURRENT_SIGNING_KEY;
 		delete process.env.QSTASH_NEXT_SIGNING_KEY;
 
 		expect(
-			verifyQStashSignature(
+			await verifyQStashSignature(
 				new Headers({ "upstash-signature": "demo-signature" }),
 				"{}",
 			),
 		).toBe(false);
 	});
 
-	it("keeps the development signature shortcut for local demo mode", () => {
+	it("fails closed when signing keys are unavailable", async () => {
 		process.env.NODE_ENV = "test";
 		delete process.env.QSTASH_CURRENT_SIGNING_KEY;
 		delete process.env.QSTASH_NEXT_SIGNING_KEY;
 
 		expect(
-			verifyQStashSignature(
+			await verifyQStashSignature(
 				new Headers({ "upstash-signature": "demo-signature" }),
 				"{}",
 			),
-		).toBe(true);
+		).toBe(false);
 	});
 
-	it("validates issuer, URL, expiry, body hash, and key rotation", () => {
+	it("validates issuer, URL, expiry, raw body hash, and key rotation", async () => {
 		process.env.NODE_ENV = "production";
 		process.env.QSTASH_CURRENT_SIGNING_KEY = "current-test-key";
 		process.env.QSTASH_NEXT_SIGNING_KEY = "next-test-key";
 		const url = "https://example.test/api/qstash/send";
-		const body = JSON.stringify({ job: "delivery" });
+		const body = '{ "job": "delivery" }\n';
 
 		expect(
-			verifyQStashSignature(
+			await verifyQStashSignature(
 				signedHeaders("current-test-key", url, body),
 				body,
 				url,
 			),
 		).toBe(true);
 		expect(
-			verifyQStashSignature(
+			await verifyQStashSignature(
 				signedHeaders("next-test-key", url, body),
 				body,
 				url,
 			),
 		).toBe(true);
 		expect(
-			verifyQStashSignature(
+			await verifyQStashSignature(
 				signedHeaders("current-test-key", url, body),
 				"tampered",
 				url,
 			),
 		).toBe(false);
 		expect(
-			verifyQStashSignature(
+			await verifyQStashSignature(
 				signedHeaders("current-test-key", url, body),
 				body,
 				url + "/other",
 			),
 		).toBe(false);
 		expect(
-			verifyQStashSignature(
+			await verifyQStashSignature(
 				new Headers({
 					"upstash-signature": createQStashJwt(
 						"current-test-key",
@@ -140,6 +142,33 @@ describe("QStash production safeguards", () => {
 		).toBe(false);
 	});
 
+	it("uses the exact public URL from APP_URL or forwarded headers", () => {
+		process.env.NODE_ENV = "production";
+		process.env.APP_URL =
+			"https://simulator-ikpa-web-git-staging-trianditogilang.vercel.app/";
+		const appUrlRequest = new Request(
+			"http://internal-host/api/qstash/send?trace=ignored",
+		);
+		expect(getPublicQStashUrl(appUrlRequest, "/api/qstash/send")).toBe(
+			"https://simulator-ikpa-web-git-staging-trianditogilang.vercel.app/api/qstash/send",
+		);
+
+		delete process.env.APP_URL;
+		process.env.NODE_ENV = "test";
+		const forwardedRequest = new Request(
+			"http://internal-host/api/qstash/send?trace=ignored",
+			{
+				headers: {
+					"x-forwarded-host": "public.example.test",
+					"x-forwarded-proto": "https",
+				},
+			},
+		);
+		expect(getPublicQStashUrl(forwardedRequest, "/api/qstash/send")).toBe(
+			"https://public.example.test/api/qstash/send",
+		);
+	});
+
 	it("fails closed when production delivery provider is unavailable", async () => {
 		process.env.NODE_ENV = "production";
 		delete process.env.RESEND_API_KEY;
@@ -147,6 +176,7 @@ describe("QStash production safeguards", () => {
 		const body = "{}";
 		const url = "https://example.test/api/qstash/send";
 		process.env.QSTASH_CURRENT_SIGNING_KEY = "current-test-key";
+		process.env.QSTASH_NEXT_SIGNING_KEY = "next-test-key";
 
 		await expect(
 			handleQStashSend(
@@ -239,6 +269,7 @@ describe("QStash production safeguards", () => {
 	it("does not turn a missing production import database into a successful no-op", async () => {
 		process.env.NODE_ENV = "production";
 		process.env.QSTASH_CURRENT_SIGNING_KEY = "current-test-key";
+		process.env.QSTASH_NEXT_SIGNING_KEY = "next-test-key";
 		const body = "{}";
 		const url = "https://example.test/api/jobs/import/process";
 

@@ -1,12 +1,19 @@
 import { createDbClient } from "@simulator-ikpa/db";
 import { createFileRoute } from "@tanstack/react-router";
-import { handleQStashDaily } from "@/server/qstash/handler";
+import {
+	getPublicQStashUrl,
+	handleQStashDaily,
+} from "@/server/qstash/handler";
 
 export const Route = createFileRoute("/api/qstash/daily")({
 	server: {
 		handlers: {
 			POST: async ({ request }) => {
 				const rawBody = await request.text();
+				const requestUrl = getPublicQStashUrl(
+					request,
+					"/api/qstash/daily",
+				);
 				const dbUrl = process.env.DATABASE_URL ?? process.env.DIRECT_URL;
 				if (!dbUrl)
 					return new Response(JSON.stringify({ code: "NO_DB" }), {
@@ -18,7 +25,7 @@ export const Route = createFileRoute("/api/qstash/daily")({
 						db,
 						request.headers,
 						rawBody,
-						request.url,
+						requestUrl,
 					);
 					return new Response(JSON.stringify(res), {
 						status: 200,

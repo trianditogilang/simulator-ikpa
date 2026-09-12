@@ -1,18 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { handleQStashImport } from "@/server/import/process-job";
+import { getPublicQStashUrl } from "@/server/qstash/handler";
 
 export const Route = createFileRoute("/api/jobs/import/process")({
 	server: {
 		handlers: {
 			POST: async ({ request }) => {
 				const rawBody = await request.text();
+				const requestUrl = getPublicQStashUrl(
+					request,
+					"/api/jobs/import/process",
+				);
 				const dbUrl = process.env.DATABASE_URL ?? process.env.DIRECT_URL;
 				try {
 					const res = await handleQStashImport(
 						dbUrl,
 						request.headers,
 						rawBody,
-						request.url,
+						requestUrl,
 					);
 					return new Response(JSON.stringify(res), {
 						status: 200,
