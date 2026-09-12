@@ -17,6 +17,12 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 274 - 2026-09-12
+**Status:** Completed - UI-DISPLAY-ONLY-03 (header what-if responsif HP)
+- Defect terarah dari anotasi staging `/operator/penyerapan` (viewport 559): header card simulasi `flex items-start justify-between` menjepit judul + tombol Simpan di HP. Perbaikan 2 baris class di `what-if-panel.tsx` saja: container → `flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between` (stack di HP, baris mulai sm, desktop identik), span aksi → `flex flex-wrap items-center justify-end gap-2 sm:shrink-0` (tombol wrap rata kanan di HP). Berlaku ke semua card simulasi (revisi dipa, penyerapan, kontraktual, tagihan, dispensasi); tidak ada elemen/logika lain diubah.
+- Verifikasi: typecheck 0 error; build lulus client (2537 modul) + SSR (334 modul) + Nitro; `git diff --name-only` hanya 1 file; `diff --check` bersih.
+- Next: verifikasi visual HP di Preview oleh owner; F13-04 tetap tidak dimulai.
+
 ### Session 273 - 2026-09-12
 **Status:** Completed - UI-DISPLAY-ONLY-02 (tema amber penuh, freeze-exception lanjutan)
 - Lanjutan atas perintah owner: Skor Simulasi box → amber di `deviasi.tsx:1342` (card), `budget-revisions.tsx:1015`, `contracts-invoices.tsx:1229/1474`, `spm-dispensation.tsx:762` (`border-amber-200 bg-amber-50/60`, ikon `text-amber-600`, skor `text-amber-700` kontras AA); tabel simulasi deviasi → komposisi acuan penyerapan (container/thead `border-amber-200/80`, `bg-amber-100/50 text-amber-950`, body `divide-amber-100`, baris rencana `bg-amber-50/50`, input `border-amber-300 bg-amber-50/70 text-amber-950`); baris aktual terkunci, box Δ, month pills, panel strategi, dan trace tak disentuh. `UpTupAssumptionPanel` (file komponen sendiri, di luar scope) tak disentuh; `save-scenario-dialog`/engine/server/delivery tak disentuh.

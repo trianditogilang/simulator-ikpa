@@ -41,7 +41,7 @@ export function WhatIfPanel({
 			aria-label={title}
 			className="rounded-2xl border border-amber-200 bg-amber-50/30 p-4 sm:p-5 shadow-xs space-y-4"
 		>
-			<div className="flex items-start justify-between gap-3">
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 				<button
 					type="button"
 					onClick={toggle}
@@ -60,7 +60,7 @@ export function WhatIfPanel({
 					</span>
 				</button>
 
-				<span className="flex shrink-0 items-center gap-2">
+				<span className="flex flex-wrap items-center justify-end gap-2 sm:shrink-0">
 					{action}
 					<button
 						type="button"
