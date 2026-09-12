@@ -45,7 +45,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 	const body = (
 		<>
 			{children}
-			{process.env.NODE_ENV === "development" && <Agentation />}
+			<Agentation />
 			<TanStackDevtools
 				config={{
 					position: "bottom-right",
