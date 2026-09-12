@@ -187,6 +187,10 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 
 		if (data.accessType === "operator_satker") {
 			if (!operatorOrgId) throw new Error("Satker naungan wajib dipilih untuk peran Operator Satker.");
+			const [existingMapping] = await db.select({ id: userAccesses.id }).from(userAccesses).where(and(eq(userAccesses.userId, user.id), eq(userAccesses.orgId, operatorOrgId), eq(userAccesses.active, true))).limit(1);
+			if (existingMapping) {
+				return { success: true, accessId: existingMapping.id };
+			}
 			const created = await grantOperatorAccess(db, {
 				actorUserId,
 				targetUserId: user.id,
@@ -196,6 +200,10 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 		} else {
 			const kppnScopeId = allowedKppnScopeIds[0];
 			if (!kppnScopeId) throw new Error("Scope KPPN tidak valid.");
+			const [existingMapping] = await db.select({ id: userAccesses.id }).from(userAccesses).where(and(eq(userAccesses.userId, user.id), eq(userAccesses.kppnScopeId, kppnScopeId), eq(userAccesses.accessType, "admin_kppn"), eq(userAccesses.active, true))).limit(1);
+			if (existingMapping) {
+				return { success: true, accessId: existingMapping.id };
+			}
 			const created = await grantAdminAccess(db, {
 				actorUserId,
 				targetUserId: user.id,
