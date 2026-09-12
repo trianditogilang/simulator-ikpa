@@ -92,6 +92,22 @@ function normalizeEmail(email: string): string {
 	return email.trim().toLowerCase();
 }
 
+async function runWithFallback<T>(db: DbClient, exec: (tx: DbClient) => Promise<T>): Promise<T> {
+	const maybeTx = db as unknown as { transaction?: (fn: (tx: DbClient) => Promise<T>) => Promise<T> };
+	if (typeof maybeTx.transaction === "function") {
+		try {
+			return await maybeTx.transaction((tx) => exec(tx as DbClient));
+		} catch (e) {
+			const msg = String((e as Error)?.message ?? e);
+			if (msg.includes("No transactions support") || msg.includes("transaction")) {
+				return await exec(db);
+			}
+			throw e;
+		}
+	}
+	return await exec(db);
+}
+
 async function findSmallestFreeSlot(db: DbClient, kppnScopeId: string): Promise<number> {
 	const rows = await db
 		.select({ adminSlot: userAccesses.adminSlot })
@@ -109,30 +125,22 @@ export async function grantOperatorAccess(db: DbClient, input: GrantOperatorAcce
 	if (activeAdmin) throw new AccessConflictError();
 	const [existingOperator] = await db.select().from(userAccesses).where(and(eq(userAccesses.orgId, input.orgId), eq(userAccesses.accessType, "operator_satker"), eq(userAccesses.active, true))).limit(1);
 	if (existingOperator) throw new OperatorAlreadyExistsError();
-	const exec = async (tx: DbClient) => {
+	return await runWithFallback(db, async (tx) => {
 		const [created] = await tx.insert(userAccesses).values({ userId: input.targetUserId, accessType: "operator_satker", orgId: input.orgId, active: true, createdBy: input.actorUserId }).returning();
 		await tx.insert(auditLogs).values({ actorId: input.actorUserId, actorAccessType: "operator_satker", action: "grant_operator_access", entityType: "user_accesses", entityId: created.id, orgId: input.orgId, beforeJson: null, afterJson: created as unknown as Record<string, unknown>, requestId: input.requestId ?? null });
 		return created;
-	};
-	if (typeof (db as unknown as { transaction?: unknown }).transaction === "function") {
-		return await (db as unknown as { transaction: (fn: (tx: DbClient) => Promise<unknown>) => Promise<unknown> }).transaction(async (tx) => exec(tx as DbClient)) as Awaited<ReturnType<typeof exec>>;
-	}
-	return await exec(db);
+	});
 }
 
 export async function grantAdminAccess(db: DbClient, input: GrantAdminAccessInput) {
 	const [activeOperator] = await db.select().from(userAccesses).where(and(eq(userAccesses.userId, input.targetUserId), eq(userAccesses.accessType, "operator_satker"), eq(userAccesses.active, true))).limit(1);
 	if (activeOperator) throw new AccessConflictError();
-	const exec = async (tx: DbClient) => {
+	return await runWithFallback(db, async (tx) => {
 		const slot = await findSmallestFreeSlot(tx, input.kppnScopeId);
 		const [created] = await tx.insert(userAccesses).values({ userId: input.targetUserId, accessType: "admin_kppn", kppnScopeId: input.kppnScopeId, adminSlot: slot, active: true, createdBy: input.actorUserId }).returning();
 		await tx.insert(auditLogs).values({ actorId: input.actorUserId, actorAccessType: "admin_kppn", action: "grant_admin_access", entityType: "user_accesses", entityId: created.id, orgId: null, beforeJson: null, afterJson: created as unknown as Record<string, unknown>, requestId: input.requestId ?? null });
 		return created;
-	};
-	if (typeof (db as unknown as { transaction?: unknown }).transaction === "function") {
-		return await (db as unknown as { transaction: (fn: (tx: DbClient) => Promise<unknown>) => Promise<unknown> }).transaction(async (tx) => exec(tx as DbClient)) as Awaited<ReturnType<typeof exec>>;
-	}
-	return await exec(db);
+	});
 }
 
 export async function revokeAccess(db: DbClient, input: RevokeAccessInput) {
@@ -170,15 +178,11 @@ export async function hardDeleteUser(db: DbClient, input: HardDeleteUserInput) {
 		if (Number(cntRes?.total ?? 0) <= 1) throw new LastAdminRevocationError("Tidak dapat menghapus admin terakhir pada scope KPPN.");
 	}
 	const allAccesses = await db.select().from(userAccesses).where(eq(userAccesses.userId, input.targetUserId));
-	const exec = async (tx: DbClient) => {
+	return await runWithFallback(db, async (tx) => {
 		await tx.insert(auditLogs).values({ actorId: input.actorUserId, actorAccessType: "admin_kppn", action: "delete_user", entityType: "users", entityId: input.targetUserId, orgId: null, beforeJson: { user: targetUser, accesses: allAccesses } as unknown as Record<string, unknown>, afterJson: null, requestId: input.requestId ?? null });
 		const [deleted] = await tx.delete(users).where(eq(users.id, input.targetUserId)).returning();
 		return deleted ?? targetUser;
-	};
-	if (typeof (db as unknown as { transaction?: unknown }).transaction === "function") {
-		return await (db as unknown as { transaction: (fn: (tx: DbClient) => Promise<unknown>) => Promise<unknown> }).transaction(async (tx) => exec(tx as DbClient)) as Awaited<ReturnType<typeof exec>>;
-	}
-	return await exec(db);
+	});
 }
 
 export async function updateUserProfile(db: DbClient, input: UpdateUserProfileInput) {
