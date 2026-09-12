@@ -25,30 +25,35 @@ import { useActiveContext } from "./active-context";
 
 type NavigationItem = {
 	label: string;
+	shortLabel?: string;
 	href: string;
 	icon: LucideIcon;
 };
 
 const dashboardItem: NavigationItem = {
 	label: "Dashboard IKPA",
+	shortLabel: "Dashboard",
 	href: "/operator/dashboard",
 	icon: LayoutDashboard,
 };
 
 const tagihanItem: NavigationItem = {
 	label: "Penyelesaian Tagihan",
+	shortLabel: "Tagihan",
 	href: "/operator/data/contracts-invoices?tab=invoices",
 	icon: Receipt,
 };
 
 const upTupItem: NavigationItem = {
 	label: "UP/TUP & KKP",
+	shortLabel: "UP-TUP",
 	href: "/operator/up-tup",
 	icon: CreditCard,
 };
 
 const reminderItem: NavigationItem = {
 	label: "Reminder Center",
+	shortLabel: "Reminder",
 	href: "/operator/reminders",
 	icon: Bell,
 };
@@ -165,7 +170,7 @@ function navigationLinkClass(active: boolean, compact = false): string {
 	return twMerge(
 		"group inline-flex items-center gap-3 rounded-md text-left text-body-small text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground",
 		compact
-			? "min-h-16 flex-col justify-center gap-1 px-1 text-center text-[0.6875rem]"
+			? "min-h-16 w-full min-w-0 flex-col justify-center gap-1 overflow-hidden px-1 text-center text-[0.6875rem]"
 			: "min-h-10 w-full px-3 py-2",
 		active && "bg-primary/10 text-primary",
 	);
@@ -192,10 +197,11 @@ function NavigationLink({
 			data-active={active ? "true" : undefined}
 			href={item.href}
 			onClick={onClick}
+			title={compact ? item.label : undefined}
 		>
 			<Icon aria-hidden="true" className="size-4 shrink-0" />
-			<span className={compact ? "max-w-full truncate" : "truncate"}>
-				{item.label}
+			<span className={compact ? "max-w-full truncate whitespace-nowrap" : "truncate"}>
+				{compact ? (item.shortLabel ?? item.label) : item.label}
 			</span>
 		</a>
 	);
@@ -295,7 +301,7 @@ export function OperatorNavigation({
 					aria-label="Navigasi utama Operator"
 					className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur"
 				>
-					<div className="mx-auto grid max-w-lg grid-cols-5">
+					<div className="mx-auto grid max-w-lg grid-cols-5 [&>*]:min-w-0">
 						{mobileItems.map((item) => (
 							<NavigationLink
 								compact
@@ -317,7 +323,7 @@ export function OperatorNavigation({
 										aria-hidden="true"
 										className="size-4 shrink-0"
 									/>
-									<span>Lainnya</span>
+									<span className="max-w-full truncate whitespace-nowrap">Lainnya</span>
 								</button>
 							</Dialog.Trigger>
 							<Dialog.Portal>

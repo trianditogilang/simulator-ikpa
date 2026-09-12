@@ -27,6 +27,8 @@ Dokumen ini adalah tracker operasional pelaksanaan [TASK-LIST-Simulator-IKPA.md]
 | ADM-ITER-01 | Completed | Pertahankan badge title formal dashboard | Badge display-only selesai (`title ?? indicatorLabel ?? fallback`); screenshot user desktop konfirmasi judul formal tanpa snake_case; typecheck exit 0 |
 | ADM-ITER-02 | Completed | Pertahankan agenda eventTitle-only | Subteks mono + header modal display-only selesai; `eventType` tersisa hanya di logic; screenshot user konfirmasi; typecheck exit 0 |
 | ADM-ITER-03 | Completed | Pertahankan tabel tanpa kolom Penerima Wajib | Kolom Penerima Wajib dihapus (th + td, data model utuh) + label "Hari Kerja (Workday)" → "Hari Kerja" (sel + opsi modal); display-only; screenshot user konfirmasi; typecheck exit 0 |
+| UI-DISPLAY-ONLY-01 | Completed | Paket DISPLAY-ONLY amber + nav-5 HP (freeze-exception display-only, tanpa logika/engine/server/delivery) | Pertahankan visual | Freeze-exception disetujui owner 2026-09-12; 6 file code display-only (class Tailwind); `save-scenario-dialog`/engine/server/delivery tak disentuh; typecheck 0 error; build client+SSR lulus |
+| UI-DISPLAY-ONLY-02 | Completed | Tema amber penuh panel simulasi 6 halaman (Skor Simulasi box + tabel deviasi; UpTupAssumptionPanel di luar scope tak disentuh) | Screenshot authenticated manual di Preview / tunggu fixture F13-04 | Freeze-exception lanjutan disetujui owner; typecheck 0 error; build client+SSR lulus; `git diff` hanya 6 file code + 2 docs; `save-scenario-dialog`/engine/server/delivery tak disentuh; probe screenshot lokal blocked (butuh sesi Clerk + fixture E2E F13-04) |
 
 ## Recent Completions
 

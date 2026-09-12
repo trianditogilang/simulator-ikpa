@@ -17,6 +17,30 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 273 - 2026-09-12
+**Status:** Completed - UI-DISPLAY-ONLY-02 (tema amber penuh, freeze-exception lanjutan)
+- Lanjutan atas perintah owner: Skor Simulasi box → amber di `deviasi.tsx:1342` (card), `budget-revisions.tsx:1015`, `contracts-invoices.tsx:1229/1474`, `spm-dispensation.tsx:762` (`border-amber-200 bg-amber-50/60`, ikon `text-amber-600`, skor `text-amber-700` kontras AA); tabel simulasi deviasi → komposisi acuan penyerapan (container/thead `border-amber-200/80`, `bg-amber-100/50 text-amber-950`, body `divide-amber-100`, baris rencana `bg-amber-50/50`, input `border-amber-300 bg-amber-50/70 text-amber-950`); baris aktual terkunci, box Δ, month pills, panel strategi, dan trace tak disentuh. `UpTupAssumptionPanel` (file komponen sendiri, di luar scope) tak disentuh; `save-scenario-dialog`/engine/server/delivery tak disentuh.
+- Ponytail: aksen simulasi monokrom amber, semantik Δ (success/danger) dan data aktual dipertahankan; Context7: pola Tailwind selaras codebase.
+- Verifikasi: typecheck 0 error; build lulus client (2537 modul) + SSR (334 modul) + Nitro; `git diff --name-only` hanya 6 file code + `BACKLOG.md`/`DEVLOG.md`; `diff --check` bersih (hanya warning LF/CRLF); grep konfirmasi tidak ada sisa `border-warning`/primary/biru di section simulasi.
+- Screenshot: probe lokal menunjukkan Chrome + direktori Playwright + `.env` tersedia, tetapi capture 6 halaman × 2 viewport butuh sesi Operator Clerk + navigasi terautentikasi (wilayah fixture E2E F13-04 yang masih Blocked) — tetap pending manual di Preview; F13-04 tidak dimulai.
+
+### Session 272 - 2026-09-12
+**Status:** Completed - UI-DISPLAY-ONLY-01 (freeze-exception display-only)
+- Eksekusi atas persetujuan owner ("oke lanjut kerjakan"): 6 file display-only, class Tailwind saja tanpa ubah logika/engine/server/delivery; `save-scenario-dialog.tsx` tak disentuh; desktop nav untouched.
+- Nav-5 HP `operator-navigation.tsx`: tambah `shortLabel` (Dashboard/Tagihan/UP-TUP/Reminder) dipakai hanya mode compact + `title` tooltip label penuh; grid `grid-cols-5 [&>*]:min-w-0`, link compact `w-full min-w-0 overflow-hidden`, span `truncate whitespace-nowrap`, tombol Lainnya truncate — tombol kanan aman di 360px.
+- Amber selaras `penyerapan.tsx` + `what-if-panel.tsx`: `deviasi.tsx` toggle Simulasi aktif `bg-amber-600 text-white hover:bg-amber-700` + save bar `border-amber-200 bg-amber-50/30` ikon `text-amber-600` tombol `bg-amber-600 hover:bg-amber-700 text-white`; tombol Simpan Skenario `budget-revisions.tsx`, `contracts-invoices.tsx` (2x), `spm-dispensation.tsx` → amber; `up-tup.tsx` section biru → `border-amber-200 bg-amber-50/30`, divider + empty box → amber, tombol 1976/1986 → amber. Kontras: teks tombol putih di atas amber-600, input `text-amber-950`.
+- Ponytail: hierarki + spacing ikut pola panel amber acuan; Context7: pola Tailwind amber/truncate/grid selaras codebase.
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/web` 0 error; `npm run build --workspace @simulator-ikpa/web` lulus client (2537 modul) + SSR (334 modul) + Nitro; `git diff --name-only` hanya 6 file code + `BACKLOG.md`/`DEVLOG.md`; `git diff --check` bersih (hanya warning LF/CRLF).
+- Risiko/known issue: screenshot Preview tiap halaman (desktop 1426 + HP Android Chrome 360) belum dapat diambil di environment ini (tanpa browser/Preview) — pending capture manual owner; F13-04 tetap tidak dimulai.
+
+### Session 271 - 2026-09-12
+**Status:** Proposed (Blocked) - UI-DISPLAY-ONLY-01
+- Paket DISPLAY-ONLY ditahan: 8 file dalam glob `docs/operator-freeze.md` (behavior frozen, F13 verification-first) tanpa defect ID / requirement v2 eksplisit; tidak ada file code disentuh pada sesi ini.
+- Scope usulan (display-only, tanpa logika/engine/server/delivery): `operator-navigation.tsx` (nav-5 HP label pendek + truncate, desktop untouched); `deviasi.tsx` (toggle 711-714 + save bar 1427-1440 → amber); `budget-revisions.tsx:969`, `contracts-invoices.tsx:1135,1428`, `spm-dispensation.tsx:701`, `up-tup.tsx` (section biru + 1976 + 1986 → amber) komposisi amber selaras `penyerapan.tsx:759-841` + `what-if-panel.tsx:42-52`; larangan sentuh `save-scenario-dialog.tsx`/engine/server/delivery.
+- DoD usulan: typecheck 0 error, build client+SSR lolos, `git diff` hanya 8 file di atas, screenshot Preview tiap halaman (desktop 1426 + HP 360), tombol kanan tidak kepotong, kontras terbaca; Ponytail + Context7 dipakai saat eksekusi.
+- Verifikasi sesi ini: `git status` bersih (tidak ada code diff); `BACKLOG.md` tambah baris `UI-DISPLAY-ONLY-01` Proposed (Blocked).
+- Next action: owner setujui freeze-exception + cantumkan defect ID / requirement v2 eksplisit; F13-04 tetap tidak dimulai.
+
 ### Session 270 - 2026-09-12
 **Status:** Completed - F13-03 provider callback
 - Memperbaiki `apps/web/src/routes/api/qstash/send.ts` agar membaca body sekali sebagai raw string dan memverifikasi dengan official `@upstash/qstash` `Receiver.verify`; URL signature dinormalisasi ke `APP_URL` publik atau `x-forwarded-host`/`x-forwarded-proto`. Route daily/import memakai helper yang sama.
