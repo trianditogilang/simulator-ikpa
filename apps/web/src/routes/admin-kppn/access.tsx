@@ -278,8 +278,8 @@ function AdminAccessManagementPage() {
 										<tr key={user.id} className={`transition-colors hover:bg-surface-muted/30 ${isCurrentUser ? "bg-primary/[0.06] border-b-2 border-primary/20" : ""}`}>
 											<td className="py-3 pl-4 pr-2">
 												<div className="flex flex-col">
-													<span className="font-semibold text-foreground">{user.accessType === "admin_kppn" ? `Slot ${user.adminSlot ?? "-"} • ${user.scopeName}` : `${user.scopeCode} • ${user.scopeName}`}</span>
-													<span className="text-[11px] text-muted-foreground">Kode: {user.scopeCode}{user.adminSlot ? ` • Slot ${user.adminSlot}` : ""}</span>
+													<span className="font-semibold text-foreground">{user.accessType === "admin_kppn" ? `Admin - ${user.name} - KPPN 032` : `${user.scopeCode} • ${user.scopeName}`}</span>
+													<span className="text-[11px] text-muted-foreground">{user.accessType === "admin_kppn" ? `KPPN 032 • Slot ${user.adminSlot ?? "-"}` : `Kode: ${user.scopeCode}`}</span>
 												</div>
 											</td>
 											<td className="px-3 py-3 font-medium text-foreground">{user.email}{isCurrentUser && <span className="ml-1.5 inline-flex rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">Anda</span>}</td>
@@ -311,7 +311,7 @@ function AdminAccessManagementPage() {
 							<div className="flex items-start justify-between">
 								<div>
 									<h3 className="text-base font-semibold text-foreground">{isEditMode ? "Edit Akses Pengguna" : "Tambah Akses Baru"}</h3>
-									<p className="text-xs text-muted-foreground">KPPN Malang 032 — kode satker otomatis UPPERCASE</p>
+									<p className="text-xs text-muted-foreground">KPPN Malang 032</p>
 								</div>
 								<button type="button" onClick={() => { setIsModalOpen(false); setEditingItem(null); }} className="rounded-lg p-1 text-muted-foreground hover:bg-surface-muted">
 									<X className="size-4" />
@@ -319,8 +319,12 @@ function AdminAccessManagementPage() {
 							</div>
 							<div className="space-y-3.5 text-xs">
 								<div>
+									<span className="text-muted-foreground block mb-1 font-medium">Nama</span>
+									<input aria-label="Nama pengguna" type="text" required value={editingItem.name} onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })} placeholder={editingItem.accessType === "admin_kppn" ? "Admin - Nama" : "Nama Lengkap"} className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none" />
+								</div>
+								<div>
 									<span className="text-muted-foreground block mb-1 font-medium">Email Akun</span>
-									<input aria-label="Email akun" type="email" required value={editingItem.email} onChange={(e) => setEditingItem({ ...editingItem, email: e.target.value })} placeholder="user@kemenkeu.go.id" className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none" />
+									<input aria-label="Email akun" type="email" required value={editingItem.email} onChange={(e) => setEditingItem({ ...editingItem, email: e.target.value })} placeholder="user@domain.com" className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none" />
 								</div>
 								<div>
 									<span className="text-muted-foreground block mb-1 font-medium">Jenis Hak Akses</span>
@@ -347,11 +351,11 @@ function AdminAccessManagementPage() {
 										</div>
 									</>
 								)}
-								{editingItem.accessType === "admin_kppn" && <p className="rounded-lg bg-primary/5 border border-primary/20 p-2.5 text-[11px] text-muted-foreground">Admin KPPN akan otomatis mendapat slot terkecil kosong di KPPN Malang 032. Slot bebas dipakai ulang setelah hapus.</p>}
+
 							</div>
 							<div className="flex items-center justify-end gap-2 border-t border-border pt-3">
 								<button type="button" onClick={() => { setIsModalOpen(false); setEditingItem(null); }} className="rounded-lg border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-muted">Batal</button>
-								<button type="button" disabled={!editingItem.email || (editingItem.accessType === "operator_satker" && (!kodeInput.trim() || !satkerNameInput.trim()))} onClick={handleSaveAccess} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-xs disabled:opacity-50">
+								<button type="button" disabled={!editingItem.name.trim() || !editingItem.email || (editingItem.accessType === "operator_satker" && (!kodeInput.trim() || !satkerNameInput.trim()))} onClick={handleSaveAccess} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-xs disabled:opacity-50">
 									<Save className="size-3.5" />
 									<span>Simpan Akses</span>
 								</button>

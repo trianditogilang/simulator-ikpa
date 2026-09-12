@@ -168,6 +168,21 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 					name: data.name.trim(),
 				})
 				.returning();
+		} else if (user.name.trim() !== data.name.trim()) {
+			const [updated] = await db.update(users).set({ name: data.name.trim(), updatedAt: new Date() }).where(eq(users.id, user.id)).returning();
+			if (updated) {
+				user = updated;
+				await db.insert(auditLogs).values({
+					actorId: actorUserId,
+					actorAccessType: "admin_kppn",
+					action: "update_user_name",
+					entityType: "users",
+					entityId: user.id,
+					orgId: null,
+					beforeJson: { name: user.name } as unknown as Record<string, unknown>,
+					afterJson: { name: updated.name } as unknown as Record<string, unknown>,
+				});
+			}
 		}
 
 		if (data.accessType === "operator_satker") {
