@@ -2,6 +2,17 @@
 
 > Dokumen ini adalah model data aktif Revisi v2. Baseline v1.0 dipertahankan di bagian bawah hanya untuk histori; bila ada konflik, kontrak aktif v2 berlaku.
 
+## Addendum AUTH-01 — 2026-09-12 — Fondasi Data Akses
+
+> Addendum ini menambah kontrak fondasi data AUTH-01 tanpa mengubah baseline historis di bawah garis pemisah. Bila ada konflik, addendum terbaru yang berlaku.
+
+1. **1 satker = 1 operator AKTIF (sementara):** `user_accesses` dengan `access_type = 'operator_satker'` dan `active = true` dibatasi satu baris aktif per `org_id` (partial unique index `WHERE active = true AND access_type = 'operator_satker'`). Riwayat mapping nonaktif (`active = false`) tetap disimpan dan tidak dihapus; pembatasan hanya berlaku untuk baris aktif.
+2. **Normalisasi `kode_satker` mengikat nama:** `organizations.kode_satker` selalu disimpan sebagai `trim().toUpperCase()`. Pada pembuatan satker baru, bila `kode_satker` yang ternormalisasi sudah ada namun `name` berbeda (perbandingan `trim()` case-insensitive) → transaksi ditolak (`KODE_SATKER_NAME_MISMATCH`). Kode identik dengan nama identik diperlakukan sebagai idempoten.
+3. **Admin slot permanen per scope:** `user_accesses.admin_slot` (`integer`, `NULL`) permanen untuk setiap `admin_kppn` aktif dalam satu `kppn_scope_id`. Unik parsial `UNIQUE (kppn_scope_id, admin_slot) WHERE access_type = 'admin_kppn' AND admin_slot IS NOT NULL`. Slot bebas dipakai ulang setelah baris dihapus (hard delete) atau dinonaktifkan (`active = false` → slot tidak lagi terhitung). Alokasi selalu mengambil slot terkecil kosong dalam transaksi. Seluruh perubahan alokasi/pelepasan dicatat di `audit_logs` (`action = grant_admin_access / revoke_access / toggle_access_active / delete_user` dengan `before_json`/`after_json` memuat `admin_slot`).
+4. **Hapus user = hard delete:** `DELETE FROM users WHERE id = ?` menghapus baris `users` + seluruh baris `user_accesses` miliknya (FK `user_accesses.user_id ON DELETE CASCADE`). Data operasional satker (`fiscal_years`, `budgets`, `contracts`, dsb.) tetap; kolom `created_by`/`updated_by` yang merujuk `users.id` memiliki `ON DELETE SET NULL` sehingga menjadi `NULL`. Baris `audit_logs` (`actor_id`, `before_json`/`after_json`) tetap dipertahankan sebagai jejak historis dan tidak ikut terhapus.
+5. **List akses hanya yang aktif:** Semua query daftar/resolusi akses operasional (`listAdminUserAccessFn`, `resolveUserAccess`, `listAdminOrganizations`, dsb.) memfilter `WHERE active = true`. Baris nonaktif tetap ada untuk audit/riwayat namun tidak muncul pada daftar operasional.
+6. **Scope tunggal KPPN Malang 032:** MVP hanya melayani satu scope `KPPN Malang 032` (`kppn_scopes.code = '032'` / `KPPN-032`). Seluruh validasi `assertAdminKppnScope` dan seed mengacu pada scope tersebut; penambahan scope baru berada di luar kontrak AUTH-01.
+
 ## Addendum Revisi v2 — 2026-09-09
 
 1. **Tanpa perubahan skema:** tidak ada tabel/kolom/relasi baru. Admin monitor hanya membaca tabel scoped yang sama.

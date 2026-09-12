@@ -85,16 +85,30 @@ export async function handleRegisterSatkerOnboarding(data: {
 		user = await syncClerkUser(db, identity);
 	}
 
-	// 2. Resolve default KPPN scope
-	let [scope] = await db.select().from(kppnScopes).limit(1);
+	const normalizedKode = data.kodeSatker.trim().toUpperCase();
+	const normalizedName = data.name.trim();
+	if (!normalizedKode) throw new Error("Kode Satker tidak boleh kosong.");
+	if (!normalizedName) throw new Error("Nama Satker tidak boleh kosong.");
+
+	// 2. Resolve default KPPN scope — Malang 032
+	let [scope] = await db.select().from(kppnScopes).where(eq(kppnScopes.code, "KPPN-032")).limit(1);
+	if (!scope) {
+		[scope] = await db.select().from(kppnScopes).where(eq(kppnScopes.code, "032")).limit(1) as unknown as typeof scope[];
+	}
+	if (!scope) {
+		[scope] = await db.select().from(kppnScopes).limit(1) as unknown as typeof scope[];
+	}
 	if (!scope) {
 		[scope] = await db
 			.insert(kppnScopes)
 			.values({
-				code: "KPPN-089",
-				name: "KPPN Jakarta II",
+				code: "KPPN-032",
+				name: "KPPN Malang",
 			})
 			.returning();
+	} else if (scope.code !== "KPPN-032" || scope.name !== "KPPN Malang") {
+		const [updated] = await db.update(kppnScopes).set({ code: "KPPN-032", name: "KPPN Malang", updatedAt: new Date() }).where(eq(kppnScopes.id, scope.id)).returning();
+		if (updated) scope = updated;
 	}
 
 	// 3. Find or create organization. An unmapped user may create a new satker,
@@ -103,15 +117,19 @@ export async function handleRegisterSatkerOnboarding(data: {
 	let [org] = await db
 		.select()
 		.from(organizations)
-		.where(eq(organizations.kodeSatker, data.kodeSatker))
+		.where(eq(organizations.kodeSatker, normalizedKode))
 		.limit(1);
 
-	if (!org) {
+	if (org) {
+		if (org.name.trim() !== normalizedName) {
+			throw Object.assign(new Error("Kode satker sudah terdaftar dengan nama berbeda."), { statusCode: 409, code: "ORGANIZATION_NAME_MISMATCH" });
+		}
+	} else {
 		[org] = await db
 			.insert(organizations)
 			.values({
-				kodeSatker: data.kodeSatker,
-				name: data.name,
+				kodeSatker: normalizedKode,
+				name: normalizedName,
 				kppnScopeId: scope.id,
 				kppnName: scope.name,
 				isBlu: data.isBlu ?? false,
@@ -154,13 +172,18 @@ export async function handleRegisterSatkerOnboarding(data: {
 		.limit(1);
 
 	if (!createdOrganization && !existingAccess) {
-		throw Object.assign(
-			new Error("Satker sudah terdaftar. Minta Admin KPPN memetakan akses Anda."),
-			{ statusCode: 409, code: "SATKER_ALREADY_REGISTERED" },
-		);
+		const [activeOperator] = await db.select().from(userAccesses).where(and(eq(userAccesses.orgId, org.id), eq(userAccesses.accessType, "operator_satker"), eq(userAccesses.active, true))).limit(1);
+		if (activeOperator) {
+			throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
+		}
+		throw Object.assign(new Error("Satker sudah terdaftar. Minta Admin KPPN memetakan akses Anda."), { statusCode: 409, code: "SATKER_ALREADY_REGISTERED" });
 	}
 
 	if (!existingAccess) {
+		const [activeOperator] = await db.select().from(userAccesses).where(and(eq(userAccesses.orgId, org.id), eq(userAccesses.accessType, "operator_satker"), eq(userAccesses.active, true))).limit(1);
+		if (activeOperator) {
+			throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
+		}
 		await db.insert(userAccesses).values({
 			userId: user.id,
 			accessType: "operator_satker",
@@ -169,10 +192,11 @@ export async function handleRegisterSatkerOnboarding(data: {
 			createdBy: user.id,
 		});
 	} else if (!existingAccess.active) {
-		await db
-			.update(userAccesses)
-			.set({ active: true, updatedAt: new Date() })
-			.where(eq(userAccesses.id, existingAccess.id));
+		const [activeOperator] = await db.select().from(userAccesses).where(and(eq(userAccesses.orgId, org.id), eq(userAccesses.accessType, "operator_satker"), eq(userAccesses.active, true))).limit(1);
+		if (activeOperator && activeOperator.userId !== user.id) {
+			throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
+		}
+		await db.update(userAccesses).set({ active: true, updatedAt: new Date() }).where(eq(userAccesses.id, existingAccess.id));
 	}
 
 	// 6. Set active organization cookie
@@ -233,8 +257,8 @@ export async function handleGetSatkerSettings(data?: {
 			satkerId: targetOrgId,
 			satkerCode: "411782",
 			satkerName: "Kantor Pelayanan Perbendaharaan Satker Contoh",
-			kppnName: "KPPN Jakarta II",
-			kppnCode: "089",
+			kppnName: "KPPN Malang",
+			kppnCode: "032",
 			isBlu: false,
 			targetIkpa: 95.0,
 			timezone: "Asia/Jakarta (WIB)",
@@ -317,8 +341,8 @@ export async function handleGetSatkerSettings(data?: {
 		satkerId: org.id,
 		satkerCode: org.kodeSatker,
 		satkerName: org.name,
-		kppnName: org.kppnName || "KPPN Jakarta II",
-		kppnCode: org.kppnCode || "089",
+		kppnName: org.kppnName || "KPPN Malang",
+		kppnCode: org.kppnCode || "032",
 		isBlu: org.isBlu,
 		targetIkpa: 95.0,
 		timezone: "Asia/Jakarta (WIB)",

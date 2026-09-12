@@ -882,7 +882,7 @@ describe("F13-02 Admin authenticated HTTP boundary", () => {
 		);
 	});
 
-	it("assignUserAccessFn rejects assignment to a peer organization", async () => {
+	it("assignUserAccessFn rejects assignment to a peer organization (kode+nama)", async () => {
 		const id = await findServerFnId(
 			"/src/server/admin-access.ts",
 			"assignUserAccessFn",
@@ -894,7 +894,8 @@ describe("F13-02 Admin authenticated HTTP boundary", () => {
 				email: peerAssignmentUserEmail,
 				name: peerAssignmentUserName,
 				accessType: "operator_satker",
-				orgId: peerOrgId,
+				kodeSatker: peerOrgCode,
+				satkerName: peerOrgName,
 			},
 			authToken: adminSessionToken,
 		});
@@ -912,7 +913,8 @@ describe("F13-02 Admin authenticated HTTP boundary", () => {
 				email: ownAssignmentUserEmail,
 				name: ownAssignmentUserName,
 				accessType: "operator_satker",
-				orgId: adminOrgId,
+				kodeSatker: adminOrgCode,
+				satkerName: adminOrgName,
 			},
 			authToken: adminSessionToken,
 		});
@@ -927,33 +929,52 @@ describe("F13-02 Admin authenticated HTTP boundary", () => {
 		ownAssignedAccessId = assigned?.id ?? "";
 	});
 
-	it("removeUserAccessFn rejects a peer mapping and can deactivate own mapping", async () => {
+	it("hardDeleteUserFn rejects a peer mapping and hard deletes own mapping", async () => {
 		if (!ownAssignedAccessId) throw new Error("Own access fixture was not created.");
-		const id = await findServerFnId(
+		const removeId = await findServerFnId(
 			"/src/server/admin-access.ts",
 			"removeUserAccessFn",
 		);
+		const hardDeleteId = await findServerFnId(
+			"/src/server/admin-access.ts",
+			"hardDeleteUserFn",
+		);
 		const deniedRemove = await callServerFn({
-			id,
+			id: removeId,
 			method: "POST",
-			data: { accessId: peerAccessId, active: false },
+			data: { accessId: peerAccessId },
 			authToken: adminSessionToken,
 		});
 		expectDenied(deniedRemove, peerForbiddenValues());
 		await expectPeerAccessUnchanged();
-
-		const removedOwn = await callServerFn({
-			id,
+		const deniedHardDelete = await callServerFn({
+			id: hardDeleteId,
 			method: "POST",
-			data: { accessId: ownAssignedAccessId, active: false },
+			data: { userId: peerUserId },
 			authToken: adminSessionToken,
 		});
-		expect(removedOwn.status).toBe(200);
-		const [ownAfterRemove] = await db
-			.select({ active: userAccesses.active })
-			.from(userAccesses)
-			.where(eq(userAccesses.id, ownAssignedAccessId))
+		expectDenied(deniedHardDelete, peerForbiddenValues());
+		await expectPeerAccessUnchanged();
+
+		const deletedOwn = await callServerFn({
+			id: hardDeleteId,
+			method: "POST",
+			data: { userId: ownAssignmentUserId },
+			authToken: adminSessionToken,
+		});
+		expect(deletedOwn.status).toBe(200);
+		const [ownAfterDelete] = await db
+			.select({ id: users.id })
+			.from(users)
+			.where(eq(users.id, ownAssignmentUserId))
 			.limit(1);
-		expect(ownAfterRemove?.active).toBe(false);
+		expect(ownAfterDelete).toBeUndefined();
+		const remainingAccess = await db
+			.select({ id: userAccesses.id })
+			.from(userAccesses)
+			.where(eq(userAccesses.userId, ownAssignmentUserId))
+			.limit(1);
+		expect(remainingAccess.length).toBe(0);
+		ownAssignedAccessId = "";
 	});
 });

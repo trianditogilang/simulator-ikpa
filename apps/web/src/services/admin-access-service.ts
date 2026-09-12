@@ -1,5 +1,6 @@
 import {
 	assignUserAccessFn,
+	hardDeleteUserFn,
 	listAdminAuditLogsFn,
 	listAdminUserAccessFn,
 	removeUserAccessFn,
@@ -14,6 +15,7 @@ export interface AdminUserAccessRecord {
 	orgId: string | null;
 	scopeName: string;
 	scopeCode: string;
+	adminSlot: number | null;
 	status: "active" | "inactive";
 	createdAt: string;
 }
@@ -45,13 +47,32 @@ export async function assignAccess(input: {
 	email: string;
 	name: string;
 	accessType: "operator_satker" | "admin_kppn";
+	kodeSatker?: string | null;
+	satkerName?: string | null;
 	orgId?: string | null;
 }) {
-	return assignUserAccessFn({ data: input });
+	return assignUserAccessFn({
+		data: {
+			email: input.email,
+			name: input.name,
+			accessType: input.accessType,
+			kodeSatker: input.kodeSatker ?? input.orgId ?? null,
+			satkerName: input.satkerName ?? null,
+			orgId: input.orgId ?? null,
+		},
+	});
 }
 
-export async function deactivateAccess(accessId: string, active = false) {
-	return removeUserAccessFn({ data: { accessId, active } });
+export async function hardDeleteUser(userId: string) {
+	return hardDeleteUserFn({ data: { userId } });
+}
+
+export async function deactivateAccess(accessId: string, _active = false) {
+	return removeUserAccessFn({ data: { accessId, userId: undefined } as unknown as { accessId: string } });
+}
+
+export async function removeAccessByUserId(userId: string) {
+	return removeUserAccessFn({ data: { userId } as unknown as { userId: string } });
 }
 
 export async function fetchAdminAuditLogs(): Promise<{

@@ -1,6 +1,8 @@
+import { sql } from "drizzle-orm";
 import {
 	boolean,
 	index,
+	integer,
 	pgTable,
 	text,
 	timestamp,
@@ -86,6 +88,7 @@ export const userAccesses = pgTable(
 			onDelete: "cascade",
 		}),
 		active: boolean("active").default(true).notNull(),
+		adminSlot: integer("admin_slot"),
 		createdBy: uuid("created_by").references(() => users.id, {
 			onDelete: "set null",
 		}),
@@ -101,5 +104,15 @@ export const userAccesses = pgTable(
 		index("user_accesses_org_id_idx").on(table.orgId),
 		index("user_accesses_kppn_scope_id_idx").on(table.kppnScopeId),
 		index("user_accesses_active_idx").on(table.active),
+		uniqueIndex("user_accesses_admin_slot_unique")
+			.on(table.kppnScopeId, table.adminSlot)
+			.where(
+				sql`${table.accessType} = 'admin_kppn' AND ${table.active} = true AND ${table.adminSlot} IS NOT NULL`,
+			),
+		uniqueIndex("user_accesses_operator_org_unique")
+			.on(table.orgId)
+			.where(
+				sql`${table.accessType} = 'operator_satker' AND ${table.active} = true AND ${table.orgId} IS NOT NULL`,
+			),
 	],
 );

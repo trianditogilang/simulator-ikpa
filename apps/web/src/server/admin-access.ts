@@ -1,14 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
-import { desc, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, or } from "drizzle-orm";
 import {
 	assertAdminKppnScope,
 	grantAdminAccess,
 	grantOperatorAccess,
-	toggleAccessActive,
+	hardDeleteUser,
 } from "@simulator-ikpa/access-control";
 import { createDbClient } from "@simulator-ikpa/db";
 import {
 	auditLogs,
+	kppnScopes,
 	organizations,
 	userAccesses,
 	users,
@@ -49,6 +50,7 @@ export const listAdminUserAccessFn = createServerFn({ method: "GET" })
 				orgId: userAccesses.orgId,
 				orgName: organizations.name,
 				kodeSatker: organizations.kodeSatker,
+				adminSlot: userAccesses.adminSlot,
 				active: userAccesses.active,
 				createdAt: userAccesses.createdAt,
 			})
@@ -56,9 +58,12 @@ export const listAdminUserAccessFn = createServerFn({ method: "GET" })
 			.innerJoin(users, eq(userAccesses.userId, users.id))
 			.leftJoin(organizations, eq(userAccesses.orgId, organizations.id))
 			.where(
-				or(
-					inArray(userAccesses.kppnScopeId, allowedKppnScopeIds),
-					inArray(organizations.kppnScopeId, allowedKppnScopeIds),
+				and(
+					eq(userAccesses.active, true),
+					or(
+						inArray(userAccesses.kppnScopeId, allowedKppnScopeIds),
+						inArray(organizations.kppnScopeId, allowedKppnScopeIds),
+					),
 				),
 			)
 			.orderBy(desc(userAccesses.createdAt));
@@ -71,8 +76,9 @@ export const listAdminUserAccessFn = createServerFn({ method: "GET" })
 				email: r.userEmail,
 				accessType: r.accessType,
 				orgId: r.orgId,
-				scopeName: r.orgName ?? "KPPN Wilayah",
+				scopeName: r.orgName ?? "KPPN Malang",
 				scopeCode: r.kodeSatker ?? "032",
+				adminSlot: r.adminSlot ?? null,
 				status: r.active ? ("active" as const) : ("inactive" as const),
 				createdAt: r.createdAt.toISOString(),
 			})),
@@ -85,6 +91,8 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 			email: string;
 			name: string;
 			accessType: "operator_satker" | "admin_kppn";
+			kodeSatker?: string | null;
+			satkerName?: string | null;
 			orgId?: string | null;
 		}) => data,
 	)
@@ -99,28 +107,52 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 			return { success: true };
 		}
 
-		const operatorOrgId =
-			data.accessType === "operator_satker" ? data.orgId : undefined;
+		const actorUserId = access.status === "admin" ? access.userId : "admin";
+
+		let operatorOrgId: string | null = null;
 		if (data.accessType === "operator_satker") {
-			if (!operatorOrgId) {
-				throw new Error("Satker naungan wajib dipilih untuk peran Operator Satker.");
+			const rawKode = (data.kodeSatker ?? data.orgId ?? "").trim();
+			const rawName = (data.satkerName ?? "").trim();
+			if (!rawKode) {
+				throw Object.assign(new Error("Kode satker wajib diisi untuk peran Operator Satker."), { statusCode: 400, code: "KODE_SATKER_REQUIRED" });
 			}
-			const [targetOrganization] = await db
-				.select({ kppnScopeId: organizations.kppnScopeId })
+			if (!rawName) {
+				throw Object.assign(new Error("Nama satker wajib diisi untuk kode satker baru."), { statusCode: 400, code: "SATKER_NAME_REQUIRED" });
+			}
+			const normalizedKode = rawKode.toUpperCase();
+			const normalizedName = rawName;
+			let [targetOrganization] = await db
+				.select({ id: organizations.id, kppnScopeId: organizations.kppnScopeId, name: organizations.name, kodeSatker: organizations.kodeSatker })
 				.from(organizations)
-				.where(eq(organizations.id, operatorOrgId))
+				.where(eq(organizations.kodeSatker, normalizedKode))
 				.limit(1);
-			if (
-				!targetOrganization ||
-				!allowedKppnScopeIds.includes(targetOrganization.kppnScopeId)
-			) {
-				throw new Error("Satker berada di luar scope admin.");
+			if (targetOrganization) {
+				if (targetOrganization.name.trim() !== normalizedName) {
+					throw Object.assign(new Error("Kode satker sudah terdaftar dengan nama berbeda."), { statusCode: 409, code: "ORGANIZATION_NAME_MISMATCH" });
+				}
+				if (!allowedKppnScopeIds.includes(targetOrganization.kppnScopeId)) {
+					throw new Error("Satker berada di luar scope admin.");
+				}
+				operatorOrgId = targetOrganization.id;
+			} else {
+				const kppnScopeId = allowedKppnScopeIds[0];
+				if (!kppnScopeId) throw new Error("Scope KPPN tidak valid.");
+				const [kppnScope] = await db.select({ name: kppnScopes.name }).from(kppnScopes).where(eq(kppnScopes.id, kppnScopeId)).limit(1);
+				const [createdOrg] = await db
+					.insert(organizations)
+					.values({
+						kodeSatker: normalizedKode,
+						name: normalizedName,
+						kppnScopeId,
+						kppnName: kppnScope?.name ?? "KPPN Malang",
+						isBlu: false,
+						timezone: "Asia/Jakarta",
+					})
+					.returning({ id: organizations.id });
+				operatorOrgId = createdOrg.id;
 			}
 		}
 
-		const actorUserId = access.status === "admin" ? access.userId : "admin";
-
-		// Find or create user
 		let [user] = await db
 			.select()
 			.from(users)
@@ -131,7 +163,7 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 			[user] = await db
 				.insert(users)
 				.values({
-					clerkUserId: `manual_${Date.now()}`,
+					clerkUserId: `manual_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
 					email: data.email.toLowerCase().trim(),
 					name: data.name.trim(),
 				})
@@ -139,9 +171,7 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 		}
 
 		if (data.accessType === "operator_satker") {
-			if (!operatorOrgId) {
-				throw new Error("Satker naungan wajib dipilih untuk peran Operator Satker.");
-			}
+			if (!operatorOrgId) throw new Error("Satker naungan wajib dipilih untuk peran Operator Satker.");
 			const created = await grantOperatorAccess(db, {
 				actorUserId,
 				targetUserId: user.id,
@@ -150,9 +180,7 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 			return { success: true, accessId: created.id };
 		} else {
 			const kppnScopeId = allowedKppnScopeIds[0];
-			if (!kppnScopeId) {
-				throw new Error("Scope KPPN tidak valid.");
-			}
+			if (!kppnScopeId) throw new Error("Scope KPPN tidak valid.");
 			const created = await grantAdminAccess(db, {
 				actorUserId,
 				targetUserId: user.id,
@@ -162,45 +190,53 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 		}
 	});
 
-export const removeUserAccessFn = createServerFn({ method: "POST" })
-	.validator(
-		(data: { accessId: string; active?: boolean }) =>
-			data as { accessId: string; active?: boolean },
-	)
+export const hardDeleteUserFn = createServerFn({ method: "POST" })
+	.validator((data: { userId: string }) => data as { userId: string })
 	.handler(async ({ data }) => {
 		const auth = await getServerAuthSession();
 		const access = await getAccessResolutionForSession(auth);
 
-		const { allowedKppnScopeIds } = assertAdminKppnScope(access);
+		assertAdminKppnScope(access);
 
 		const db = getDatabase();
-		if (!db) {
-			return { success: true };
-		}
-
-		const [targetAccess] = await db
-			.select({
-				accessScopeId: userAccesses.kppnScopeId,
-				organizationScopeId: organizations.kppnScopeId,
-			})
-			.from(userAccesses)
-			.leftJoin(organizations, eq(userAccesses.orgId, organizations.id))
-			.where(eq(userAccesses.id, data.accessId))
-			.limit(1);
-		const targetScopeId =
-			targetAccess?.organizationScopeId ?? targetAccess?.accessScopeId;
-		if (!targetScopeId || !allowedKppnScopeIds.includes(targetScopeId)) {
-			throw new Error("Pemetaan akses berada di luar scope admin.");
-		}
+		if (!db) return { success: true };
 
 		const actorUserId = access.status === "admin" ? access.userId : "admin";
-		await toggleAccessActive(db, {
-			actorUserId,
-			userAccessId: data.accessId,
-			active: data.active ?? false,
-		});
-
+		await hardDeleteUser(db, { actorUserId, targetUserId: data.userId });
 		return { success: true };
+	});
+
+export const removeUserAccessFn = createServerFn({ method: "POST" })
+	.validator((data: { accessId?: string; userId?: string }) => data as { accessId?: string; userId?: string })
+	.handler(async ({ data }) => {
+		const auth = await getServerAuthSession();
+		const access = await getAccessResolutionForSession(auth);
+
+		assertAdminKppnScope(access);
+
+		const db = getDatabase();
+		if (!db) return { success: true };
+
+		const actorUserId = access.status === "admin" ? access.userId : "admin";
+		if (data.userId) {
+			await hardDeleteUser(db, { actorUserId, targetUserId: data.userId });
+			return { success: true };
+		}
+		if (data.accessId) {
+			const [targetAccess] = await db
+				.select({ userId: userAccesses.userId, kppnScopeId: userAccesses.kppnScopeId, orgScopeId: organizations.kppnScopeId })
+				.from(userAccesses)
+				.leftJoin(organizations, eq(userAccesses.orgId, organizations.id))
+				.where(eq(userAccesses.id, data.accessId))
+				.limit(1);
+			if (!targetAccess) throw new Error("Data pemetaan akses tidak ditemukan.");
+			const targetScopeId = targetAccess.orgScopeId ?? targetAccess.kppnScopeId;
+			const { allowedKppnScopeIds } = assertAdminKppnScope(access);
+			if (!targetScopeId || !allowedKppnScopeIds.includes(targetScopeId)) throw new Error("Pemetaan akses berada di luar scope admin.");
+			await hardDeleteUser(db, { actorUserId, targetUserId: targetAccess.userId });
+			return { success: true };
+		}
+		throw new Error("Parameter hapus tidak valid.");
 	});
 
 export const listAdminAuditLogsFn = createServerFn({ method: "GET" })

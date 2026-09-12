@@ -45,7 +45,6 @@ export function AccessPending({
 	// Form states
 	const [kodeSatker, setKodeSatker] = useState("");
 	const [namaSatker, setNamaSatker] = useState("");
-	const [isBlu, setIsBlu] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState(false);
@@ -72,7 +71,6 @@ export function AccessPending({
 			const res = await registerSatkerOnboarding({
 				kodeSatker: cleanKode,
 				name: cleanNama,
-				isBlu,
 			});
 
 			if (res.success) {
@@ -227,23 +225,6 @@ export function AccessPending({
 								disabled={isSubmitting || success}
 								className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
 							/>
-						</div>
-
-						<div className="rounded-lg border border-border/80 bg-surface/50 p-3 space-y-2">
-							<label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer">
-								<input
-									type="checkbox"
-									checked={isBlu}
-									onChange={(e) => setIsBlu(e.target.checked)}
-									disabled={isSubmitting || success}
-									className="size-4 rounded border-border text-primary focus:ring-primary"
-								/>
-								<span>Satuan Kerja Badan Layanan Umum (BLU)</span>
-							</label>
-							<p className="text-[11px] text-muted-foreground pl-6">
-								Centang jika satker Anda berstatus BLU untuk penyesuaian target
-								penyerapan anggaran.
-							</p>
 						</div>
 
 						<button
