@@ -50,6 +50,7 @@ export async function assignAccess(input: {
 	kodeSatker?: string | null;
 	satkerName?: string | null;
 	orgId?: string | null;
+	targetUserId?: string | null;
 }) {
 	return assignUserAccessFn({
 		data: {
@@ -59,6 +60,7 @@ export async function assignAccess(input: {
 			kodeSatker: input.kodeSatker ?? input.orgId ?? null,
 			satkerName: input.satkerName ?? null,
 			orgId: input.orgId ?? null,
+			targetUserId: input.targetUserId ?? null,
 		},
 	});
 }

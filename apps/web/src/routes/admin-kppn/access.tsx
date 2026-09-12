@@ -155,6 +155,7 @@ function AdminAccessManagementPage() {
 				accessType: editingItem.accessType,
 				kodeSatker: editingItem.accessType === "operator_satker" ? kodeInput.trim().toUpperCase() : null,
 				satkerName: editingItem.accessType === "operator_satker" ? satkerNameInput.trim() : null,
+				targetUserId: isEditMode ? editingItem.userId : null,
 			});
 			setToastMessage(`Akses "${editingItem.email}" berhasil disimpan.`);
 			setIsModalOpen(false);
@@ -376,8 +377,7 @@ function AdminAccessManagementPage() {
 							</div>
 							<div className="rounded-lg bg-surface-muted/50 border border-border p-3 text-xs">
 								<p className="font-semibold text-foreground">{deleteTarget.email}</p>
-								<p className="text-muted-foreground">{deleteTarget.accessType === "admin_kppn" ? `Admin KPPN • Slot ${deleteTarget.adminSlot ?? "-"}` : `${deleteTarget.scopeCode} • ${deleteTarget.scopeName}`} </p>
-								<p className="mt-1 text-[11px] text-muted-foreground">Data operasional satker tetap, created_by jadi null, riwayat audit tetap.</p>
+								<p className="text-muted-foreground">{deleteTarget.accessType === "admin_kppn" ? `Admin - ${deleteTarget.name} - KPPN 032` : `${deleteTarget.scopeCode} • ${deleteTarget.scopeName}`} </p>
 							</div>
 							<div className="flex items-center justify-end gap-2 border-t border-border pt-3">
 								<button type="button" onClick={() => setDeleteTarget(null)} className="rounded-lg border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-muted">Batal</button>

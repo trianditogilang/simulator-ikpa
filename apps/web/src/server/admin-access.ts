@@ -94,6 +94,7 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 			kodeSatker?: string | null;
 			satkerName?: string | null;
 			orgId?: string | null;
+			targetUserId?: string | null;
 		}) => data,
 	)
 	.handler(async ({ data }) => {
@@ -153,37 +154,75 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 			}
 		}
 
-		let [user] = await db
-			.select()
-			.from(users)
-			.where(eq(users.email, data.email.toLowerCase().trim()))
-			.limit(1);
-
-		if (!user) {
-			[user] = await db
-				.insert(users)
-				.values({
-					clerkUserId: `manual_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-					email: data.email.toLowerCase().trim(),
-					name: data.name.trim(),
-				})
-				.returning();
-		} else if (user.name.trim() !== data.name.trim()) {
-			const [updated] = await db.update(users).set({ name: data.name.trim(), updatedAt: new Date() }).where(eq(users.id, user.id)).returning();
-			if (updated) {
-				user = updated;
-				await db.insert(auditLogs).values({
-					actorId: actorUserId,
-					actorAccessType: "admin_kppn",
-					action: "update_user_name",
-					entityType: "users",
-					entityId: user.id,
-					orgId: null,
-					beforeJson: { name: user.name } as unknown as Record<string, unknown>,
-					afterJson: { name: updated.name } as unknown as Record<string, unknown>,
-				});
+		let user: typeof users.$inferSelect | null = null;
+		if (data.targetUserId) {
+			const [byId] = await db.select().from(users).where(eq(users.id, data.targetUserId)).limit(1);
+			if (!byId) throw new Error("User target tidak ditemukan.");
+			const newEmail = data.email.toLowerCase().trim();
+			const newName = data.name.trim() || byId.name;
+			const needEmail = newEmail !== byId.email;
+			const needName = newName !== byId.name;
+			if (needEmail) {
+				const [exists] = await db.select().from(users).where(eq(users.email, newEmail)).limit(1);
+				if (exists && exists.id !== byId.id) throw Object.assign(new Error("Email sudah digunakan."), { statusCode: 409, code: "EMAIL_ALREADY_EXISTS" });
+			}
+			if (needEmail || needName) {
+				const [updated] = await db
+					.update(users)
+					.set({ email: newEmail, name: newName, updatedAt: new Date() })
+					.where(eq(users.id, byId.id))
+					.returning();
+				if (updated) {
+					user = updated;
+					await db.insert(auditLogs).values({
+						actorId: actorUserId,
+						actorAccessType: "admin_kppn",
+						action: "update_user_profile",
+						entityType: "users",
+						entityId: user.id,
+						orgId: null,
+						beforeJson: byId as unknown as Record<string, unknown>,
+						afterJson: updated as unknown as Record<string, unknown>,
+					});
+				} else user = byId;
+			} else user = byId;
+		} else {
+			let [byEmail] = await db
+				.select()
+				.from(users)
+				.where(eq(users.email, data.email.toLowerCase().trim()))
+				.limit(1);
+			if (!byEmail) {
+				[byEmail] = await db
+					.insert(users)
+					.values({
+						clerkUserId: `manual_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+						email: data.email.toLowerCase().trim(),
+						name: data.name.trim() || data.email.split("@")[0] || "User",
+					})
+					.returning();
+				user = byEmail;
+			} else {
+				user = byEmail;
+				if (user.name.trim() !== data.name.trim() && data.name.trim()) {
+					const [updated] = await db.update(users).set({ name: data.name.trim(), updatedAt: new Date() }).where(eq(users.id, user.id)).returning();
+					if (updated) {
+						await db.insert(auditLogs).values({
+							actorId: actorUserId,
+							actorAccessType: "admin_kppn",
+							action: "update_user_name",
+							entityType: "users",
+							entityId: user.id,
+							orgId: null,
+							beforeJson: { name: byEmail.name } as unknown as Record<string, unknown>,
+							afterJson: { name: updated.name } as unknown as Record<string, unknown>,
+						});
+						user = updated;
+					}
+				}
 			}
 		}
+		if (!user) throw new Error("Gagal memproses user.");
 
 		if (data.accessType === "operator_satker") {
 			if (!operatorOrgId) throw new Error("Satker naungan wajib dipilih untuk peran Operator Satker.");
