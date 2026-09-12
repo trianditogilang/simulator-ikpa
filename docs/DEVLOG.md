@@ -17,6 +17,14 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 277 - 2026-09-13
+**Status:** Completed - AUTH-GUARD-BLIND blind auth guard
+- 4 route guard files changed: `operator/route.tsx`, `admin-kppn/route.tsx`, `access-pending.tsx`, `select-organization.tsx`
+- Semua redirect `unauthenticated` diubah dari `throw redirect({ to: "/sign-in", search: { next: location.href } })` → `throw redirect({ to: "/" })` (tanpa return URL)
+- Unused `location` param dihapus dari `beforeLoad` destructuring di ke-4 file
+- `sign-in.tsx` dan `SignInPanel` tetap mempertahankan validasi `next` search param untuk flow Clerk/manual; auth guard hanya tidak lagi menyuntikkan nilainya
+- Verifikasi: typecheck 0 error; 196 tests lulus (web 130 + access 39 + contracts 1 + engine 108 + policy 33 + UI 8); `git diff` hanya 4 file
+
 ### Session 276 - 2026-09-12
 **Status:** Completed - AUTH-02 registrasi & manajemen akses
 - `apps/web/src/server/domains/settings.server.ts`: normalisasi `kodeSatker.trim().toUpperCase()` + `name.trim()` mengikat (kode sama nama beda → 409 ORGANIZATION_NAME_MISMATCH), default scope Malang 032 (KPPN-032/KPPN Malang, bukan Jakarta II), guard SATKER_OPERATOR_EXISTS/SATKER_ALREADY_REGISTERED 409 untuk 1-satker-1-operator aktif, audit `onboard_satker`; fallback fallback diubah 089→032.
