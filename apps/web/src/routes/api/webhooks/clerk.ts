@@ -20,6 +20,8 @@ interface ClerkWebhookEvent {
 	};
 }
 
+const MAX_WEBHOOK_AGE_SECONDS = 5 * 60;
+
 function getVerifiedEmail(data: ClerkWebhookEvent["data"]): string | null {
 	const primary = data.email_addresses?.find(
 		(e) => e.id === data.primary_email_address_id,
@@ -32,11 +34,20 @@ function getVerifiedEmail(data: ClerkWebhookEvent["data"]): string | null {
 	return data.email_addresses?.[0]?.email_address ?? null;
 }
 
-function verifyClerkWebhook(
+function getWebhookSecretBytes(secret: string): Buffer {
+	if (secret.startsWith("whsec_")) {
+		return Buffer.from(secret.slice("whsec_".length), "base64");
+	}
+	return Buffer.from(secret, "utf8");
+}
+
+export function verifyClerkWebhook(
 	body: string,
 	headers: Headers,
 ): ClerkWebhookEvent | null {
-	const secret = process.env.CLERK_WEBHOOK_SECRET;
+	const secret =
+		process.env.CLERK_WEBHOOK_SECRET ??
+		process.env.CLERK_WEBHOOK_SIGNING_SECRET;
 	if (!secret) return null;
 
 	const svixId = headers.get("svix-id");
@@ -45,20 +56,26 @@ function verifyClerkWebhook(
 
 	if (!svixId || !svixTimestamp || !svixSignature) return null;
 
-	const toSign = `${svixId}.${svixTimestamp}.${body}`;
-	const secretBytes = new TextEncoder().encode(secret);
-	const messageBytes = new TextEncoder().encode(toSign);
+	const timestamp = Number(svixTimestamp);
+	const now = Math.floor(Date.now() / 1000);
+	if (
+		!Number.isInteger(timestamp) ||
+		timestamp <= 0 ||
+		Math.abs(now - timestamp) > MAX_WEBHOOK_AGE_SECONDS
+	) {
+		return null;
+	}
 
-	const hmac = createHmac("sha256", secretBytes);
-	hmac.update(messageBytes);
-	const expectedSignature = hmac.digest("base64");
+	const toSign = `${svixId}.${svixTimestamp}.${body}`;
+	const expectedBytes = createHmac("sha256", getWebhookSecretBytes(secret))
+		.update(toSign)
+		.digest();
 
 	const signatures = svixSignature.split(" ");
 	for (const sig of signatures) {
 		const [version, signature] = sig.split(",", 2);
-		if (version !== "v1") continue;
+		if (version !== "v1" || !signature) continue;
 		const sigBytes = Buffer.from(signature, "base64");
-		const expectedBytes = Buffer.from(`v1,${expectedSignature}`);
 		if (
 			sigBytes.length === expectedBytes.length &&
 			timingSafeEqual(sigBytes, expectedBytes)

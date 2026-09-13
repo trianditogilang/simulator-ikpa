@@ -4,19 +4,27 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Current Phase
 
-**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05 selesai; F13-06 dan task berikutnya tetap ditahan.**
+**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06 selesai; F13-07 dan task berikutnya tetap ditahan.**
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
-- Baseline hijau: typecheck lulus, workspace Vitest 45 test files/326 tests lulus setelah source export retired, `npm run lint` exit 0 (78 warning legacy), production build lulus, dan E2E smoke desktop/mobile 2/2 lulus.
-- Catatan environment: browser bundled Playwright belum dapat diunduh karena jaringan; smoke tetap reproducible memakai Chrome lokal melalui `channel: "chrome"`. Lint masih memiliki 77 warning legacy tanpa error.
+- Baseline hijau: typecheck lulus, workspace Vitest 46 test files/329 tests lulus setelah source export retired dan regression webhook, `npm run lint` exit 0 (78 warning legacy), production build lulus, dan E2E smoke desktop/mobile 2/2 lulus.
+- Catatan environment: browser bundled Playwright belum dapat diunduh karena jaringan; smoke tetap reproducible memakai Chrome lokal melalui `channel: "chrome"`. Lint masih memiliki 78 warning legacy tanpa error.
 - F13-01 lulus: konfigurasi test per workspace mencegah E2E masuk Vitest; pure utility/scheduler/workday tests ditambah; bug rounding negatif fixed-point ditutup.
-- F13-06/F13-08 progress: production delivery/import fallback fail-closed, secret/migration/generated-route checks tersedia, dan CI workflow sudah ditulis tetapi belum dijalankan pada remote PR.
+- F13-06 selesai: security source review dan dependency audit resmi tidak menemukan critical/high; production delivery/import/export/provider fallback fail-closed; secret/migration checks lulus. Residual medium rate-limit provider route dan advisory `uuid`/`esbuild` memiliki owner DevOps/Security, due 2026-10-15. Generated-route drift dan remote CI tetap scope F13-08.
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
 - F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
 - F13-04 lulus: auth-seeded Playwright runner memakai sesi Clerk Operator nyata dan fixture Neon terisolasi; 12/12 test pada Chromium desktop + Mobile Chrome mencakup dashboard 8 indikator, delapan workspace, what-if actual immutable + Slot B/name, parity/compare bulanan dengan skenario, mandatory reminder, dan Operator XLSX. Fixture dibersihkan tanpa mencetak credential.
-- Next action: pertahankan regression E2E F13-04 dan F13-05; F13-06 serta task Fase 13 lain tetap ditahan.
+- Next action: pertahankan regression E2E F13-04/F13-05 dan security checks; F13-07 serta task Fase 13 lain tetap ditahan.
 
 ## Recent Sessions
+
+### Session 289 - 2026-09-13
+**Status:** Completed — F13-06 security review dan production truthfulness
+- **Perubahan:** `apps/web/src/routes/api/webhooks/clerk.ts` kini memverifikasi raw body Svix dengan HMAC digest biner, mendukung `whsec_`/`CLERK_WEBHOOK_SIGNING_SECRET`, dan menolak timestamp replay di luar 5 menit; `apps/web/src/server/clerk-webhook.test.ts` menambah 3 regression test. Dependency production `drizzle-orm` dinaikkan ke 0.45.2 untuk advisory high; Vitest UI dinaikkan ke 4.1.11 untuk menghapus critical/high dev-tree.
+- **Review:** Auth/session, scope tenant, upload/parser, XLSX signature/sanitization, runtime fail-closed, webhook/QStash, SSR/XSS/CSV injection, secrets, dan manifest diaudit. Production tidak memakai mock success/file palsu. Audit source resmi tidak menemukan critical/high.
+- **Verifikasi:** `npm.cmd audit --registry=https://registry.npmjs.org --audit-level=high` exit 0 (6 moderate); `--omit=dev` exit 0 (2 moderate); `npm.cmd run check:secrets`, `check:migrations`, `npm.cmd test` (46 file/329 test), explicit Vitest 4.1.11 UI test (8/8), `npm.cmd run typecheck`, `npm.cmd run lint` (exit 0, 78 warning), dan `npm.cmd run build` lulus. Rerun `node scripts/run-f13-02-integration.mjs` selesai dengan 11 file/84 test lulus dan 4 fixture failures yang sama (reminder config/admin/settings); bukan regresi F13-06. Generated-route check tetap gagal karena generator menghapus declaration block legacy dan file dipulihkan tanpa perubahan.
+- **Residual/owner:** Rate-limit/abuse guard route webhook/QStash/import serta moderate `uuid` via ExcelJS dan `esbuild` via drizzle-kit: Owner DevOps/Security, due 2026-10-15. Generated-route drift diteruskan ke F13-08. Tidak ada deployment, production database, secret, atau token disentuh/dicetak.
+- **Scope:** F13-07 dan task Fase 13 lain tidak dikerjakan.
 
 ### Session 288 - 2026-09-13
 **Status:** Completed — F13-05 E2E Admin KPPN

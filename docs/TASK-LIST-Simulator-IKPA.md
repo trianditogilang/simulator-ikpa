@@ -876,9 +876,11 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
 
   **Evidence 2026-09-13:** Runner authenticated Clerk/Neon `scripts/run-f13-05-e2e.mjs` lulus 12/12 pada Chromium desktop + Mobile Chrome; agregat 8 indikator, sumber aktual/proyeksi/kosong, scope/detail read-only, peer rejection tanpa leakage, failed delivery retry + audit, last-admin protection, dan policy editor production fail-safe terverifikasi. Ekspor Admin tetap retired.
 
-- [ ] **F13-06 â€” Lakukan security review aplikasi.** [Role: Security Agent]
+- [x] **F13-06 â€” Lakukan security review aplikasi.** [Role: Security Agent]
   **Scope:** Auth/session, tenant isolation, upload, export signature/MIME, runtime mock/fallback, webhook, SSR data, XSS, CSV injection, secrets, dependency manifest, rate limits.
   **DoD:** Tidak ada critical/high terbuka; production tidak mengembalikan mock sukses atau file palsu; medium memiliki owner dan due date.
+
+  **Evidence 2026-09-13:** Review source dan authenticated isolation evidence selesai; production fallback/provider/import/export fail-closed. Perbaikan webhook Clerk memverifikasi raw-body HMAC digest, secret `whsec_`/signing-secret, dan replay timestamp; 3 regression test lulus. Drizzle 0.45.2 dan Vitest UI 4.1.11 menghapus critical/high dependency finding. Audit resmi exit 0 (tanpa critical/high), secret scan, migration check, workspace test 329, typecheck, lint, dan build lulus. Residual medium memiliki owner DevOps/Security dan due 2026-10-15: rate-limit provider route, `uuid` via ExcelJS, `esbuild` via drizzle-kit; generated-route drift diteruskan ke F13-08.
 
 - [ ] **F13-07 â€” Lakukan performance test.** [Role: QA Agent]
   **Scope:** Kalkulasi satu satker, dashboard agregat, 10k import, scheduler batch, export  

@@ -3,7 +3,7 @@
 **Sumber aktif:** [PRD Revisi v2](revisi-v2/PRD-Simulator-IKPA.md), [FSD Revisi v2](revisi-v2/FSD-Simulator-IKPA.md), [TSD Revisi v2](revisi-v2/TSD-Simulator-IKPA.md), [ERD Revisi v2](revisi-v2/ERD-Simulator-IKPA.md), dan [Acceptance Criteria Revisi v2](revisi-v2/ACCEPTANCE-CRITERIA.md).
 **Referensi historis:** PRD/FSD/TSD/ERD v1.0, UI/UX Design System v1.0, dan UI/UX Wireframes v1.0.
 **Backlog implementasi:** [TASK-LIST-Simulator-IKPA.md](TASK-LIST-Simulator-IKPA.md)  
-**Status baseline:** 10 September 2026; status aktif Revisi v2: 13 September 2026. F13-00/F13-01/F13-02/F13-03/F13-04/F13-05 sudah diverifikasi; F13-04 dan F13-05 memakai Clerk/Neon auth-seeded E2E pada Preview. F13-06 dan task Fase 13 berikutnya tetap ditahan.
+**Status baseline:** 10 September 2026; status aktif Revisi v2: 13 September 2026. F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06 sudah diverifikasi; F13-04 dan F13-05 memakai Clerk/Neon auth-seeded E2E pada Preview. F13-07 dan task Fase 13 berikutnya tetap ditahan.
 
 **Keputusan scope 2026-09-10:** PDF Operator dan ekspor Admin retired dari kontrak aktif. V2-AC-24 hanya melacak Operator XLSX scoped; Admin tetap monitoring read-only.
 
