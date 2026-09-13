@@ -185,6 +185,7 @@ try {
 	const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 	const childEnv = {
 		...env,
+		F13_04_E2E: "1",
 		F13_04_E2E_TAG: fixtureTag,
 		F13_04_CLERK_SESSION_TOKEN: token.jwt,
 	};

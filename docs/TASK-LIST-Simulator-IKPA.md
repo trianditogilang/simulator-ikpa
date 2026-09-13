@@ -870,9 +870,11 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **DoD:** Skenario Playwright terisolasi lulus pada Chromium desktop dan Mobile Chrome dengan data tenant terisolasi; screenshot/trace tersedia saat gagal.
   **Evidence 2026-09-13:** Runner authenticated Clerk/Neon `scripts/run-f13-04-e2e.mjs` lulus 12/12; dashboard, 8 workspace, what-if + Slot B, parity/compare bulanan+scenario, mandatory reminder, dan Operator XLSX terverifikasi.
 
-- [ ] **F13-05 â€” Buat E2E Admin KPPN.** [Role: QA Agent]
+- [x] **F13-05 â€” Buat E2E Admin KPPN.** [Role: QA Agent]
   **Scope:** Login, agregat 8 indikator, skor/gap/sumber aktual-proyeksi-kosong, detail read-only, mandatory reminder, access, publish policy, failed delivery retry, cross-scope rejection, dan audit. Ekspor Admin tidak termasuk scope aktif.
   **DoD:** Tidak ada kontrol mutasi operasional/sel kuning; last-admin protection, scope, audit, snapshot immutability, dan Admin V2-AC-22..23 terverifikasi.
+
+  **Evidence 2026-09-13:** Runner authenticated Clerk/Neon `scripts/run-f13-05-e2e.mjs` lulus 12/12 pada Chromium desktop + Mobile Chrome; agregat 8 indikator, sumber aktual/proyeksi/kosong, scope/detail read-only, peer rejection tanpa leakage, failed delivery retry + audit, last-admin protection, dan policy editor production fail-safe terverifikasi. Ekspor Admin tetap retired.
 
 - [ ] **F13-06 â€” Lakukan security review aplikasi.** [Role: Security Agent]
   **Scope:** Auth/session, tenant isolation, upload, export signature/MIME, runtime mock/fallback, webhook, SSR data, XSS, CSV injection, secrets, dependency manifest, rate limits.

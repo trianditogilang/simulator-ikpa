@@ -4,7 +4,7 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Current Phase
 
-**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04 selesai; F13-05 dan task berikutnya tetap ditahan.**
+**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05 selesai; F13-06 dan task berikutnya tetap ditahan.**
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
 - Baseline hijau: typecheck lulus, workspace Vitest 45 test files/326 tests lulus setelah source export retired, `npm run lint` exit 0 (78 warning legacy), production build lulus, dan E2E smoke desktop/mobile 2/2 lulus.
@@ -14,9 +14,16 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
 - F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
 - F13-04 lulus: auth-seeded Playwright runner memakai sesi Clerk Operator nyata dan fixture Neon terisolasi; 12/12 test pada Chromium desktop + Mobile Chrome mencakup dashboard 8 indikator, delapan workspace, what-if actual immutable + Slot B/name, parity/compare bulanan dengan skenario, mandatory reminder, dan Operator XLSX. Fixture dibersihkan tanpa mencetak credential.
-- Next action: pertahankan regression E2E F13-04; F13-05 dan task Fase 13 lain tetap ditahan.
+- Next action: pertahankan regression E2E F13-04 dan F13-05; F13-06 serta task Fase 13 lain tetap ditahan.
 
 ## Recent Sessions
+
+### Session 288 - 2026-09-13
+**Status:** Completed — F13-05 E2E Admin KPPN
+- **Perubahan:** Menambahkan `apps/web/e2e/admin-auth.fixture.ts`, `apps/web/e2e/admin.spec.ts`, dan `scripts/run-f13-05-e2e.mjs`; konfigurasi membatasi suite per runner. Runner menemukan Admin aktif dari DB test, membuat sesi Clerk sementara dalam memori, men-seed org actual/forecast/empty + peer scope + failed delivery, lalu cleanup/revoke.
+- **Perilaku diverifikasi:** Dashboard agregat 8 indikator; sumber Aktual/Proyeksi/Kosong; daftar/detail satker scoped read-only; peer detail ditolak tanpa peer leakage; retry delivery dan audit; proteksi Admin aktif terakhir; policy editor production fail-safe; Chromium desktop + Mobile Chrome.
+- **Verifikasi:** `node scripts/run-f13-05-e2e.mjs https://simulator-ikpa-web-git-staging-trianditogilang.vercel.app` — 12/12 lulus; `npm.cmd test` — 45 file/326 test lulus; `npm.cmd run typecheck` lulus; `npm.cmd run lint` exit 0 (78 warning legacy); `npm.cmd run build` client+SSR/Nitro lulus; `git diff --check` dijalankan setelah pembaruan dokumentasi.
+- **Coverage tersisa:** Preview policy editor/catalog tetap fail-safe karena rule-set terautentikasi belum tersedia; UI publish policy, multi-admin add/remove, dan interactive sign-in belum dieksekusi. F13-06 dan task Fase 13 lain tetap ditahan; F13-03 tidak dikerjakan dalam sesi ini.
 
 ### Session 287 - 2026-09-13
 **Status:** Completed — F13-04 E2E Operator

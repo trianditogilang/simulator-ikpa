@@ -3,7 +3,7 @@
 **Sumber aktif:** [PRD Revisi v2](revisi-v2/PRD-Simulator-IKPA.md), [FSD Revisi v2](revisi-v2/FSD-Simulator-IKPA.md), [TSD Revisi v2](revisi-v2/TSD-Simulator-IKPA.md), [ERD Revisi v2](revisi-v2/ERD-Simulator-IKPA.md), dan [Acceptance Criteria Revisi v2](revisi-v2/ACCEPTANCE-CRITERIA.md).
 **Referensi historis:** PRD/FSD/TSD/ERD v1.0, UI/UX Design System v1.0, dan UI/UX Wireframes v1.0.
 **Backlog implementasi:** [TASK-LIST-Simulator-IKPA.md](TASK-LIST-Simulator-IKPA.md)  
-**Status baseline:** 10 September 2026; status aktif Revisi v2: 13 September 2026. F13-00/F13-01/F13-02 dan F13-04 sudah diverifikasi; F13-04 memakai Clerk/Neon auth-seeded E2E pada Preview, sedangkan E2E Admin tetap menunggu F13-05.
+**Status baseline:** 10 September 2026; status aktif Revisi v2: 13 September 2026. F13-00/F13-01/F13-02/F13-03/F13-04/F13-05 sudah diverifikasi; F13-04 dan F13-05 memakai Clerk/Neon auth-seeded E2E pada Preview. F13-06 dan task Fase 13 berikutnya tetap ditahan.
 
 **Keputusan scope 2026-09-10:** PDF Operator dan ekspor Admin retired dari kontrak aktif. V2-AC-24 hanya melacak Operator XLSX scoped; Admin tetap monitoring read-only.
 
@@ -26,11 +26,11 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 
 | Area | Active criteria | Evidence phase | Current status |
 |---|---|---|---|
-| Akses dan scope | V2-AC-01..07 | F13-02, F13-04, F13-05 | Needs Fix — local DB/auth HTTP partial; full E2E staging belum tersedia |
+| Akses dan scope | V2-AC-01..07 | F13-02, F13-04, F13-05 | Needs Fix — authenticated Operator/Admin scope dan peer rejection lulus; login interaktif serta multi-admin lifecycle belum tersedia |
 | Input dan engine | V2-AC-08..11 | F13-01, F13-02 | Needs Fix — unit/golden dan sebagian scoped integration hijau; seluruh ServerFn belum terwakili |
 | Skenario, dashboard, dan riwayat | V2-AC-12..16 | F13-04 | Done — auth-seeded Playwright 12/12 pada Chromium desktop + Mobile Chrome |
 | Policy, deadline, dan delivery | V2-AC-17..21 | F13-03, F13-05 | Blocked — database/provider replay harness belum tersedia |
-| Admin monitoring read-only | V2-AC-22..23 | F13-05 | Blocked — scoped admin E2E belum dijalankan |
+| Admin monitoring read-only | V2-AC-22..23 | F13-05 | Done — auth-seeded Admin E2E 12/12; agregat/sumber, read-only, reminder/risk, failed retry, audit, dan fail-safe policy terverifikasi |
 
 ### Active v2 evidence ledger
 
@@ -42,7 +42,7 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 | V2-AC-09..10 | 45 workspace test files/307 tests; engine eight-row/boundary/golden tests lulus | Done |
 | V2-AC-11..16 | Authenticated E2E 12/12: what-if actual immutable, Slot B/name, dashboard 8, parity, dan compare bulanan+scenario | Done |
 | V2-AC-17..21 | Deadline/compliance/scheduler pure tests; publish/replay/provider DB belum ada | Blocked |
-| V2-AC-22..23 | Admin server guards dan UI build; scoped read-only/admin E2E belum ada | Blocked |
+| V2-AC-22..23 | Auth-seeded Admin E2E 12/12: agregat 8 indikator dan sumber actual/proyeksi/kosong, scope/detail read-only, reminder/risk, failed delivery retry + audit, last-admin protection; policy editor fail-safe pada Preview | Done |
 | V2-AC-24 | Operator XLSX signature/production guard dan authenticated export E2E lulus; PDF/Admin export retired | Done |
 
 ## 1. Kebutuhan Fungsional PRD
@@ -280,12 +280,12 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 | Test ID | Cakupan TSD | Task test | Status MVP |
 |---|---|---|---|
 | TSD-E2E-01 | Alur lengkap Operator sampai export | F13-04 | Done — auth-seeded Preview runner 12/12 |
-| TSD-E2E-02 | Alur monitoring/export Admin | F13-05 | Planned |
+| TSD-E2E-02 | Alur monitoring/export Admin (ekspor Admin retired) | F13-05 | Done — monitoring read-only auth-seeded 12/12; ekspor Admin tidak termasuk scope aktif |
 | TSD-E2E-03 | Admin menambah Operator dan login berhasil | F13-05 | Planned |
 | TSD-E2E-04 | Admin menambah Admin setara | F13-05 | Planned |
-| TSD-E2E-05 | Admin terakhir tidak dapat dinonaktifkan | F13-05 | Planned |
+| TSD-E2E-05 | Admin terakhir tidak dapat dinonaktifkan | F13-05 | Done — self-delete control disabled pada Admin aktif terakhir |
 | TSD-E2E-06 | Operator tidak dapat melepas mandatory/recipient | F13-04, F13-05 | Planned |
-| TSD-E2E-07 | Publish mengevaluasi jadwal, snapshot tetap | F13-05 | Planned |
+| TSD-E2E-07 | Publish mengevaluasi jadwal, snapshot tetap | F13-05 | Planned — UI publish/catalog belum tersedia pada Preview; server/provider evidence tetap di F13-03/F13-02 |
 | TSD-E2E-08 | Replay QStash tidak duplikat | F13-03, F13-05 | Planned |
 | TSD-QG-01 | Typecheck, lint, unit, golden, build | F13-08 | Planned |
 | TSD-QG-02 | Migration database kosong/staging | F7-15, F13-08 | Planned |

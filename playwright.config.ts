@@ -1,10 +1,21 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const isCi = Boolean(process.env.CI);
-const remoteBaseUrl = process.env.F13_04_HTTP_URL;
+const remoteBaseUrl = process.env.F13_04_HTTP_URL ?? process.env.F13_05_HTTP_URL;
+const e2eSuite = process.env.F13_05_E2E
+	? "admin"
+	: process.env.F13_04_E2E
+		? "operator"
+		: "all";
 
 export default defineConfig({
 	testDir: "./apps/web/e2e",
+	testIgnore:
+		e2eSuite === "admin"
+			? ["**/operator.spec.ts"]
+			: e2eSuite === "operator"
+				? ["**/admin.spec.ts"]
+				: undefined,
 	outputDir: "./test-results/e2e",
 	fullyParallel: !remoteBaseUrl,
 	forbidOnly: isCi,
