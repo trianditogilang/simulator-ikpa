@@ -23,7 +23,7 @@ export const simulations = pgTable(
 		targetScore: numeric("target_score", { precision: 8, scale: 4 }),
 		parentSnapshotId: uuid("parent_snapshot_id"),
 		createdBy: uuid("created_by").references(() => users.id, {
-			onDelete: "set null",
+			onDelete: "cascade",
 		}),
 		deletedAt: timestamp("deleted_at", { withTimezone: true }),
 		createdAt: timestamp("created_at", { withTimezone: true })

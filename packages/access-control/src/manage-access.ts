@@ -1,6 +1,7 @@
 import type { DbClient } from "@simulator-ikpa/db";
 import { auditLogs, userAccesses, users } from "@simulator-ikpa/db/schema";
-import { and, count, eq, isNotNull } from "drizzle-orm";
+import { and, count, eq, isNotNull, ne } from "drizzle-orm";
+import { UserSyncConflictError } from "./sync-user";
 
 export class LastAdminRevocationError extends Error {
 	public readonly statusCode = 400;
@@ -78,6 +79,12 @@ export interface HardDeleteUserInput {
 	actorUserId: string;
 	targetUserId: string;
 	requestId?: string | null;
+	/**
+	 * Runs after all local deletion guards pass and immediately before the
+	 * users row is deleted. The web layer uses this hook to remove the
+	 * corresponding Clerk account without coupling this package to Clerk.
+	 */
+	beforeDelete?: (targetUser: typeof users.$inferSelect) => Promise<void>;
 }
 
 export interface UpdateUserProfileInput {
@@ -85,6 +92,22 @@ export interface UpdateUserProfileInput {
 	targetUserId: string;
 	name?: string | null;
 	email?: string | null;
+	requestId?: string | null;
+}
+
+export interface CreatePendingAccessInput {
+	actorUserId: string;
+	email: string;
+	accessType: "operator_satker" | "admin_kppn";
+	orgId?: string | null;
+	kppnScopeId?: string | null;
+	requestId?: string | null;
+}
+
+export interface ClaimPendingAccessInput {
+	clerkUserId: string;
+	email: string;
+	name?: string | null;
 	requestId?: string | null;
 }
 
@@ -177,9 +200,8 @@ export async function hardDeleteUser(db: DbClient, input: HardDeleteUserInput) {
 		const [cntRes] = await db.select({ total: count() }).from(userAccesses).where(and(eq(userAccesses.accessType, "admin_kppn"), eq(userAccesses.kppnScopeId, a.kppnScopeId), eq(userAccesses.active, true)));
 		if (Number(cntRes?.total ?? 0) <= 1) throw new LastAdminRevocationError("Tidak dapat menghapus admin terakhir pada scope KPPN.");
 	}
-	const allAccesses = await db.select().from(userAccesses).where(eq(userAccesses.userId, input.targetUserId));
 	return await runWithFallback(db, async (tx) => {
-		await tx.insert(auditLogs).values({ actorId: input.actorUserId, actorAccessType: "admin_kppn", action: "delete_user", entityType: "users", entityId: input.targetUserId, orgId: null, beforeJson: { user: targetUser, accesses: allAccesses } as unknown as Record<string, unknown>, afterJson: null, requestId: input.requestId ?? null });
+		if (input.beforeDelete) await input.beforeDelete(targetUser);
 		const [deleted] = await tx.delete(users).where(eq(users.id, input.targetUserId)).returning();
 		return deleted ?? targetUser;
 	});
@@ -214,4 +236,172 @@ export async function updateUserProfile(db: DbClient, input: UpdateUserProfileIn
 		// normalize audit extra?
 	}
 	return updated;
+}
+
+export async function createPendingAccess(db: DbClient, input: CreatePendingAccessInput) {
+	const normalizedEmail = normalizeEmail(input.email);
+
+	// Idempotent: if pending access already exists for this email + accessType, return it
+	const [existingPending] = await db
+		.select()
+		.from(userAccesses)
+		.where(
+			and(
+				eq(userAccesses.invitedEmail, normalizedEmail),
+				eq(userAccesses.accessType, input.accessType),
+				eq(userAccesses.status, "pending"),
+			),
+		)
+		.limit(1);
+	if (existingPending) return existingPending;
+
+	const [conflictingPending] = await db
+		.select({ id: userAccesses.id })
+		.from(userAccesses)
+		.where(
+			and(
+				eq(userAccesses.invitedEmail, normalizedEmail),
+				eq(userAccesses.status, "pending"),
+				ne(userAccesses.accessType, input.accessType),
+			),
+		)
+		.limit(1);
+	if (conflictingPending) throw new AccessConflictError();
+
+	return await runWithFallback(db, async (tx) => {
+		const [created] = await tx
+			.insert(userAccesses)
+			.values({
+				userId: null,
+				accessType: input.accessType,
+				status: "pending",
+				invitedEmail: normalizedEmail,
+				orgId: input.orgId ?? null,
+				kppnScopeId: input.kppnScopeId ?? null,
+				active: true,
+				createdBy: input.actorUserId,
+			})
+			.returning();
+
+		await tx.insert(auditLogs).values({
+			actorId: input.actorUserId,
+			actorAccessType: "admin_kppn",
+			action: "create_pending_access",
+			entityType: "user_accesses",
+			entityId: created.id,
+			orgId: input.orgId ?? null,
+			beforeJson: null,
+			afterJson: created as unknown as Record<string, unknown>,
+			requestId: input.requestId ?? null,
+		});
+
+		return created;
+	});
+}
+
+export async function claimPendingAccess(db: DbClient, input: ClaimPendingAccessInput) {
+	const normalizedEmail = normalizeEmail(input.email);
+
+	// Find all pending accesses for this email
+	const pendingAccesses = await db
+		.select()
+		.from(userAccesses)
+		.where(
+			and(
+				eq(userAccesses.invitedEmail, normalizedEmail),
+				eq(userAccesses.status, "pending"),
+			),
+		);
+
+	if (pendingAccesses.length === 0) return null;
+
+	// Create or claim user
+	let user: typeof users.$inferSelect | null = null;
+
+	const [existingByClerkId] = await db
+		.select()
+		.from(users)
+		.where(eq(users.clerkUserId, input.clerkUserId))
+		.limit(1);
+
+	if (existingByClerkId) {
+		const [updated] = await db
+			.update(users)
+			.set({ email: normalizedEmail, name: input.name?.trim() || existingByClerkId.name, updatedAt: new Date() })
+			.where(eq(users.id, existingByClerkId.id))
+			.returning();
+		user = updated;
+	} else {
+		const [existingByEmail] = await db
+			.select()
+			.from(users)
+			.where(eq(users.email, normalizedEmail))
+			.limit(1);
+
+		if (existingByEmail) {
+			if (
+				existingByEmail.clerkUserId &&
+				!existingByEmail.clerkUserId.startsWith("manual_") &&
+				existingByEmail.clerkUserId !== input.clerkUserId
+			) {
+				throw new UserSyncConflictError(normalizedEmail, existingByEmail.clerkUserId, input.clerkUserId);
+			}
+			const [claimed] = await db
+				.update(users)
+				.set({ clerkUserId: input.clerkUserId, name: input.name?.trim() || existingByEmail.name, updatedAt: new Date() })
+				.where(eq(users.id, existingByEmail.id))
+				.returning();
+			user = claimed;
+		} else {
+			const [created] = await db
+				.insert(users)
+				.values({
+					clerkUserId: input.clerkUserId,
+					email: normalizedEmail,
+					name: input.name?.trim() || normalizedEmail.split("@")[0] || "User",
+				})
+				.returning();
+			user = created;
+		}
+	}
+
+	// Link all pending accesses to the user and activate them
+	if (!user) throw new Error("Gagal memproses user.");
+	const linkedUser = user;
+	let claimedCount = 0;
+	for (const pending of pendingAccesses) {
+		const didClaim = await runWithFallback(db, async (tx) => {
+			const [claimedAccess] = await tx
+				.update(userAccesses)
+				.set({
+					userId: linkedUser.id,
+					status: "active",
+					updatedAt: new Date(),
+				})
+				.where(
+					and(
+						eq(userAccesses.id, pending.id),
+						eq(userAccesses.status, "pending"),
+					),
+				)
+				.returning({ id: userAccesses.id });
+			if (!claimedAccess) return false;
+
+			await tx.insert(auditLogs).values({
+				actorId: linkedUser.id,
+				actorAccessType: pending.accessType,
+				action: "claim_pending_access",
+				entityType: "user_accesses",
+				entityId: pending.id,
+				orgId: pending.orgId,
+				beforeJson: pending as unknown as Record<string, unknown>,
+				afterJson: { ...pending, userId: linkedUser.id, status: "active" } as unknown as Record<string, unknown>,
+				requestId: input.requestId ?? null,
+			});
+			return true;
+		});
+		if (didClaim) claimedCount++;
+	}
+
+	return { user: linkedUser, claimedAccesses: claimedCount };
 }

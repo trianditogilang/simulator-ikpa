@@ -1,6 +1,8 @@
 # PRD — Product Requirements Document (Revisi v2)
 
 > Dokumen ini adalah kontrak produk aktif Revisi v2. Baseline v1.3 dipertahankan di bagian bawah hanya untuk histori dan traceability; bila ada konflik, addendum/kontrak aktif v2 berlaku.
+>
+> Keputusan produk 2026-09-13: Audit Log Admin dan route `/admin-kppn/audit-logs` dipensiunkan. Admin hanya memakai monitoring, policy, kalender, dan manajemen akses; pencatatan internal backend tetap menjadi detail implementasi.
 
 ## Addendum Revisi v2 — 2026-09-09
 
@@ -78,7 +80,7 @@ Nilai\ IKPA\ akhir = \sum_{i=1}^{7}(Nilai\ indikator_i \times Bobot_i) - Pengura
 - Memberikan proyeksi IKPA yang transparan dan dapat ditelusuri hingga input, formula, parameter, dan versi aturan.
 - Mendukung simulasi *what-if* sebelum tindakan operasional dilakukan.
 - Mengidentifikasi gap target, risiko tenggat, dan kontribusi masing-masing indikator terhadap nilai akhir.
-- Menyediakan riwayat, snapshot, audit trail, dan laporan untuk rapat pengendalian.
+- Menyediakan riwayat, snapshot, dan laporan untuk rapat pengendalian.
 - Mengirim reminder sebelum tenggat berdasarkan policy aktif dan konfigurasi organisasi yang valid.
 - Memungkinkan perubahan policy tanpa deploy aplikasi serta tanpa mengubah konsistensi snapshot historis.
 
@@ -115,7 +117,7 @@ Sistem menggunakan satu mekanisme login. Setelah berhasil login, sistem membaca 
 | Jenis akses | Pengguna | Hak akses |
 |---|---|---|
 | Operator Satker | Satu atau beberapa email yang terdaftar pada satker | Akses penuh pada seluruh data, input, simulasi, reminder, riwayat, laporan, dan pengaturan untuk satker sendiri |
-| Admin KPPN | Satu atau beberapa email yang terdaftar sebagai admin | Akses penuh monitoring seluruh satker dalam cakupan KPPN, laporan agregat, aturan IKPA, reminder policy, kalender kerja, audit, dan manajemen email admin |
+| Admin KPPN | Satu atau beberapa email yang terdaftar sebagai admin | Akses penuh monitoring seluruh satker dalam cakupan KPPN, laporan agregat, aturan IKPA, reminder policy, kalender kerja, dan manajemen email admin |
 
 Ketentuan akses MVP:
 
@@ -244,11 +246,10 @@ Semua menu input dapat diakses penuh oleh setiap Operator Satker pada satker sen
 - **Detail Satker:** Tampilan read-only atas dashboard, data ringkasan, hasil simulasi, indikator, riwayat snapshot, dan reminder satker.
 - Admin KPPN tidak mengubah data operasional satker pada MVP.
 
-#### Risiko, laporan, dan audit
+#### Risiko dan laporan
 
 - **Monitoring Risiko & Reminder:** Risiko lintas satker, event mendekati deadline, delivery status, kegagalan email, dan eskalasi.
 - **Laporan Agregat:** Monitoring indikator, tren, target gap, risiko, dan daftar satker secara read-only. Ekspor Admin tidak termasuk kontrak aktif.
-- **Audit Log:** Aktivitas perubahan policy, akses, konfigurasi reminder, rule set version, dan delivery notifikasi.
 
 #### Admin Policy
 
@@ -258,7 +259,7 @@ Semua Admin KPPN memiliki keleluasaan yang sama pada menu ini.
 - **Reminder Policy:** Kelola event type, indikator, kategori `mandatory/recommended/optional`, formula deadline, tipe hari, range lead time, default schedule, dan required recipients.
 - **Kalender Hari Kerja:** Kelola tanggal libur dan hari kerja yang digunakan untuk perhitungan deadline berbasis hari kerja.
 - **Publish & Riwayat Versi:** Publikasikan versi baru, catat sumber regulasi, catatan perubahan, tanggal efektif, dan dampak ke jadwal mendatang.
-- **Audit Policy:** Lihat siapa mengubah atau mempublikasikan policy, nilai sebelum/sesudah, serta rule set version yang digunakan.
+- **Policy:** Kelola siapa yang dapat mengubah atau mempublikasikan policy sesuai scope KPPN.
 
 #### Manajemen Admin KPPN dan akses satker
 
@@ -395,7 +396,7 @@ flowchart TD
 |---|---|---|
 | UI publik | React, TanStack Start, Tailwind, shadcn/ui | Landing page, login, halaman akses belum diberikan |
 | UI operator | React, Recharts, shadcn/ui | Dashboard satker, input, simulasi, reminder, laporan |
-| UI admin | React, Recharts, shadcn/ui | Monitoring satker, admin policy, kalender, audit, akses email |
+| UI admin | React, Recharts, shadcn/ui | Monitoring satker, admin policy, kalender, akses email |
 | Server | TanStack Start server functions/routes | Otorisasi, validasi, CRUD, perhitungan, export, endpoint job |
 | Logika domain | TypeScript + Zod | Formula IKPA, rule set, deadline, hari kerja, rekomendasi, compliance |
 | Database | Neon PostgreSQL + Drizzle | Data satker, skenario, snapshot, akses, policy, konfigurasi, delivery log |

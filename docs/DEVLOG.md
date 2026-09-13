@@ -17,6 +17,59 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 284 - 2026-09-13
+**Status:** Completed - AUTH-HARD-DELETE Clerk/Neon sync reset
+- **Perubahan:** jalur `hardDeleteUserFn`/`removeUserAccessFn` kini memvalidasi Admin scope dan target mapping sebelum menghapus akun Clerk melalui `clerkClient().users.deleteUser`, lalu menghapus row Neon dalam hard delete. Self-delete, Admin aktif terakhir, target lintas scope, dan Clerk yang belum dikonfigurasi ditolak; Clerk 404 diperlakukan idempoten dan kegagalan Neon menghasilkan pesan retry sinkronisasi.
+- **Cascade & fallback:** FK `user_accesses.user_id` tetap cascade dari migration `0004`; migration `0006_hard_delete_user_cascade.sql` menambahkan cascade untuk `simulations.created_by`, `score_snapshots.created_by`, dan `audit_logs.actor_id`. Metadata `created_by`/`updated_by` pada data operasional bersama tetap `SET NULL`. Webhook Clerk `user.deleted` menghapus identitas lokal berdasarkan `clerk_user_id` tanpa membutuhkan email.
+- **UI:** modal menjelaskan penghapusan permanen Clerk/Neon dan toast membedakan sukses, kegagalan Clerk, kegagalan Neon, self-delete, serta Admin terakhir.
+- **Verifikasi:** typecheck access-control/db/web lulus; unit access-control 46/46 dan web 130/130 lulus; `drizzle-kit check` lulus; lint file server/schema lulus.
+
+### Session 283 - 2026-09-13
+**Status:** Completed - AUTH-EDIT-RENAME onboarding satker reuse
+- **Root cause:** jalur onboarding `/access-pending` masih menolak semua kode yang sudah ada di `organizations`, termasuk organisasi yatim/inaktif yang tidak mempunyai mapping Operator aktif atau undangan pending pada Manajemen Akses.
+- **Perubahan:** pemeriksaan onboarding kini memakai status mapping yang sama dengan daftar Admin (`active + user_id` atau `pending + user_id NULL`), memperbolehkan organisasi satu-scope tanpa mapping terlihat untuk dipakai user baru, memperbarui nama satker lama, dan tetap menolak organisasi di luar scope KPPN.
+- **Verifikasi:** `npm run typecheck --workspace @simulator-ikpa/web` lulus; `npm test --workspaces --if-present -- --run` lulus (45 file/326 test); `npx biome lint apps/web/src/server/domains/settings.server.ts` lulus; `git diff --check` lulus.
+
+### Session 282 - 2026-09-13
+**Status:** Completed - AUTH-EDIT-RENAME satker code reuse/orphan cleanup
+- **Root cause:** guard membandingkan nama terhadap seluruh tabel `organizations`, sehingga organisasi orphan setelah user dihapus memblokir kode satker walaupun tidak ada pada daftar akses Admin.
+- **Perubahan:** duplikasi Operator kini hanya menghitung mapping aktif/pending yang tampil; kode orphan/inaktif boleh dipakai ulang dan nama satker diperbarui; penghapusan user/akses membersihkan organisasi orphan yang tidak memiliki data operasional, tanpa cascade-delete data operasional; edit mapping tetap in-place.
+- **Verifikasi:** typecheck web lulus; seluruh workspace test lulus (45 file/326 test); production build client+SSR+Nitro lulus; `git diff --check` lulus.
+
+### Session 281 - 2026-09-13
+**Status:** Completed - Admin Audit Log retired
+- **Perubahan:** Menu Admin `Audit Log`, route `/admin-kppn/audit-logs`, halaman, mock, service, dan server function pembacaan audit dihapus. Menu Admin Policy, Manajemen Akses, monitoring, dan route lain tetap dipertahankan.
+- **Data/runtime:** Pencatatan internal yang dipakai mutasi domain lain tetap dipertahankan agar fungsi transaksi tidak berubah; audit tidak lagi tersedia sebagai tampilan Admin.
+- **Verifikasi:** Route tree digenerate ulang; `npm run typecheck --workspace @simulator-ikpa/web` lulus; referensi route/menu audit tidak tersisa di `apps/web/src`.
+
+### Session 280 - 2026-09-13
+**Status:** Completed - AUTH-EDIT-RENAME follow-up (edit/sync/deduplication)
+- **Root cause:** mode edit hanya mengirim `targetUserId`, sehingga alur grant dapat membuat mapping baru atau menghitung satker milik baris yang sedang diedit sebagai duplikat; pembuatan user lama juga memakai `manual_*` yang tidak memiliki akun Clerk. Query halaman juga membaca kolom `user_accesses.status` sebelum migration runtime diterapkan.
+- **Perubahan:** edit mengirim `targetAccessId` dan memperbarui mapping yang sama; tipe akses dikunci setelah terdaftar dan konflik Operator/Admin ditolak server-side; kode/nama satker tetap editable selama bukan kode satker lain yang benar-benar konflik; profil email/nama di-sync ke Clerk lebih dulu lalu Neon; Clerk invitation retry idempotent; list memakai identitas email kanonis untuk deduplikasi; user baru masuk alur pending invitation tanpa fake user ID; login/webhook meng-claim pending access ke Clerk ID nyata.
+- **Verifikasi:** build web produksi lulus; seluruh workspace typecheck dan test lulus (45 file/326 test); `npm run check:migrations --workspace @simulator-ikpa/db` lulus; migration `0004`/`0005` dan audit read-only Neon menunjukkan kolom/status tersedia, tidak ada duplicate active mapping, dan tidak ada user `manual_*`; `git diff --check` lulus.
+- **Risiko/known issue:** runner F13-02 terisolasi tidak dijadikan gate task ini karena fixture environment gagal menyediakan `Seeded operator reminder config` dan tiga assertion admin/settings ikut gagal; generated-route check masih berbeda pada declaration block legacy yang sudah ada. Production tetap wajib mengonfigurasi `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET`, dan menjalankan migration.
+- **Next:** tidak memulai task lain; pertahankan task F13 yang tercatat pada backlog.
+
+### Session 279 - 2026-09-13
+**Status:** Completed - AUTH-INVITE-ONLY runtime migration fix
+- **Root cause:** `user_accesses.status` sudah dipakai oleh query Manajemen Akses, tetapi kolom belum ada pada target Neon. Migration `0004_clever_wallop` tidak dijalankan karena timestamp journal lebih lama daripada migration terakhir yang sudah tercatat.
+- **Perubahan:** `packages/db/drizzle/meta/_journal.json` memakai timestamp migration yang lebih baru; ditambahkan `0005_nullable_user_access_user.sql` agar `user_id` benar-benar nullable sesuai alur pending invitation; tidak ada perubahan query atau UI.
+- **Verifikasi:** migration `0004` dan `0005` diterapkan ke Neon; query kolom/status dan nullability lulus; `drizzle-kit check` lulus; seluruh workspace test 45 file/323 test lulus; seluruh workspace typecheck lulus; `git diff --check` lulus.
+- **Risiko/known issue:** production/preview tetap harus menyertakan dan menjalankan migration `0004_clever_wallop.sql` serta `0005_nullable_user_access_user.sql`; build lokal tidak dijalankan sampai selesai karena dev server aktif mengunci `.output` (EPERM).
+- **Next:** tidak memulai task lain; pertahankan F13-04 dan task berikutnya sesuai backlog.
+
+### Session 278 - 2026-09-13
+**Status:** Completed - AUTH-INVITE-ONLY invitation-based access management
+- Reset project ke commit `5002d2e0e20fcf3b025e1b61bfa659db9a69bd89` ("fix: manajemen akses")
+- **Schema**: tambah `accessStatusEnum` (`pending`, `active`) ke `packages/db/src/schema/enums.ts`; `user_accesses` tambah kolom `status` (default `active`) + `invitedEmail` text nullable, `userId` nullable; migrasi SQL `0004_clever_wallop.sql` + journal entry (snapshot pending `drizzle-kit generate`)
+- **Access Control**: `packages/access-control/src/manage-access.ts` — `createPendingAccess` idempotent (create `status: 'pending'` dengan `invitedEmail`, return existing jika email+accessType+status sudah pending) + `claimPendingAccess` (link `clerk_user_id`, create/claim user via `syncClerkUser`, activate pending accesses); email dinormalisasi ke lowercase
+- **BE `admin-access.ts`**: `listAdminUserAccessFn` query active (join users) + pending (by invitedEmail); `assignUserAccessFn` ganti `manual_*` → `createPendingAccess` + `clerkClient().invitations.createInvitation()`; `removeUserAccessFn` handle hard delete pending access (no user record)
+- **Webhook**: `apps/web/src/routes/api/webhooks/clerk.ts` — handler Svix-format HMAC-SHA256 verifikasi, handle `user.created`/`user.updated` → `syncClerkUser` + `claimPendingAccess`; `CLERK_WEBHOOK_SECRET` env var required
+- **FE `access.tsx`**: `AccessRow` interface tambah `accessStatus`; pending rows tampilkan badge "Menunggu" + hide Edit/Delete; `activeAdminCount` exclude pending
+- **Service**: `admin-access-service.ts` — `AdminUserAccessRecord` nullable `userId`/`name`/`email`; tambah `removeAccess()` function
+- **Tests**: 43 access-control tests (39 existing + 4 baru: createPendingAccess idempotent, claimPendingAccess success, claimPendingAccess no-pending null); all 108 tests pass across workspace; typecheck 0 error
+- Verifikasi: `npm run test --workspaces --if-present` lulus 108 tests; `npm run typecheck --workspace @simulator-ikpa/web` 0 error; `drizzle-kit generate` belum dijalankan (perlu DB connection untuk snapshot JSON)
+
 ### Session 278 - 2026-09-13
 **Status:** Completed - AUTH-EDIT-RENAME edit akses rename/recode + email confirmation
 - **BE `admin-access.ts`**: `assignUserAccessFn` validator tambah `emailConfirmed?: boolean`; edit mode (`targetUserId`) — email changed tanpa `emailConfirmed` → `EMAIL_CONFIRM_REQUIRED` 400; rename/recode logic: same kode + name changed → `db.update(organizations)` + audit `update_organization_name`; diff kode → lookup target org,不存在 → update current org kode+name + audit `update_organization_kode`, 存在 + name match → reassign `orgId` (+ SATKER_OPERATOR_EXISTS guard), 存在 + name mismatch → `ORGANIZATION_NAME_MISMATCH` 409.

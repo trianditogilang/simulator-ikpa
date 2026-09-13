@@ -61,7 +61,11 @@ export async function resolveUserAccess(
 		.leftJoin(organizations, eq(userAccesses.orgId, organizations.id))
 		.leftJoin(kppnScopes, eq(userAccesses.kppnScopeId, kppnScopes.id))
 		.where(
-			and(eq(userAccesses.userId, user.id), eq(userAccesses.active, true)),
+			and(
+				eq(userAccesses.userId, user.id),
+				eq(userAccesses.active, true),
+				eq(userAccesses.status, "active"),
+			),
 		);
 
 	if (accesses.length === 0) {

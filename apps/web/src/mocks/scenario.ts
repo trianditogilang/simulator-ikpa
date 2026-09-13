@@ -92,7 +92,7 @@ export const MOCK_SCENARIOS = [
 	{
 		id: "SCN-DELIVERY-FAILED",
 		label: "Reminder gagal dikirim",
-		description: "Delivery gagal dan tersedia jalur retry yang dapat diaudit.",
+		description: "Delivery gagal dan tersedia jalur retry yang dapat ditelusuri.",
 		primaryRoute: "/operator/reminders",
 		state: "delivery_failed",
 		audience: ["operator_satker", "admin_kppn"],

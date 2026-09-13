@@ -39,7 +39,7 @@ export const mockAuthPresets: AuthPresetUser[] = [
 			"Monitoring agregat seluruh satker mitra",
 			"Kelola & publikasikan Rule Set IKPA berversi",
 			"Konfigurasi Reminder Policy & Kalender Hari Kerja",
-			"Manajemen akses pengguna & audit trail",
+			"Manajemen akses pengguna",
 			"Monitoring agregat KPPN secara read-only",
 		],
 	},
@@ -159,12 +159,5 @@ export const mockPermissionMatrix: RolePermissionItem[] = [
 		operatorSatkerAccess: "🚫 Tidak Memiliki Akses",
 		isAdminAllowed: true,
 		isOperatorAllowed: false,
-	},
-	{
-		moduleName: "Audit Log & Jejak Perubahan",
-		adminKppnAccess: "📜 Full System Audit Trail & JSON Diff",
-		operatorSatkerAccess: "📋 Riwayat Simulasi Satker Sendiri",
-		isAdminAllowed: true,
-		isOperatorAllowed: true,
 	},
 ];

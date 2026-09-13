@@ -105,7 +105,7 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 | ADM-08 | Reminder Policy | F4-09 | F10-03, F10-04, F10-09, F11-13 | Planned |
 | ADM-09 | Kalender Hari Kerja | F4-10 | F0-03, F0-04, F10-01, F11-13 | Gate → Planned |
 | ADM-10 | Riwayat Versi Policy | F4-11 | F10-02, F10-09, F11-13 | Planned |
-| ADM-11 | Audit Log | F4-12 | F7-13, F9-01, F11-14 | Planned |
+| ADM-11 | Audit Log Admin | F4-12 | F7-13, F9-01, F11-14 | Retired 2026-09-13 |
 | ADM-12 | Manajemen Akses | F4-13 | F8-07, F11-14 | Planned |
 
 ## 3. Acceptance Criteria PRD
@@ -190,7 +190,7 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 | `org_reminder_configs` | F7-12 | F10-04, F10-10 | Planned |
 | `notification_deliveries` | F7-12 | F10-05, F10-08, F10-11 | Planned |
 | `import_jobs` | F7-13 | F12-02–F12-05 | Planned |
-| `audit_logs` | F7-13 | F9-01, F11-14 | Planned |
+| `audit_logs` | F7-13 | F9-01, F11-14 | Retained internal only; Admin reader retired 2026-09-13 |
 
 ## 6. Wireframe
 

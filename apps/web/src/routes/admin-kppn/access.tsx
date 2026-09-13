@@ -19,7 +19,7 @@ import { mockPermissionMatrix } from "@/mocks/auth-presets";
 import {
 	assignAccess,
 	fetchAdminUserAccesses,
-	hardDeleteUser,
+	removeAccess,
 } from "@/services/admin-access-service";
 
 export const Route = createFileRoute("/admin-kppn/access")({
@@ -34,15 +34,16 @@ export const Route = createFileRoute("/admin-kppn/access")({
 
 interface AccessRow {
 	id: string;
-	userId: string;
+	userId: string | null;
 	name: string;
 	email: string;
 	accessType: "operator_satker" | "admin_kppn";
 	accessTypeLabel: string;
+	accessStatus: "active" | "pending";
 	scopeCode: string;
 	scopeName: string;
 	adminSlot: number | null;
-	status: "active" | "inactive";
+	status: "active" | "inactive" | "pending";
 	createdAt: string;
 }
 
@@ -53,13 +54,14 @@ function AdminAccessManagementPage() {
 	const accessList: AccessRow[] = loaderData.accesses.map((a) => ({
 		id: a.id,
 		userId: a.userId,
-		name: a.name,
-		email: a.email,
+		name: a.name ?? "",
+		email: a.email ?? "",
 		accessType: a.accessType,
 		accessTypeLabel: a.accessType === "admin_kppn" ? "Admin KPPN" : "Operator Satker",
+		accessStatus: a.accessStatus,
 		scopeCode: a.scopeCode,
 		scopeName: a.scopeName,
-		adminSlot: (a as unknown as { adminSlot: number | null }).adminSlot ?? null,
+		adminSlot: a.adminSlot,
 		status: a.status,
 		createdAt: a.createdAt.slice(0, 10),
 	}));
@@ -69,6 +71,7 @@ function AdminAccessManagementPage() {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isEditMode, setIsEditMode] = useState(false);
 	const [toastMessage, setToastMessage] = useState<string | null>(null);
+	const [toastIsError, setToastIsError] = useState(false);
 	const [modalError, setModalError] = useState<string | null>(null);
 	const [lastAdminAlert, setLastAdminAlert] = useState(false);
 	const [isMatrixOpen, setIsMatrixOpen] = useState(false);
@@ -80,7 +83,7 @@ function AdminAccessManagementPage() {
 	const [showEmailChangeConfirm, setShowEmailChangeConfirm] = useState(false);
 	const [selfEmailChangeConfirmed, setSelfEmailChangeConfirmed] = useState(false);
 
-	const activeAdminCount = accessList.filter((a) => a.accessType === "admin_kppn").length;
+	const activeAdminCount = accessList.filter((a) => a.accessType === "admin_kppn" && a.accessStatus === "active").length;
 
 	let currentUserEmail: string | null = null;
 	try {
@@ -97,6 +100,15 @@ function AdminAccessManagementPage() {
 			currentUserEmail = demoAdmin.email.toLowerCase();
 		}
 	}
+	const editingOriginalRow = isEditMode && editingItem
+		? accessList.find((row) => row.id === editingItem.id) ?? null
+		: null;
+	const isEditingExistingAccess = Boolean(editingOriginalRow);
+	const isEditingSelf = Boolean(
+		currentUserEmail &&
+		editingOriginalRow?.email &&
+		editingOriginalRow.email.toLowerCase() === currentUserEmail,
+	);
 
 	const filteredList = useMemo(() => {
 		return accessList.filter((item) => {
@@ -120,11 +132,12 @@ function AdminAccessManagementPage() {
 	const openAddModal = () => {
 		setEditingItem({
 			id: `acc-new-${Date.now()}`,
-			userId: `usr-new-${Date.now()}`,
+			userId: null,
 			name: "",
 			email: "",
 			accessType: "operator_satker",
 			accessTypeLabel: "Operator Satker",
+			accessStatus: "active",
 			scopeCode: "",
 			scopeName: "",
 			adminSlot: null,
@@ -155,9 +168,8 @@ function AdminAccessManagementPage() {
 
 	const handleSaveAccess = async () => {
 		if (!editingItem) return;
-		const isSelf = currentUserEmail ? editingItem.email.toLowerCase() === currentUserEmail : false;
-		if (isEditMode && isSelf && editingItem.accessType !== accessList.find((a) => a.userId === editingItem.userId)?.accessType) {
-			setModalError("Tidak dapat mengganti tipe akses akun sendiri.");
+		if (isEditMode && isEditingExistingAccess && editingItem.accessType !== editingOriginalRow?.accessType) {
+			setModalError("Tipe akses tidak dapat diubah setelah pengguna terdaftar.");
 			return;
 		}
 		const emailChanged = isEditMode && editingItem.email.trim().toLowerCase() !== originalEmail;
@@ -165,7 +177,7 @@ function AdminAccessManagementPage() {
 			setModalError("Centang konfirmasi perubahan email terlebih dahulu.");
 			return;
 		}
-		if (emailChanged && isSelf && !selfEmailChangeConfirmed) {
+		if (emailChanged && isEditingSelf && !selfEmailChangeConfirmed) {
 			setShowEmailChangeConfirm(true);
 			return;
 		}
@@ -179,22 +191,32 @@ function AdminAccessManagementPage() {
 				kodeSatker: editingItem.accessType === "operator_satker" ? kodeInput.trim().toUpperCase() : null,
 				satkerName: editingItem.accessType === "operator_satker" ? satkerNameInput.trim() : null,
 				targetUserId: isEditMode ? editingItem.userId : null,
+				targetAccessId: isEditMode ? editingItem.id : null,
 				emailConfirmed,
 			});
+			setToastIsError(false);
 			setToastMessage(`Akses "${editingItem.email}" berhasil disimpan.`);
 			setIsModalOpen(false);
 			setEditingItem(null);
 			await router.invalidate();
 		} catch (e) {
 			const msg = e instanceof Error ? e.message : "Gagal menyimpan akses.";
-			if (msg.includes("ORGANIZATION_NAME_MISMATCH")) {
+			const code = e && typeof e === "object" && "code" in e ? String((e as { code?: unknown }).code ?? "") : "";
+			const errorText = `${code} ${msg}`;
+			if (errorText.includes("ORGANIZATION_NAME_MISMATCH") || msg.includes("Kode satker sudah terdaftar dengan nama berbeda")) {
 				setModalError("Kode satker sudah terdaftar dengan nama berbeda.");
-			} else if (msg.includes("SATKER_OPERATOR_EXISTS") || msg.includes("OPERATOR_ALREADY_EXISTS")) {
+			} else if (errorText.includes("SATKER_OPERATOR_EXISTS") || errorText.includes("OPERATOR_ALREADY_EXISTS") || msg.includes("sudah memiliki operator aktif")) {
 				setModalError("Satker sudah memiliki operator aktif.");
-			} else if (msg.includes("SATKER_ALREADY_REGISTERED")) {
+			} else if (errorText.includes("SATKER_ALREADY_REGISTERED")) {
 				setModalError("Satker sudah terdaftar. Minta Admin KPPN memetakan akses.");
-			} else if (msg.includes("EMAIL_CONFIRM_REQUIRED")) {
+			} else if (errorText.includes("EMAIL_CONFIRM_REQUIRED") || msg.includes("Konfirmasi perubahan email")) {
 				setModalError("Konfirmasi perubahan email diperlukan.");
+			} else if (errorText.includes("ACCESS_TYPE_CONFLICT") || msg.includes("Jenis akses pengguna tidak dapat diubah") || msg.includes("Satu pengguna tidak boleh memiliki")) {
+				setModalError("Tipe akses tidak dapat diubah setelah pengguna terdaftar.");
+			} else if (errorText.includes("CLERK_SYNC_FAILED") || msg.includes("menyinkronkan perubahan user ke Clerk")) {
+				setModalError("Perubahan belum disimpan karena gagal menyinkronkan data ke Clerk.");
+			} else if (errorText.includes("CLERK_INVITATION_FAILED") || msg.includes("Undangan Clerk gagal dikirim")) {
+				setModalError("Akses belum disimpan karena undangan Clerk gagal dikirim.");
 			} else {
 				setModalError(`Gagal menyimpan akses: ${msg}`);
 			}
@@ -210,6 +232,7 @@ function AdminAccessManagementPage() {
 		if (!deleteTarget) return;
 		const isSelf = currentUserEmail ? deleteTarget.email.toLowerCase() === currentUserEmail : false;
 		if (isSelf) {
+			setToastIsError(true);
 			setToastMessage("Tidak dapat menghapus akun Anda sendiri.");
 			setTimeout(() => setToastMessage(null), 4000);
 			setDeleteTarget(null);
@@ -221,11 +244,28 @@ function AdminAccessManagementPage() {
 			return;
 		}
 		try {
-			await hardDeleteUser(deleteTarget.userId);
-			setToastMessage(`Akses "${deleteTarget.email}" berhasil dihapus.`);
+			await removeAccess(deleteTarget.id, deleteTarget.userId);
+			setToastIsError(false);
+			setToastMessage(`Akun "${deleteTarget.email}" berhasil dihapus dari Clerk dan Neon.`);
 			await router.invalidate();
 		} catch (e) {
-			setToastMessage(e instanceof Error ? `Gagal menghapus: ${e.message}` : "Gagal menghapus akses.");
+			setToastIsError(true);
+			const msg = e instanceof Error ? e.message : "Gagal menghapus akses.";
+			const code = e && typeof e === "object" && "code" in e ? String((e as { code?: unknown }).code ?? "") : "";
+			const errorText = `${code} ${msg}`;
+			if (errorText.includes("CLERK_NOT_CONFIGURED")) {
+				setToastMessage("Penghapusan dibatalkan: koneksi Clerk belum dikonfigurasi.");
+			} else if (errorText.includes("CLERK_DELETE_FAILED") || msg.includes("menghapus akun user di Clerk")) {
+				setToastMessage("Akun belum dihapus karena penghapusan di Clerk gagal.");
+			} else if (errorText.includes("DATABASE_DELETE_FAILED")) {
+				setToastMessage("Akun Clerk sudah dihapus, tetapi data Neon belum bersih. Ulangi penghapusan.");
+			} else if (errorText.includes("SELF_DELETE_FORBIDDEN") || msg.includes("menghapus akun sendiri")) {
+				setToastMessage("Tidak dapat menghapus akun Anda sendiri.");
+			} else if (errorText.includes("LAST_ADMIN_PROTECTION") || msg.includes("admin terakhir")) {
+				setToastMessage("Tidak dapat menghapus Admin KPPN aktif terakhir.");
+			} else {
+				setToastMessage(`Gagal menghapus akses: ${msg}`);
+			}
 		}
 		setDeleteTarget(null);
 		setTimeout(() => setToastMessage(null), 4000);
@@ -252,12 +292,12 @@ function AdminAccessManagementPage() {
 				</div>
 
 				{toastMessage && (
-					<div className="flex items-center justify-between rounded-xl border border-success/30 bg-success/10 p-4 text-xs font-medium text-success">
+					<div className={`flex items-center justify-between rounded-xl border p-4 text-xs font-medium ${toastIsError ? "border-danger/30 bg-danger/10 text-danger" : "border-success/30 bg-success/10 text-success"}`}>
 						<div className="flex items-center gap-2">
-							<CheckCircle2 className="size-4 shrink-0" />
+							{toastIsError ? <ShieldAlert className="size-4 shrink-0" /> : <CheckCircle2 className="size-4 shrink-0" />}
 							<span>{toastMessage}</span>
 						</div>
-						<button type="button" onClick={() => setToastMessage(null)} className="text-success hover:underline">Tutup</button>
+						<button type="button" onClick={() => setToastMessage(null)} className={toastIsError ? "text-danger hover:underline" : "text-success hover:underline"}>Tutup</button>
 					</div>
 				)}
 
@@ -305,27 +345,48 @@ function AdminAccessManagementPage() {
 							<tbody className="divide-y divide-border/60">
 								{sortedFilteredList.map((user) => {
 									const isCurrentUser = currentUserEmail ? user.email.toLowerCase() === currentUserEmail : false;
+									const isPending = user.accessStatus === "pending";
 									return (
-										<tr key={user.id} className={`transition-colors hover:bg-surface-muted/30 ${isCurrentUser ? "bg-primary/[0.06] border-b-2 border-primary/20" : ""}`}>
+										<tr key={user.id} className={`transition-colors hover:bg-surface-muted/30 ${isCurrentUser ? "bg-primary/[0.06] border-b-2 border-primary/20" : ""} ${isPending ? "opacity-70" : ""}`}>
 											<td className="py-3 pl-4 pr-2">
 												<div className="flex flex-col">
-													<span className="font-semibold text-foreground">{user.accessType === "admin_kppn" ? `Admin - ${user.name} - KPPN 032` : user.scopeName}</span>
-													<span className="text-[11px] text-muted-foreground">{user.accessType === "admin_kppn" ? "KPPN 032" : `Kode: ${user.scopeCode}`}</span>
+													<span className="font-semibold text-foreground">
+														{isPending
+															? `Menunggu - ${user.email}`
+															: user.accessType === "admin_kppn"
+																? `Admin - ${user.name} - KPPN 032`
+																: user.scopeName}
+													</span>
+													<span className="text-[11px] text-muted-foreground">
+														{isPending
+															? "Undangan Clerk dikirim"
+															: user.accessType === "admin_kppn"
+																? "KPPN 032"
+																: `Kode: ${user.scopeCode}`}
+													</span>
 												</div>
 											</td>
-											<td className="px-3 py-3 font-medium text-foreground">{user.email}{isCurrentUser && <span className="ml-1.5 inline-flex rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">Anda</span>}</td>
+											<td className="px-3 py-3 font-medium text-foreground">
+												{user.email}
+												{isCurrentUser && <span className="ml-1.5 inline-flex rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">Anda</span>}
+												{isPending && <span className="ml-1.5 inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">Menunggu</span>}
+											</td>
 											<td className="px-3 py-3">
 												<span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${user.accessType === "admin_kppn" ? "bg-primary/10 text-primary" : "bg-surface-muted text-foreground"}`}>{user.accessType === "admin_kppn" ? "Admin KPPN" : "Operator"}</span>
 											</td>
 											<td className="py-3 pl-2 pr-4 text-right">
 												<div className="flex items-center justify-end gap-1.5">
-													<button type="button" onClick={() => openEditModal(user)} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-semibold text-primary transition hover:bg-surface-muted">
-														<Edit className="size-3" />
-														<span>Edit</span>
-													</button>
-													<button type="button" onClick={() => setDeleteTarget(user)} disabled={isCurrentUser} className={`rounded-md p-1 hover:bg-danger/10 hover:text-danger ${isCurrentUser ? "cursor-not-allowed opacity-40" : "text-muted-foreground"}`} title={isCurrentUser ? "Tidak dapat menghapus akun sendiri" : "Hapus Akses"}>
-														<Trash2 className="size-3.5" />
-													</button>
+													{!isPending && (
+														<>
+															<button type="button" onClick={() => openEditModal(user)} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-semibold text-primary transition hover:bg-surface-muted">
+																<Edit className="size-3" />
+																<span>Edit</span>
+															</button>
+															<button type="button" onClick={() => setDeleteTarget(user)} disabled={isCurrentUser} className={`rounded-md p-1 hover:bg-danger/10 hover:text-danger ${isCurrentUser ? "cursor-not-allowed opacity-40" : "text-muted-foreground"}`} title={isCurrentUser ? "Tidak dapat menghapus akun sendiri" : "Hapus Akses"}>
+																<Trash2 className="size-3.5" />
+															</button>
+														</>
+													)}
 												</div>
 											</td>
 										</tr>
@@ -369,14 +430,13 @@ function AdminAccessManagementPage() {
 									<span className="text-muted-foreground block mb-1 font-medium">Jenis Hak Akses</span>
 									<select aria-label="Jenis hak akses" value={editingItem.accessType} onChange={(e) => {
 										const type = e.target.value as "operator_satker" | "admin_kppn";
-										const isSelfEdit = currentUserEmail ? editingItem.email.toLowerCase() === currentUserEmail : false;
-										if (isEditMode && isSelfEdit) return;
+										if (isEditingExistingAccess) return;
 										setEditingItem({ ...editingItem, accessType: type });
-									}} disabled={isEditMode && currentUserEmail ? editingItem.email.toLowerCase() === currentUserEmail : false} className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none disabled:opacity-50">
+									}} disabled={isEditingExistingAccess} className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none disabled:opacity-50">
 										<option value="operator_satker">Operator Satker</option>
 										<option value="admin_kppn">Admin KPPN</option>
 									</select>
-									{isEditMode && currentUserEmail && editingItem.email.toLowerCase() === currentUserEmail && <p className="mt-1 text-[11px] text-warning">Tidak dapat mengganti tipe akses akun sendiri.</p>}
+									{isEditingExistingAccess && <p className="mt-1 text-[11px] text-warning">Tipe akses dikunci setelah pengguna terdaftar.</p>}
 								</div>
 								{editingItem.accessType === "operator_satker" && (
 									<>
@@ -415,8 +475,8 @@ function AdminAccessManagementPage() {
 							<div className="flex items-center gap-3">
 								<div className="flex size-10 items-center justify-center rounded-full bg-danger/10 text-danger shrink-0"><ShieldAlert className="size-5" /></div>
 								<div>
-									<h3 className="text-base font-semibold text-foreground">Hapus Akses Pengguna?</h3>
-									<p className="text-xs text-muted-foreground">Tindakan ini akan menghapus user dan semua mapping-nya secara permanen.</p>
+									<h3 className="text-base font-semibold text-foreground">Hapus Akun Pengguna Permanen?</h3>
+									<p className="text-xs text-muted-foreground">Akun Clerk, data Neon, mapping akses, dan riwayat simulasi akan dihapus permanen.</p>
 								</div>
 							</div>
 							<div className="rounded-lg bg-surface-muted/50 border border-border p-3 text-xs">
@@ -441,7 +501,7 @@ function AdminAccessManagementPage() {
 									<p className="text-xs text-muted-foreground">Integritas Scope KPPN Anda</p>
 								</div>
 							</div>
-							<p className="text-xs text-muted-foreground">Tidak dapat menghapus akun Admin KPPN aktif terakhir. Sistem mewajibkan minimal ada <strong className="text-foreground">1 Admin KPPN aktif</strong> untuk menjaga kesinambungan tata kelola dan audit kebijakan.</p>
+							<p className="text-xs text-muted-foreground">Tidak dapat menghapus akun Admin KPPN aktif terakhir. Sistem mewajibkan minimal ada <strong className="text-foreground">1 Admin KPPN aktif</strong> untuk menjaga kesinambungan tata kelola.</p>
 							<div className="flex items-center justify-end border-t border-border pt-3">
 								<button type="button" onClick={() => setLastAdminAlert(false)} className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-xs">Mengerti</button>
 							</div>

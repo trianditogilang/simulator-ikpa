@@ -1,4 +1,5 @@
 import {
+	claimPendingAccess,
 	resolveUserAccess,
 	syncClerkUser,
 } from "@simulator-ikpa/access-control";
@@ -110,9 +111,19 @@ export async function getAccessResolutionForSession(
 		requestedOrgId,
 	});
 
-	if (access.status === "unauthenticated" && process.env.CLERK_SECRET_KEY) {
+	if (
+		(access.status === "unauthenticated" || access.status === "unmapped") &&
+		process.env.CLERK_SECRET_KEY
+	) {
 		const identity = await getClerkIdentity(auth.clerkUserId);
 		await syncClerkUser(db, identity);
+		// Webhooks are asynchronous. Claim an invitation on the first
+		// authenticated request as a safe, idempotent fallback.
+		await claimPendingAccess(db, {
+			clerkUserId: identity.clerkUserId,
+			email: identity.email,
+			name: identity.name,
+		});
 		access = await resolveUserAccess(db, {
 			clerkUserId: auth.clerkUserId,
 			requestedOrgId,

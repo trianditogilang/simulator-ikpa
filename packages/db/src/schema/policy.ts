@@ -26,8 +26,7 @@ export const ruleSets = pgTable(
 		changeNotes: text("change_notes"),
 		configJson: jsonb("config_json").notNull(),
 		createdBy: uuid("created_by")
-			.references(() => users.id, { onDelete: "restrict" })
-			.notNull(),
+			.references(() => users.id, { onDelete: "set null" }),
 		publishedAt: timestamp("published_at", { withTimezone: true }),
 		retiredAt: timestamp("retired_at", { withTimezone: true }),
 		createdAt: timestamp("created_at", { withTimezone: true })

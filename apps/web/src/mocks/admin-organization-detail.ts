@@ -70,13 +70,6 @@ export interface AdminOrgDetailData {
 		status: "sent" | "scheduled" | "failed";
 		recipient: string;
 	}[];
-	auditLogs: {
-		id: string;
-		timestamp: string;
-		actor: string;
-		action: string;
-		summary: string;
-	}[];
 }
 
 export const mockAdminOrgDetailPoltek: AdminOrgDetailData = {
@@ -348,29 +341,6 @@ export const mockAdminOrgDetailPoltek: AdminOrgDetailData = {
 			scheduledFor: "30 Agu 2026, 09.00 WIB",
 			status: "sent",
 			recipient: "rian.output@polinema.ac.id",
-		},
-	],
-	auditLogs: [
-		{
-			id: "aud-01",
-			timestamp: "31 Agu 2026, 14.50 WIB",
-			actor: "Bambang Sudarsono (Operator)",
-			action: "update",
-			summary: "Memperbarui data realisasi BAST K-001",
-		},
-		{
-			id: "aud-02",
-			timestamp: "28 Agu 2026, 16.10 WIB",
-			actor: "Rian Prasetya (Operator)",
-			action: "import",
-			summary: "Import data Capaian Output 16 RO dari Excel",
-		},
-		{
-			id: "aud-03",
-			timestamp: "15 Agu 2026, 10.30 WIB",
-			actor: "Dewi Lestari (Operator)",
-			action: "create",
-			summary: "Merekam Pengesahan Revisi DIPA Ke-1",
 		},
 	],
 };

@@ -12,7 +12,7 @@ import {
 	users,
 } from "@simulator-ikpa/db/schema";
 import { setCookie } from "@tanstack/react-start/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, or } from "drizzle-orm";
 import { getAccessResolutionForSession } from "../access.server";
 import { writeAudit } from "../audit/write-audit";
 import {
@@ -42,6 +42,31 @@ function getDatabase() {
 		return null;
 	}
 	return createDbClient(dbUrl);
+}
+
+async function findVisibleOperatorForOrganization(
+	db: ReturnType<typeof createDbClient>,
+	orgId: string,
+) {
+	const visibleStatus = or(
+		and(eq(userAccesses.status, "active"), isNotNull(userAccesses.userId)),
+		and(eq(userAccesses.status, "pending"), isNull(userAccesses.userId)),
+	);
+	if (!visibleStatus) return undefined;
+
+	const [operator] = await db
+		.select({ id: userAccesses.id })
+		.from(userAccesses)
+		.where(
+			and(
+				eq(userAccesses.orgId, orgId),
+				eq(userAccesses.accessType, "operator_satker"),
+				eq(userAccesses.active, true),
+				visibleStatus,
+			),
+		)
+		.limit(1);
+	return operator;
 }
 
 export async function handleRegisterSatkerOnboarding(data: {
@@ -111,9 +136,9 @@ export async function handleRegisterSatkerOnboarding(data: {
 		if (updated) scope = updated;
 	}
 
-	// 3. Find or create organization. An unmapped user may create a new satker,
-	// but may not claim an already-registered satker by guessing its code.
-	let createdOrganization = false;
+	// 3. Find or create organization. An unmapped user may reuse an organization
+	// row that has no visible operator/pending mapping; the access list is the
+	// source of truth for whether the code is already claimed.
 	let [org] = await db
 		.select()
 		.from(organizations)
@@ -121,8 +146,24 @@ export async function handleRegisterSatkerOnboarding(data: {
 		.limit(1);
 
 	if (org) {
-		if (org.name.trim() !== normalizedName) {
-			throw Object.assign(new Error("Kode satker sudah terdaftar dengan nama berbeda."), { statusCode: 409, code: "ORGANIZATION_NAME_MISMATCH" });
+		if (org.kppnScopeId !== scope.id) {
+			throw Object.assign(
+				new Error("Satker sudah terdaftar. Minta Admin KPPN memetakan akses Anda."),
+				{ statusCode: 409, code: "SATKER_ALREADY_REGISTERED" },
+			);
+		}
+		if (org.name.trim().toLowerCase() !== normalizedName.toLowerCase()) {
+			if (await findVisibleOperatorForOrganization(db, org.id)) {
+				throw Object.assign(new Error("Kode satker sudah terdaftar dengan nama berbeda."), { statusCode: 409, code: "ORGANIZATION_NAME_MISMATCH" });
+			}
+		}
+		if (org.name !== normalizedName) {
+			const [updatedOrg] = await db
+				.update(organizations)
+				.set({ name: normalizedName, updatedAt: new Date() })
+				.where(eq(organizations.id, org.id))
+				.returning();
+			if (updatedOrg) org = updatedOrg;
 		}
 	} else {
 		[org] = await db
@@ -136,7 +177,6 @@ export async function handleRegisterSatkerOnboarding(data: {
 				timezone: "Asia/Jakarta",
 			})
 			.returning();
-		createdOrganization = true;
 	}
 
 	// 4. Ensure Fiscal Year 2026 exists
@@ -171,19 +211,13 @@ export async function handleRegisterSatkerOnboarding(data: {
 		)
 		.limit(1);
 
-	if (!createdOrganization && !existingAccess) {
-		const [activeOperator] = await db.select().from(userAccesses).where(and(eq(userAccesses.orgId, org.id), eq(userAccesses.accessType, "operator_satker"), eq(userAccesses.active, true))).limit(1);
-		if (activeOperator) {
+	if (!existingAccess) {
+		if (await findVisibleOperatorForOrganization(db, org.id)) {
 			throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
 		}
-		throw Object.assign(new Error("Satker sudah terdaftar. Minta Admin KPPN memetakan akses Anda."), { statusCode: 409, code: "SATKER_ALREADY_REGISTERED" });
 	}
 
 	if (!existingAccess) {
-		const [activeOperator] = await db.select().from(userAccesses).where(and(eq(userAccesses.orgId, org.id), eq(userAccesses.accessType, "operator_satker"), eq(userAccesses.active, true))).limit(1);
-		if (activeOperator) {
-			throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
-		}
 		await db.insert(userAccesses).values({
 			userId: user.id,
 			accessType: "operator_satker",
@@ -192,8 +226,8 @@ export async function handleRegisterSatkerOnboarding(data: {
 			createdBy: user.id,
 		});
 	} else if (!existingAccess.active) {
-		const [activeOperator] = await db.select().from(userAccesses).where(and(eq(userAccesses.orgId, org.id), eq(userAccesses.accessType, "operator_satker"), eq(userAccesses.active, true))).limit(1);
-		if (activeOperator && activeOperator.userId !== user.id) {
+		const visibleOperator = await findVisibleOperatorForOrganization(db, org.id);
+		if (visibleOperator && visibleOperator.id !== existingAccess.id) {
 			throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
 		}
 		await db.update(userAccesses).set({ active: true, updatedAt: new Date() }).where(eq(userAccesses.id, existingAccess.id));

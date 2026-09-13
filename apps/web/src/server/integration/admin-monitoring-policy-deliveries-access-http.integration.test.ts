@@ -59,10 +59,6 @@ const peerAssignmentUserName = `F13-02 peer assignment ${fixtureTag}`;
 const peerAssignmentUserEmail = `peer-assignment-${fixtureTag}@example.invalid`;
 const ownAssignmentUserName = `F13-02 own assignment ${fixtureTag}`;
 const ownAssignmentUserEmail = `own-assignment-${fixtureTag}@example.invalid`;
-const ownAuditAction = `f13_02_admin_own_${fixtureTag}`;
-const peerAuditAction = `f13_02_admin_peer_${fixtureTag}`;
-const ownAuditRequestId = `f13-02-own-request-${fixtureTag}`;
-const peerAuditRequestId = `f13-02-peer-request-${fixtureTag}`;
 const policyVersion = `F13-02-${fixtureTag}`;
 const policySourceMarker = `F13-02 policy source ${fixtureTag}`;
 const policyNotesMarker = `F13-02 policy notes ${fixtureTag}`;
@@ -93,8 +89,6 @@ let peerAccessId = "";
 let peerAssignmentUserId = "";
 let ownAssignmentUserId = "";
 let ownAssignedAccessId = "";
-let ownAuditId = "";
-let peerAuditId = "";
 let draftRuleSetId = "";
 
 async function findServerFnId(
@@ -425,38 +419,6 @@ beforeAll(async () => {
 		.returning({ id: users.id });
 	ownAssignmentUserId = ownAssignmentUser.id;
 
-	const [ownAudit] = await db
-		.insert(auditLogs)
-		.values({
-			orgId: adminOrgId,
-			actorId: adminUserId,
-			actorAccessType: "admin_kppn",
-			entityType: `f13-02-own-audit-${fixtureTag}`,
-			entityId: null,
-			action: ownAuditAction,
-			beforeJson: { marker: ownAuditAction },
-			afterJson: { marker: ownAuditAction },
-			ruleSetVersion: activeRuleSetVersion,
-			requestId: ownAuditRequestId,
-		})
-		.returning({ id: auditLogs.id });
-	ownAuditId = ownAudit.id;
-	const [peerAudit] = await db
-		.insert(auditLogs)
-		.values({
-			orgId: peerOrgId,
-			actorId: adminUserId,
-			actorAccessType: "admin_kppn",
-			entityType: `f13-02-peer-audit-${fixtureTag}`,
-			entityId: null,
-			action: peerAuditAction,
-			beforeJson: { marker: peerAuditAction },
-			afterJson: { marker: peerAuditAction },
-			ruleSetVersion: activeRuleSetVersion,
-			requestId: peerAuditRequestId,
-		})
-		.returning({ id: auditLogs.id });
-	peerAuditId = peerAudit.id;
 });
 
 afterAll(async () => {
@@ -472,8 +434,6 @@ afterAll(async () => {
 			await db.delete(users).where(eq(users.id, userId));
 		}
 	}
-	if (ownAuditId) await db.delete(auditLogs).where(eq(auditLogs.id, ownAuditId));
-	if (peerAuditId) await db.delete(auditLogs).where(eq(auditLogs.id, peerAuditId));
 	if (draftRuleSetId) {
 		await db.delete(auditLogs).where(eq(auditLogs.entityId, draftRuleSetId));
 		await db.delete(ruleSets).where(eq(ruleSets.id, draftRuleSetId));
@@ -516,8 +476,6 @@ const peerForbiddenValues = () => [
 	peerUserName,
 	peerAssignmentUserEmail,
 	peerAssignmentUserName,
-	peerAuditAction,
-	peerAuditRequestId,
 ];
 
 describe("F13-02 Admin authenticated HTTP boundary", () => {
@@ -854,28 +812,6 @@ describe("F13-02 Admin authenticated HTTP boundary", () => {
 		expectBodyContains(ownAccess.body, peerAccessId, false);
 		expectBodyContains(ownAccess.body, peerUserEmail, false);
 		expectBodyContains(ownAccess.body, peerUserName, false);
-		expectDenied(
-			await callServerFn({ id, method: "GET", data: undefined }),
-			peerForbiddenValues(),
-		);
-	});
-
-	it("listAdminAuditLogsFn exposes only audit rows in the Admin scope", async () => {
-		const id = await findServerFnId(
-			"/src/server/admin-access.ts",
-			"listAdminAuditLogsFn",
-		);
-		const ownAudit = await callServerFn({
-			id,
-			method: "GET",
-			data: undefined,
-			authToken: adminSessionToken,
-		});
-		expect(ownAudit.status).toBe(200);
-		expectBodyContains(ownAudit.body, ownAuditAction);
-		expectBodyContains(ownAudit.body, ownAuditRequestId);
-		expectBodyContains(ownAudit.body, peerAuditAction, false);
-		expectBodyContains(ownAudit.body, peerAuditRequestId, false);
 		expectDenied(
 			await callServerFn({ id, method: "GET", data: undefined }),
 			peerForbiddenValues(),

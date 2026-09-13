@@ -72,7 +72,6 @@ const policyItems: readonly NavigationItem[] = [
 
 
 const secondaryItems: readonly NavigationItem[] = [
-	{ label: "Audit Log", href: "/admin-kppn/audit-logs", icon: ClipboardList },
 	{ label: "Manajemen Akses", href: "/admin-kppn/access", icon: KeyRound },
 ];
 
@@ -241,12 +240,6 @@ function AdminNavigationContent({
 							))}
 						</div>
 					</div>
-					<div className="space-y-1">
-						<NavigationLink
-							currentPath={currentPath}
-							item={secondaryItems[0]}
-						/>
-					</div>
 					<div className="space-y-2">
 						<SectionLabel>Admin Policy</SectionLabel>
 						<div className="space-y-1 pl-2">
@@ -260,7 +253,7 @@ function AdminNavigationContent({
 						</div>
 					</div>
 					<div className="space-y-1">
-						{secondaryItems.slice(1).map((item) => (
+						{secondaryItems.map((item) => (
 							<NavigationLink
 								currentPath={currentPath}
 								item={item}
