@@ -17,7 +17,12 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
-### Session 277 - 2026-09-13
+### Session 278 - 2026-09-13
+**Status:** Completed - AUTH-EDIT-RENAME edit akses rename/recode + email confirmation
+- **BE `admin-access.ts`**: `assignUserAccessFn` validator tambah `emailConfirmed?: boolean`; edit mode (`targetUserId`) — email changed tanpa `emailConfirmed` → `EMAIL_CONFIRM_REQUIRED` 400; rename/recode logic: same kode + name changed → `db.update(organizations)` + audit `update_organization_name`; diff kode → lookup target org,不存在 → update current org kode+name + audit `update_organization_kode`, 存在 + name match → reassign `orgId` (+ SATKER_OPERATOR_EXISTS guard), 存在 + name mismatch → `ORGANIZATION_NAME_MISMATCH` 409.
+- **FE `access.tsx`**: `originalEmail` snapshot saat `openEditModal`, `emailConfirmed` checkbox muncul saat email berubah, Simpan disabled tanpa konfirmasi; self-edit email → `showEmailChangeConfirm` dialog "Anda mengubah email sendiri — akan logout, lanjut?", `selfEmailChangeConfirmed` flag mencegah loop; `EMAIL_CONFIRM_REQUIRED` error → pesa di modal; `modalError` clear on input change.
+- **Service `admin-access-service.ts`**: `assignAccess` signature tambah `emailConfirmed?: boolean`.
+- Verifikasi: typecheck 0 error; 130 web tests lulus; `git diff` 3 file.
 **Status:** Completed - AUTH-GUARD-BLIND blind auth guard
 - 4 route guard files changed: `operator/route.tsx`, `admin-kppn/route.tsx`, `access-pending.tsx`, `select-organization.tsx`
 - Semua redirect `unauthenticated` diubah dari `throw redirect({ to: "/sign-in", search: { next: location.href } })` → `throw redirect({ to: "/" })` (tanpa return URL)

@@ -95,6 +95,7 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 			satkerName?: string | null;
 			orgId?: string | null;
 			targetUserId?: string | null;
+			emailConfirmed?: boolean;
 		}) => data,
 	)
 	.handler(async ({ data }) => {
@@ -122,35 +123,115 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 			}
 			const normalizedKode = rawKode.toUpperCase();
 			const normalizedName = rawName;
-			let [targetOrganization] = await db
-				.select({ id: organizations.id, kppnScopeId: organizations.kppnScopeId, name: organizations.name, kodeSatker: organizations.kodeSatker })
-				.from(organizations)
-				.where(eq(organizations.kodeSatker, normalizedKode))
-				.limit(1);
-			if (targetOrganization) {
-				if (targetOrganization.name.trim() !== normalizedName) {
-					throw Object.assign(new Error("Kode satker sudah terdaftar dengan nama berbeda."), { statusCode: 409, code: "ORGANIZATION_NAME_MISMATCH" });
+
+			if (data.targetUserId) {
+				const [currentAccess] = await db
+					.select({ orgId: userAccesses.orgId })
+					.from(userAccesses)
+					.where(and(eq(userAccesses.userId, data.targetUserId), eq(userAccesses.active, true)))
+					.limit(1);
+				if (currentAccess?.orgId) {
+					const [currentOrg] = await db
+						.select({ id: organizations.id, kodeSatker: organizations.kodeSatker, name: organizations.name, kppnScopeId: organizations.kppnScopeId })
+					.from(organizations)
+					.where(eq(organizations.id, currentAccess.orgId))
+						.limit(1);
+					if (currentOrg) {
+						const kodeChanged = normalizedKode !== currentOrg.kodeSatker;
+						const nameChanged = normalizedName.trim() !== currentOrg.name.trim();
+						if (!kodeChanged && nameChanged) {
+							await db.update(organizations).set({ name: normalizedName, updatedAt: new Date() }).where(eq(organizations.id, currentOrg.id));
+							await db.insert(auditLogs).values({
+								actorId: actorUserId,
+								actorAccessType: "admin_kppn",
+								action: "update_organization_name",
+								entityType: "organizations",
+								entityId: currentOrg.id,
+								orgId: currentOrg.id,
+								beforeJson: { name: currentOrg.name } as unknown as Record<string, unknown>,
+								afterJson: { name: normalizedName } as unknown as Record<string, unknown>,
+							});
+							operatorOrgId = currentOrg.id;
+						} else if (kodeChanged) {
+							const [targetOrg] = await db
+								.select({ id: organizations.id, name: organizations.name, kppnScopeId: organizations.kppnScopeId })
+								.from(organizations)
+								.where(eq(organizations.kodeSatker, normalizedKode))
+								.limit(1);
+							if (!targetOrg) {
+								await db.update(organizations).set({ kodeSatker: normalizedKode, name: normalizedName, updatedAt: new Date() }).where(eq(organizations.id, currentOrg.id));
+								await db.insert(auditLogs).values({
+									actorId: actorUserId,
+									actorAccessType: "admin_kppn",
+									action: "update_organization_kode",
+									entityType: "organizations",
+									entityId: currentOrg.id,
+									orgId: currentOrg.id,
+									beforeJson: { kodeSatker: currentOrg.kodeSatker, name: currentOrg.name } as unknown as Record<string, unknown>,
+									afterJson: { kodeSatker: normalizedKode, name: normalizedName } as unknown as Record<string, unknown>,
+								});
+								operatorOrgId = currentOrg.id;
+							} else if (targetOrg.name.trim() === normalizedName) {
+								if (!allowedKppnScopeIds.includes(targetOrg.kppnScopeId)) {
+									throw new Error("Satker berada di luar scope admin.");
+								}
+								const [existingOp] = await db
+									.select({ id: userAccesses.id })
+									.from(userAccesses)
+									.where(and(eq(userAccesses.orgId, targetOrg.id), eq(userAccesses.accessType, "operator_satker"), eq(userAccesses.active, true), eq(userAccesses.userId, data.targetUserId)))
+									.limit(1);
+								if (!existingOp) {
+									const [otherOp] = await db
+										.select({ id: userAccesses.id })
+										.from(userAccesses)
+										.where(and(eq(userAccesses.orgId, targetOrg.id), eq(userAccesses.accessType, "operator_satker"), eq(userAccesses.active, true)))
+										.limit(1);
+									if (otherOp) {
+										throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
+									}
+								}
+								operatorOrgId = targetOrg.id;
+							} else {
+								throw Object.assign(new Error("Kode satker sudah terdaftar dengan nama berbeda."), { statusCode: 409, code: "ORGANIZATION_NAME_MISMATCH" });
+							}
+						} else {
+							operatorOrgId = currentOrg.id;
+						}
+					}
 				}
-				if (!allowedKppnScopeIds.includes(targetOrganization.kppnScopeId)) {
-					throw new Error("Satker berada di luar scope admin.");
+			}
+
+			if (!operatorOrgId) {
+				let [targetOrganization] = await db
+					.select({ id: organizations.id, kppnScopeId: organizations.kppnScopeId, name: organizations.name, kodeSatker: organizations.kodeSatker })
+					.from(organizations)
+					.where(eq(organizations.kodeSatker, normalizedKode))
+					.limit(1);
+				if (targetOrganization) {
+					if (targetOrganization.name.trim() !== normalizedName) {
+						throw Object.assign(new Error("Kode satker sudah terdaftar dengan nama berbeda."), { statusCode: 409, code: "ORGANIZATION_NAME_MISMATCH" });
+					}
+					if (!allowedKppnScopeIds.includes(targetOrganization.kppnScopeId)) {
+						throw new Error("Satker berada di luar scope admin.");
+					}
+					operatorOrgId = targetOrganization.id;
+				} else {
+					const kppnScopeId = allowedKppnScopeIds[0];
+					if (!kppnScopeId) throw new Error("Scope KPPN tidak valid.");
+					const [kppnScope] = await db.select({ name: kppnScopes.name }).from(kppnScopes).where(eq(kppnScopes.id, kppnScopeId)).limit(1);
+					const [createdOrg] = await db
+						.insert(organizations)
+						.values({
+							kodeSatker: normalizedKode,
+							name: normalizedName,
+							kppnScopeId,
+							kppnName: kppnScope?.name ?? "KPPN Malang",
+							isBlu: false,
+							timezone: "Asia/Jakarta",
+						})
+						.returning({ id: organizations.id });
+					operatorOrgId = createdOrg.id;
 				}
-				operatorOrgId = targetOrganization.id;
-			} else {
-				const kppnScopeId = allowedKppnScopeIds[0];
-				if (!kppnScopeId) throw new Error("Scope KPPN tidak valid.");
-				const [kppnScope] = await db.select({ name: kppnScopes.name }).from(kppnScopes).where(eq(kppnScopes.id, kppnScopeId)).limit(1);
-				const [createdOrg] = await db
-					.insert(organizations)
-					.values({
-						kodeSatker: normalizedKode,
-						name: normalizedName,
-						kppnScopeId,
-						kppnName: kppnScope?.name ?? "KPPN Malang",
-						isBlu: false,
-						timezone: "Asia/Jakarta",
-					})
-					.returning({ id: organizations.id });
-				operatorOrgId = createdOrg.id;
 			}
 		}
 
@@ -162,6 +243,9 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 			const newName = data.name.trim() || byId.name;
 			const needEmail = newEmail !== byId.email;
 			const needName = newName !== byId.name;
+			if (needEmail && !data.emailConfirmed) {
+				throw Object.assign(new Error("Konfirmasi perubahan email diperlukan."), { statusCode: 400, code: "EMAIL_CONFIRM_REQUIRED" });
+			}
 			if (needEmail) {
 				const [exists] = await db.select().from(users).where(eq(users.email, newEmail)).limit(1);
 				if (exists && exists.id !== byId.id) throw Object.assign(new Error("Email sudah digunakan."), { statusCode: 409, code: "EMAIL_ALREADY_EXISTS" });

@@ -69,11 +69,16 @@ function AdminAccessManagementPage() {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isEditMode, setIsEditMode] = useState(false);
 	const [toastMessage, setToastMessage] = useState<string | null>(null);
+	const [modalError, setModalError] = useState<string | null>(null);
 	const [lastAdminAlert, setLastAdminAlert] = useState(false);
 	const [isMatrixOpen, setIsMatrixOpen] = useState(false);
 	const [deleteTarget, setDeleteTarget] = useState<AccessRow | null>(null);
 	const [kodeInput, setKodeInput] = useState("");
 	const [satkerNameInput, setSatkerNameInput] = useState("");
+	const [originalEmail, setOriginalEmail] = useState("");
+	const [emailConfirmed, setEmailConfirmed] = useState(false);
+	const [showEmailChangeConfirm, setShowEmailChangeConfirm] = useState(false);
+	const [selfEmailChangeConfirmed, setSelfEmailChangeConfirmed] = useState(false);
 
 	const activeAdminCount = accessList.filter((a) => a.accessType === "admin_kppn").length;
 
@@ -128,7 +133,11 @@ function AdminAccessManagementPage() {
 		});
 		setKodeInput("");
 		setSatkerNameInput("");
+		setOriginalEmail("");
+		setEmailConfirmed(false);
+		setSelfEmailChangeConfirmed(false);
 		setIsEditMode(false);
+		setModalError(null);
 		setIsModalOpen(true);
 	};
 
@@ -136,7 +145,11 @@ function AdminAccessManagementPage() {
 		setEditingItem({ ...row });
 		setKodeInput(row.accessType === "operator_satker" ? row.scopeCode : "");
 		setSatkerNameInput(row.accessType === "operator_satker" ? row.scopeName : "");
+		setOriginalEmail(row.email);
+		setEmailConfirmed(false);
+		setSelfEmailChangeConfirmed(false);
 		setIsEditMode(true);
+		setModalError(null);
 		setIsModalOpen(true);
 	};
 
@@ -144,10 +157,20 @@ function AdminAccessManagementPage() {
 		if (!editingItem) return;
 		const isSelf = currentUserEmail ? editingItem.email.toLowerCase() === currentUserEmail : false;
 		if (isEditMode && isSelf && editingItem.accessType !== accessList.find((a) => a.userId === editingItem.userId)?.accessType) {
-			setToastMessage("Tidak dapat mengganti tipe akses akun sendiri.");
-			setTimeout(() => setToastMessage(null), 4000);
+			setModalError("Tidak dapat mengganti tipe akses akun sendiri.");
 			return;
 		}
+		const emailChanged = isEditMode && editingItem.email.trim().toLowerCase() !== originalEmail;
+		if (emailChanged && !emailConfirmed) {
+			setModalError("Centang konfirmasi perubahan email terlebih dahulu.");
+			return;
+		}
+		if (emailChanged && isSelf && !selfEmailChangeConfirmed) {
+			setShowEmailChangeConfirm(true);
+			return;
+		}
+		setModalError(null);
+		setShowEmailChangeConfirm(false);
 		try {
 			await assignAccess({
 				name: editingItem.name.trim() || editingItem.email.split("@")[0] || "User",
@@ -156,6 +179,7 @@ function AdminAccessManagementPage() {
 				kodeSatker: editingItem.accessType === "operator_satker" ? kodeInput.trim().toUpperCase() : null,
 				satkerName: editingItem.accessType === "operator_satker" ? satkerNameInput.trim() : null,
 				targetUserId: isEditMode ? editingItem.userId : null,
+				emailConfirmed,
 			});
 			setToastMessage(`Akses "${editingItem.email}" berhasil disimpan.`);
 			setIsModalOpen(false);
@@ -164,16 +188,22 @@ function AdminAccessManagementPage() {
 		} catch (e) {
 			const msg = e instanceof Error ? e.message : "Gagal menyimpan akses.";
 			if (msg.includes("ORGANIZATION_NAME_MISMATCH")) {
-				setToastMessage("Kode satker sudah terdaftar dengan nama berbeda.");
+				setModalError("Kode satker sudah terdaftar dengan nama berbeda.");
 			} else if (msg.includes("SATKER_OPERATOR_EXISTS") || msg.includes("OPERATOR_ALREADY_EXISTS")) {
-				setToastMessage("Satker sudah memiliki operator aktif.");
+				setModalError("Satker sudah memiliki operator aktif.");
 			} else if (msg.includes("SATKER_ALREADY_REGISTERED")) {
-				setToastMessage("Satker sudah terdaftar. Minta Admin KPPN memetakan akses.");
+				setModalError("Satker sudah terdaftar. Minta Admin KPPN memetakan akses.");
+			} else if (msg.includes("EMAIL_CONFIRM_REQUIRED")) {
+				setModalError("Konfirmasi perubahan email diperlukan.");
 			} else {
-				setToastMessage(`Gagal menyimpan akses: ${msg}`);
+				setModalError(`Gagal menyimpan akses: ${msg}`);
 			}
 		}
-		setTimeout(() => setToastMessage(null), 4000);
+		if (isModalOpen) {
+			setTimeout(() => setModalError(null), 4000);
+		} else {
+			setTimeout(() => setToastMessage(null), 4000);
+		}
 	};
 
 	const handleDelete = async () => {
@@ -314,7 +344,7 @@ function AdminAccessManagementPage() {
 									<h3 className="text-base font-semibold text-foreground">{isEditMode ? "Edit Akses Pengguna" : "Tambah Akses Baru"}</h3>
 									<p className="text-xs text-muted-foreground">KPPN Malang 032</p>
 								</div>
-								<button type="button" onClick={() => { setIsModalOpen(false); setEditingItem(null); }} className="rounded-lg p-1 text-muted-foreground hover:bg-surface-muted">
+								<button type="button" onClick={() => { setIsModalOpen(false); setEditingItem(null); setModalError(null); }} className="rounded-lg p-1 text-muted-foreground hover:bg-surface-muted">
 									<X className="size-4" />
 								</button>
 							</div>
@@ -325,8 +355,16 @@ function AdminAccessManagementPage() {
 								</div>
 								<div>
 									<span className="text-muted-foreground block mb-1 font-medium">Email Akun</span>
-									<input aria-label="Email akun" type="email" required value={editingItem.email} onChange={(e) => setEditingItem({ ...editingItem, email: e.target.value })} placeholder="user@domain.com" className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none" />
+									<input aria-label="Email akun" type="email" required value={editingItem.email} onChange={(e) => { setEditingItem({ ...editingItem, email: e.target.value }); setModalError(null); setEmailConfirmed(false); }} placeholder="user@domain.com" className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none" />
 								</div>
+								{isEditMode && editingItem.email.trim().toLowerCase() !== originalEmail && (
+									<div className="flex items-start gap-2.5 rounded-lg border border-warning/30 bg-warning/5 p-3">
+										<input type="checkbox" id="email-confirm" checked={emailConfirmed} onChange={(e) => { setEmailConfirmed(e.target.checked); setModalError(null); }} className="mt-0.5 size-4 rounded border-border text-primary focus:ring-primary" />
+										<label htmlFor="email-confirm" className="text-xs text-foreground leading-relaxed">
+											Saya konfirmasi bahwa email ini adalah alamat yang benar dan akan digunakan untuk login.
+										</label>
+									</div>
+								)}
 								<div>
 									<span className="text-muted-foreground block mb-1 font-medium">Jenis Hak Akses</span>
 									<select aria-label="Jenis hak akses" value={editingItem.accessType} onChange={(e) => {
@@ -354,9 +392,15 @@ function AdminAccessManagementPage() {
 								)}
 
 							</div>
+							{modalError && (
+								<div role="alert" className="flex items-start gap-2.5 rounded-lg border border-danger/30 bg-danger/10 p-3 text-xs text-danger">
+									<ShieldAlert className="mt-0.5 size-4 shrink-0" />
+									<p>{modalError}</p>
+								</div>
+							)}
 							<div className="flex items-center justify-end gap-2 border-t border-border pt-3">
-								<button type="button" onClick={() => { setIsModalOpen(false); setEditingItem(null); }} className="rounded-lg border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-muted">Batal</button>
-								<button type="button" disabled={!editingItem.email || (editingItem.accessType === "operator_satker" ? (!kodeInput.trim() || !satkerNameInput.trim()) : !editingItem.name.trim())} onClick={handleSaveAccess} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-xs disabled:opacity-50">
+								<button type="button" onClick={() => { setIsModalOpen(false); setEditingItem(null); setModalError(null); }} className="rounded-lg border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-muted">Batal</button>
+								<button type="button" disabled={!editingItem.email || (editingItem.accessType === "operator_satker" ? (!kodeInput.trim() || !satkerNameInput.trim()) : !editingItem.name.trim()) || (isEditMode && editingItem.email.trim().toLowerCase() !== originalEmail && !emailConfirmed)} onClick={handleSaveAccess} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-xs disabled:opacity-50">
 									<Save className="size-3.5" />
 									<span>Simpan Akses</span>
 								</button>
@@ -400,6 +444,25 @@ function AdminAccessManagementPage() {
 							<p className="text-xs text-muted-foreground">Tidak dapat menghapus akun Admin KPPN aktif terakhir. Sistem mewajibkan minimal ada <strong className="text-foreground">1 Admin KPPN aktif</strong> untuk menjaga kesinambungan tata kelola dan audit kebijakan.</p>
 							<div className="flex items-center justify-end border-t border-border pt-3">
 								<button type="button" onClick={() => setLastAdminAlert(false)} className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-xs">Mengerti</button>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{showEmailChangeConfirm && (
+					<div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4 backdrop-blur-xs">
+						<div className="w-full max-w-md rounded-xl border border-warning/40 bg-background p-6 shadow-2xl space-y-4">
+							<div className="flex items-center gap-3">
+								<div className="flex size-10 items-center justify-center rounded-full bg-warning/10 text-warning shrink-0"><ShieldAlert className="size-5" /></div>
+								<div>
+									<h3 className="text-base font-semibold text-foreground">Ubah Email Sendiri?</h3>
+									<p className="text-xs text-muted-foreground">Anda mengubah email akun sendiri</p>
+								</div>
+							</div>
+							<p className="text-xs text-muted-foreground">Mengubah email akun sendiri akan <strong className="text-foreground">mengakhiri sesi login saat ini</strong>. Anda perlu login kembali dengan email baru. Lanjutkan?</p>
+							<div className="flex items-center justify-end gap-2 border-t border-border pt-3">
+								<button type="button" onClick={() => setShowEmailChangeConfirm(false)} className="rounded-lg border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-muted">Batal</button>
+								<button type="button" onClick={() => { setShowEmailChangeConfirm(false); setSelfEmailChangeConfirmed(true); setTimeout(() => handleSaveAccess(), 0); }} className="rounded-lg bg-warning px-4 py-2 text-xs font-semibold text-white hover:bg-warning/90 shadow-xs">Ya, Lanjutkan</button>
 							</div>
 						</div>
 					</div>

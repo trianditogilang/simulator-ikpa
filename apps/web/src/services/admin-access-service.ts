@@ -51,6 +51,7 @@ export async function assignAccess(input: {
 	satkerName?: string | null;
 	orgId?: string | null;
 	targetUserId?: string | null;
+	emailConfirmed?: boolean;
 }) {
 	return assignUserAccessFn({
 		data: {
@@ -61,6 +62,7 @@ export async function assignAccess(input: {
 			satkerName: input.satkerName ?? null,
 			orgId: input.orgId ?? null,
 			targetUserId: input.targetUserId ?? null,
+			emailConfirmed: input.emailConfirmed ?? false,
 		},
 	});
 }
