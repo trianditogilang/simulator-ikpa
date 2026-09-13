@@ -4,18 +4,26 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Current Phase
 
-**Fase 13 — F13-00/F13-01/F13-02/F13-03 selesai; F13-04 dan task berikutnya tetap ditahan.**
+**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04 selesai; F13-05 dan task berikutnya tetap ditahan.**
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
-- Baseline hijau: typecheck lulus, workspace Vitest 45 test files/311 tests lulus setelah source export retired, `npm run lint` exit 0, production build lulus, E2E smoke desktop/mobile 2/2 lulus, dan smoke route `/` sebelumnya HTTP 200.
+- Baseline hijau: typecheck lulus, workspace Vitest 45 test files/326 tests lulus setelah source export retired, `npm run lint` exit 0 (78 warning legacy), production build lulus, dan E2E smoke desktop/mobile 2/2 lulus.
 - Catatan environment: browser bundled Playwright belum dapat diunduh karena jaringan; smoke tetap reproducible memakai Chrome lokal melalui `channel: "chrome"`. Lint masih memiliki 77 warning legacy tanpa error.
 - F13-01 lulus: konfigurasi test per workspace mencegah E2E masuk Vitest; pure utility/scheduler/workday tests ditambah; bug rounding negatif fixed-point ditutup.
 - F13-06/F13-08 progress: production delivery/import fallback fail-closed, secret/migration/generated-route checks tersedia, dan CI workflow sudah ditulis tetapi belum dijalankan pada remote PR.
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
 - F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
-- Next action: pertahankan regression provider/policy; F13-04 dan task Fase 13 lain tetap di luar sesi ini.
+- F13-04 lulus: auth-seeded Playwright runner memakai sesi Clerk Operator nyata dan fixture Neon terisolasi; 12/12 test pada Chromium desktop + Mobile Chrome mencakup dashboard 8 indikator, delapan workspace, what-if actual immutable + Slot B/name, parity/compare bulanan dengan skenario, mandatory reminder, dan Operator XLSX. Fixture dibersihkan tanpa mencetak credential.
+- Next action: pertahankan regression E2E F13-04; F13-05 dan task Fase 13 lain tetap ditahan.
 
 ## Recent Sessions
+
+### Session 287 - 2026-09-13
+**Status:** Completed — F13-04 E2E Operator
+- **Perubahan:** Menambahkan fixture auth `apps/web/e2e/operator-auth.fixture.ts`, skenario `apps/web/e2e/operator.spec.ts`, dan runner `scripts/run-f13-04-e2e.mjs`. Runner membuat sesi Clerk Operator sementara di memori, men-seed actual/history/reminder fixture pada branch Neon test, menjalankan target Preview, lalu membersihkan fixture dan mencabut sesi.
+- **Perilaku diverifikasi:** Dashboard authenticated dengan 8 indikator; navigasi delapan workspace; what-if tidak mengubah aktual; penyimpanan Slot B dan sinkronisasi nama; parity Dashboard–Riwayat; compare dua evaluasi bulanan dengan skenario; kontrol mandatory Reminder Center; dan unduhan Operator XLSX. Chromium desktop dan Mobile Chrome lulus.
+- **Verifikasi:** `node scripts/run-f13-04-e2e.mjs https://simulator-ikpa-web-git-staging-trianditogilang.vercel.app` — 12/12 lulus; `npm.cmd test` — 45 file/326 test lulus; `npm.cmd run typecheck` lulus; `npm.cmd run lint` exit 0 (78 warning legacy); `npm.cmd run build` client+SSR/Nitro lulus; `git diff --check` lulus.
+- **Coverage tersisa:** UI sign-in interaktif dan E2E Admin KPPN tidak termasuk runner ini; F13-05 tetap ditahan. Tidak ada F13-03 atau task Fase 13 lain dikerjakan.
 
 ### Session 286 - 2026-09-13
 **Status:** Completed - ADM-ACCESS-ITER-01 UI/UX refinements on /admin-kppn/access

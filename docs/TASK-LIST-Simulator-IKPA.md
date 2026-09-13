@@ -865,9 +865,10 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Scope:** Publish/re-evaluate, mandatory lock, Tagihan H+17, Output lima hari kerja, GUP/PTUP, workday, idempotency, retry, stale snapshot, dan policy version.
   **DoD:** V2-AC-17..21 lulus pada database test; delivery replay tidak menggandakan notifikasi. Selesai 2026-09-12: policy/reminder tests dan probe QStash + Resend remote lulus setelah callback memakai raw body serta URL publik kanonis.
 
-- [ ] **F13-04 â€” Buat E2E Operator.** [Role: QA Agent]
+- [x] **F13-04 â€” Buat E2E Operator.** [Role: QA Agent]
   **Scope:** Login, navigasi 8 indikator, actual/proyeksi, what-if tanpa mutasi actual, Slot A/B/C, sinkronisasi nama, Dashboard 8 indikator, parity Dashboardâ€“Riwayat, compare Evaluasi bulanan dengan skenario, mandatory reminder, dan Operator XLSX export sesuai konteks.
   **DoD:** Skenario Playwright terisolasi lulus pada Chromium desktop dan Mobile Chrome dengan data tenant terisolasi; screenshot/trace tersedia saat gagal.
+  **Evidence 2026-09-13:** Runner authenticated Clerk/Neon `scripts/run-f13-04-e2e.mjs` lulus 12/12; dashboard, 8 workspace, what-if + Slot B, parity/compare bulanan+scenario, mandatory reminder, dan Operator XLSX terverifikasi.
 
 - [ ] **F13-05 â€” Buat E2E Admin KPPN.** [Role: QA Agent]
   **Scope:** Login, agregat 8 indikator, skor/gap/sumber aktual-proyeksi-kosong, detail read-only, mandatory reminder, access, publish policy, failed delivery retry, cross-scope rejection, dan audit. Ekspor Admin tidak termasuk scope aktif.
