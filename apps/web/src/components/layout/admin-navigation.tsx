@@ -13,9 +13,10 @@ import {
 import { useUser } from "@clerk/tanstack-react-start";
 import { Dialog } from "radix-ui";
 import type { ComponentProps } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { SignOutAction } from "@/components/auth/sign-out-action";
+import { getCurrentAdminProfileFn } from "@/server/admin-access";
 
 type NavigationItem = {
 	label: string;
@@ -101,6 +102,7 @@ function toTitleCaseKppn(value: string): string {
 
 export type AdminNavigationProps = Omit<ComponentProps<"div">, "children"> & {
 	currentPath: string;
+	adminName?: string | null;
 };
 
 function normalizedPath(path: string): string {
@@ -172,13 +174,30 @@ export function AdminNavigation(props: AdminNavigationProps) {
 
 function ClerkAdminNavigation(props: AdminNavigationProps) {
 	const { user, isLoaded } = useUser();
+	const [dbAdminName, setDbAdminName] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (isLoaded && user && !props.adminName) {
+			getCurrentAdminProfileFn()
+				.then((profile) => {
+					if (profile?.name) setDbAdminName(profile.name);
+				})
+				.catch(() => {});
+		}
+	}, [isLoaded, user, props.adminName]);
+
+	const metadataName =
+		(user?.publicMetadata?.registeredName as string | null) ?? null;
 	const clerkName =
-		isLoaded && user
+		props.adminName ||
+		dbAdminName ||
+		metadataName ||
+		(isLoaded && user
 			? ((user.fullName as string | null) ||
 					(user.firstName as string | null) ||
 					(user.primaryEmailAddress?.emailAddress as string | null) ||
 					null)
-			: null;
+			: null);
 	const clerkEmail =
 		isLoaded && user
 				? ((user.primaryEmailAddress?.emailAddress as string | null) ?? null)
@@ -197,7 +216,7 @@ function AdminNavigationContent({
 	const moreIsActive = moreItems.some((item) =>
 		isAdminRouteActive(currentPath, item.href),
 	);
-	const displayName = clerkName || "Admin KPPN Malang";
+	const displayName = props.adminName || clerkName || "Admin KPPN Malang";
 	const displayEmail = clerkEmail || "admin.kppn@kemenkeu.go.id";
 	const displayInitial = displayName.charAt(0).toUpperCase();
 

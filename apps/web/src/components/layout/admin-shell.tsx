@@ -7,12 +7,14 @@ export type AdminShellProps = Omit<ComponentProps<"div">, "children"> & {
 	children: ReactNode;
 	currentPath: string;
 	header?: ReactNode;
+	adminName?: string | null;
 };
 
 export function AdminShell({
 	children,
 	currentPath,
 	header,
+	adminName,
 	className,
 	...props
 }: AdminShellProps) {
@@ -26,7 +28,7 @@ export function AdminShell({
 			data-access-mode="admin_kppn"
 			data-slot="admin-shell"
 		>
-			<AdminNavigation currentPath={currentPath} />
+			<AdminNavigation currentPath={currentPath} adminName={adminName} />
 			<div className="min-w-0">
 				<ActiveContextHeader />
 				{header}

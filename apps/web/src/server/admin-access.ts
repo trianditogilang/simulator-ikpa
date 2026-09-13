@@ -273,6 +273,9 @@ async function syncClerkProfile(input: {
 			await client.users.updateUser(input.clerkUserId, {
 				firstName,
 				lastName: nameParts.join(" "),
+				publicMetadata: {
+					registeredName: input.name.trim(),
+				},
 			});
 		}
 	} catch (error) {
@@ -338,9 +341,11 @@ export const listAdminUserAccessFn = createServerFn({ method: "GET" })
 				adminSlot: userAccesses.adminSlot,
 				active: userAccesses.active,
 				createdAt: userAccesses.createdAt,
+				userName: users.name,
 			})
 			.from(userAccesses)
 			.leftJoin(organizations, eq(userAccesses.orgId, organizations.id))
+			.leftJoin(users, eq(userAccesses.invitedEmail, users.email))
 			.where(
 				and(
 					eq(userAccesses.active, true),
@@ -372,7 +377,7 @@ export const listAdminUserAccessFn = createServerFn({ method: "GET" })
 			...pendingRows.map((r) => ({
 				id: r.id,
 				userId: null,
-				name: null,
+				name: r.userName ?? (r.adminSlot ? `Admin ${r.adminSlot}` : null),
 				email: r.invitedEmail,
 				accessType: r.accessType,
 				accessStatus: "pending" as const,
@@ -395,6 +400,21 @@ export const listAdminUserAccessFn = createServerFn({ method: "GET" })
 		});
 
 		return { accesses: uniqueAccesses };
+	});
+
+export const getCurrentAdminProfileFn = createServerFn({ method: "GET" })
+	.validator(() => undefined)
+	.handler(async () => {
+		const auth = await getServerAuthSession();
+		if (!auth.clerkUserId) return null;
+		const db = getDatabase();
+		if (!db) return null;
+		const [user] = await db
+			.select({ name: users.name, email: users.email })
+			.from(users)
+			.where(eq(users.clerkUserId, auth.clerkUserId))
+			.limit(1);
+		return user ?? null;
 	});
 
 export const assignUserAccessFn = createServerFn({ method: "POST" })

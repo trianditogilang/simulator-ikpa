@@ -17,6 +17,19 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 286 - 2026-09-13
+**Status:** Completed - ADM-ACCESS-ITER-01 UI/UX refinements on /admin-kppn/access
+- **Perubahan:**
+  1. Sidebar Navigasi Admin: Menampilkan nama akun yang didaftarkan (misal: "Admin 3") bukan nama Google/Clerk personal ("Triandito Gilang Rahmadian") dengan menambahkan `adminName` prop ke `AdminShell` / `AdminNavigation` dan `getCurrentAdminProfileFn` / `publicMetadata.registeredName`.
+  2. Tombol "Perbedaan Hak Akses" pada header halaman `/admin-kppn/access` dihapus.
+  3. Keterangan konfirmasi hapus permanen diubah menjadi: "Akses akun, data, dan riwayat simulasi akan dihapus permanen."
+  4. Kolom tabel "User Satker" saat status menunggu (pending) kini menampilkan `Menunggu - [Nama Admin / Email]` untuk akun Admin, dan `Menunggu - [Nama Satker]` untuk akun Operator.
+  5. Pesan toast sukses hapus akun diperinci: `Akun [Nama Satker] - [Kode Satker] - [Email] berhasil dihapus` untuk Operator, dan `Akun Admin - [Nama] - [Email] berhasil dihapus` untuk Admin.
+- **Verifikasi:**
+  - `npm run typecheck --workspace @simulator-ikpa/web` lulus (0 error).
+  - `npx biome lint apps/web/src/components/layout/admin-navigation.tsx apps/web/src/components/layout/admin-shell.tsx apps/web/src/routes/admin-kppn/access.tsx apps/web/src/server/admin-access.ts` lulus (0 error).
+  - Seluruh test workspace (`npm test --workspaces --if-present -- --run`) lulus (45 test files, 326 tests).
+
 ### Session 285 - 2026-09-13
 **Status:** Completed - AUTH-INVITE-ONLY email OTP first sign-in
 - **Root cause:** `<SignIn />` hanya menjalankan sign-in terhadap identitas Clerk yang sudah ada; akun yang baru diundang masih hanya berupa pending access di Neon sehingga email manual berakhir `account not found`.

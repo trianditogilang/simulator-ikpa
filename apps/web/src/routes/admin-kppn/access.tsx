@@ -2,7 +2,6 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
 	CheckCircle2,
 	Edit,
-	HelpCircle,
 	Plus,
 	Save,
 	Scale,
@@ -85,15 +84,13 @@ function AdminAccessManagementPage() {
 
 	const activeAdminCount = accessList.filter((a) => a.accessType === "admin_kppn" && a.accessStatus === "active").length;
 
+	const { user, isLoaded } = useUser();
 	let currentUserEmail: string | null = null;
-	try {
-		const { user, isLoaded } = useUser();
-		if (isLoaded && user?.primaryEmailAddress?.emailAddress) {
-			currentUserEmail = user.primaryEmailAddress.emailAddress.toLowerCase();
-		} else if (isLoaded && user?.emailAddresses?.[0]?.emailAddress) {
-			currentUserEmail = user.emailAddresses[0].emailAddress.toLowerCase();
-		}
-	} catch {}
+	if (isLoaded && user?.primaryEmailAddress?.emailAddress) {
+		currentUserEmail = user.primaryEmailAddress.emailAddress.toLowerCase();
+	} else if (isLoaded && user?.emailAddresses?.[0]?.emailAddress) {
+		currentUserEmail = user.emailAddresses[0].emailAddress.toLowerCase();
+	}
 	if (!currentUserEmail) {
 		const demoAdmin = accessList.find((a) => a.accessType === "admin_kppn");
 		if (demoAdmin) {
@@ -246,7 +243,11 @@ function AdminAccessManagementPage() {
 		try {
 			await removeAccess(deleteTarget.id, deleteTarget.userId);
 			setToastIsError(false);
-			setToastMessage(`Akun "${deleteTarget.email}" berhasil dihapus dari Clerk dan Neon.`);
+			const successMessage =
+				deleteTarget.accessType === "operator_satker"
+					? `Akun ${deleteTarget.scopeName} - ${deleteTarget.scopeCode} - ${deleteTarget.email} berhasil dihapus`
+					: `Akun Admin - ${deleteTarget.name} - ${deleteTarget.email} berhasil dihapus`;
+			setToastMessage(successMessage);
 			await router.invalidate();
 		} catch (e) {
 			setToastIsError(true);
@@ -271,8 +272,18 @@ function AdminAccessManagementPage() {
 		setTimeout(() => setToastMessage(null), 4000);
 	};
 
+	const currentUserAccess = accessList.find(
+		(u) =>
+			currentUserEmail &&
+			u.email.toLowerCase() === currentUserEmail &&
+			u.accessType === "admin_kppn",
+	);
+
 	return (
-		<AdminShell currentPath="/admin-kppn/access">
+		<AdminShell
+			currentPath="/admin-kppn/access"
+			adminName={currentUserAccess?.name}
+		>
 			<div className="space-y-6">
 				<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 					<div>
@@ -280,10 +291,6 @@ function AdminAccessManagementPage() {
 						<p className="text-xs text-muted-foreground sm:text-sm">Kelola mapping izin akses Operator Satker dan Admin KPPN dalam lingkup KPPN Malang 032</p>
 					</div>
 					<div className="flex items-center gap-2">
-						<button type="button" onClick={() => setIsMatrixOpen(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-surface-muted shadow-xs">
-							<HelpCircle className="size-3.5 text-primary" />
-							<span>Perbedaan Hak Akses</span>
-						</button>
 						<button type="button" onClick={openAddModal} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 shadow-xs">
 							<Plus className="size-3.5" />
 							<span>Tambah Akses</span>
@@ -352,7 +359,9 @@ function AdminAccessManagementPage() {
 												<div className="flex flex-col">
 													<span className="font-semibold text-foreground">
 														{isPending
-															? `Menunggu - ${user.email}`
+															? user.accessType === "admin_kppn"
+																? `Menunggu - ${user.name || user.email}`
+																: `Menunggu - ${user.scopeName}`
 															: user.accessType === "admin_kppn"
 																? `Admin - ${user.name} - KPPN 032`
 																: user.scopeName}
@@ -476,7 +485,7 @@ function AdminAccessManagementPage() {
 								<div className="flex size-10 items-center justify-center rounded-full bg-danger/10 text-danger shrink-0"><ShieldAlert className="size-5" /></div>
 								<div>
 									<h3 className="text-base font-semibold text-foreground">Hapus Akun Pengguna Permanen?</h3>
-									<p className="text-xs text-muted-foreground">Akun Clerk, data Neon, mapping akses, dan riwayat simulasi akan dihapus permanen.</p>
+									<p className="text-xs text-muted-foreground">Akses akun, data, dan riwayat simulasi akan dihapus permanen.</p>
 								</div>
 							</div>
 							<div className="rounded-lg bg-surface-muted/50 border border-border p-3 text-xs">
