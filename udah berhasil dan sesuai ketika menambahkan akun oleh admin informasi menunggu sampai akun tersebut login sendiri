@@ -1,0 +1,904 @@
+[33mcommit 26e424c7bf6cad3c211e32bb9f8882748babdde2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mstaging[m[33m)[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sun Sep 13 18:13:50 2026 +0700
+
+    feat: terapkan manajemen akses berbasis undangan Clerk menunggu dan sinkron dengan NeonDb
+
+[33mcommit 5002d2e0e20fcf3b025e1b61bfa659db9a69bd89[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sun Sep 13 08:01:23 2026 +0700
+
+    fix: manajemen akses
+
+[33mcommit 9f19f960c5a4c2cc04354a178d79c4cc55d8a247[m[33m ([m[1;31morigin/staging[m[33m)[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sun Sep 13 00:31:01 2026 +0700
+
+    (AUTH-GUARD-BLIND) fix: arahkan guard autentikasi anonim ke halaman utama
+
+[33mcommit bb2642bd4a0a47f78eead3d04701ef69ee765ab0[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 12 22:58:34 2026 +0700
+
+    fix: always render Agentation toolbar regardless of NODE_ENV
+
+[33mcommit e3f5cdecf2e7c5353bada808534ab8e18b756b99[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 12 19:30:22 2026 +0700
+
+    fix(admin): no duplicate on edit, remove slot/kode redundancy, clean delete dialog
+
+[33mcommit 0f3f28ac91c6b61c86b4bc90005a3a21a0d97fe4[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 12 19:17:47 2026 +0700
+
+    fix(admin): feedback duplicate edit, card slot/kode redundancy, nama placeholder
+
+[33mcommit 53adc096f4ee081f941452677efbc228499156ca[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 12 18:23:19 2026 +0700
+
+    fix(admin): modal design feedback admin access
+    
+    - placeholder email user@domain.com
+    - header KPPN Malang 032 tanpa suffix uppercase
+    - tambah field Nama dengan placeholder Admin - Nama, card User Satker admin jadi Admin - Nama - KPPN 032
+    - izinkan Edit nama diri dan admin lain, update name via server audit
+    - hapus deskripsi slot otomatis
+
+[33mcommit b54df9f126c82468ba8f8afb3fb7ede89290aa98[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 12 17:56:20 2026 +0700
+
+    fix(access): fallback transaction for neon-http driver (hardDelete/grant)
+
+[33mcommit cde424a1fb6632cbce7af33522aa9cbb1b73da32[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 12 17:31:16 2026 +0700
+
+    feat(auth): AUTH-01+02 fondasi akses, registrasi Malang 032, admin slot & hard delete
+    
+    - ERD addendum AUTH-01 6 poin, migrasi 0003 admin_slot + partial unique + backfill UPPERCASE/slot
+    - settings.server normalisasi + ORGANIZATION_NAME_MISMATCH + SATKER_OPERATOR_EXISTS 409 + scope 032
+    - admin-access list aktif+slot, assign kode+nama, hardDeleteUserFn, hapus toggle
+    - access.tsx 4 kolom ponytail + modal kode+nama + dialog hapus custom + kunci diri
+    - onboarding kode+nama saja, F13-02 integration hardDelete, typecheck 0, tests hijau
+
+[33mcommit ad901fe90e38de63ad55d7f4edd1b1ad3a449d19[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 12 16:18:58 2026 +0700
+
+    `fix: buat header what-if responsif di perangkat mobile`
+    
+    - Atur layout header menjadi bertumpuk pada layar kecil dan horizontal mulai breakpoint `sm`.
+    - Izinkan tombol aksi melakukan wrapping serta rata kanan agar tidak overflow pada viewport 360–559px.
+    - Perbarui dokumentasi backlog dan devlog untuk task `UI-DISPLAY-ONLY-03`.
+
+[33mcommit b2c96574a065c39c912945a003c526d5b59d478d[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 12 15:53:15 2026 +0700
+
+    6 file kode (navigation, deviasi, up-tup, budget-revisions, contracts-
+         invoices, spm-dispensation) + BACKLOG.md + DEVLOG.md.
+
+[33mcommit 21792df8b8b27b29745d6c6b66345e104fa55147[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 12 13:11:42 2026 +0700
+
+    docs: record qstash callback verification
+
+[33mcommit 5b533592a8fa04c41f2b0c675449b6d773f444a7[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 12 13:07:11 2026 +0700
+
+    fix: verify qstash callbacks with canonical url
+
+[33mcommit 3ed105ce622effbb1951ecc358c819fcbf61f294[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Fri Sep 11 07:36:44 2026 +0700
+
+    docs: record fresh qstash callback failure
+
+[33mcommit 1d64817fc82f4532595df39692a8a4d4a908e1bd[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Fri Sep 11 07:24:00 2026 +0700
+
+    docs: record qstash retry after token update
+
+[33mcommit 35e33ab50fbb302d8a08a409359f010c667bebc1[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Fri Sep 11 07:11:53 2026 +0700
+
+    docs: record qstash callback blocker
+
+[33mcommit 0f73f23bfe18fb9e1a8fd4cf1b06f4f218d88156[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Fri Sep 11 01:02:47 2026 +0700
+
+    docs: align provider verification counts
+
+[33mcommit 575ea14f2392176212efafa9abab7122eb5c7e53[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Fri Sep 11 01:01:37 2026 +0700
+
+    test: document provider verification blocker
+
+[33mcommit e5b5df8bc537569346f161a91658901dead86cb6[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Fri Sep 11 00:42:56 2026 +0700
+
+    feat: integrate qstash delivery with resend
+
+[33mcommit e1b495c9bcd1509c7b12c9c96745ceddbc9c3522[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Thu Sep 10 22:23:59 2026 +0700
+
+    docs: complete Vercel deployment runbook
+
+[33mcommit 0fa8e9528ac2713ea5ce4b4e25da7ea3b74f6ddd[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Thu Sep 10 22:16:28 2026 +0700
+
+    docs: record Vercel preview smoke results
+
+[33mcommit d456b69ca1382e2e674aa30387655de065a9cb3c[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Thu Sep 10 22:13:52 2026 +0700
+
+    fix: force production JSX for Nitro builds
+
+[33mcommit 26ba4c23322278f370d6737fc1da36751f2ba0c7[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Thu Sep 10 20:53:10 2026 +0700
+
+    chore: trigger vercel staging preview
+
+[33mcommit 9f964d64233f054fa4ac05e12ea5de9910286c0e[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Thu Sep 10 20:27:07 2026 +0700
+
+    `(feat) Tambahkan adapter Nitro untuk deployment Vercel`
+    
+    Detail:
+    - Menambahkan dependency `nitro` dan memperbarui lockfile.
+    - Mengaktifkan plugin `nitro()` pada konfigurasi Vite setelah `tanstackStart()`.
+    - Memperbarui dokumentasi deployment Vercel dan status backlog F13-09.
+    - Mencatat hasil verifikasi build Node/Vercel, test, typecheck, lint, dan `git diff --check`.
+    - Mendokumentasikan bahwa setup project Vercel, environment Preview, URL, dan authenticated staging masih menunggu konfigurasi owner.
+
+[33mcommit 41b19246aee80891f6a831760015c08d620093c0[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Thu Sep 10 18:06:26 2026 +0700
+
+    (feat): Perbarui tampilan kebijakan reminder admin KPPN
+    
+    - Tampilkan judul formal pada badge reminder dashboard dengan fallback indikator atau teks default.
+    - Hilangkan informasi `eventType` dari tampilan tabel dan detail modal.
+    - Hapus kolom “Penerima Wajib” dari tabel kebijakan tanpa mengubah data model.
+    - Sederhanakan label “Hari Kerja (Workday)” menjadi “Hari Kerja”.
+    - Perbarui backlog dan DEVLOG untuk mencatat penyelesaian ADM-ITER-01 hingga ADM-ITER-03.
+
+[33mcommit 73ed7cd1a2bf0a12fae51bc72e3332ce46ebe051[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Thu Sep 10 17:37:24 2026 +0700
+
+    (fix): Perkuat isolasi tenant dan lengkapi pengujian HTTP terautentikasi
+    
+    - Menambahkan validasi scope Admin KPPN pada assignment dan penghapusan akses pengguna.
+    - Membatasi perubahan transaksi UP/TUP berdasarkan fiscal year.
+    - Memperbaiki kompatibilitas import `exceljs` untuk build SSR.
+    - Mengamankan operasi scenario agar hanya dapat mengakses organisasi pemiliknya.
+    - Menambahkan 14 suite integration test HTTP dengan 92 test untuk seluruh 82 ServerFn aktif.
+    - Menguji penolakan akses lintas tenant/KPPN tanpa kebocoran data atau perubahan fixture peer.
+    - Memperbarui runner Clerk/Neon, dokumentasi DEVLOG, BACKLOG, dan status task F13-02 menjadi selesai.
+    - Menambahkan guard Admin pada `listFairnessPoliciesFn`.
+
+[33mcommit a1931f5ec456a21b9d58733acff556a2cbcd2d20[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Thu Sep 10 13:54:39 2026 +0700
+
+    (docs) Type: docs: Perbarui metadata operasional dan status coverage F13
+    
+    - Hapus metadata model AI dari TASK-LIST, BACKLOG, dan DEVLOG.
+    - Pertahankan role, status, dependensi, bukti verifikasi, dan histori proyek.
+
+[33mcommit 321feb99c64ff13cdc6343db1dd7027bfc2edeeb[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Thu Sep 10 13:21:15 2026 +0700
+
+    (fix) Menutup scope ekspor PDF/Admin dan memperkuat isolasi tenant F13-0
+    
+    Perubahan:
+    - Menonaktifkan ekspor PDF Operator dan seluruh ekspor Admin; route Admin dipertahankan sebagai stub read-only fail-safe.
+    - Mempertahankan ekspor Operator dalam format XLSX dengan workbook ExcelJS dan signature ZIP yang valid.
+    - Menghapus mock laporan, server export PDF/Admin, test PDF, dependency terkait PDF, serta memperbarui service dan navigasi.
+    - Menambahkan konfigurasi dan runner integration test F13-02.
+    - Menambahkan pengujian isolasi tenant melalui database nyata dan authenticated HTTP ServerFn, termasuk validasi read/write, scope Admin, delivery retry, import/QStash, dan pencegahan kebocoran ID.
+    - Memperbarui dokumentasi, backlog, ADR, acceptance criteria, traceability, dan UAT terkait perubahan kontrak ekspor.
+    - Menambahkan dependency `@clerk/backend` dan `seroval` untuk harness pengujian integrasi.
+
+[33mcommit a98da173571745a8427f757f35ae76c4b77f5509[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Thu Sep 10 00:11:24 2026 +0700
+
+    Update simulator features and supporting documentation
+
+[33mcommit 9e3261306ccb487622684e4ac66b1fd6866d02a3[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 9 21:16:23 2026 +0700
+
+    (feat) Integrasikan monitoring Admin KPPN berbasis server
+    
+    - Migrasikan dashboard, daftar satker, detail organisasi, audit log, akses pengguna, reminder, dan policy dari mock ke data backend.
+    - Tambahkan agregasi 8 indikator, gap target, status aktual/proyeksi, deadline wajib, riwayat snapshot, serta statistik delivery.
+    - Terapkan isolasi scope KPPN pada query admin dengan `assertAdminKppnScope`.
+    - Tambahkan retry delivery server-authoritative dengan audit log dan penanganan error.
+    - Perkuat manajemen akses dengan audit trail, validasi role, dan proteksi admin aktif terakhir.
+    - Jadikan policy dan rule set read-only sesuai kontrak freeze.
+    - Tambahkan unit test untuk grant akses dan proteksi pencabutan admin terakhir.
+    - Perbarui dokumentasi backlog, task list, dan devlog.
+
+[33mcommit 087d4febad8622379661e1fe5326b1011606774f[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 9 18:50:00 2026 +0700
+
+    (chore): Perbarui aturan `.gitignore` untuk mengecualikan file environme
+
+[33mcommit fae4b6dfea2eb8554b3b3a1fdc7b76e1a323319c[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 9 18:47:18 2026 +0700
+
+    (docs) Docs: Tambahkan dokumentasi Revisi v2 dan catat penyelesaiannya
+    
+    - Menambahkan salinan PRD, FSD, TSD, dan ERD ke `docs/revisi-v2/`.
+    - Menyertakan addendum IA 8 indikator, monitoring Admin KPPN, pembatasan read-only, policy reminder, dan freeze operator.
+    - Memastikan baseline v1 di `docs/` tetap utuh.
+    - Memverifikasi dokumentasi dengan `git diff --check`.
+
+[33mcommit a51025779f335c38b029599ee18944c70692dd6b[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 9 18:42:13 2026 +0700
+
+    (docs) Type: docs: Pecah task CORR-A menjadi enam task Admin
+    
+    - Memecah CORR-A-00 s.d. CORR-A-05 pada TASK-LIST menjadi task terpisah.
+    - Menambahkan dependensi, syarat, role, dan DoD read-only untuk tiap task.
+    - Memperbarui dependensi F13 terhadap seluruh task CORR-A.
+
+[33mcommit 89dcb9b721be33815ba0831b179b9127650a7886[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 9 18:36:47 2026 +0700
+
+    (docs) chore: dokumentasikan pembekuan kode operator
+    
+    - Tambahkan `docs/operator-freeze.md` berisi status FROZEN, glob area operator yang dibekukan, aturan perubahan, dan verifikasi wajib.
+    - Perbarui `docs/BACKLOG.md` dengan task `DOCS-OPERATOR-FREEZE` berstatus Completed.
+    - Catat Session 220 pada `docs/DEVLOG.md`, termasuk hasil typecheck dan konfirmasi hanya tiga file dokumentasi yang berubah.
+
+[33mcommit 6f53275fc67f297e695ba456811aa471eb81dbc1[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 9 18:24:58 2026 +0700
+
+    feat(operator-DONE): ubah pemilihan komparasi menjadi accordion item
+    
+    - Tambahkan accordion Evaluasi Bulanan dan Skenario Simulasi yang dapat dilipat.
+    - Tampilkan pilihan evaluasi Januari–Desember serta skenario Slot A–C.
+    - Tambahkan penghitung item terpilih dan indikator ChevronUp/ChevronDown.
+    - Sinkronkan daftar skenario dengan tiga slot aktif.
+    - Standardisasi penamaan Snapshot menjadi Evaluasi.
+    - Perbarui dokumentasi BACKLOG dan DEVLOG.
+
+[33mcommit f6c1f12afe07d06e0ea25bd45f58c41037956e4c[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 9 18:23:58 2026 +0700
+
+    (feat) Tambahkan panduan rumus dan selaraskan UI indikator IKPA
+    
+    - Tambahkan modal “Panduan & Rumus” untuk Revisi DIPA dan Dispensasi SPM.
+    - Perbarui matriks NKRA Revisi DIPA: 0–1 revisi bernilai 110, dengan batas skor tahunan maksimal 100.
+    - Tambahkan skala rasio Distribusi A.K. pada panduan Belanja Kontraktual.
+    - Selaraskan urutan dan gaya tombol aksi pada halaman indikator.
+    - Rapikan alignment, truncation, tooltip, dan kontras header score card serta tabel.
+    - Hapus card “Jarak ke 100” dari Penyerapan Anggaran dan ubah grid menjadi 4 kolom.
+    - Perbarui pengujian golden Revisi DIPA dan dokumentasi backlog/devlog.
+
+[33mcommit 8f71bde7314fcfe6a98616d39b8d0fbbdaede92f[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 9 15:14:09 2026 +0700
+
+    (feat) Sederhanakan simulasi what-if dan kelola data UP/TUP dalam halama
+    
+    - Ubah simulasi dispensasi SPM menjadi panel expandable dengan nilai awal berdasarkan data aktual.
+    - Tambahkan fitur reset ke nilai aktual dan pertahankan penyimpanan skenario A/B/C.
+    - Hapus rute terpisah `/operator/data/up-tup-kkp` beserta pembaruan route tree.
+    - Ganti tautan lama dengan navigasi scroll sehalaman dan akses langsung ke drawer tambah data.
+
+[33mcommit a1172271a50874ce3d961a3fd93cfc9888c22347[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 9 14:51:34 2026 +0700
+
+    fix: perbaikan expandable component simulasi what-if
+
+[33mcommit 81ed3bd6c0399519d652c8a28a49d7ff154aa1ea[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 9 12:28:33 2026 +0700
+
+    (feat) Sinkronisasi nama skenario global per slot A/B/C
+
+[33mcommit 9848a4fcaded39650c15f4c56e48db5d45925845[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 9 12:20:55 2026 +0700
+
+    (feat) Tambahkan penyimpanan skenario what-if ke slot A/B/C
+    
+    - Integrasikan dialog penyimpanan skenario pada Deviasi, Penyerapan, UP TUP/KKP, dan Capaian Output.
+    - Tambahkan sinkronisasi slot A/B/C melalui localStorage antar indikator.
+    - Tampilkan ringkasan nilai asli dan nilai simulasi sebelum penyimpanan.
+    - Perbaiki input skor riwayat agar mendukung desimal koma/titik serta membatasi nilai 0–100.
+    - Perbarui dokumentasi backlog dan devlog terkait perubahan.
+
+[33mcommit ae7776288f62538198f1bc2b9959f7ab25ad103f[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 9 11:21:59 2026 +0700
+
+    (feat): Tambahkan sistem slot skenario A/B/C dan editor nilai IKPA
+    
+    Perubahan:
+    - Menambahkan pemilihan Slot A, B, atau C pada dialog simpan skenario dengan mekanisme overwrite.
+    - Menambahkan tampilan matriks evaluasi aktual 12 bulan pada halaman riwayat.
+    - Mengubah tampilan skenario tersimpan menjadi kartu Slot A/B/C.
+    - Menambahkan fitur edit nama, target, dan skor 8 indikator IKPA dengan kalkulasi total berbobot secara live.
+    - Menambahkan API `updateScenario` untuk memperbarui metadata, breakdown, dan snapshot skenario.
+    - Mengoptimalkan snapshot aktual dengan pembaruan in-place berdasarkan periode dan hash input.
+    - Mengurangi payload riwayat melalui sanitasi breakdown serta memperbaiki query overrides.
+    - Menambahkan script cleanup dan seed data untuk 12 evaluasi bulanan serta 3 skenario awal.
+    - Memperbarui dokumentasi backlog, devlog, dan panduan penggunaan riwayat skenario.
+
+[33mcommit 62c309170352ad43097fa8e80830fc5f2331661e[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 23:14:11 2026 +0700
+
+    (feat) Perbarui dashboard operator dan riwayat skenario IKPA
+    
+    - Tambahkan banner kelengkapan data dan selector periode bulanan.
+    - Sempurnakan kartu skor, indikator, rekomendasi, dan deadline dinamis.
+    - Tambahkan pemetaan rute kanonis untuk seluruh indikator IKPA.
+    - Gabungkan menu simulasi ke Riwayat & Skenario.
+    - Tambahkan penyimpanan, inspeksi, perbandingan, duplikasi, dan soft delete skenario.
+    - Perbaiki idempotensi snapshot aktual serta dukungan data null/incomplete.
+    - Lengkapi seed data IKPA Jan–Sep 2026 dan pengujian paritas dashboard.
+    - Perbarui dokumentasi backlog dan devlog.
+
+[33mcommit 1c10d2ee4c5b821f59456e5f34fe48af06d74d17[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 18:32:42 2026 +0700
+
+    feat: Hapus menu Laporan & Ekspor dari navigasi operator)
+    
+    Perubahan:
+    - Menghapus menu `Laporan & ekspor` dengan rute `/operator/reports` dari navigasi operator.
+    - Mempertahankan menu lain pada bagian “Lainnya”.
+    - Memperbarui `docs/BACKLOG.md` dengan task yang telah selesai.
+    - Menambahkan catatan implementasi dan hasil verifikasi ke `docs/DEVLOG.md`.
+    - Verifikasi: typecheck tanpa error dan seluruh 108 unit test aplikasi web lulus.
+
+[33mcommit d539c6925afa99169a238ba116fc7a7f51ef66db[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 18:27:07 2026 +0700
+
+    (feat): standardisasi kartu indikator IKPA dan format nilai akhir
+    
+    Menyeragamkan layout seluruh score card dengan tinggi minimum, flexbox, serta informasi nilai dan subtitle yang lebih rapi. Memformat skor IKPA maksimal 100 dengan dua desimal, menampilkan nilai akhir berbobot dalam satuan `pts`, memperbarui heading UP/TUP, dan mencatat perubahan pada backlog serta devlog.
+
+[33mcommit 9d22aab6344bf56db5d35422f645466d3176e8c8[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 18:12:57 2026 +0700
+
+    (feat) Standardisasi kartu nilai IKPA dan nilai akhir pada seluruh indik
+    
+    - Menyeragamkan tampilan serta label kartu skor pada 8 indikator IKPA.
+    - Menambahkan kartu “Nilai IKPA” dan “Nilai Akhir” berdasarkan bobot indikator.
+    - Membatasi skor IKPA pada rentang 0–100 dan memformat nilai hingga dua desimal.
+    - Memperbarui perhitungan nilai akhir Penyerapan, Dispensasi SPM, dan indikator terkait.
+    - Menyesuaikan ikon, tipografi, warna, grid responsif, serta keterangan bobot.
+    - Memperbarui dokumentasi `BACKLOG.md` dan `DEVLOG.md`.
+
+[33mcommit 34dc1d4f6fda4b39296d1a41fe499188fd78f102[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 17:43:36 2026 +0700
+
+    `(ui) Type: feat`
+    
+    Menyesuaikan judul strategi optimalisasi IKPA pada Penyerapan Anggaran dan Dispensasi SPM, serta menyelaraskan tampilan formula NK-CRO pada Panduan Capaian Output. Memperbarui dokumentasi BACKLOG dan DEVLOG terkait perubahan tersebut.
+
+[33mcommit 71361168eebb6bbd409419802670ba2404fef568[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 17:17:06 2026 +0700
+
+    feat: tambahkan panel strategi optimalisasi IKPA di menu operator
+    
+    - Menambahkan card strategi pada Revisi DIPA, Deviasi Halaman III DIPA, Belanja Kontraktual, Penyelesaian Tagihan, dan Capaian Output.
+    - Menyediakan rekomendasi taktis sesuai indikator dan bobot IKPA.
+    - Menerapkan layout responsif, number badge, ikon TrendingUp, serta styling konsisten.
+    - Memperbarui dokumentasi BACKLOG dan DEVLOG terkait implementasi serta hasil verifikasi test dan typecheck.
+
+[33mcommit 562678b7b3d85ef9b8b511941d2c6cdf8137ac61[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 16:52:50 2026 +0700
+
+    (feat) Tingkatkan Reminder Center dengan event aktif dan delivery log
+    
+    - Tambahkan 4 tab: event aktif, kebijakan, penerima, serta delivery & riwayat.
+    - Implementasikan query server-authoritative untuk event reminder, penerima terverifikasi, dan log delivery per organisasi.
+    - Pisahkan aturan Penyelesaian Tagihan SPM-LS dan Belanja Kontraktual sesuai context guard.
+    - Tambahkan validasi lead days 0–20 hari dengan maksimal 4 milestone.
+    - Sediakan drawer konfigurasi, live preview jadwal, filter, detail modal, masked email, serta status sandbox provider.
+    - Perbarui seed dan mock policy reminder.
+    - Tambahkan pengujian untuk pemisahan indikator, status reminder, dan validasi lead days.
+
+[33mcommit 2055ff8441e9a7355a46a800930176b6b9eb702c[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 14:58:26 2026 +0700
+
+    (feat) Sempurnakan responsivitas validasi dan jadwal pengisian realisasi
+    
+    - Optimalkan tampilan 8 aturan validasi agar responsif di perangkat mobile.
+    - Tambahkan struktur data terpusat untuk aturan dan status validasi.
+    - Sederhanakan judul panel serta header kolom jadwal open periode.
+    - Perbarui dokumentasi DEVLOG Session 175 beserta hasil verifikasi typecheck dan pengujian.
+
+[33mcommit 5da06b4759218b975373098d875e3fb1a19e5fcd[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 14:52:42 2026 +0700
+
+    `(operator): feat: perbarui jadwal Open Periode dan sinkronisasi target
+    
+    - Menambahkan rentang tanggal dan status `scheduled` pada jadwal pelaporan bulanan.
+    - Memperjelas label, catatan, badge status, serta informasi periode otomatis HK-1 hingga HK-7 M+1.
+    - Menyinkronkan kartu target triwulanan dengan bulan yang dipilih.
+    - Menampilkan jadwal triwulan terkini dan menyederhanakan tautan Reminder Center.
+    - Memperbarui DEVLOG Session 174 beserta hasil verifikasi typecheck dan test.
+
+[33mcommit fb0b6a321b7d20263724b556603f2cee752fbdc2[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 14:26:26 2026 +0700
+
+    (feat): rapikan UI capaian output dan perbarui formula panduan IKPA-CO
+    
+    - Meningkatkan kontras serta konsistensi tipografi tabel dan kartu metrik.
+    - Menyederhanakan navigasi dengan menghapus emoji, tombol, card, dan kolom redundan.
+    - Menyesuaikan format indikator RO menjadi X / Y RO.
+    - Memperbarui informasi Open Period dan pemutakhiran target triwulanan.
+    - Memperbarui formula Formula 2 dari Target Volume DIPA menjadi TRVRO.
+    - Menambahkan definisi TPCRO, TRVRO, PCRO, dan RVRO pada panduan PER-5.
+    - Memperbarui durasi Session 173 pada DEVLOG.
+
+[33mcommit 9cdb7c74d274ab1218eb64eabe7cf86f3753a81d[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 13:53:03 2026 +0700
+
+    feat: refaktor modul Capaian Output menjadi sandbox simulasi dengan preview
+    
+    - Restrukturisasi navigasi menjadi Jadwal & Kepatuhan, Panduan PER-5, dan Fitur Simulasi.
+    - Tambahkan sandbox in-memory untuk simulasi target, realisasi, dan fairness tanpa mutasi database produksi.
+    - Tambahkan input makro MyIntress/What-If dengan kalkulasi NK-ROKW, NK-CRO, IKPA-CO, dan kontribusi 25%.
+    - Perbarui tema UI dengan palet slate kontras tinggi serta validasi dan feedback simulasi.
+    - Tambahkan dokumentasi rencana reaktivasi fitur persistent dan catatan backlog/devlog.
+    - Perbaiki import relatif pada modul asumsi dan workspace simulasi.
+
+[33mcommit 9086a9f74b56df225d3b8197de7700b725436e79[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 11:59:15 2026 +0700
+
+    (feat) : Sebelum Preview Fiture Caput Tambahkan pengelolaan Open Period dan jadwal target
+    
+    - Menambahkan konfigurasi Open Period realisasi reguler HK-7 dan periode tambahan KPPN.
+    - Menambahkan jadwal pemutakhiran target output 10 hari kerja awal triwulan.
+    - Memperbarui deadline engine, seed database, mock policy, dan reminder center.
+    - Menambahkan tab admin untuk mengatur jadwal target serta Open Period 12 bulan.
+    - Menambahkan banner, matriks jadwal, pengajuan periode tambahan, dan fleksibilitas revisi DIPA pada operator.
+    - Menambahkan distribusi target bulanan otomatis serta dokumentasi backlog dan devlog.
+
+[33mcommit 037f1beda5472abe57cd43af03e9a01c67e89b7f[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 08:49:32 2026 +0700
+
+    (output-achievement) Type: feat
+    
+    Pisahkan target kinerja 12 bulan dan realisasi bulanan, serta integrasikan validasi Rules 00–08, PPA level RO, deteksi anomali, lifecycle pengiriman/konfirmasi, dan Fairness Treatment. Tambahkan tab UI terfokus, drawer input dengan validasi langsung, Server Function, service, skema database, migrasi Drizzle, seed data, dokumentasi implementasi, backlog, dan devlog. Hapus selector tahun/periode redundan pada header konteks.
+
+[33mcommit 55a2ce642767c51e7d2c57e8850f6ea9d82a3e49[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 8 00:34:43 2026 +0700
+
+    (feat) Rapikan tabel UP/TUP dan standarisasi format tanggal
+    
+    - Tambahkan penomoran otomatis pada kolom tabel.
+    - Tambahkan scroll internal dan sticky header untuk data lebih dari 5 baris.
+    - Hapus kolom SP2D Asal/Referensi serta 4 kartu metrik ringkasan.
+    - Standarisasi tampilan tanggal menjadi DD-MM-YYYY.
+    - Perbarui pengujian dan dokumentasi backlog/devlog.
+
+[33mcommit 3c98c401f6169075163aa84009e0045c826b570d[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 23:47:00 2026 +0700
+
+    `(feat) Integrasikan manajemen data dan perhitungan UP/TUP/KKP real-time
+    
+    - Mendukung seluruh tipe transaksi UP, GUP, GUP Nihil, TUP, PTUP, dan Setoran TUP pada schema serta engine.
+    - Menyempurnakan pemetaan transaksi aktual, referensi SP2D, settlement, dan perhitungan skor GUP.
+    - Menerapkan formula kinerja Setoran TUP dan NK Tunai sesuai rasio nominal.
+    - Menambahkan pengujian untuk skenario GUP, TUP, Setoran TUP, dan skor agregat.
+    - Mengonsolidasikan tabel, form tambah/ubah/hapus transaksi, pengaturan plafon KKP, target triwulanan, dan simulasi GUP ke halaman `/operator/up-tup`.
+    - Memperbarui dokumentasi backlog dan devlog.
+
+[33mcommit 793d4c787fcda1cc00495615c3ddf4e6f9de4300[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 23:32:20 2026 +0700
+
+    (ui/up-tup) feat: selaraskan urutan score card indikator UP/TUP
+    
+    - Mengurutkan score card menjadi NK Tunai, NK KKP, Nilai Indikator UP/TUP, dan Kontribusi IKPA.
+    - Menyesuaikan penomoran serta tata letak kartu pada halaman `/operator/up-tup`.
+    - Memperbarui BACKLOG dan DEVLOG terkait penyelesaian penataan score card.
+    - Unit test dan typecheck monorepo berhasil lulus.
+
+[33mcommit ac5fe61721a19b64b486a1c463c86c475a4386e0[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 21:51:18 2026 +0700
+
+    (UI UP/TUP) Type: fix
+    
+    Validasi ketat form transaksi UP/TUP dan penyesuaian date picker
+    
+    - Mengunci tombol simpan hingga nominal, tanggal rencana SP2D, dan referensi SP2D khusus GUP terisi valid.
+    - Menampilkan tanggal SP2D terakhir hanya untuk transaksi GUP.
+    - Menyimpan referensi SP2D hanya pada transaksi GUP.
+    - Menambahkan penanda field wajib dan pesan validasi yang lebih spesifik.
+
+[33mcommit 2030d3710898e4852c4c656f9bbb62107e6253b3[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 21:40:07 2026 +0700
+
+    (feat): tambahkan referensi riwayat SP2D pada form UP/TUP
+    
+    - Ubah label menjadi “Tanggal SP2D Terakhir” dan “Tanggal Rencana SP2D”.
+    - Tambahkan dropdown referensi transaksi UP/GUP sebelumnya yang diurutkan dari terbaru.
+    - Isi otomatis tanggal SP2D terakhir saat drawer dibuka.
+    - Selaraskan pesan validasi dan teks simulasi.
+    - Perbarui BACKLOG dan DEVLOG.
+
+[33mcommit 1a69fdfd73ea1e98389a95b067315022473701a3[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 21:23:57 2026 +0700
+
+    `feat: tambahkan simulasi real-time dan rekomendasi pada modal GUP`
+
+[33mcommit 910a353656bb71f235a59b7174cc81ef0b7405c0[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 19:52:34 2026 +0700
+
+    (refactor) Sederhanakan panel simulasi UP/TUP dan ubah tema section
+
+[33mcommit 385726fac85c9b8da31e3ddacb571b14aeeed1dd[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 18:13:26 2026 +0700
+
+    (feat) Tambahkan analisis dan rekomendasi interaktif simulasi GUP
+
+[33mcommit bc66da3ecc05ecf3af80475db77ea515560b9675[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 17:21:03 2026 +0700
+
+    feat: sederhanakan form UP/TUP dan konsolidasikan tab KKP
+
+[33mcommit 5a0721c84bd24780d1b56400ba85da63fab95313[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 16:30:26 2026 +0700
+
+    (feat) Fixing Menu UP TUP Terapkan konfigurasi KKP tanpa kepemilikan, rincian skor UP/TUP,
+
+[33mcommit 513d5b7b6b11c4ca65baccb2cd0cf7a56b9f2ff7[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 15:17:51 2026 +0700
+
+    (feat) Tambahkan Fairness Treatment dan penyempurnaan penilaian Capaian Output
+
+[33mcommit af577a24ff419834e4a2ebb216c3a8c03c295e53[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 12:35:19 2026 +0700
+
+    (fix) Selaraskan perhitungan dan UI pengurang IKPA Dispensasi SPM
+
+[33mcommit 26c5b7ea6bc99a1efbdee4517f1249bacab2387f[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 11:48:02 2026 +0700
+
+    (chore) Rapikan format dokumen future plan impor data transaksional
+
+[33mcommit f48388ce3dfd7628e40af6c52f1789c2a648cd44[m[33m ([m[1;33mtag: [m[1;33marchive/feat-overhaul-menu-20260907[m[33m, [m[1;31morigin/feat/overhaul-menu[m[33m, [m[1;32mfeat/overhaul-menu[m[33m)[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 11:17:33 2026 +0700
+
+    (docs) Tambah spesifikasi perbaikan IKPA dan fairness treatment
+    
+    Menambahkan spesifikasi Dispensasi SPM, Capaian Output, serta UP/TUP dan KKP.
+
+[33mcommit 99f5e8df01fcd36dbb319aff331c0cbf2591af4d[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 09:03:01 2026 +0700
+
+    (fix) selaraskan nama event reminder DB dengan UI dan dokumentasikan imp
+
+[33mcommit 98b623ffdb5f9edb9d743119e195de3b6bb2f7d7[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Sep 7 08:11:27 2026 +0700
+
+    feat: sempurnakan indikator penyelesaian tagihan SPM-LS dan navigasinya
+
+[33mcommit 61feeb6703f1c37aad4b63e6d7f2626d3bedc050[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sun Sep 6 19:05:43 2026 +0700
+
+    `feat: implementasi penilaian Belanja Kontraktual dengan navigasi tab dan perbaikan ui
+
+[33mcommit d597012ccc1f9bfb2d30987ac072f36d1dcdc516[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sun Sep 6 15:14:47 2026 +0700
+
+    `(feat) Standarisasi metric card IKPA pada Penyerapan dan Revisi DIPA`
+
+[33mcommit 12cf27361da8aecc7fc0c004759376e623663e39[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sun Sep 6 14:47:25 2026 +0700
+
+    feat: sinkronkan periode triwulan penyerapan dan tata ulang kartu metrik
+
+[33mcommit 0d03eb3d870b3c60b2900a9874449197795b1f48[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sun Sep 6 14:34:18 2026 +0700
+
+    (feat) Perbaiki perhitungan akumulatif dan UI indikator penyerapan anggaran
+
+[33mcommit b3d5d44ad9c41fee65c608cec6860ec808d66f23[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sun Sep 6 12:31:25 2026 +0700
+
+    (feat) Tata ulang layout Deviasi Hal III dengan ringkasan skor horizontal
+
+[33mcommit f29002bb92f3a8169fe4b1d664cf4ccb4374144c[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sun Sep 6 12:19:35 2026 +0700
+
+    `feat(operator): fix deviasi satukan hub deviasi dan responsifkan menu navigasi mobile
+
+[33mcommit b199430dc2d6566ec078a1ddac4d026bec3e8409[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sun Sep 6 11:17:42 2026 +0700
+
+    (feat) Menyelesaikan menu fixing indikator Deviasi Halaman III DIPA dan revisi Integrasi dengan pagu awal pada halaman revisi DIPA
+
+[33mcommit 4510549e44ab7c58c4beaaa6a45661a5b5ebf1b1[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sun Sep 6 03:20:56 2026 +0700
+
+    (feat) Lengkapi workspace Revisi DIPA dengan klasifikasi objek, skor, fi
+
+[33mcommit 81b6db2c675d5c736a8902304539d3ece83c857c[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 5 20:29:38 2026 +0700
+
+    Tambahkan reminder wajib Tagihan dan Output
+
+[33mcommit a03e8f1b6fdeb6db11d4037c2e5d933ae21e23b6[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 5 18:30:31 2026 +0700
+
+    Tambahkan workspace operator UP/TUP dan KKP
+    
+    - Arahkan menu ke `/operator/up-tup` dengan skor aktual, dampak rencana,
+      reminder GUP/PTUP, dan panel simulasi GUP/KKP
+    - Tambahkan helper workspace serta test mapping actual, skor, merge asumsi,
+      dan reminder jatuh tempo
+    - Lengkapi panel asumsi dengan preview kualitas GUP, tabel acuan, dan catatan
+      operasional dari referensi Excel
+
+[33mcommit cba0cfee4cee3913d318c8790485a5457a830799[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 5 15:32:12 2026 +0700
+
+    Tambahkan workspace Deviasi Halaman III operator
+    
+    - Arahkan menu Deviasi ke route khusus `/operator/deviasi`
+    - Hitung skor Jan-Nov via engine dengan aktual terkunci dan rencana editable
+    - Tambahkan helper simulasi, test, route generation, dan update tracker CORR-03
+
+[33mcommit 774112806a58529521e713ef458bb2bffd63847b[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 5 13:34:09 2026 +0700
+
+    Perhalus copy Indonesia halaman penyerapan anggaran
+
+[33mcommit e7a9a5df0ba60317806ddf90dcc75cf329a3405c[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 5 13:33:26 2026 +0700
+
+    Rapikan catatan future plan untuk CORR-02
+
+[33mcommit 9bd9d7b689fc8661ef6931f5c26de105c36b9a8c[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 5 13:26:54 2026 +0700
+
+    Before ubah diksi Format input angka dan sinkronkan periode operator
+    
+    - Tambah FormattedNumberInput untuk separator ribuan/desimal id-ID
+    - Terapkan input angka terformat di form data, asumsi, policy, dan settings
+    - Jadikan periode header sumber bulan aktif untuk RPD dan Penyerapan
+    - Tambah tautan dari RPD ke skor Penyerapan serta tooltip tahun aktif
+
+[33mcommit 543464193af4cccefd8820bdda16e61365c466a3[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 5 12:12:26 2026 +0700
+
+    Add: Tambahkan workspace Penyerapan Anggaran operator
+    
+    - Arahkan menu Penyerapan ke route khusus `/operator/penyerapan`
+    - Hitung skor dari actual terkunci dan rencana sisa tahun via engine
+    - Tambahkan utilitas simulasi, test, dan catatan CORR-02 selesai
+
+[33mcommit e45d8bfcbfaab7ec0ff7be6bf724ac3d19f7a38f[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 5 11:58:52 2026 +0700
+
+    Overhaul navigasi operator ke menu 8 indikator IKPA
+    
+    - Ganti sidebar operator menjadi Dashboard IKPA, 8 indikator, Reminder,
+      dan Lainnya sesuai koreksi PRE-F13
+    - Catat CORR-00/CORR-01 serta arsip IA lama di dokumen rencana
+      agar route lama tetap terlacak dan bisa dipulihkan
+
+[33mcommit 377935e79e6b891edededb33c14a02f8667e3727[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 5 10:25:19 2026 +0700
+
+    Add: Prepare untuk fase pre-13 lanjutan, menambahkan dokumen referensi
+    dan catatan
+
+[33mcommit 39a85554bed5b2bbd0e26cb8cb90c464520a049d[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Sat Sep 5 03:12:00 2026 +0700
+
+    feat: PRE-F13-01 s/d PRE-F13-08:
+    - Tambah panel asumsi UP/TUP & SPM Dispensasi di halaman Simulasi
+    - Bedakan Simpan Hasil Saat Ini vs Simpan Skenario
+    - Backend terima assumptions (upTup+dispensasi) untuk forecast/scenario
+    - Dashboard, History, XLSX/PDF tampilkan 8 indikator (7 berbobot +
+      pengurang)
+    - Nonaktifkan menu Import Data (hemat storage Neon)
+    - Arsipkan alur import ke docs/future_plan.md
+
+[33mcommit e32d91214dbeb22d140d6fec6d2c71b962d4f5ce[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Thu Sep 3 16:55:47 2026 +0700
+
+    Update F12 perbaikan fitur sebelum deploy 1
+
+[33mcommit fb3da8e68cecda5c28a113defacdcf9966cff624[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 2 17:39:00 2026 +0700
+
+    F12 All: Add & Fixed Fase 12 Selesai
+
+[33mcommit 30c70fad56193995ed78eea22cae6515432810bd[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 2 14:57:15 2026 +0700
+
+    Fase 11 Selesai
+
+[33mcommit e41fd0565860d1435acdd280bd8e5dd39979748e[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 2 13:50:08 2026 +0700
+
+    F11-01.b perbaikan fitur login
+
+[33mcommit 307bbed83d58fa4ced079cb48e38f4d93b68e53c[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 2 13:29:33 2026 +0700
+
+    F11-01.a tambah skill dan setting services
+
+[33mcommit b57fab68802424b0b2a0bf1b4a4529b1bb4424f1[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 2 13:28:45 2026 +0700
+
+    Fase F11-01.a Perbaikan beberapa ui
+
+[33mcommit e99e2a0508eeccd03abe34cf67df77e0fe04a608[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Wed Sep 2 00:48:37 2026 +0700
+
+    fase 11-01 selesai
+
+[33mcommit ec22e45d906715cf3b0b4b8e2a66a2812f0d1821[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 1 17:26:28 2026 +0700
+
+    Fase 10 selesai, Implement Fase 10, completing various tasks related to Policy, Reminder, Scheduler, and Email functionalities. Key changes include the addition of workday calendar, rule set resolver, deadline calculator, compliance guard, idempotency key, and QStash endpoints. Update BACKLOG and DEVLOG with completed tasks and document issues encountered during development. Ensure all type checks pass and maintain code quality across multiple files.
+
+[33mcommit 9de9a24b84f94d7ff462a2fcb8b9a49855922f04[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 1 16:48:27 2026 +0700
+
+    Fase 9 selesai  Refactor access.ts to remove unused import and update BACKLOG and DEVLOG with completed tasks for Fase 9, including various query/mutation implementations and a new audit helper. Ensure type checks pass and document issues encountered during development.
+
+[33mcommit 9b44425fa74bf8c4594499daffd2a0344696fd12[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 1 16:19:17 2026 +0700
+
+    Fase 8 Selesai Implement access control features including route guards for Admin and Operator roles, and enhance user authentication with Clerk integration. Update package dependencies and improve type definitions for React. Document changes in BACKLOG and DEVLOG.
+
+[33mcommit 8a297c5a44fa0e023564ca3d63e71c81d2bd442d[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 1 15:37:21 2026 +0700
+
+    fase 7 selesai
+
+[33mcommit 7a3d74bcc0fd6a5c670a5bb2e9a9a09c97f82783[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 1 14:38:31 2026 +0700
+
+    Fase 6 selesai. Update package-lock.json to include new @simulator-ikpa/ikpa-engine module. Refactor .vscode/settings.json for improved formatting consistency. Enhance styles.css with important outlines for focus states. Refactor risk-overview.tsx and other components for better readability and maintainability, including consistent formatting and spacing adjustments. Update mock data files for improved structure and clarity. Fase 6 selesai
+
+[33mcommit cb8ee57bc07c5cc3761927f573e5c6f4e7962542[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 1 13:00:10 2026 +0700
+
+    Enhance admin and operator navigation with updated links and new routes for KPPN management. Implement quick role selection in the sign-in panel with autofill functionality for demo accounts. Update auth card to improve user experience with email validation and destination handling. Document changes in BACKLOG and DEVLOG. Perbaikan final fase 4
+
+[33mcommit 997a3ba79067e8e8f28696f75023989fc0b1488a[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 1 11:26:07 2026 +0700
+
+    Implement UI updates and typography adjustments across various components, update fase 3 kedua
+
+[33mcommit 2a07df073d86279b716e57a0f2e1d7d28375c9ad[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 1 10:35:47 2026 +0700
+
+    Selesai fase 3 pertama
+
+[33mcommit 360728ab53a1e91f4e439311825204ef235031f9[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 1 02:58:33 2026 +0700
+
+    Buat auth page pertama kali f201 f202
+
+[33mcommit 02a52b92fc2309fd23b021c7da58807a45418102[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Tue Sep 1 00:44:45 2026 +0700
+
+    Add initial configuration and routing setup for TanStack Start project fase 1
+
+[33mcommit 3782b130d35c40ca15f5f603dd3f306960319858[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Aug 31 21:38:09 2026 +0700
+
+    Update BACKLOG, DEVLOG, and TASK-LIST with completed tasks F0-04 to F0-12, including detailed session notes. Documented key implementations, verification results, and issues encountered for each task, ensuring clarity on the progress and status of the project.
+
+[33mcommit f5f4ff74ccd4940d7ff18ad64036095da00d3663[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Aug 31 19:35:04 2026 +0700
+
+    Update BACKLOG, DEVLOG, and TASK-LIST with completed tasks and detailed session notes for F0-01, F0-02, and F0-03. Documented interpretations of workday boundaries and verification status for IKPA parameters, including key implementations and issues encountered.
+
+[33mcommit dbbca2a8b300065a02e365eb189f9dc005390eca[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Aug 31 18:42:05 2026 +0700
+
+    Implement setup tasklist backlog devlog
+
+[33mcommit a9357f78680ba769cdc7e557a50cf60c778dcf4b[m
+Author: trianditogilang <trianditogilang@gmail.com>
+Date:   Mon Aug 31 17:05:54 2026 +0700
+
+    initial commit

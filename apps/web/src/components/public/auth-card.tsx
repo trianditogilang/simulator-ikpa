@@ -124,6 +124,7 @@ function ClerkAuthCard({
 				<ClerkSignIn
 					routing="hash"
 					signUpUrl="/sign-up"
+					withSignUp
 					forceRedirectUrl={safeRedirectIntent}
 					fallbackRedirectUrl="/sign-in"
 					signUpFallbackRedirectUrl="/sign-in"

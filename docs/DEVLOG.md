@@ -17,6 +17,13 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 285 - 2026-09-13
+**Status:** Completed - AUTH-INVITE-ONLY email OTP first sign-in
+- **Root cause:** `<SignIn />` hanya menjalankan sign-in terhadap identitas Clerk yang sudah ada; akun yang baru diundang masih hanya berupa pending access di Neon sehingga email manual berakhir `account not found`.
+- **Perubahan:** `withSignUp` diaktifkan pada entry point SignIn halaman `/sign-in` dan landing page. Clerk kini dapat meneruskan identifier baru ke sign-up terverifikasi dalam alur yang sama; sinkronisasi Neon tetap terjadi setelah identitas Clerk nyata dibuat (tanpa fake user ID).
+- **Konfigurasi provider:** Clerk Dashboard harus mengaktifkan `Sign-in with email` + `Email verification code`, serta `Verify at sign-up` + `Email verification code` agar OTP tersedia.
+- **Verifikasi:** `npm run typecheck --workspace @simulator-ikpa/web` dan `npm run build --workspace @simulator-ikpa/web` lulus.
+
 ### Session 284 - 2026-09-13
 **Status:** Completed - AUTH-HARD-DELETE Clerk/Neon sync reset
 - **Perubahan:** jalur `hardDeleteUserFn`/`removeUserAccessFn` kini memvalidasi Admin scope dan target mapping sebelum menghapus akun Clerk melalui `clerkClient().users.deleteUser`, lalu menghapus row Neon dalam hard delete. Self-delete, Admin aktif terakhir, target lintas scope, dan Clerk yang belum dikonfigurasi ditolak; Clerk 404 diperlakukan idempoten dan kegagalan Neon menghasilkan pesan retry sinkronisasi.
