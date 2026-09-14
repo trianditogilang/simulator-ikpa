@@ -4,19 +4,37 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Current Phase
 
-**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06 selesai; F13-07 dan task berikutnya tetap ditahan.**
+**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06/F13-07 selesai; F13-08 Needs Fix; task berikutnya tetap ditahan.**
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
 - Baseline hijau: typecheck lulus, workspace Vitest 46 test files/329 tests lulus setelah source export retired dan regression webhook, `npm run lint` exit 0 (78 warning legacy), production build lulus, dan E2E smoke desktop/mobile 2/2 lulus.
 - Catatan environment: browser bundled Playwright belum dapat diunduh karena jaringan; smoke tetap reproducible memakai Chrome lokal melalui `channel: "chrome"`. Lint masih memiliki 78 warning legacy tanpa error.
 - F13-01 lulus: konfigurasi test per workspace mencegah E2E masuk Vitest; pure utility/scheduler/workday tests ditambah; bug rounding negatif fixed-point ditutup.
 - F13-06 selesai: security source review dan dependency audit resmi tidak menemukan critical/high; production delivery/import/export/provider fallback fail-closed; secret/migration checks lulus. Residual medium rate-limit provider route dan advisory `uuid`/`esbuild` memiliki owner DevOps/Security, due 2026-10-15. Generated-route drift dan remote CI tetap scope F13-08.
+- F13-07 selesai: runner `scripts/run-f13-07-performance.mjs` mengukur kalkulasi median 343,6 ms, dashboard agregat 168,1 ms untuk 20 satker, parser CSV 10k 94,6 ms, scheduler event+planning 127,2 ms, dan Operator XLSX 110,7 ms pada Neon test terisolasi; delapan index scope/batch tersedia dan query plan ditinjau. Production-load, commit async 10k, serta provider latency belum diklaim.
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
 - F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
 - F13-04 lulus: auth-seeded Playwright runner memakai sesi Clerk Operator nyata dan fixture Neon terisolasi; 12/12 test pada Chromium desktop + Mobile Chrome mencakup dashboard 8 indikator, delapan workspace, what-if actual immutable + Slot B/name, parity/compare bulanan dengan skenario, mandatory reminder, dan Operator XLSX. Fixture dibersihkan tanpa mencetak credential.
-- Next action: pertahankan regression E2E F13-04/F13-05 dan security checks; F13-07 serta task Fase 13 lain tetap ditahan.
+- F13-08 Needs Fix: workflow CI sudah fail-closed tanpa `continue-on-error`, tetapi remote PR menunggu lima GitHub Secrets test `F13_02_*`; local authenticated integration masih 84/92 test karena empat fixture existing (reminder config, Admin mapping, settings) gagal.
+- Next action: tambahkan secrets test pada repository, selaraskan fixture Neon/Clerk, dan jalankan remote PR; F13-09 serta task Fase 13 lain tetap ditahan.
 
 ## Recent Sessions
+
+### Session 291 - 2026-09-14
+**Status:** Needs Fix — F13-08 CI quality gate
+- **Perubahan:** `.github/workflows/ci.yml` kini menjalankan npm ci, typecheck, workspace unit/golden, authenticated integration, lint, generated-route, migration, secret scan, dependency audit registry resmi, production build, dan E2E smoke tanpa `continue-on-error`. Integration membuat `.env.f13-02.local` hanya selama step dan menghapusnya via trap; secrets ber-prefix `F13_02_*` tidak dicetak.
+- **Perubahan kecil:** `package.json` menambah `test:e2e:smoke` agar CI hanya menjalankan `apps/web/e2e/smoke.spec.ts`; `apps/web/tsr.config.json` menyamakan footer `tsr` dengan plugin TanStack Start sehingga generated-route check deterministik.
+- **Verifikasi lokal:** `npm.cmd ci`, `npm.cmd run typecheck`, `npm.cmd test` (46 file/329 test), `npm.cmd run lint` (exit 0; 78 warning/16 info), `npm.cmd run check:generated-routes`, `npm.cmd run check:migrations`, `npm.cmd run check:secrets`, `npm.cmd run build`, dependency audit resmi (exit 0; 2 moderate), dan `npm.cmd run test:e2e:smoke` (2/2 desktop+mobile) lulus. `node scripts/run-f13-02-integration.mjs` lulus 84/92 test; 4 fixture test existing gagal.
+- **Blocker/coverage:** GitHub remote PR belum dijalankan; repository belum memiliki lima secret `F13_02_DATABASE_URL`, `F13_02_DIRECT_URL`, `F13_02_CLERK_SECRET_KEY`, `F13_02_VITE_CLERK_PUBLISHABLE_KEY`, dan `F13_02_CLERK_OPERATOR_USER_ID`. Fixture reminder config/Admin mapping/settings perlu diselaraskan pada Neon test sebelum gate dapat hijau. F13-09 dan task lain tidak dikerjakan.
+
+### Session 290 - 2026-09-14
+**Status:** Completed — F13-07 performance baseline
+- **Perubahan:** Menambahkan `scripts/run-f13-07-performance.mjs`, runner Node + tsx yang membaca `.env.f13-02.local` tanpa mencetak credential, memakai Neon test terisolasi, dan membersihkan snapshot benchmark.
+- **Cakupan:** Kalkulasi satu satker, query agregat dashboard (20 satker), parser import CSV 10.000 baris, event/planning scheduler, dan builder Operator XLSX. QStash/Resend sengaja tidak dipanggil agar benchmark tidak mengirim email atau mengubah provider.
+- **Hasil:** Dua run baseline stabil; run terakhir menunjukkan kalkulasi median 343,6 ms (p95 364,9), dashboard 168,1 ms, import 94,6 ms, scheduler 127,2 ms, dan export 110,7 ms. Semua diukur setelah warm-up pada branch Neon test.
+- **Query plan:** Delapan index scope/batch ditemukan. `EXPLAIN (FORMAT JSON)` pada tabel kecil memilih Seq Scan/Sort/Hash Join karena low-cardinality; ini dicatat sebagai baseline, bukan bukti production-load. Mitigasi bila volume naik: ukur ulang dengan `EXPLAIN ANALYZE`, pertimbangkan composite/partial index dan kurangi round-trip query kalkulasi.
+- **Quality gate:** Runner exit 0; fixture snapshot dibersihkan; tidak ada database production, deployment, secret, atau token disentuh/dicetak. F13-08 dan task Fase 13 lain tidak dikerjakan.
+- **Coverage tersisa:** Commit async import 10k, latency QStash/Resend, dan authenticated Preview/production-load belum diuji; go-live tetap `NO-GO` sampai evidence deployment/load tersedia.
 
 ### Session 289 - 2026-09-13
 **Status:** Completed — F13-06 security review dan production truthfulness

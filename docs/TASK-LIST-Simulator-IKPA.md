@@ -882,13 +882,17 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
 
   **Evidence 2026-09-13:** Review source dan authenticated isolation evidence selesai; production fallback/provider/import/export fail-closed. Perbaikan webhook Clerk memverifikasi raw-body HMAC digest, secret `whsec_`/signing-secret, dan replay timestamp; 3 regression test lulus. Drizzle 0.45.2 dan Vitest UI 4.1.11 menghapus critical/high dependency finding. Audit resmi exit 0 (tanpa critical/high), secret scan, migration check, workspace test 329, typecheck, lint, dan build lulus. Residual medium memiliki owner DevOps/Security dan due 2026-10-15: rate-limit provider route, `uuid` via ExcelJS, `esbuild` via drizzle-kit; generated-route drift diteruskan ke F13-08.
 
-- [ ] **F13-07 â€” Lakukan performance test.** [Role: QA Agent]
+- [x] **F13-07 â€” Lakukan performance test.** [Role: QA Agent]
   **Scope:** Kalkulasi satu satker, dashboard agregat, 10k import, scheduler batch, export  
   **DoD:** Kalkulasi normal <500 ms atau bottleneck/mitigasi terdokumentasi; query plan index ditinjau.
 
+  **Evidence 2026-09-14:** Runner `node --import tsx scripts/run-f13-07-performance.mjs` pada Neon test terisolasi lulus. Kalkulasi median 343,6 ms (3 sampel setelah warm-up), dashboard agregat 168,1 ms untuk 20 satker, parser CSV 10.000 baris 94,6 ms, scheduler event+planning 127,2 ms, dan Operator XLSX 110,7 ms. Delapan index scope/batch ditemukan; query plan direview dan Seq Scan pada tabel kecil dicatat sebagai perilaku low-cardinality. Runner membersihkan snapshot fixture dan tidak memanggil QStash/Resend. Coverage production-load, commit async 10k, dan EXPLAIN ANALYZE pada cardinality produksi masih menjadi prasyarat go-live.
+
 - [ ] **F13-08 â€” Konfigurasi CI quality gate.** [Role: DevOps Agent]
-  **Files:** `.github/workflows/ci.yml`, `package.json`  
+  **Files:** `.github/workflows/ci.yml`, `package.json`, `apps/web/tsr.config.json`
   **DoD:** `npm ci`, typecheck seluruh workspace, lint tanpa error, unit/golden termasuk web, integration, E2E smoke, production build, secret scan, generated-route check, dan migration check berjalan tanpa `continue-on-error` pada gate wajib.
+
+  **Evidence 2026-09-14:** Workflow diperketat tanpa `continue-on-error`: authenticated integration membaca lima secret test `F13_02_*` melalui file sementara yang selalu dibersihkan, E2E CI memakai smoke publik terpisah, audit memakai registry resmi, dan `apps/web/tsr.config.json` menyelaraskan footer generator TanStack Start. Local `npm ci`, typecheck, workspace test (46 file/329 test), lint (0 error/78 warning), generated-route, migration, secret scan, build, dan smoke desktop/mobile (2/2) lulus. Runner integration lulus 84/92 test; 4 fixture test existing gagal sehingga F13-08 tetap Needs Fix. Remote PR belum dijalankan karena repository secrets test belum tersedia.
 
 - [ ] **F13-09 â€” Konfigurasi deployment Vercel.** [Role: DevOps Agent]
   **Files:** `vercel.json`, `docs/deployment-vercel.md`  
