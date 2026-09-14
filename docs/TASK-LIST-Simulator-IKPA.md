@@ -892,6 +892,8 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Files:** `.github/workflows/ci.yml`, `package.json`, `apps/web/tsr.config.json`
   **DoD:** `npm ci`, typecheck seluruh workspace, lint tanpa error, unit/golden termasuk web, integration, E2E smoke, production build, secret scan, generated-route check, dan migration check berjalan tanpa `continue-on-error` pada gate wajib.
 
+  **Evidence 2026-09-14 remote follow-up:** PR Quality Gate `34814347631` menerima secret secara masked dan sesi Clerk Admin berhasil dibuat, tetapi authenticated integration gagal `password authentication failed` saat query Neon. Local `DATABASE_URL`/`DIRECT_URL` connection check lulus; F13-08 tetap Needs Fix sampai GitHub Neon credentials diperbarui dan PR rerun.
+
   **Evidence 2026-09-14 Admin follow-up:** Secret `F13_02_CLERK_ADMIN_USER_ID` tersedia dan workflow memetakan ID Admin secara eksplisit ke runner authenticated integration. Perubahan belum dipush; F13-08 tetap Needs Fix sampai PR rerun dan fixture integration lulus.
 
   **Evidence 2026-09-14 follow-up:** Lima repository secrets kini tersedia dan `.github/workflows/ci.yml` memakai nama secret tersebut. Perubahan mapping belum dipush; runner lokal tetap 84/92 test dengan 4 fixture failure, sehingga F13-08 masih Needs Fix.

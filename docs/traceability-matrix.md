@@ -287,8 +287,8 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 | TSD-E2E-06 | Operator tidak dapat melepas mandatory/recipient | F13-04, F13-05 | Planned |
 | TSD-E2E-07 | Publish mengevaluasi jadwal, snapshot tetap | F13-05 | Planned — UI publish/catalog belum tersedia pada Preview; server/provider evidence tetap di F13-03/F13-02 |
 | TSD-E2E-08 | Replay QStash tidak duplikat | F13-03, F13-05 | Planned |
-| TSD-QG-01 | Typecheck, lint, unit, golden, build | F13-08 | Needs Fix — local gate lulus; remote PR `34812861063` berhenti pada authenticated integration preflight |
-| TSD-QG-02 | Migration database kosong/staging | F7-15, F13-08 | Needs Fix — local migration check lulus; repository secrets tersedia, remote gate tertahan fixture Admin KPPN |
+| TSD-QG-01 | Typecheck, lint, unit, golden, build | F13-08 | Needs Fix — local gate lulus; remote PR `34814347631` berhenti pada authenticated integration Neon auth |
+| TSD-QG-02 | Migration database kosong/staging | F7-15, F13-08 | Needs Fix — local migration check lulus; repository secrets tersedia, remote gate tertahan password Neon branch test |
 | TSD-QG-03 | E2E kritis | F13-04, F13-05, F13-08 | Needs Fix — authenticated E2E runner terpisah; CI smoke publik 2/2 lokal |
 | TSD-QG-04 | Secret scan | F13-06, F13-08 | Verified — local secret scan exit 0; remote PR belum dijalankan |
 | TSD-QG-05 | Auth, scope, Zod, audit pada mutasi | F13-02, F13-06 | Planned |

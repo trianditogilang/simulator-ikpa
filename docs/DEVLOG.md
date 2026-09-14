@@ -15,10 +15,16 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
 - F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
 - F13-04 lulus: auth-seeded Playwright runner memakai sesi Clerk Operator nyata dan fixture Neon terisolasi; 12/12 test pada Chromium desktop + Mobile Chrome mencakup dashboard 8 indikator, delapan workspace, what-if actual immutable + Slot B/name, parity/compare bulanan dengan skenario, mandatory reminder, dan Operator XLSX. Fixture dibersihkan tanpa mencetak credential.
-- F13-08 Needs Fix: workflow CI sudah fail-closed tanpa `continue-on-error`; enam repository secret test tersedia dan mapping workflow memakai nama secret yang benar. PR Quality Gate `34812861063` menerima lima secret lama secara masked tetapi berhenti sebelum test karena fixture Admin KPPN aktif tidak ada; mapping Admin ID kini ditambahkan untuk rerun. Runner lokal terbaru melewati preflight Admin tetapi gagal `fetch failed` saat membuat sesi Clerk, sehingga fixture test belum dapat dieksekusi ulang.
-- Next action: commit/push mapping Admin ID, rerun PR pada runner GitHub, lalu selaraskan fixture integration bila masih gagal; F13-09 serta task Fase 13 lain tetap ditahan.
+- F13-08 Needs Fix: workflow CI sudah fail-closed tanpa `continue-on-error`; enam repository secret test tersedia dan mapping workflow memakai nama secret yang benar. PR Quality Gate `34814347631` menerima secret secara masked dan sesi Clerk Admin berhasil dibuat, tetapi authenticated integration gagal `password authentication failed` saat query Neon. Local `DATABASE_URL` dan `DIRECT_URL` dapat terhubung; fixture test belum dapat dieksekusi ulang pada CI.
+- Next action: perbarui `DATABASE_URL`/`DIRECT_URL` GitHub ke connection string branch Neon test yang valid, rerun PR, lalu selaraskan fixture integration bila masih gagal; F13-09 serta task Fase 13 lain tetap ditahan.
 
 ## Recent Sessions
+
+### Session 297 - 2026-09-14
+**Status:** Needs Fix — F13-08 remote Neon credential check
+- PR `staging` → `main` run `34814347631` lulus checkout, install, typecheck, dan unit/golden. Authenticated integration menerima secret masked dan membuat sesi Clerk, lalu gagal saat query Neon dengan `password authentication failed` (nilai password/URL tidak dicetak); gate sesudahnya terskip.
+- Verifikasi lokal read-only menunjukkan `DATABASE_URL` dan `DIRECT_URL` pada `.env.f13-02.local` dapat melakukan koneksi sederhana. Tidak ada source behavior, mock, database production, atau deployment yang disentuh.
+- Blocker manual: perbarui secret GitHub `DATABASE_URL` dan `DIRECT_URL` menggunakan connection string branch Neon test yang masih valid, lalu rerun PR. F13-09 dan task Fase 13 lain tidak dikerjakan.
 
 ### Session 296 - 2026-09-14
 **Status:** Needs Fix — F13-08 local authenticated rerun
