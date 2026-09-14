@@ -4,7 +4,7 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Current Phase
 
-**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06/F13-07/F13-08 selesai; task berikutnya tetap ditahan.**
+**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06/F13-07/F13-08 selesai; F13-09 Needs Fix.**
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
 - Baseline hijau: typecheck lulus, workspace Vitest 46 test files/329 tests lulus setelah source export retired dan regression webhook, `npm run lint` exit 0 (78 warning legacy), production build lulus, dan E2E smoke desktop/mobile 2/2 lulus.
@@ -16,9 +16,15 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
 - F13-04 lulus: auth-seeded Playwright runner memakai sesi Clerk Operator nyata dan fixture Neon terisolasi; 12/12 test pada Chromium desktop + Mobile Chrome mencakup dashboard 8 indikator, delapan workspace, what-if actual immutable + Slot B/name, parity/compare bulanan dengan skenario, mandatory reminder, dan Operator XLSX. Fixture dibersihkan tanpa mencetak credential.
 - F13-08 selesai: branch Neon test dilengkapi fiscal year 2026 untuk 18 organisasi KPPN-032 yang hilang dan seluruh FY operator aktif memiliki reminder config dengan policy aktif; workflow tetap fail-closed tanpa `continue-on-error`.
-- Quality Gate `34851608310` pada commit `d968677` hijau seluruh job; authenticated integration mencatat 91 passed + 1 skipped (QStash normal) dari 92 test. F13-09 serta task Fase 13 lain tetap ditahan.
+- Quality Gate `34851608310` pada commit `d968677` hijau seluruh job; authenticated integration mencatat 91 passed + 1 skipped (QStash normal) dari 92 test. F13-09 kini memiliki konfigurasi source-controlled minimal; Production/domain dan evidence UAT tetap ditahan.
 
 ## Recent Sessions
+
+### Session 302 - 2026-09-14
+**Status:** Needs Fix — F13-09 Vercel deployment configuration
+- **Perubahan:** Menambahkan `vercel.json` minimal di root untuk mengunci `npm ci` dan `npm run build`; output directory sengaja tidak dioverride agar Build Output API Nitro tetap terdeteksi. `docs/deployment-vercel.md` mencatat konfigurasi source-controlled tersebut.
+- **Verifikasi:** `npm.cmd run typecheck`, `npm.cmd test` (46 file/329 test), `npm.cmd run lint` (exit 0; warning legacy), `npm.cmd run build`, build `NITRO_PRESET=vercel`, dan `git diff --check` lulus. Build Vercel menghasilkan `.vercel/output` dengan function server. Preview publik merespons root HTTP 200 dan route Operator tanpa sesi mengarahkan kembali ke `/`; tidak ada response body sensitif, credential, token, database production, atau deployment disentuh.
+- **Batasan:** Production/domain, environment terpisah, serta authenticated mutation/cross-tenant dan UAT evidence tetap memerlukan setup/approval owner Vercel/Neon/Clerk. F13-10 dan task Fase 13 lain tidak dikerjakan.
 
 ### Session 301 - 2026-09-14
 **Status:** Completed — F13-08 CI quality gate
