@@ -4,7 +4,7 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Current Phase
 
-**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06/F13-07 selesai; F13-08 Needs Fix; task berikutnya tetap ditahan.**
+**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06/F13-07/F13-08 selesai; task berikutnya tetap ditahan.**
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
 - Baseline hijau: typecheck lulus, workspace Vitest 46 test files/329 tests lulus setelah source export retired dan regression webhook, `npm run lint` exit 0 (78 warning legacy), production build lulus, dan E2E smoke desktop/mobile 2/2 lulus.
@@ -15,10 +15,16 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
 - F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
 - F13-04 lulus: auth-seeded Playwright runner memakai sesi Clerk Operator nyata dan fixture Neon terisolasi; 12/12 test pada Chromium desktop + Mobile Chrome mencakup dashboard 8 indikator, delapan workspace, what-if actual immutable + Slot B/name, parity/compare bulanan dengan skenario, mandatory reminder, dan Operator XLSX. Fixture dibersihkan tanpa mencetak credential.
-- F13-08 Needs Fix: workflow CI sudah fail-closed tanpa `continue-on-error`; enam repository secret test tersedia dan mapping workflow memakai nama secret yang benar. Commit `ac9b66a` memperbaiki marker error `SATKER_ALREADY_REGISTERED` dan menormalkan fixture kode peer; remote run `34832871137` mengonfirmasi `settings-http.integration.test.ts` lulus 3/3. Gate masih 85/92 karena seeded operator reminder config dan own Admin access fixture belum tersedia.
-- Next action: lengkapi dua fixture integration pada Neon test, rerun Quality Gate sampai 92/92; F13-09 serta task Fase 13 lain tetap ditahan.
+- F13-08 selesai: branch Neon test dilengkapi fiscal year 2026 untuk 18 organisasi KPPN-032 yang hilang dan seluruh FY operator aktif memiliki reminder config dengan policy aktif; workflow tetap fail-closed tanpa `continue-on-error`.
+- Quality Gate `34851608310` pada commit `d968677` hijau seluruh job; authenticated integration mencatat 91 passed + 1 skipped (QStash normal) dari 92 test. F13-09 serta task Fase 13 lain tetap ditahan.
 
 ## Recent Sessions
+
+### Session 301 - 2026-09-14
+**Status:** Completed — F13-08 CI quality gate
+- **Perubahan:** Pada branch Neon test `f13-02-test-20260910`, 18 fiscal year 2026 KPPN-032 diinsert dengan rule published 2026.1 dan `ON CONFLICT DO NOTHING`; konfigurasi reminder operator diverifikasi/idempoten dengan policy aktif dan schedule target. Artefak fixture uji lama dibersihkan hanya pada branch test. Commit `d968677` menormalkan kode peer Admin, memilih own org tanpa operator aktif, menyelaraskan assertion list access, dan mengembalikan `ForbiddenError` untuk mutasi di luar scope.
+- **Verifikasi:** `npm.cmd run typecheck` dan `git diff --check` lulus. Quality Gate `34851608310` hijau (14 file integration passed, 1 file QStash skipped; 91 passed + 1 skipped = 92 test), termasuk E2E smoke dan seluruh quality step.
+- **Batasan:** Tidak ada secret/token atau response body sensitif yang dicetak; database main/production dan deployment tidak disentuh. F13-03, F13-09, dan task Fase 13 lain tidak dikerjakan.
 
 ### Session 300 - 2026-09-14
 **Status:** Needs Fix — F13-08 settings denial regression
