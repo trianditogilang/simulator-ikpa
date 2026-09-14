@@ -32,6 +32,7 @@ jobs:
           F13_02_CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           F13_02_VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           F13_02_CLERK_OPERATOR_USER_ID: ${{ secrets.F13_02_CLERK_OPERATOR_USER_ID }}
+          F13_02_CLERK_ADMIN_USER_ID: ${{ secrets.F13_02_CLERK_ADMIN_USER_ID }}
         shell: bash
         run: |
           set -euo pipefail
@@ -40,6 +41,7 @@ jobs:
           : "${F13_02_CLERK_SECRET_KEY:?Missing repository secret F13_02_CLERK_SECRET_KEY}"
           : "${F13_02_VITE_CLERK_PUBLISHABLE_KEY:?Missing repository secret F13_02_VITE_CLERK_PUBLISHABLE_KEY}"
           : "${F13_02_CLERK_OPERATOR_USER_ID:?Missing repository secret F13_02_CLERK_OPERATOR_USER_ID}"
+          : "${F13_02_CLERK_ADMIN_USER_ID:?Missing repository secret F13_02_CLERK_ADMIN_USER_ID}"
           trap 'rm -f .env.f13-02.local' EXIT
           {
             printf 'DATABASE_URL=%s\n' "$F13_02_DATABASE_URL"
@@ -47,6 +49,7 @@ jobs:
             printf 'CLERK_SECRET_KEY=%s\n' "$F13_02_CLERK_SECRET_KEY"
             printf 'VITE_CLERK_PUBLISHABLE_KEY=%s\n' "$F13_02_VITE_CLERK_PUBLISHABLE_KEY"
             printf 'F13_02_CLERK_OPERATOR_USER_ID=%s\n' "$F13_02_CLERK_OPERATOR_USER_ID"
+            printf 'F13_02_CLERK_ADMIN_USER_ID=%s\n' "$F13_02_CLERK_ADMIN_USER_ID"
           } > .env.f13-02.local
           npm run test:integration
       - name: Lint

@@ -15,10 +15,27 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
 - F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
 - F13-04 lulus: auth-seeded Playwright runner memakai sesi Clerk Operator nyata dan fixture Neon terisolasi; 12/12 test pada Chromium desktop + Mobile Chrome mencakup dashboard 8 indikator, delapan workspace, what-if actual immutable + Slot B/name, parity/compare bulanan dengan skenario, mandatory reminder, dan Operator XLSX. Fixture dibersihkan tanpa mencetak credential.
-- F13-08 Needs Fix: workflow CI sudah fail-closed tanpa `continue-on-error`; lima repository secret test kini tersedia dan mapping workflow memakai nama secret yang benar. Local authenticated integration masih 84/92 test karena empat fixture existing (reminder config, Admin mapping, settings) gagal.
-- Next action: selaraskan fixture Neon/Clerk, commit/push perubahan workflow, dan jalankan remote PR; F13-09 serta task Fase 13 lain tetap ditahan.
+- F13-08 Needs Fix: workflow CI sudah fail-closed tanpa `continue-on-error`; enam repository secret test tersedia dan mapping workflow memakai nama secret yang benar. PR Quality Gate `34812861063` menerima lima secret lama secara masked tetapi berhenti sebelum test karena fixture Admin KPPN aktif tidak ada; mapping Admin ID kini ditambahkan untuk rerun. Runner lokal terbaru melewati preflight Admin tetapi gagal `fetch failed` saat membuat sesi Clerk, sehingga fixture test belum dapat dieksekusi ulang.
+- Next action: commit/push mapping Admin ID, rerun PR pada runner GitHub, lalu selaraskan fixture integration bila masih gagal; F13-09 serta task Fase 13 lain tetap ditahan.
 
 ## Recent Sessions
+
+### Session 296 - 2026-09-14
+**Status:** Needs Fix — F13-08 local authenticated rerun
+- Setelah `F13_02_CLERK_ADMIN_USER_ID` tersedia lokal, `node scripts/run-f13-02-integration.mjs` melewati pemeriksaan fixture Admin dan berhenti saat `clerkClient.sessions.createSession` dengan error generik `fetch failed`. Tidak ada token, secret, atau response body yang dicetak.
+- Tidak ada perubahan source auth/provider dan tidak ada mock yang dipakai. Mapping Admin pada `.github/workflows/ci.yml` siap diuji di GitHub Actions setelah commit/push; F13-09 dan task lain tidak dikerjakan.
+
+### Session 295 - 2026-09-14
+**Status:** Needs Fix — F13-08 Admin credential mapping
+- Secret repository `F13_02_CLERK_ADMIN_USER_ID` terdeteksi tersedia tanpa membaca atau mencetak nilainya. `.github/workflows/ci.yml` kini memetakan secret tersebut, mewajibkan validasi non-empty, dan menulisnya hanya ke `.env.f13-02.local` sementara yang dibersihkan via trap.
+- `git diff --check` lulus. PR rerun belum dapat dipicu karena perubahan belum di-commit/push; tidak ada source behavior atau database production yang disentuh.
+- Setelah commit/push, Quality Gate perlu dijalankan ulang. Jika preflight lolos, empat fixture integration existing (reminder config, Admin mapping, settings) tetap perlu diperbaiki sebelum F13-08 Completed. F13-09 dan task lain tidak dikerjakan.
+
+### Session 294 - 2026-09-14
+**Status:** Needs Fix — F13-08 remote Quality Gate
+- PR `staging` → `main` terdeteksi dan workflow `Quality Gate` run `34812861063` berjalan. Checkout, install, typecheck, dan unit/golden test lulus.
+- Authenticated integration berhenti aman pada preflight `No active Admin KPPN fixture found in the isolated test database` (exit code 2); lint dan gate setelahnya terskip. Log hanya menampilkan nilai secret sebagai masked, tanpa credential atau response body.
+- Secret names repository sudah diverifikasi tersedia. Blocker manual tersisa: seed/mapping Admin KPPN aktif pada branch Neon test, lalu rerun PR. F13-09 dan task Fase 13 lain tidak dikerjakan.
 
 ### Session 293 - 2026-09-14
 **Status:** Needs Fix — F13-08 CI quality gate follow-up
