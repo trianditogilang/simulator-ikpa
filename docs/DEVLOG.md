@@ -20,6 +20,12 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 292 - 2026-09-14
+**Status:** Completed — Sembunyikan Agentation dan TanStackDevtools di production
+- **Perubahan:** `apps/web/src/routes/__root.tsx` — `<Agentation />` dan `<TanStackDevtools>` dibungkus `{import.meta.env.DEV && ...}` sehingga hanya dirender saat development, bukan di production Vercel.
+- **Verifikasi:** Typecheck 0 error.
+- **Risiko/known issue:** Tidak ada.
+
 ### Session 291 - 2026-09-14
 **Status:** Needs Fix — F13-08 CI quality gate
 - **Perubahan:** `.github/workflows/ci.yml` kini menjalankan npm ci, typecheck, workspace unit/golden, authenticated integration, lint, generated-route, migration, secret scan, dependency audit registry resmi, production build, dan E2E smoke tanpa `continue-on-error`. Integration membuat `.env.f13-02.local` hanya selama step dan menghapusnya via trap; secrets ber-prefix `F13_02_*` tidak dicetak.
