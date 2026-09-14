@@ -892,6 +892,8 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Files:** `.github/workflows/ci.yml`, `package.json`, `apps/web/tsr.config.json`
   **DoD:** `npm ci`, typecheck seluruh workspace, lint tanpa error, unit/golden termasuk web, integration, E2E smoke, production build, secret scan, generated-route check, dan migration check berjalan tanpa `continue-on-error` pada gate wajib.
 
+  **Evidence 2026-09-14 follow-up:** Lima repository secrets kini tersedia dan `.github/workflows/ci.yml` memakai nama secret tersebut. Perubahan mapping belum dipush; runner lokal tetap 84/92 test dengan 4 fixture failure, sehingga F13-08 masih Needs Fix.
+
   **Evidence 2026-09-14:** Workflow diperketat tanpa `continue-on-error`: authenticated integration membaca lima secret test `F13_02_*` melalui file sementara yang selalu dibersihkan, E2E CI memakai smoke publik terpisah, audit memakai registry resmi, dan `apps/web/tsr.config.json` menyelaraskan footer generator TanStack Start. Local `npm ci`, typecheck, workspace test (46 file/329 test), lint (0 error/78 warning), generated-route, migration, secret scan, build, dan smoke desktop/mobile (2/2) lulus. Runner integration lulus 84/92 test; 4 fixture test existing gagal sehingga F13-08 tetap Needs Fix. Remote PR belum dijalankan karena repository secrets test belum tersedia.
 
 - [ ] **F13-09 â€” Konfigurasi deployment Vercel.** [Role: DevOps Agent]

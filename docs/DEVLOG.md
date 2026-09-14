@@ -15,10 +15,16 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
 - F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
 - F13-04 lulus: auth-seeded Playwright runner memakai sesi Clerk Operator nyata dan fixture Neon terisolasi; 12/12 test pada Chromium desktop + Mobile Chrome mencakup dashboard 8 indikator, delapan workspace, what-if actual immutable + Slot B/name, parity/compare bulanan dengan skenario, mandatory reminder, dan Operator XLSX. Fixture dibersihkan tanpa mencetak credential.
-- F13-08 Needs Fix: workflow CI sudah fail-closed tanpa `continue-on-error`, tetapi remote PR menunggu lima GitHub Secrets test `F13_02_*`; local authenticated integration masih 84/92 test karena empat fixture existing (reminder config, Admin mapping, settings) gagal.
-- Next action: tambahkan secrets test pada repository, selaraskan fixture Neon/Clerk, dan jalankan remote PR; F13-09 serta task Fase 13 lain tetap ditahan.
+- F13-08 Needs Fix: workflow CI sudah fail-closed tanpa `continue-on-error`; lima repository secret test kini tersedia dan mapping workflow memakai nama secret yang benar. Local authenticated integration masih 84/92 test karena empat fixture existing (reminder config, Admin mapping, settings) gagal.
+- Next action: selaraskan fixture Neon/Clerk, commit/push perubahan workflow, dan jalankan remote PR; F13-09 serta task Fase 13 lain tetap ditahan.
 
 ## Recent Sessions
+
+### Session 293 - 2026-09-14
+**Status:** Needs Fix — F13-08 CI quality gate follow-up
+- `gh secret list` mengonfirmasi lima nama repository secret tersedia tanpa membaca atau mencetak nilainya. `.github/workflows/ci.yml` diselaraskan dari nama `F13_02_*` ke secret repository yang telah dikonfigurasi (`DATABASE_URL`, `DIRECT_URL`, `CLERK_SECRET_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`, dan ID Operator).
+- Rerun `node scripts/run-f13-02-integration.mjs` tetap exit 1: 84/92 test lulus, 4 gagal (reminder config belum tersedia, Admin mapping/own fixture, dan settings peer-denial pattern); 4 test reminder terskip karena setup fixture. Tidak ada response body sensitif atau credential dicetak.
+- Perubahan belum di-commit/push atas instruksi owner. Setelah fixture test diselaraskan, owner perlu commit/push branch `staging` agar pull request menjalankan workflow remote. F13-09 dan task lain tidak dikerjakan.
 
 ### Session 292 - 2026-09-14
 **Status:** Completed — Sembunyikan Agentation dan TanStackDevtools di production
