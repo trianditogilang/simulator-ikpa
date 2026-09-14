@@ -15,10 +15,17 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
 - F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
 - F13-04 lulus: auth-seeded Playwright runner memakai sesi Clerk Operator nyata dan fixture Neon terisolasi; 12/12 test pada Chromium desktop + Mobile Chrome mencakup dashboard 8 indikator, delapan workspace, what-if actual immutable + Slot B/name, parity/compare bulanan dengan skenario, mandatory reminder, dan Operator XLSX. Fixture dibersihkan tanpa mencetak credential.
-- F13-08 Needs Fix: workflow CI sudah fail-closed tanpa `continue-on-error`; enam repository secret test tersedia dan mapping workflow memakai nama secret yang benar. Remote run `34815876027` menerima DB credential dan membuat sesi Clerk, lulus signing-key check QStash dengan fixture CI deterministik, tetapi authenticated integration masih gagal pada assertion onboarding settings dan Admin Clerk yang belum mapped ke KPPN scope. Owner sudah memperbarui `DATABASE_URL`/`DIRECT_URL`; rerun terbaru belum terkonfirmasi karena GitHub API mengalami TLS handshake timeout.
-- Next action: map Admin Clerk user ke KPPN scope pada Neon test, rerun PR, lalu selaraskan fixture integration bila masih gagal; F13-09 serta task Fase 13 lain tetap ditahan.
+- F13-08 Needs Fix: workflow CI sudah fail-closed tanpa `continue-on-error`; enam repository secret test tersedia dan mapping workflow memakai nama secret yang benar. Commit `ac9b66a` memperbaiki marker error `SATKER_ALREADY_REGISTERED` dan menormalkan fixture kode peer; remote run `34832871137` mengonfirmasi `settings-http.integration.test.ts` lulus 3/3. Gate masih 85/92 karena seeded operator reminder config dan own Admin access fixture belum tersedia.
+- Next action: lengkapi dua fixture integration pada Neon test, rerun Quality Gate sampai 92/92; F13-09 serta task Fase 13 lain tetap ditahan.
 
 ## Recent Sessions
+
+### Session 300 - 2026-09-14
+**Status:** Needs Fix — F13-08 settings denial regression
+- **Perubahan:** `apps/web/src/server/domains/settings.server.ts` membuat pesan `SATKER_ALREADY_REGISTERED` memuat marker penolakan `ditolak` dan tetap melempar `{ statusCode: 409, code: "SATKER_ALREADY_REGISTERED" }`. `apps/web/src/server/integration/settings-http.integration.test.ts` menormalkan fixture kode peer ke uppercase agar sesuai normalisasi handler.
+- **Verifikasi:** Test authenticated HTTP lokal satu file lulus 3/3 dengan Clerk session dan Neon test; `npm.cmd run typecheck` lulus. Commit `ac9b66a` dipush ke `staging`; Quality Gate `34832871137` menunjukkan settings 3/3 lulus dan total integration 85/92 (3 failed, 4 skipped).
+- **Blocker:** Gate masih gagal pada seeded operator reminder config dan own Admin access fixture; F13-08 tetap Needs Fix dan tidak ada perubahan Neon yang dilakukan. Tidak ada secret, token, atau response body sensitif yang dicetak.
+- **Scope:** F13-09 dan task Fase 13 lainnya tidak dikerjakan.
 
 ### Session 299 - 2026-09-14
 **Status:** Needs Fix — F13-08 latest credential verification
