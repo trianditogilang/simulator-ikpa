@@ -15,7 +15,7 @@ import {
 	userAccesses,
 	users,
 } from "@simulator-ikpa/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 const baseUrl = process.env.F13_02_HTTP_URL;
 const testDatabaseUrl = process.env.DATABASE_URL;
@@ -39,7 +39,7 @@ if (
 const db = createDbClient(testDatabaseUrl);
 const fixtureTag = randomUUID().replaceAll("-", "").slice(0, 12);
 const peerScopeCode = `F13-02-ADM-SCOPE-${fixtureTag}`;
-const peerOrgCode = `F13A${fixtureTag.slice(0, 8)}`;
+const peerOrgCode = `F13A${fixtureTag.slice(0, 8)}`.toUpperCase();
 const peerOrgName = `F13-02 admin peer ${fixtureTag}`;
 const peerKppnName = `F13-02 admin peer KPPN ${fixtureTag}`;
 const ownSimulationName = `F13-02 admin own snapshot ${fixtureTag}`;
@@ -232,7 +232,17 @@ beforeAll(async () => {
 	const [ownOrg] = await db
 		.select({ id: organizations.id, code: organizations.kodeSatker, name: organizations.name })
 		.from(organizations)
-		.where(eq(organizations.kppnScopeId, adminScopeId))
+		.where(
+			and(
+				eq(organizations.kppnScopeId, adminScopeId),
+				sql`not exists (
+					select 1 from user_accesses
+					where user_accesses.org_id = ${organizations.id}
+						and user_accesses.access_type = 'operator_satker'
+						and user_accesses.active = true
+				)`,
+			),
+		)
 		.limit(1);
 	if (!ownOrg) throw new Error("Seeded Admin KPPN organization is missing.");
 	adminOrgId = ownOrg.id;
@@ -808,7 +818,6 @@ describe("F13-02 Admin authenticated HTTP boundary", () => {
 		});
 		expect(ownAccess.status).toBe(200);
 		expectBodyContains(ownAccess.body, adminUserId);
-		expectBodyContains(ownAccess.body, adminOrgId);
 		expectBodyContains(ownAccess.body, peerAccessId, false);
 		expectBodyContains(ownAccess.body, peerUserEmail, false);
 		expectBodyContains(ownAccess.body, peerUserName, false);

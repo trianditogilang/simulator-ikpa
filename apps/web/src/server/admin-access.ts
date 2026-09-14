@@ -4,6 +4,7 @@ import { and, desc, eq, inArray, isNull, isNotNull, ne, or, sql } from "drizzle-
 import {
 	assertAdminKppnScope,
 	createPendingAccess,
+	ForbiddenError,
 	grantAdminAccess,
 	grantOperatorAccess,
 	hardDeleteUser,
@@ -527,7 +528,7 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 						.limit(1);
 					if (currentOrg) {
 						if (!allowedKppnScopeIds.includes(currentOrg.kppnScopeId)) {
-							throw new Error("Satker berada di luar scope admin.");
+							throw new ForbiddenError("Satker berada di luar wewenang admin.");
 						}
 						if (
 							await findOtherVisibleOperator(
@@ -555,7 +556,7 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 								operatorOrgId = currentOrg.id;
 							} else if (targetOrg.name.trim().toLowerCase() === normalizedName.toLowerCase()) {
 								if (!allowedKppnScopeIds.includes(targetOrg.kppnScopeId)) {
-									throw new Error("Satker berada di luar scope admin.");
+									throw new ForbiddenError("Satker berada di luar wewenang admin.");
 								}
 								if (await findOtherVisibleOperator(db, targetOrg.id, data.targetAccessId, data.targetUserId)) {
 									throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
@@ -563,7 +564,7 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 								operatorOrgId = targetOrg.id;
 							} else {
 								if (!allowedKppnScopeIds.includes(targetOrg.kppnScopeId)) {
-									throw new Error("Satker berada di luar scope admin.");
+									throw new ForbiddenError("Satker berada di luar wewenang admin.");
 								}
 								if (await findOtherVisibleOperator(db, targetOrg.id, data.targetAccessId, data.targetUserId)) {
 									throw Object.assign(new Error("Kode satker sudah terdaftar dengan nama berbeda."), { statusCode: 409, code: "ORGANIZATION_NAME_MISMATCH" });
@@ -591,7 +592,7 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 					.limit(1);
 				if (targetOrganization) {
 					if (!allowedKppnScopeIds.includes(targetOrganization.kppnScopeId)) {
-						throw new Error("Satker berada di luar scope admin.");
+						throw new ForbiddenError("Satker berada di luar wewenang admin.");
 					}
 					if (targetOrganization.name.trim().toLowerCase() !== normalizedName.toLowerCase()) {
 						if (await findOtherVisibleOperator(db, targetOrganization.id)) {
