@@ -15,10 +15,16 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
 - F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
 - F13-04 lulus: auth-seeded Playwright runner memakai sesi Clerk Operator nyata dan fixture Neon terisolasi; 12/12 test pada Chromium desktop + Mobile Chrome mencakup dashboard 8 indikator, delapan workspace, what-if actual immutable + Slot B/name, parity/compare bulanan dengan skenario, mandatory reminder, dan Operator XLSX. Fixture dibersihkan tanpa mencetak credential.
-- F13-08 Needs Fix: workflow CI sudah fail-closed tanpa `continue-on-error`; enam repository secret test tersedia dan mapping workflow memakai nama secret yang benar. Rerun PR `34814720804` menerima DB credential dan membuat sesi Clerk, tetapi integration gagal pada key QStash yang belum di-env, assertion denial settings, dan Admin Clerk yang belum mapped ke KPPN scope. Workflow kini menulis key fixture QStash non-produksi deterministik ke env sementara.
-- Next action: map Admin Clerk user ke KPPN scope pada Neon test, commit/push key fixture CI, rerun PR, lalu selaraskan fixture integration bila masih gagal; F13-09 serta task Fase 13 lain tetap ditahan.
+- F13-08 Needs Fix: workflow CI sudah fail-closed tanpa `continue-on-error`; enam repository secret test tersedia dan mapping workflow memakai nama secret yang benar. Remote run `34815876027` menerima DB credential dan membuat sesi Clerk, lulus signing-key check QStash dengan fixture CI deterministik, tetapi authenticated integration masih gagal pada assertion onboarding settings dan Admin Clerk yang belum mapped ke KPPN scope. Owner sudah memperbarui `DATABASE_URL`/`DIRECT_URL`; rerun terbaru belum terkonfirmasi karena GitHub API mengalami TLS handshake timeout.
+- Next action: map Admin Clerk user ke KPPN scope pada Neon test, rerun PR, lalu selaraskan fixture integration bila masih gagal; F13-09 serta task Fase 13 lain tetap ditahan.
 
 ## Recent Sessions
+
+### Session 299 - 2026-09-14
+**Status:** Needs Fix — F13-08 latest credential verification
+- Remote Quality Gate `34815876027` menyelesaikan checkout/install, typecheck, unit/golden, dan sesi Clerk; fixture signing key QStash CI tidak lagi menjadi failure. Authenticated integration menyisakan assertion denial pada `settings-http.integration.test.ts` dan `Configured Clerk Admin is not mapped to a KPPN scope`; response body sensitif tidak dicetak.
+- Verifikasi lokal read-only pada `.env.f13-02.local` dan koneksi `DATABASE_URL`/`DIRECT_URL` berhasil. Filter runner settings mengonfirmasi fixture peer tetap tidak berubah ketika assertion gagal, sehingga tidak ada perubahan perilaku aplikasi yang dibenarkan dari diagnosis ini.
+- Percobaan rerun GitHub setelah owner memperbarui credential DB belum terkonfirmasi karena API GitHub mengalami TLS handshake timeout. Tidak ada secret/token, database production, deployment, atau task F13-09/Fase 13 lain yang disentuh.
 
 ### Session 298 - 2026-09-14
 **Status:** Needs Fix — F13-08 QStash CI fixture

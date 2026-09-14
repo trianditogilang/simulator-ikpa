@@ -902,6 +902,8 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
 
   **Evidence 2026-09-14:** Workflow diperketat tanpa `continue-on-error`: authenticated integration membaca lima secret test `F13_02_*` melalui file sementara yang selalu dibersihkan, E2E CI memakai smoke publik terpisah, audit memakai registry resmi, dan `apps/web/tsr.config.json` menyelaraskan footer generator TanStack Start. Local `npm ci`, typecheck, workspace test (46 file/329 test), lint (0 error/78 warning), generated-route, migration, secret scan, build, dan smoke desktop/mobile (2/2) lulus. Runner integration lulus 84/92 test; 4 fixture test existing gagal sehingga F13-08 tetap Needs Fix. Remote PR belum dijalankan karena repository secrets test belum tersedia.
 
+  **Evidence 2026-09-14 latest:** Remote PR Quality Gate `34815876027` menerima secret DB/Clerk dan lulus pemeriksaan signing key QStash setelah workflow memakai fixture CI deterministik; 12 file integration lulus, 1 skipped, dan tersisa 1 assertion settings serta fixture Admin yang belum memiliki mapping KPPN scope. Owner sudah memperbarui `DATABASE_URL`/`DIRECT_URL`; rerun berikutnya belum terkonfirmasi karena GitHub API mengalami TLS handshake timeout. F13-08 tetap Needs Fix.
+
 - [ ] **F13-09 â€” Konfigurasi deployment Vercel.** [Role: DevOps Agent]
   **Files:** `vercel.json`, `docs/deployment-vercel.md`  
   **DoD:** Preview/staging/production env, runtime limits, cron/job endpoints, domain, dan rollback terdokumentasi.
