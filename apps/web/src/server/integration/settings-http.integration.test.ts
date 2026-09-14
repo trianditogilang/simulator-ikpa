@@ -24,7 +24,7 @@ if (!baseUrl || !testDatabaseUrl || !configuredClerkUserId || !sessionToken) {
 const db = createDbClient(testDatabaseUrl);
 const fixtureTag = randomUUID().replaceAll("-", "").slice(0, 12);
 const peerScopeCode = `F13-02-SET-SCOPE-${fixtureTag}`;
-const peerOrgCode = `F13SE${fixtureTag.slice(0, 7)}`;
+const peerOrgCode = `F13SE${fixtureTag.slice(0, 7)}`.toUpperCase();
 const peerOrgName = `F13-02 settings peer ${fixtureTag}`;
 const peerKppnName = `F13-02 settings peer KPPN ${fixtureTag}`;
 const attemptedPeerName = `F13-02 attempted peer update ${fixtureTag}`;

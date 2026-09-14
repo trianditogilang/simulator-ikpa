@@ -148,7 +148,7 @@ export async function handleRegisterSatkerOnboarding(data: {
 	if (org) {
 		if (org.kppnScopeId !== scope.id) {
 			throw Object.assign(
-				new Error("Satker sudah terdaftar. Minta Admin KPPN memetakan akses Anda."),
+				new Error("Akses onboarding ditolak: Satker sudah terdaftar. Minta Admin KPPN memetakan akses Anda."),
 				{ statusCode: 409, code: "SATKER_ALREADY_REGISTERED" },
 			);
 		}
