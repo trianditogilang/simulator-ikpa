@@ -9,9 +9,8 @@ credential tetap hanya berada pada Vercel Environment Variables/secret manager.
 - `apps/web/vite.config.ts` memakai `nitro()` setelah `tanstackStart()`.
 - `nitro` tercatat sebagai dev dependency workspace web; Vercel dapat memakai
   preset TanStack Start dan mendeteksi output server tanpa Start Command manual.
-- `vercel.json` mengunci `npm ci` dan `npm run build` pada root repository;
-  output directory tidak dioverride agar hasil Build Output API Nitro tetap
-  dideteksi oleh Vercel.
+- Tidak ada override `vercel.json`; project memakai zero-config Nitro sehingga
+  output Build Output API tidak tertimpa oleh output directory Vite default.
 - Build production memaksa `NODE_ENV=production` dan mengosongkan
   `VITE_USER_NODE_ENV` hanya pada command `build`, sehingga bundle Nitro tidak
   memuat React `jsxDEV`.
