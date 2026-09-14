@@ -20,6 +20,11 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 304 - 2026-09-14
+**Status:** Needs Fix — F13-09 Preview redeploy confirmed
+- **Verifikasi:** Setelah rollback zero-config, deployment Vercel `b48fda0` berstatus sukses dan Quality Gate `34857896393` lulus seluruh job (authenticated integration 92 test dengan 1 skip QStash normal, build, migration, secret scan, dan E2E smoke). Tidak ada response body sensitif, credential, token, database production, atau deployment manual disentuh.
+- **Batasan:** Production/domain dan environment terpisah, authenticated mutation/cross-tenant/UAT evidence, serta keputusan promosi tetap memerlukan setup/approval owner. F13-10 dan task Fase 13 lainnya tidak dikerjakan.
+
 ### Session 303 - 2026-09-14
 **Status:** Needs Fix — F13-09 rollback deployment override
 - **Perubahan:** Menghapus `vercel.json` dan mengembalikan dokumentasi ke konfigurasi zero-config Nitro yang terbukti lulus pada deployment sebelumnya; tidak ada perubahan aplikasi.
