@@ -50,6 +50,8 @@ jobs:
             printf 'VITE_CLERK_PUBLISHABLE_KEY=%s\n' "$F13_02_VITE_CLERK_PUBLISHABLE_KEY"
             printf 'F13_02_CLERK_OPERATOR_USER_ID=%s\n' "$F13_02_CLERK_OPERATOR_USER_ID"
             printf 'F13_02_CLERK_ADMIN_USER_ID=%s\n' "$F13_02_CLERK_ADMIN_USER_ID"
+            printf 'QSTASH_CURRENT_SIGNING_KEY=%s\n' 'f13-02-ci-current-signing-key'
+            printf 'QSTASH_NEXT_SIGNING_KEY=%s\n' 'f13-02-ci-next-signing-key'
           } > .env.f13-02.local
           npm run test:integration
       - name: Lint
