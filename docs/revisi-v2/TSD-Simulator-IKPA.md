@@ -1,6 +1,8 @@
 # TSD — Technical Specification Document (Revisi v2)
 
 > Dokumen ini adalah spesifikasi teknis aktif Revisi v2. Baseline v1.0 dipertahankan di bagian bawah hanya untuk histori; bila ada konflik, kontrak aktif v2 berlaku.
+>
+> Keputusan produk 2026-09-13: reader Audit Log Admin dan route `/admin-kppn/audit-logs` dipensiunkan. Helper/table audit internal tetap dipakai oleh mutasi domain dan tidak diekspos sebagai menu Admin.
 
 ## Addendum Revisi v2 — 2026-09-09
 
@@ -136,7 +138,6 @@ apps/
           monitoring/
           reports.tsx
           policy/
-          audit-logs.tsx
           access.tsx
       components/
         layout/
@@ -1149,7 +1150,6 @@ type ApiError = {
 | Reminder policy | `listReminderPolicies`, `getReminderPolicy` | `upsertReminderPolicy`, `deleteReminderPolicy` |
 | Workdays | `listWorkdays` | `upsertWorkday`, `bulkImportWorkdays` |
 | Policy history | `getPolicyHistory` | — |
-| Audit | `listAuditLogs` | — |
 | Access | `listAccessMappings` | `createAccessMapping`, `updateAccessMapping`, `deleteAccessMapping` |
 
 ### 7.5 Contoh command server

@@ -301,11 +301,11 @@ function AdminFairnessPolicyPage() {
 						</div>
 						<div className="rounded-xl border border-border/80 bg-surface p-3 space-y-1">
 							<p className="font-semibold text-foreground">
-								3. Audit Trail & Transparansi
+								3. Transparansi Verifikasi
 							</p>
 							<p className="text-muted-foreground text-[11px]">
-								Setiap perubahan status dan review usulan dicatat permanen dalam
-								Audit Log dengan riwayat verifikator.
+								Status dan review usulan menampilkan riwayat verifikator pada halaman
+								ini.
 							</p>
 						</div>
 					</div>

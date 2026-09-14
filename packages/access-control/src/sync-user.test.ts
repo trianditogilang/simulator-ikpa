@@ -120,4 +120,44 @@ describe("syncClerkUser", () => {
 			}),
 		).rejects.toThrow(UserSyncConflictError);
 	});
+
+	it("claims a legacy manual row for the real Clerk ID", async () => {
+		const legacy = {
+			id: "u-legacy",
+			clerkUserId: "manual_123",
+			email: "legacy@satker.go.id",
+			name: "Legacy User",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		};
+		const claimed = { ...legacy, clerkUserId: "user_real", name: "Real User" };
+		let selectCall = 0;
+		const mockDb = {
+			select: vi.fn().mockReturnValue({
+				from: vi.fn().mockReturnValue({
+					where: vi.fn().mockReturnValue({
+						limit: vi.fn().mockImplementation(() => {
+							selectCall++;
+							return Promise.resolve(selectCall === 1 ? [] : [legacy]);
+						}),
+					}),
+				}),
+			}),
+			update: vi.fn().mockReturnValue({
+				set: vi.fn().mockReturnValue({
+					where: vi.fn().mockReturnValue({
+						returning: vi.fn().mockResolvedValue([claimed]),
+					}),
+				}),
+			}),
+		} as unknown as Parameters<typeof syncClerkUser>[0];
+
+		await expect(
+			syncClerkUser(mockDb, {
+				clerkUserId: "user_real",
+				email: legacy.email,
+				name: "Real User",
+			}),
+		).resolves.toEqual(claimed);
+	});
 });

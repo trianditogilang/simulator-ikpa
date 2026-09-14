@@ -861,29 +861,50 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Scope:** Seluruh ServerFn query/mutation Operator/Admin, Operator XLSX export, import/job, QStash, delivery retry, dan cross-tenant/cross-KPPN IDs. PDF Operator dan ekspor Admin retired dari scope aktif berdasarkan keputusan 2026-09-10; route lama hanya boleh menjadi stub fail-safe tanpa mock.
   **DoD:** Read/write lintas satker/scope selalu ditolak tanpa data leakage pada error atau payload. Selesai 2026-09-10: 82 ServerFn aktif tercakup oleh 14 file/92 authenticated HTTP integration tests dengan Clerk dan Neon test nyata; fixture peer dibersihkan dan seluruh quality gate lulus.
 
-- [ ] **F13-03 â€” Buat integration test policy/reminder.** [Role: QA Agent]
+- [x] **F13-03 â€” Buat integration test policy/reminder.** [Role: QA Agent]
   **Scope:** Publish/re-evaluate, mandatory lock, Tagihan H+17, Output lima hari kerja, GUP/PTUP, workday, idempotency, retry, stale snapshot, dan policy version.
-  **DoD:** V2-AC-17..21 lulus pada database test; delivery replay tidak menggandakan notifikasi.
+  **DoD:** V2-AC-17..21 lulus pada database test; delivery replay tidak menggandakan notifikasi. Selesai 2026-09-12: policy/reminder tests dan probe QStash + Resend remote lulus setelah callback memakai raw body serta URL publik kanonis.
 
-- [ ] **F13-04 â€” Buat E2E Operator.** [Role: QA Agent]
+- [x] **F13-04 â€” Buat E2E Operator.** [Role: QA Agent]
   **Scope:** Login, navigasi 8 indikator, actual/proyeksi, what-if tanpa mutasi actual, Slot A/B/C, sinkronisasi nama, Dashboard 8 indikator, parity Dashboardâ€“Riwayat, compare Evaluasi bulanan dengan skenario, mandatory reminder, dan Operator XLSX export sesuai konteks.
   **DoD:** Skenario Playwright terisolasi lulus pada Chromium desktop dan Mobile Chrome dengan data tenant terisolasi; screenshot/trace tersedia saat gagal.
+  **Evidence 2026-09-13:** Runner authenticated Clerk/Neon `scripts/run-f13-04-e2e.mjs` lulus 12/12; dashboard, 8 workspace, what-if + Slot B, parity/compare bulanan+scenario, mandatory reminder, dan Operator XLSX terverifikasi.
 
-- [ ] **F13-05 â€” Buat E2E Admin KPPN.** [Role: QA Agent]
+- [x] **F13-05 â€” Buat E2E Admin KPPN.** [Role: QA Agent]
   **Scope:** Login, agregat 8 indikator, skor/gap/sumber aktual-proyeksi-kosong, detail read-only, mandatory reminder, access, publish policy, failed delivery retry, cross-scope rejection, dan audit. Ekspor Admin tidak termasuk scope aktif.
   **DoD:** Tidak ada kontrol mutasi operasional/sel kuning; last-admin protection, scope, audit, snapshot immutability, dan Admin V2-AC-22..23 terverifikasi.
 
-- [ ] **F13-06 â€” Lakukan security review aplikasi.** [Role: Security Agent]
+  **Evidence 2026-09-13:** Runner authenticated Clerk/Neon `scripts/run-f13-05-e2e.mjs` lulus 12/12 pada Chromium desktop + Mobile Chrome; agregat 8 indikator, sumber aktual/proyeksi/kosong, scope/detail read-only, peer rejection tanpa leakage, failed delivery retry + audit, last-admin protection, dan policy editor production fail-safe terverifikasi. Ekspor Admin tetap retired.
+
+- [x] **F13-06 â€” Lakukan security review aplikasi.** [Role: Security Agent]
   **Scope:** Auth/session, tenant isolation, upload, export signature/MIME, runtime mock/fallback, webhook, SSR data, XSS, CSV injection, secrets, dependency manifest, rate limits.
   **DoD:** Tidak ada critical/high terbuka; production tidak mengembalikan mock sukses atau file palsu; medium memiliki owner dan due date.
 
-- [ ] **F13-07 â€” Lakukan performance test.** [Role: QA Agent]
+  **Evidence 2026-09-13:** Review source dan authenticated isolation evidence selesai; production fallback/provider/import/export fail-closed. Perbaikan webhook Clerk memverifikasi raw-body HMAC digest, secret `whsec_`/signing-secret, dan replay timestamp; 3 regression test lulus. Drizzle 0.45.2 dan Vitest UI 4.1.11 menghapus critical/high dependency finding. Audit resmi exit 0 (tanpa critical/high), secret scan, migration check, workspace test 329, typecheck, lint, dan build lulus. Residual medium memiliki owner DevOps/Security dan due 2026-10-15: rate-limit provider route, `uuid` via ExcelJS, `esbuild` via drizzle-kit; generated-route drift diteruskan ke F13-08.
+
+- [x] **F13-07 â€” Lakukan performance test.** [Role: QA Agent]
   **Scope:** Kalkulasi satu satker, dashboard agregat, 10k import, scheduler batch, export  
   **DoD:** Kalkulasi normal <500 ms atau bottleneck/mitigasi terdokumentasi; query plan index ditinjau.
 
-- [ ] **F13-08 â€” Konfigurasi CI quality gate.** [Role: DevOps Agent]
-  **Files:** `.github/workflows/ci.yml`, `package.json`  
+  **Evidence 2026-09-14:** Runner `node --import tsx scripts/run-f13-07-performance.mjs` pada Neon test terisolasi lulus. Kalkulasi median 343,6 ms (3 sampel setelah warm-up), dashboard agregat 168,1 ms untuk 20 satker, parser CSV 10.000 baris 94,6 ms, scheduler event+planning 127,2 ms, dan Operator XLSX 110,7 ms. Delapan index scope/batch ditemukan; query plan direview dan Seq Scan pada tabel kecil dicatat sebagai perilaku low-cardinality. Runner membersihkan snapshot fixture dan tidak memanggil QStash/Resend. Coverage production-load, commit async 10k, dan EXPLAIN ANALYZE pada cardinality produksi masih menjadi prasyarat go-live.
+
+- [x] **F13-08 â€” Konfigurasi CI quality gate.** [Role: DevOps Agent]
+  **Files:** `.github/workflows/ci.yml`, `package.json`, `apps/web/tsr.config.json`
   **DoD:** `npm ci`, typecheck seluruh workspace, lint tanpa error, unit/golden termasuk web, integration, E2E smoke, production build, secret scan, generated-route check, dan migration check berjalan tanpa `continue-on-error` pada gate wajib.
+
+  **Evidence 2026-09-14 QStash/Neon follow-up:** Rerun PR menerima DB credential terbaru dan sesi Clerk Admin, tetapi integration menemukan QStash signing key CI belum di-env, Admin Clerk belum mapped ke KPPN scope, dan satu settings denial assertion. Workflow menambahkan key fixture QStash non-produksi deterministik pada env sementara; F13-08 tetap Needs Fix.
+
+  **Evidence 2026-09-14 remote follow-up:** PR Quality Gate `34814347631` menerima secret secara masked dan sesi Clerk Admin berhasil dibuat, tetapi authenticated integration gagal `password authentication failed` saat query Neon. Local `DATABASE_URL`/`DIRECT_URL` connection check lulus; F13-08 tetap Needs Fix sampai GitHub Neon credentials diperbarui dan PR rerun.
+
+  **Evidence 2026-09-14 Admin follow-up:** Secret `F13_02_CLERK_ADMIN_USER_ID` tersedia dan workflow memetakan ID Admin secara eksplisit ke runner authenticated integration. Perubahan belum dipush; F13-08 tetap Needs Fix sampai PR rerun dan fixture integration lulus.
+
+  **Evidence 2026-09-14 follow-up:** Lima repository secrets kini tersedia dan `.github/workflows/ci.yml` memakai nama secret tersebut. Perubahan mapping belum dipush; runner lokal tetap 84/92 test dengan 4 fixture failure, sehingga F13-08 masih Needs Fix.
+
+  **Evidence 2026-09-14:** Workflow diperketat tanpa `continue-on-error`: authenticated integration membaca lima secret test `F13_02_*` melalui file sementara yang selalu dibersihkan, E2E CI memakai smoke publik terpisah, audit memakai registry resmi, dan `apps/web/tsr.config.json` menyelaraskan footer generator TanStack Start. Local `npm ci`, typecheck, workspace test (46 file/329 test), lint (0 error/78 warning), generated-route, migration, secret scan, build, dan smoke desktop/mobile (2/2) lulus. Runner integration lulus 84/92 test; 4 fixture test existing gagal sehingga F13-08 tetap Needs Fix. Remote PR belum dijalankan karena repository secrets test belum tersedia.
+
+  **Evidence 2026-09-14 latest:** Remote PR Quality Gate `34815876027` menerima secret DB/Clerk dan lulus pemeriksaan signing key QStash setelah workflow memakai fixture CI deterministik; 12 file integration lulus, 1 skipped, dan tersisa 1 assertion settings serta fixture Admin yang belum memiliki mapping KPPN scope. Owner sudah memperbarui `DATABASE_URL`/`DIRECT_URL`; rerun berikutnya belum terkonfirmasi karena GitHub API mengalami TLS handshake timeout. F13-08 tetap Needs Fix.
+
+  **Evidence 2026-09-14 completed:** Branch Neon test `f13-02-test-20260910` dilengkapi 18 fiscal year 2026 KPPN-032 yang hilang dan fixture reminder operator terverifikasi. Commit `d968677` menstabilkan fixture/denial Admin; Quality Gate `34852663681` pada head `31aea75` lulus seluruh job dengan 14 file integration passed, 1 QStash file skipped normal, dan 91 passed + 1 skipped dari 92 test.
 
 - [ ] **F13-09 â€” Konfigurasi deployment Vercel.** [Role: DevOps Agent]
   **Files:** `vercel.json`, `docs/deployment-vercel.md`  

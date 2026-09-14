@@ -4,11 +4,10 @@ import { PublicShell } from "@/components/layout/public-shell";
 import { getAccessResolutionFn } from "@/server/access";
 
 export const Route = createFileRoute("/access-pending")({
-	beforeLoad: async ({ context, location }) => {
+	beforeLoad: async ({ context }) => {
 		if (!context.auth.isAuthenticated) {
 			throw redirect({
-				to: "/sign-in",
-				search: { next: location.href },
+				to: "/",
 			});
 		}
 

@@ -133,7 +133,7 @@ function AdminMonitoringRemindersPage() {
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
 							Pengawasan jadwal, notifikasi peringatan dini, dan log pengiriman
-							reminder ke seluruh Satker (read-only, retry tercatat di audit)
+							reminder ke seluruh Satker (read-only)
 						</p>
 					</div>
 					<div className="flex items-center gap-2">

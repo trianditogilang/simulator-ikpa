@@ -1,13 +1,15 @@
+import { sql } from "drizzle-orm";
 import {
 	boolean,
 	index,
+	integer,
 	pgTable,
 	text,
 	timestamp,
 	uniqueIndex,
 	uuid,
 } from "drizzle-orm/pg-core";
-import { accessTypeEnum } from "./enums";
+import { accessStatusEnum, accessTypeEnum } from "./enums";
 
 export const kppnScopes = pgTable(
 	"kppn_scopes",
@@ -75,10 +77,12 @@ export const userAccesses = pgTable(
 	"user_accesses",
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
-		userId: uuid("user_id")
-			.references(() => users.id, { onDelete: "cascade" })
-			.notNull(),
+		userId: uuid("user_id").references(() => users.id, {
+			onDelete: "cascade",
+		}),
 		accessType: accessTypeEnum("access_type").notNull(),
+		status: accessStatusEnum("status").default("active").notNull(),
+		invitedEmail: text("invited_email"),
 		orgId: uuid("org_id").references(() => organizations.id, {
 			onDelete: "cascade",
 		}),
@@ -86,6 +90,7 @@ export const userAccesses = pgTable(
 			onDelete: "cascade",
 		}),
 		active: boolean("active").default(true).notNull(),
+		adminSlot: integer("admin_slot"),
 		createdBy: uuid("created_by").references(() => users.id, {
 			onDelete: "set null",
 		}),
@@ -101,5 +106,16 @@ export const userAccesses = pgTable(
 		index("user_accesses_org_id_idx").on(table.orgId),
 		index("user_accesses_kppn_scope_id_idx").on(table.kppnScopeId),
 		index("user_accesses_active_idx").on(table.active),
+		index("user_accesses_invited_email_idx").on(table.invitedEmail),
+		uniqueIndex("user_accesses_admin_slot_unique")
+			.on(table.kppnScopeId, table.adminSlot)
+			.where(
+				sql`${table.accessType} = 'admin_kppn' AND ${table.active} = true AND ${table.adminSlot} IS NOT NULL`,
+			),
+		uniqueIndex("user_accesses_operator_org_unique")
+			.on(table.orgId)
+			.where(
+				sql`${table.accessType} = 'operator_satker' AND ${table.active} = true AND ${table.orgId} IS NOT NULL`,
+			),
 	],
 );

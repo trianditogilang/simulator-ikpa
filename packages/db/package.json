@@ -22,7 +22,7 @@
     "@simulator-ikpa/ikpa-engine": "*",
     "big.js": "^6.2.2",
     "dotenv": "^16.4.7",
-    "drizzle-orm": "^0.38.4",
+    "drizzle-orm": "^0.45.2",
     "zod": "^4.5.4"
   },
   "devDependencies": {

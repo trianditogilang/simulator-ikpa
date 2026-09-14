@@ -82,6 +82,7 @@ export async function syncClerkUser(
 		// If existing user was pre-provisioned without Clerk ID (or matching), claim it
 		if (
 			!existingByEmail.clerkUserId ||
+			existingByEmail.clerkUserId.startsWith("manual_") ||
 			existingByEmail.clerkUserId === input.clerkUserId
 		) {
 			const [claimed] = await db

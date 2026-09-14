@@ -1,13 +1,15 @@
 # FSD — Functional Specification Document (Revisi v2)
 
 > Dokumen ini adalah spesifikasi fungsional aktif Revisi v2. Baseline v1.0 dipertahankan di bagian bawah hanya untuk histori dan traceability; bila ada konflik, kontrak aktif v2 berlaku.
+>
+> Keputusan produk 2026-09-13: kemampuan Audit Log Admin (ADM-11, `/admin-kppn/audit-logs`) dipensiunkan. Menu, route, dan reader Admin tidak tersedia; pencatatan internal untuk menjaga integritas mutasi domain tetap berada di backend.
 
 ## Addendum Revisi v2 — 2026-09-09
 
 1. **Workspace per indikator (CORR-02/03/04):** actual YTD terkunci, sisa tahun editable, skor via engine; `?`/drawer rumus singkat wajib.
 2. **Dashboard (CORR-05):** merakit 8 baris, 5 rekomendasi, estimasi bila indikator kosong, `Simpan skenario IKPA`.
 3. **Tagihan & Output (CORR-06):** strip reminder wajib (H+17, 5 hari kerja) + rekomendasi kontekstual; bukan kalkulator opsional.
-4. **Admin monitor (CORR-A-00 s.d. CORR-A-05, parkir):** dashboard agregat 8 baris, daftar satker (8 skor, gap, actual vs proyeksi), detail satker read-only, monitoring reminder mandatory; policy/kalender/akses/audit tetap.
+4. **Admin monitor (CORR-A-00 s.d. CORR-A-05, parkir):** dashboard agregat 8 baris, daftar satker (8 skor, gap, actual vs proyeksi), detail satker read-only, monitoring reminder mandatory; policy/kalender/akses tetap.
 5. **Freeze operator:** `docs/operator-freeze.md` — kode area operator tidak boleh diubah.
 
 ## Kontrak fungsional aktif Revisi v2
@@ -51,7 +53,7 @@ MVP mencakup:
 - Perhitungan simulasi IKPA, actual, forecast, dan skenario *what-if*.
 - Dashboard, rekomendasi, riwayat snapshot, visualisasi, dan ekspor.
 - Reminder Center untuk konfigurasi delivery reminder oleh Operator Satker dalam batas policy.
-- Dashboard monitoring KPPN, Admin Policy, kalender kerja, audit, dan manajemen mapping email.
+- Dashboard monitoring KPPN, Admin Policy, kalender kerja, dan manajemen mapping email.
 - Rule set berversi per tahun anggaran dan reminder policy berversi.
 
 ### 1.3 Di luar ruang lingkup MVP
@@ -90,7 +92,6 @@ MVP mencakup:
 | Rule set IKPA | Lihat versi aktif | Buat, edit draft, publish, retire |
 | Reminder policy | Lihat policy aktif | Kelola |
 | Kalender hari kerja | Lihat | Kelola |
-| Audit log | Lihat aktivitas satker sendiri yang relevan | Lihat seluruh scope KPPN |
 | Mapping email Operator Satker | Tidak | Kelola |
 | Mapping email Admin KPPN | Tidak | Kelola |
 
@@ -150,7 +151,6 @@ MVP mencakup:
 | ADM-08 | Reminder Policy | `/admin-kppn/policy/reminders` | Kelola event, kategori, deadline formula, batas lead time, penerima wajib |
 | ADM-09 | Kalender Hari Kerja | `/admin-kppn/policy/workdays` | Kelola kalender hari kerja dan hari libur |
 | ADM-10 | Riwayat Versi Policy | `/admin-kppn/policy/history` | Melihat versi rule set, perubahan, tanggal efektif, dan dampak |
-| ADM-11 | Audit Log | `/admin-kppn/audit-logs` | Menelusuri perubahan data, policy, access, dan delivery |
 | ADM-12 | Manajemen Akses | `/admin-kppn/access` | Mapping email Admin KPPN dan Operator Satker |
 
 ### 3.4 Struktur menu sidebar
@@ -189,7 +189,6 @@ Admin Policy
   Reminder Policy
   Kalender Hari Kerja
   Riwayat Versi
-Audit Log
 Manajemen Akses
 ```
 
@@ -778,34 +777,7 @@ Prioritas = Bobot\ indikator \times Gap\ nilai \times Faktor\ urgensi\ deadline
 - Daftar snapshot dan notification delivery yang menggunakan versi tersebut.
 - Dampak ke jadwal reminder mendatang setelah publish.
 
-### 4.26 ADM-11 — Audit Log
-
-**Tujuan:** Menyediakan jejak perubahan yang dapat ditelusuri.
-
-**Kolom minimum:**
-
-- Waktu.
-- Aktor/email.
-- Jenis akses.
-- Organisasi/satker terkait bila ada.
-- Entity type dan entity ID.
-- Aksi.
-- Nilai sebelum dan sesudah.
-- `rule_set_version` dan `policy_id` bila relevan.
-- IP/request metadata bila tersedia dan sesuai kebijakan privasi.
-
-**Aksi yang wajib dicatat:**
-
-- CRUD data operasional.
-- Import dan hasilnya.
-- Pembuatan/ubah/hapus simulation dan snapshot.
-- Perubahan konfigurasi reminder.
-- Pembuatan, edit, publish, dan retire rule set/policy.
-- Perubahan kalender hari kerja.
-- Perubahan mapping akses email.
-- Retry notification delivery.
-
-### 4.27 ADM-12 — Manajemen Akses
+### 4.26 ADM-12 — Manajemen Akses
 
 **Tujuan:** Mengelola mapping email untuk dua jenis akses MVP.
 
@@ -825,7 +797,6 @@ Prioritas = Bobot\ indikator \times Gap\ nilai \times Faktor\ urgensi\ deadline
 - Semua Admin KPPN memiliki hak yang sama untuk mengelola mapping, termasuk akses admin lain.
 - Sistem harus mencegah kondisi tidak ada Admin KPPN aktif dalam suatu scope; penghapusan/nonaktifkan admin terakhir harus ditolak.
 - Perubahan akses berlaku pada sesi berikutnya atau melalui refresh token/session sesuai kemampuan Clerk.
-- Semua perubahan dicatat pada audit log.
 
 ---
 

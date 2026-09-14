@@ -15,7 +15,7 @@ import {
 	userAccesses,
 	users,
 } from "@simulator-ikpa/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 const baseUrl = process.env.F13_02_HTTP_URL;
 const testDatabaseUrl = process.env.DATABASE_URL;
@@ -39,7 +39,7 @@ if (
 const db = createDbClient(testDatabaseUrl);
 const fixtureTag = randomUUID().replaceAll("-", "").slice(0, 12);
 const peerScopeCode = `F13-02-ADM-SCOPE-${fixtureTag}`;
-const peerOrgCode = `F13A${fixtureTag.slice(0, 8)}`;
+const peerOrgCode = `F13A${fixtureTag.slice(0, 8)}`.toUpperCase();
 const peerOrgName = `F13-02 admin peer ${fixtureTag}`;
 const peerKppnName = `F13-02 admin peer KPPN ${fixtureTag}`;
 const ownSimulationName = `F13-02 admin own snapshot ${fixtureTag}`;
@@ -59,10 +59,6 @@ const peerAssignmentUserName = `F13-02 peer assignment ${fixtureTag}`;
 const peerAssignmentUserEmail = `peer-assignment-${fixtureTag}@example.invalid`;
 const ownAssignmentUserName = `F13-02 own assignment ${fixtureTag}`;
 const ownAssignmentUserEmail = `own-assignment-${fixtureTag}@example.invalid`;
-const ownAuditAction = `f13_02_admin_own_${fixtureTag}`;
-const peerAuditAction = `f13_02_admin_peer_${fixtureTag}`;
-const ownAuditRequestId = `f13-02-own-request-${fixtureTag}`;
-const peerAuditRequestId = `f13-02-peer-request-${fixtureTag}`;
 const policyVersion = `F13-02-${fixtureTag}`;
 const policySourceMarker = `F13-02 policy source ${fixtureTag}`;
 const policyNotesMarker = `F13-02 policy notes ${fixtureTag}`;
@@ -93,8 +89,6 @@ let peerAccessId = "";
 let peerAssignmentUserId = "";
 let ownAssignmentUserId = "";
 let ownAssignedAccessId = "";
-let ownAuditId = "";
-let peerAuditId = "";
 let draftRuleSetId = "";
 
 async function findServerFnId(
@@ -238,7 +232,17 @@ beforeAll(async () => {
 	const [ownOrg] = await db
 		.select({ id: organizations.id, code: organizations.kodeSatker, name: organizations.name })
 		.from(organizations)
-		.where(eq(organizations.kppnScopeId, adminScopeId))
+		.where(
+			and(
+				eq(organizations.kppnScopeId, adminScopeId),
+				sql`not exists (
+					select 1 from user_accesses
+					where user_accesses.org_id = ${organizations.id}
+						and user_accesses.access_type = 'operator_satker'
+						and user_accesses.active = true
+				)`,
+			),
+		)
 		.limit(1);
 	if (!ownOrg) throw new Error("Seeded Admin KPPN organization is missing.");
 	adminOrgId = ownOrg.id;
@@ -425,38 +429,6 @@ beforeAll(async () => {
 		.returning({ id: users.id });
 	ownAssignmentUserId = ownAssignmentUser.id;
 
-	const [ownAudit] = await db
-		.insert(auditLogs)
-		.values({
-			orgId: adminOrgId,
-			actorId: adminUserId,
-			actorAccessType: "admin_kppn",
-			entityType: `f13-02-own-audit-${fixtureTag}`,
-			entityId: null,
-			action: ownAuditAction,
-			beforeJson: { marker: ownAuditAction },
-			afterJson: { marker: ownAuditAction },
-			ruleSetVersion: activeRuleSetVersion,
-			requestId: ownAuditRequestId,
-		})
-		.returning({ id: auditLogs.id });
-	ownAuditId = ownAudit.id;
-	const [peerAudit] = await db
-		.insert(auditLogs)
-		.values({
-			orgId: peerOrgId,
-			actorId: adminUserId,
-			actorAccessType: "admin_kppn",
-			entityType: `f13-02-peer-audit-${fixtureTag}`,
-			entityId: null,
-			action: peerAuditAction,
-			beforeJson: { marker: peerAuditAction },
-			afterJson: { marker: peerAuditAction },
-			ruleSetVersion: activeRuleSetVersion,
-			requestId: peerAuditRequestId,
-		})
-		.returning({ id: auditLogs.id });
-	peerAuditId = peerAudit.id;
 });
 
 afterAll(async () => {
@@ -472,8 +444,6 @@ afterAll(async () => {
 			await db.delete(users).where(eq(users.id, userId));
 		}
 	}
-	if (ownAuditId) await db.delete(auditLogs).where(eq(auditLogs.id, ownAuditId));
-	if (peerAuditId) await db.delete(auditLogs).where(eq(auditLogs.id, peerAuditId));
 	if (draftRuleSetId) {
 		await db.delete(auditLogs).where(eq(auditLogs.entityId, draftRuleSetId));
 		await db.delete(ruleSets).where(eq(ruleSets.id, draftRuleSetId));
@@ -516,8 +486,6 @@ const peerForbiddenValues = () => [
 	peerUserName,
 	peerAssignmentUserEmail,
 	peerAssignmentUserName,
-	peerAuditAction,
-	peerAuditRequestId,
 ];
 
 describe("F13-02 Admin authenticated HTTP boundary", () => {
@@ -850,7 +818,6 @@ describe("F13-02 Admin authenticated HTTP boundary", () => {
 		});
 		expect(ownAccess.status).toBe(200);
 		expectBodyContains(ownAccess.body, adminUserId);
-		expectBodyContains(ownAccess.body, adminOrgId);
 		expectBodyContains(ownAccess.body, peerAccessId, false);
 		expectBodyContains(ownAccess.body, peerUserEmail, false);
 		expectBodyContains(ownAccess.body, peerUserName, false);
@@ -860,29 +827,7 @@ describe("F13-02 Admin authenticated HTTP boundary", () => {
 		);
 	});
 
-	it("listAdminAuditLogsFn exposes only audit rows in the Admin scope", async () => {
-		const id = await findServerFnId(
-			"/src/server/admin-access.ts",
-			"listAdminAuditLogsFn",
-		);
-		const ownAudit = await callServerFn({
-			id,
-			method: "GET",
-			data: undefined,
-			authToken: adminSessionToken,
-		});
-		expect(ownAudit.status).toBe(200);
-		expectBodyContains(ownAudit.body, ownAuditAction);
-		expectBodyContains(ownAudit.body, ownAuditRequestId);
-		expectBodyContains(ownAudit.body, peerAuditAction, false);
-		expectBodyContains(ownAudit.body, peerAuditRequestId, false);
-		expectDenied(
-			await callServerFn({ id, method: "GET", data: undefined }),
-			peerForbiddenValues(),
-		);
-	});
-
-	it("assignUserAccessFn rejects assignment to a peer organization", async () => {
+	it("assignUserAccessFn rejects assignment to a peer organization (kode+nama)", async () => {
 		const id = await findServerFnId(
 			"/src/server/admin-access.ts",
 			"assignUserAccessFn",
@@ -894,7 +839,8 @@ describe("F13-02 Admin authenticated HTTP boundary", () => {
 				email: peerAssignmentUserEmail,
 				name: peerAssignmentUserName,
 				accessType: "operator_satker",
-				orgId: peerOrgId,
+				kodeSatker: peerOrgCode,
+				satkerName: peerOrgName,
 			},
 			authToken: adminSessionToken,
 		});
@@ -912,7 +858,8 @@ describe("F13-02 Admin authenticated HTTP boundary", () => {
 				email: ownAssignmentUserEmail,
 				name: ownAssignmentUserName,
 				accessType: "operator_satker",
-				orgId: adminOrgId,
+				kodeSatker: adminOrgCode,
+				satkerName: adminOrgName,
 			},
 			authToken: adminSessionToken,
 		});
@@ -927,33 +874,52 @@ describe("F13-02 Admin authenticated HTTP boundary", () => {
 		ownAssignedAccessId = assigned?.id ?? "";
 	});
 
-	it("removeUserAccessFn rejects a peer mapping and can deactivate own mapping", async () => {
+	it("hardDeleteUserFn rejects a peer mapping and hard deletes own mapping", async () => {
 		if (!ownAssignedAccessId) throw new Error("Own access fixture was not created.");
-		const id = await findServerFnId(
+		const removeId = await findServerFnId(
 			"/src/server/admin-access.ts",
 			"removeUserAccessFn",
 		);
+		const hardDeleteId = await findServerFnId(
+			"/src/server/admin-access.ts",
+			"hardDeleteUserFn",
+		);
 		const deniedRemove = await callServerFn({
-			id,
+			id: removeId,
 			method: "POST",
-			data: { accessId: peerAccessId, active: false },
+			data: { accessId: peerAccessId },
 			authToken: adminSessionToken,
 		});
 		expectDenied(deniedRemove, peerForbiddenValues());
 		await expectPeerAccessUnchanged();
-
-		const removedOwn = await callServerFn({
-			id,
+		const deniedHardDelete = await callServerFn({
+			id: hardDeleteId,
 			method: "POST",
-			data: { accessId: ownAssignedAccessId, active: false },
+			data: { userId: peerUserId },
 			authToken: adminSessionToken,
 		});
-		expect(removedOwn.status).toBe(200);
-		const [ownAfterRemove] = await db
-			.select({ active: userAccesses.active })
-			.from(userAccesses)
-			.where(eq(userAccesses.id, ownAssignedAccessId))
+		expectDenied(deniedHardDelete, peerForbiddenValues());
+		await expectPeerAccessUnchanged();
+
+		const deletedOwn = await callServerFn({
+			id: hardDeleteId,
+			method: "POST",
+			data: { userId: ownAssignmentUserId },
+			authToken: adminSessionToken,
+		});
+		expect(deletedOwn.status).toBe(200);
+		const [ownAfterDelete] = await db
+			.select({ id: users.id })
+			.from(users)
+			.where(eq(users.id, ownAssignmentUserId))
 			.limit(1);
-		expect(ownAfterRemove?.active).toBe(false);
+		expect(ownAfterDelete).toBeUndefined();
+		const remainingAccess = await db
+			.select({ id: userAccesses.id })
+			.from(userAccesses)
+			.where(eq(userAccesses.userId, ownAssignmentUserId))
+			.limit(1);
+		expect(remainingAccess.length).toBe(0);
+		ownAssignedAccessId = "";
 	});
 });

@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, createHmac, randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
 	ForbiddenError,
@@ -85,6 +85,27 @@ let state: IsolationState | undefined;
 function requireState(): IsolationState {
 	if (!state) throw new Error("Integration state was not initialized.");
 	return state;
+}
+
+function createQStashSignature(body: string): string {
+	const key = process.env.QSTASH_CURRENT_SIGNING_KEY;
+	if (!key) return "f13-02-integration-signature";
+	const encode = (value: unknown) =>
+		Buffer.from(JSON.stringify(value)).toString("base64url");
+	const header = encode({ alg: "HS256", typ: "JWT" });
+	const claims = encode({
+		iss: "Upstash",
+		sub: "http://127.0.0.1:3002/api/jobs/import/process",
+		exp: Math.floor(Date.now() / 1000) + 60,
+		nbf: Math.floor(Date.now() / 1000) - 1,
+		body: createHash("sha256").update(body).digest("base64url"),
+	});
+	const input = header + "." + claims;
+	return (
+		input +
+		"." +
+		createHmac("sha256", key).update(input).digest("base64url")
+	);
 }
 
 async function expectRejectedWithoutLeakage(
@@ -417,7 +438,7 @@ describe("F13-02 tenant isolation integration", () => {
 			.returning({ id: importJobs.id });
 		state.importJobId = job.id;
 
-		const signature = process.env.QSTASH_CURRENT_SIGNING_KEY ?? "f13-02-integration-signature";
+		const signature = createQStashSignature("{}");
 		const result = await handleQStashImport(
 			testDatabaseUrl,
 			new Headers({ "upstash-signature": signature }),

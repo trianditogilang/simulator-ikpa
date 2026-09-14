@@ -5,6 +5,11 @@ export const accessTypeEnum = pgEnum("access_type", [
 	"admin_kppn",
 ]);
 
+export const accessStatusEnum = pgEnum("access_status", [
+	"pending",
+	"active",
+]);
+
 export const ruleSetStatusEnum = pgEnum("rule_set_status", [
 	"draft",
 	"published",

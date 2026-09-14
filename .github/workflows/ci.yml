@@ -25,6 +25,35 @@ jobs:
         run: npm run typecheck
       - name: Unit and golden tests all workspaces
         run: npm run test
+      - name: Authenticated integration isolation
+        env:
+          F13_02_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          F13_02_DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          F13_02_CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          F13_02_VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          F13_02_CLERK_OPERATOR_USER_ID: ${{ secrets.F13_02_CLERK_OPERATOR_USER_ID }}
+          F13_02_CLERK_ADMIN_USER_ID: ${{ secrets.F13_02_CLERK_ADMIN_USER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${F13_02_DATABASE_URL:?Missing repository secret F13_02_DATABASE_URL}"
+          : "${F13_02_DIRECT_URL:?Missing repository secret F13_02_DIRECT_URL}"
+          : "${F13_02_CLERK_SECRET_KEY:?Missing repository secret F13_02_CLERK_SECRET_KEY}"
+          : "${F13_02_VITE_CLERK_PUBLISHABLE_KEY:?Missing repository secret F13_02_VITE_CLERK_PUBLISHABLE_KEY}"
+          : "${F13_02_CLERK_OPERATOR_USER_ID:?Missing repository secret F13_02_CLERK_OPERATOR_USER_ID}"
+          : "${F13_02_CLERK_ADMIN_USER_ID:?Missing repository secret F13_02_CLERK_ADMIN_USER_ID}"
+          trap 'rm -f .env.f13-02.local' EXIT
+          {
+            printf 'DATABASE_URL=%s\n' "$F13_02_DATABASE_URL"
+            printf 'DIRECT_URL=%s\n' "$F13_02_DIRECT_URL"
+            printf 'CLERK_SECRET_KEY=%s\n' "$F13_02_CLERK_SECRET_KEY"
+            printf 'VITE_CLERK_PUBLISHABLE_KEY=%s\n' "$F13_02_VITE_CLERK_PUBLISHABLE_KEY"
+            printf 'F13_02_CLERK_OPERATOR_USER_ID=%s\n' "$F13_02_CLERK_OPERATOR_USER_ID"
+            printf 'F13_02_CLERK_ADMIN_USER_ID=%s\n' "$F13_02_CLERK_ADMIN_USER_ID"
+            printf 'QSTASH_CURRENT_SIGNING_KEY=%s\n' 'f13-02-ci-current-signing-key'
+            printf 'QSTASH_NEXT_SIGNING_KEY=%s\n' 'f13-02-ci-next-signing-key'
+          } > .env.f13-02.local
+          npm run test:integration
       - name: Lint
         run: npm run lint
       - name: Generated route check
@@ -34,10 +63,10 @@ jobs:
       - name: Secret scan
         run: npm run check:secrets
       - name: Dependency audit
-        run: npm audit --omit=dev --audit-level=high
+        run: npm audit --registry=https://registry.npmjs.org --omit=dev --audit-level=high
       - name: Production build
         run: npm run build
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
       - name: E2E smoke
-        run: npm run test:e2e
+        run: npm run test:e2e:smoke

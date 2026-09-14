@@ -45,18 +45,20 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 	const body = (
 		<>
 			{children}
-			{process.env.NODE_ENV === "development" && <Agentation />}
-			<TanStackDevtools
-				config={{
-					position: "bottom-right",
-				}}
-				plugins={[
-					{
-						name: "Tanstack Router",
-						render: <TanStackRouterDevtoolsPanel />,
-					},
-				]}
-			/>
+			{import.meta.env.DEV && <Agentation />}
+			{import.meta.env.DEV && (
+				<TanStackDevtools
+					config={{
+						position: "bottom-right",
+					}}
+					plugins={[
+						{
+							name: "Tanstack Router",
+							render: <TanStackRouterDevtoolsPanel />,
+						},
+					]}
+				/>
+			)}
 		</>
 	);
 

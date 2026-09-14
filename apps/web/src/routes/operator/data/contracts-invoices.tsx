@@ -1129,7 +1129,7 @@ function ContractsInvoicesPage() {
 											? "Rencana belum menghasilkan skor (lengkapi pola kontrak)"
 											: "Simpan ke Skenario A, B, atau C"
 								}
-								className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
+								className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-amber-700 disabled:opacity-50"
 							>
 								<Save className="size-3.5" />
 								<span>Simpan Skenario (A/B/C)</span>
@@ -1226,12 +1226,12 @@ function ContractsInvoicesPage() {
 						</div>
 
 						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-							<div className="rounded-xl border border-primary/30 bg-primary/5 p-3.5 space-y-1">
+							<div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3.5 space-y-1">
 								<span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-									<FlaskConical className="size-3.5 text-primary" />
+									<FlaskConical className="size-3.5 text-amber-600" />
 									<span>Skor Simulasi Kontraktual</span>
 								</span>
-								<p className="text-2xl font-extrabold text-primary">
+								<p className="text-2xl font-extrabold text-amber-700">
 									{hasKontrakPlan && kontrakSimScore !== null
 										? Number(kontrakSimScore).toFixed(2)
 										: "—"}
@@ -1422,7 +1422,7 @@ function ContractsInvoicesPage() {
 										? "Isi minimal satu rencana SPM agar skenario dapat disimpan"
 										: "Simpan ke Skenario A, B, atau C"
 								}
-								className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
+								className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-amber-700 disabled:opacity-50"
 							>
 								<Save className="size-3.5" />
 								<span>Simpan Skenario (A/B/C)</span>
@@ -1471,12 +1471,12 @@ function ContractsInvoicesPage() {
 									Aktual terlambat: {tagihanSummary.lateCount} berkas
 								</p>
 							</div>
-							<div className="rounded-xl border border-primary/30 bg-primary/5 p-3.5 space-y-1">
+							<div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3.5 space-y-1">
 								<span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-									<FlaskConical className="size-3.5 text-primary" />
+									<FlaskConical className="size-3.5 text-amber-600" />
 									<span>Skor Simulasi</span>
 								</span>
-								<p className="text-2xl font-extrabold text-primary">
+								<p className="text-2xl font-extrabold text-amber-700">
 									{tagihanSimScore !== null
 										? tagihanSimScore.toFixed(2)
 										: "—"}

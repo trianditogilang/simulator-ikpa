@@ -12,7 +12,7 @@ import {
 	users,
 } from "@simulator-ikpa/db/schema";
 import { setCookie } from "@tanstack/react-start/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, or } from "drizzle-orm";
 import { getAccessResolutionForSession } from "../access.server";
 import { writeAudit } from "../audit/write-audit";
 import {
@@ -42,6 +42,31 @@ function getDatabase() {
 		return null;
 	}
 	return createDbClient(dbUrl);
+}
+
+async function findVisibleOperatorForOrganization(
+	db: ReturnType<typeof createDbClient>,
+	orgId: string,
+) {
+	const visibleStatus = or(
+		and(eq(userAccesses.status, "active"), isNotNull(userAccesses.userId)),
+		and(eq(userAccesses.status, "pending"), isNull(userAccesses.userId)),
+	);
+	if (!visibleStatus) return undefined;
+
+	const [operator] = await db
+		.select({ id: userAccesses.id })
+		.from(userAccesses)
+		.where(
+			and(
+				eq(userAccesses.orgId, orgId),
+				eq(userAccesses.accessType, "operator_satker"),
+				eq(userAccesses.active, true),
+				visibleStatus,
+			),
+		)
+		.limit(1);
+	return operator;
 }
 
 export async function handleRegisterSatkerOnboarding(data: {
@@ -85,40 +110,73 @@ export async function handleRegisterSatkerOnboarding(data: {
 		user = await syncClerkUser(db, identity);
 	}
 
-	// 2. Resolve default KPPN scope
-	let [scope] = await db.select().from(kppnScopes).limit(1);
+	const normalizedKode = data.kodeSatker.trim().toUpperCase();
+	const normalizedName = data.name.trim();
+	if (!normalizedKode) throw new Error("Kode Satker tidak boleh kosong.");
+	if (!normalizedName) throw new Error("Nama Satker tidak boleh kosong.");
+
+	// 2. Resolve default KPPN scope — Malang 032
+	let [scope] = await db.select().from(kppnScopes).where(eq(kppnScopes.code, "KPPN-032")).limit(1);
+	if (!scope) {
+		[scope] = await db.select().from(kppnScopes).where(eq(kppnScopes.code, "032")).limit(1) as unknown as typeof scope[];
+	}
+	if (!scope) {
+		[scope] = await db.select().from(kppnScopes).limit(1) as unknown as typeof scope[];
+	}
 	if (!scope) {
 		[scope] = await db
 			.insert(kppnScopes)
 			.values({
-				code: "KPPN-089",
-				name: "KPPN Jakarta II",
+				code: "KPPN-032",
+				name: "KPPN Malang",
 			})
 			.returning();
+	} else if (scope.code !== "KPPN-032" || scope.name !== "KPPN Malang") {
+		const [updated] = await db.update(kppnScopes).set({ code: "KPPN-032", name: "KPPN Malang", updatedAt: new Date() }).where(eq(kppnScopes.id, scope.id)).returning();
+		if (updated) scope = updated;
 	}
 
-	// 3. Find or create organization. An unmapped user may create a new satker,
-	// but may not claim an already-registered satker by guessing its code.
-	let createdOrganization = false;
+	// 3. Find or create organization. An unmapped user may reuse an organization
+	// row that has no visible operator/pending mapping; the access list is the
+	// source of truth for whether the code is already claimed.
 	let [org] = await db
 		.select()
 		.from(organizations)
-		.where(eq(organizations.kodeSatker, data.kodeSatker))
+		.where(eq(organizations.kodeSatker, normalizedKode))
 		.limit(1);
 
-	if (!org) {
+	if (org) {
+		if (org.kppnScopeId !== scope.id) {
+			throw Object.assign(
+				new Error("Akses onboarding ditolak: Satker sudah terdaftar. Minta Admin KPPN memetakan akses Anda."),
+				{ statusCode: 409, code: "SATKER_ALREADY_REGISTERED" },
+			);
+		}
+		if (org.name.trim().toLowerCase() !== normalizedName.toLowerCase()) {
+			if (await findVisibleOperatorForOrganization(db, org.id)) {
+				throw Object.assign(new Error("Kode satker sudah terdaftar dengan nama berbeda."), { statusCode: 409, code: "ORGANIZATION_NAME_MISMATCH" });
+			}
+		}
+		if (org.name !== normalizedName) {
+			const [updatedOrg] = await db
+				.update(organizations)
+				.set({ name: normalizedName, updatedAt: new Date() })
+				.where(eq(organizations.id, org.id))
+				.returning();
+			if (updatedOrg) org = updatedOrg;
+		}
+	} else {
 		[org] = await db
 			.insert(organizations)
 			.values({
-				kodeSatker: data.kodeSatker,
-				name: data.name,
+				kodeSatker: normalizedKode,
+				name: normalizedName,
 				kppnScopeId: scope.id,
 				kppnName: scope.name,
 				isBlu: data.isBlu ?? false,
 				timezone: "Asia/Jakarta",
 			})
 			.returning();
-		createdOrganization = true;
 	}
 
 	// 4. Ensure Fiscal Year 2026 exists
@@ -153,11 +211,10 @@ export async function handleRegisterSatkerOnboarding(data: {
 		)
 		.limit(1);
 
-	if (!createdOrganization && !existingAccess) {
-		throw Object.assign(
-			new Error("Satker sudah terdaftar. Minta Admin KPPN memetakan akses Anda."),
-			{ statusCode: 409, code: "SATKER_ALREADY_REGISTERED" },
-		);
+	if (!existingAccess) {
+		if (await findVisibleOperatorForOrganization(db, org.id)) {
+			throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
+		}
 	}
 
 	if (!existingAccess) {
@@ -169,10 +226,11 @@ export async function handleRegisterSatkerOnboarding(data: {
 			createdBy: user.id,
 		});
 	} else if (!existingAccess.active) {
-		await db
-			.update(userAccesses)
-			.set({ active: true, updatedAt: new Date() })
-			.where(eq(userAccesses.id, existingAccess.id));
+		const visibleOperator = await findVisibleOperatorForOrganization(db, org.id);
+		if (visibleOperator && visibleOperator.id !== existingAccess.id) {
+			throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
+		}
+		await db.update(userAccesses).set({ active: true, updatedAt: new Date() }).where(eq(userAccesses.id, existingAccess.id));
 	}
 
 	// 6. Set active organization cookie
@@ -233,8 +291,8 @@ export async function handleGetSatkerSettings(data?: {
 			satkerId: targetOrgId,
 			satkerCode: "411782",
 			satkerName: "Kantor Pelayanan Perbendaharaan Satker Contoh",
-			kppnName: "KPPN Jakarta II",
-			kppnCode: "089",
+			kppnName: "KPPN Malang",
+			kppnCode: "032",
 			isBlu: false,
 			targetIkpa: 95.0,
 			timezone: "Asia/Jakarta (WIB)",
@@ -317,8 +375,8 @@ export async function handleGetSatkerSettings(data?: {
 		satkerId: org.id,
 		satkerCode: org.kodeSatker,
 		satkerName: org.name,
-		kppnName: org.kppnName || "KPPN Jakarta II",
-		kppnCode: org.kppnCode || "089",
+		kppnName: org.kppnName || "KPPN Malang",
+		kppnCode: org.kppnCode || "032",
 		isBlu: org.isBlu,
 		targetIkpa: 95.0,
 		timezone: "Asia/Jakarta (WIB)",

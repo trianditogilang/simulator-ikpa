@@ -55,15 +55,17 @@ describe("Admin Access & Last Admin Protection Unit Tests", () => {
 			kppnScopeId: mockKppnScopeId,
 			active: true,
 		};
-
+		let call = 0;
 		const mockDb = {
-			select: vi.fn().mockReturnValue({
+			select: vi.fn().mockImplementation(() => ({
 				from: vi.fn().mockReturnValue({
-					where: vi.fn().mockReturnValue({
-						limit: vi.fn().mockResolvedValue([]),
+					where: vi.fn().mockImplementation(() => {
+						call++;
+						if (call === 1) return { limit: () => Promise.resolve([]) };
+						return Promise.resolve([]);
 					}),
 				}),
-			}),
+			})),
 			insert: vi.fn().mockReturnValue({
 				values: vi.fn().mockReturnValue({
 					returning: vi.fn().mockResolvedValue([mockCreated]),

@@ -963,7 +963,7 @@ function BudgetRevisionsPage() {
 									? "Simpan ke Skenario A, B, atau C"
 									: "Isi minimal satu rencana tambah revisi agar skenario dapat disimpan"
 							}
-							className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
+							className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-amber-700 disabled:opacity-50"
 						>
 							<Save className="size-3.5" />
 							<span>Simpan Skenario (A/B/C)</span>
@@ -1012,12 +1012,12 @@ function BudgetRevisionsPage() {
 								Aktual: {s2} objek · NKRA {Number(skor.nkraS2).toFixed(2)}
 							</p>
 						</div>
-						<div className="rounded-xl border border-primary/30 bg-primary/5 p-3.5 space-y-1">
+						<div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3.5 space-y-1">
 							<span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-								<FlaskConical className="size-3.5 text-primary" />
+								<FlaskConical className="size-3.5 text-amber-600" />
 								<span>Skor Simulasi</span>
 							</span>
-							<p className="text-2xl font-extrabold text-primary">
+							<p className="text-2xl font-extrabold text-amber-700">
 								{hasSimPlan ? simScoreValue : "—"}
 							</p>
 							<p className="text-[11px] text-muted-foreground">
