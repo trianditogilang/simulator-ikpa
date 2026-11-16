@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { createClerkClient } from "@clerk/backend";
-import { neon } from "@neondatabase/serverless";
+import { createSql } from "./pg-sql.mjs";
 
 function readEnvFile(path) {
 	const env = {};
@@ -66,7 +66,7 @@ if (targetUrl) {
 }
 
 const fixtureTag = randomUUID();
-const sql = neon(env.DATABASE_URL);
+const sql = createSql(env.DATABASE_URL);
 const clerkClient = createClerkClient({ secretKey: env.CLERK_SECRET_KEY });
 const session = await clerkClient.sessions.createSession({
 	userId: env.F13_02_CLERK_OPERATOR_USER_ID,

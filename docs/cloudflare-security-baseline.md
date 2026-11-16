@@ -1,5 +1,7 @@
 # Cloudflare Security Baseline — Simulator IKPA
 
+> **Historis sejak 2026-11-15.** [ADR-008](adr/ADR-008-data-residency-self-hosted-stack.md) melepas Cloudflare. Tujuan kontrol di bawah (TLS, cache bypass data sensitif, rate limit, penolakan payload/method tidak sah) tetap berlaku dan dipindahkan ke reverse proxy serta firewall VPS pada F13-10.
+
 **Status:** Rancangan penerapan; belum aktif pada zone produksi.
 
 ## Rules wajib sebelum go-live

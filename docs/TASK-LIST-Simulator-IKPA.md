@@ -848,6 +848,8 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
 > **Mode Fase 13:** verification-first dan behavior-preserving. Jangan melakukan redesign UI, mengubah IA 8 indikator, formula IKPA, actual/what-if, Slot A/B/C, atau reminder mandatory tanpa defect yang dapat direproduksi dan requirement v2 yang eksplisit. Hindari refactor lintas folder dan major dependency upgrade kecuali terbukti wajib untuk security/deployment. Setiap perubahan perilaku wajib memiliki regression test dan bukti sebelum/sesudah.
 >
 > **Depends:** PRE-F13 CORR-00..06 + CORR-A-00..05. Jangan mulai task F13 selain F13-00 sebelum CORR-00..06, CORR-A-00..05, dan kontrak aktif Revisi v2 siap; checkbox F13 tetap kosong sampai entry gate lulus.
+>
+> **Pengecualian ADR-008 (2026-11-15):** penggantian dependency dan perubahan lintas folder diizinkan hanya untuk task MIG-01–MIG-07 karena merupakan syarat deployment di server Indonesia. F13-09, F13-10, dan F13-11 ditulis ulang untuk infrastruktur VPS; F13-13 dijalankan setelah MIG-07 dan UIFIX yang disetujui selesai. Perubahan perilaku produk tetap dilarang di luar jalur UIFIX.
 
 - [x] **F13-00 — Bekukan kontrak rilis dan baseline aplikasi.** [Role: Release Readiness Agent]
   **Scope:** Kontrak `docs/revisi-v2`, acceptance criteria aktif, traceability, baseline typecheck/test/lint/build/smoke, runtime mock/fallback, dependency manifest, dan E2E harness.
@@ -906,24 +908,77 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
 
   **Evidence 2026-09-14 completed:** Branch Neon test `f13-02-test-20260910` dilengkapi 18 fiscal year 2026 KPPN-032 yang hilang dan fixture reminder operator terverifikasi. Commit `d968677` menstabilkan fixture/denial Admin; Quality Gate `34852663681` pada head `31aea75` lulus seluruh job dengan 14 file integration passed, 1 QStash file skipped normal, dan 91 passed + 1 skipped dari 92 test.
 
-- [ ] **F13-09 â€” Konfigurasi deployment Vercel.** [Role: DevOps Agent]
-  **Files:** `vercel.json`, `docs/deployment-vercel.md`  
-  **DoD:** Preview/staging/production env, runtime limits, cron/job endpoints, domain, dan rollback terdokumentasi.
+### Sub-fase MIG — Migrasi ke Stack Self-Hosted di Indonesia (ADR-008)
 
-- [ ] **F13-10 â€” Konfigurasi Cloudflare security baseline.** [Role: DevOps Agent]
-  **File:** `docs/cloudflare-security-baseline.md`  
-  **DoD:** DNS/TLS/CDN/WAF/rate limit rules untuk login, upload, export, webhook/job, dan cache bypass data sensitif terdokumentasi serta diterapkan.
+> **Dasar:** `docs/adr/ADR-008-data-residency-self-hosted-stack.md`. Task MIG adalah task besar (lintas modul). Setiap task ditutup dengan `npm run typecheck`, `npm run test`, `npm run lint`, `npm run build`, dan pengecekan migration Drizzle dari database kosong; perilaku produk tidak boleh berubah.
+
+- [x] **MIG-00 — Catat keputusan residensi data dan addendum dokumen.** [Role: Solution Architect]
+  **Files:** `docs/adr/ADR-008-data-residency-self-hosted-stack.md`, addendum pada `docs/revisi-v2/{TSD,PRD,FSD,ERD}`, dokumen operasional terkait
+  **DoD:** Setiap layanan luar negeri memiliki pengganti dan task; pengecualian mode Fase 13 dibatasi; F13-09..11 ditulis ulang; tidak ada kode aplikasi berubah. Selesai 2026-11-15 (docs only).
+
+- [x] **MIG-01 — Ganti driver Neon dengan PostgreSQL standar.** [Role: Database Agent]
+  **Evidence 2026-11-15:** `createDbClient` memakai satu `pg.Pool` per connection string (regression test `packages/db/src/client.test.ts`); 7 migration dan seed lulus pada PostgreSQL 16.15 kosong; 47 file/330 test, typecheck, lint, build, dan `check:migrations` lulus; dev server lokal melayani 12 halaman (1 publik, 8 Operator, 3 Admin) dengan status 200 dan koneksi berhenti di batas pool. Integration/E2E authenticated dan koneksi `pg` ke Neon tidak dijalankan (menunggu MIG-03/MIG-07).
+  **Files:** `packages/db/src/client.ts`, `packages/db/package.json`, `packages/db/src/seed.ts`, `scripts/run-f13-*.mjs`
+  **Depends:** MIG-00
+  **DoD:** `createDbClient`/`createPoolDbClient` tetap diekspor dengan nama yang sama dan memakai `pg` + `drizzle-orm/node-postgres`; seluruh migration `packages/db/drizzle/*` berjalan dari database kosong pada PostgreSQL lokal; seed minimum lulus; `@neondatabase/serverless` tidak lagi diimpor; workspace test tetap hijau.
+
+- [x] **MIG-02 — Jalankan aplikasi sebagai server Node dalam container.** [Role: DevOps Agent]
+  **Evidence 2026-11-16:** preset `node-server` dikunci di `vite.config.ts`; `docker compose up` (Docker 29.9.3) menjalankan aplikasi + PostgreSQL 16.16 UTF8 + Caddy; 7 migration dan seed lulus dari database kosong di container; smoke publik 2/2 lewat Caddy; body 16 MB ditolak 413 dan 12 MB diteruskan (batas proxy 15 MB disetujui pemilik karena upload base64, batas berkas 10 MB tetap di aplikasi); audit browser 0 host pihak ketiga pada image, Clerk masih dipanggil pada build berkunci Clerk sampai MIG-03; typecheck, 47 file/330 test, lint, build, dan `check:migrations` lulus. Query aplikasi ke database di container dan upload nyata lewat proxy belum diuji (butuh sesi, menunggu MIG-03).
+  **Files:** `apps/web/vite.config.ts`, `Dockerfile`, `docker-compose.yml`, konfigurasi reverse proxy, `.env.example`
+  **Depends:** MIG-01
+  **DoD:** Build memakai Nitro preset `node-server`; `docker compose up` menjalankan aplikasi + PostgreSQL lokal dan smoke publik desktop/mobile lulus; batas upload 10 MB diatur di reverse proxy; audit panggilan pihak ketiga dari browser (font, script, analytics) selesai dan hasilnya tercatat; tidak ada dependensi pada Vercel.
+
+- [ ] **MIG-03 — Ganti Clerk dengan Better Auth.** [Role: Auth & Access Agent]
+  **Files:** `apps/web/src/start.ts`, `apps/web/src/server/auth-session.server.ts`, `apps/web/src/server/admin-access.ts`, `apps/web/src/server/access.server.ts`, `apps/web/src/env.server.ts`, komponen `components/public/*` dan `components/auth/*`, `routes/__root.tsx`, `routes/admin-kppn/access.tsx`, `packages/db/src/schema/identity.ts` + migration, `packages/access-control/src/*`, fixture E2E dan integration test
+  **Depends:** MIG-01, MIG-02; dikerjakan bersama MIG-05 karena OTP email adalah bagian alur login
+  **Langkah:** (a) desain skema identitas + addendum ERD; (b) server: sesi, middleware, daftar/masuk, undangan bertoken, hard delete satu transaksi; (c) UI masuk/daftar/lupa kata sandi dan Manajemen Akses; (d) fixture E2E, integration test, dan CI tanpa secret Clerk/Neon.
+  **DoD:** Daftar dan masuk mandiri dengan email + kata sandi; kode OTP email diminta saat daftar, reset kata sandi, dan login dari perangkat yang belum dikenal (6 digit, ±10 menit, sekali pakai, ter-hash, dengan batas percobaan dan kirim ulang); tanpa aplikasi authenticator; undangan Admin opsional; onboarding kode + nama satker, satu Operator aktif per satker, slot admin, proteksi self/admin terakhir, dan blind guard tetap lulus test yang ada; `/api/webhooks/clerk` dan `sso-callback` dihapus; hash kata sandi dan token tidak pernah masuk log atau response; tidak ada impor `@clerk/*`.
+
+- [ ] **MIG-04 — Ganti QStash dengan scheduler di VPS.** [Role: Policy & Reminder Agent]
+  **Files:** `apps/web/src/server/qstash/handler.ts`, `apps/web/src/routes/api/qstash/{daily,send}.ts`, `apps/web/src/routes/api/jobs/import/process.ts`
+  **Depends:** MIG-02
+  **DoD:** Endpoint job menolak request tanpa shared secret yang benar; pemicu harian dan pengiriman berjalan dari cron; idempotency key, status delivery, dan retry F13-03 tetap lulus; replay tidak menggandakan notifikasi; tidak ada impor `@upstash/qstash`.
+
+- [ ] **MIG-05 — Ganti Resend dengan SMTP.** [Role: Policy & Reminder Agent]
+  **Files:** `apps/web/src/server/qstash/handler.ts` (pengiriman), `apps/web/src/env.server.ts`
+  **Depends:** MIG-02; dikerjakan bersama MIG-03; penyedia SMTP dan DNS pengirim (SPF, DKIM, DMARC) ditetapkan pemilik
+  **DoD:** Reminder, digest, eskalasi, kode OTP, dan reset kata sandi terkirim lewat SMTP pada environment uji; pengembangan lokal memakai penangkap email lokal; keterkiriman ke kotak masuk Gmail (bukan spam) diuji dari domain pengirim sebelum task ditutup; template `apps/web/src/emails/*` tidak berubah; kegagalan SMTP tercatat sebagai delivery gagal yang dapat di-retry; body email dan daftar penerima penuh tidak masuk log.
+
+- [ ] **MIG-06 — Simpan berkas import pada storage lokal privat.** [Role: Import & Export Agent]
+  **Files:** `apps/web/src/server/import.ts`, adapter storage server baru, `apps/web/src/env.server.ts`
+  **Depends:** MIG-02
+  **DoD:** Berkas import disimpan dengan nama acak buatan server di direktori yang tidak dilayani publik; dihapus saat job terminal; sapuan berkas yatim maksimal 7 hari terjadwal; validasi extension, MIME, signature, 10 MB, dan 10.000 baris tetap; variabel `R2_*` dihapus.
+
+- [ ] **MIG-07 — Bersihkan dependency lama dan verifikasi ulang gate Fase 13.** [Role: QA Agent / Security Agent]
+  **Files:** `package.json` workspace, `.github/workflows/ci.yml`, `.env.example`, `docs/uat-report.md`
+  **Depends:** MIG-01–MIG-06
+  **DoD:** Paket dan variabel environment Clerk, Neon, QStash, Resend, dan R2 terhapus; integration tenant isolation (F13-02), policy/reminder (F13-03), E2E Operator dan Admin (F13-04, F13-05), performance baseline (F13-07), dan CI quality gate (F13-08) hijau pada stack baru; security review ulang untuk autentikasi, sesi, reset kata sandi, undangan, dan endpoint job tanpa temuan critical/high (F13-06).
+
+### Sub-fase UIFIX — Perbaikan Tampilan dan Perilaku Fitur
+
+- [ ] **UIFIX-00 — Inventarisasi dan klasifikasi perbaikan.** [Role: Product & IKPA Analyst]
+  **File:** `docs/BACKLOG.md`
+  **Depends:** daftar perbaikan dari pemilik
+  **DoD:** Setiap butir memiliki ID `UIFIX-nn`, halaman/komponen terdampak, dan klasifikasi: *tampilan saja* (freeze-exception seperti `UI-DISPLAY-ONLY-*`, boleh paralel dengan MIG) atau *perilaku* (wajib amandemen FSD/acceptance criteria v2 dan regression test, dikerjakan setelah MIG-06). Butir pada layar masuk, daftar, atau Manajemen Akses digabung ke MIG-03.
+
+- [ ] **F13-09 â€” Konfigurasi deployment VPS Indonesia (semula deployment Vercel; diubah ADR-008).** [Role: DevOps Agent]
+  **Files:** `docs/deployment-vps.md` (baru), `docker-compose.yml`, konfigurasi reverse proxy; `docs/deployment-vercel.md` historis · **Depends:** MIG-07  
+  **DoD:** Environment staging dan production terpisah pada VPS di Indonesia; database dibuat dengan encoding UTF8 (temuan MIG-01: WIN1252 menolak karakter pada `breakdown_json`); domain dan TLS aktif; migration dan seed dijalankan lewat prosedur tertulis; cron job harian terpasang; backup `pg_dump` terjadwal dengan uji restore dan lokasi backup di Indonesia; rollback terdokumentasi; secret hanya ada di environment server.
+
+- [ ] **F13-10 â€” Konfigurasi security baseline VPS dan reverse proxy (semula Cloudflare; diubah ADR-008).** [Role: DevOps Agent]
+  **File:** `docs/security-baseline-vps.md` (baru); `docs/cloudflare-security-baseline.md` historis · **Depends:** F13-09  
+  **DoD:** TLS dan HSTS aktif; firewall host hanya membuka port yang diperlukan; SSH hanya dengan kunci; rate limit di reverse proxy untuk login, daftar, reset kata sandi, upload, export, dan endpoint job (menutup residual medium F13-06); endpoint job tidak dapat dipanggil dari internet publik tanpa secret; response data sensitif tidak di-cache; keputusan mitigasi DDoS tercatat; seluruh aturan terdokumentasi dan diterapkan pada staging.
 
 - [ ] **F13-11 â€” Tambahkan observability dan alert.** [Role: DevOps Agent]
   **Scope:** Structured logs, request ID, redaction, calculation latency, job/delivery/import failures, publish errors  
-  **DoD:** Alert harian/job gagal, delivery threshold, stuck import, dan publish failure dapat diuji.
+  **DoD:** Alert harian/job gagal, delivery threshold, stuck import, dan publish failure dapat diuji. Sesuai ADR-008, log ditulis terstruktur ke stdout dengan rotasi di host VPS dan alert dikirim lewat SMTP; layanan observability di luar Indonesia tidak dipakai.
 
 - [x] **F13-12 â€” Buat runbook operasional.** [Role: Technical Writer]
   **Files:** `docs/runbook-operations.md`, `docs/runbook-incidents.md`  
   **DoD:** Seed/admin recovery, failed migration/job/email/import, rule rollback, secret rotation, dan escalation owner tersedia. Selesai 2026-09-09; runbook sengaja menyatakan preview/staging sebagai prasyarat dan tidak mengasumsikan credential vendor.
 
 - [ ] **F13-13 â€” Laksanakan UAT berbasis acceptance criteria.** [Role: Product & IKPA Analyst]
-  **File:** `docs/uat-report.md`  
+  **File:** `docs/uat-report.md` · **Depends tambahan (ADR-008):** MIG-07, F13-09, dan seluruh UIFIX yang disetujui; UAT dijalankan pada staging VPS  
   **Depends:** F13-00â€“F13-12
   **DoD:** Seluruh `V2-AC-01..24` pada `docs/revisi-v2/ACCEPTANCE-CRITERIA.md` memiliki bukti pass/fail, environment, owner defect, severity, dan keputusan rilis; acceptance criteria v1 yang historis tidak digunakan sebagai kontrak aktif.
 

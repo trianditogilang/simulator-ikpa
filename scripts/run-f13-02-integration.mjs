@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 import { createClerkClient } from "@clerk/backend";
-import { neon } from "@neondatabase/serverless";
+import { createSql } from "./pg-sql.mjs";
 
 function waitForHttp(url, timeoutMs = 120_000) {
 	const startedAt = Date.now();
@@ -65,7 +65,7 @@ const clerkClient = createClerkClient({ secretKey: env.CLERK_SECRET_KEY });
 let adminUserId = env.F13_02_CLERK_ADMIN_USER_ID;
 if (!adminUserId) {
 	try {
-		const sql = neon(env.DATABASE_URL);
+		const sql = createSql(env.DATABASE_URL);
 		const rows = await sql`
 			SELECT u.clerk_user_id AS "clerkUserId"
 			FROM users u

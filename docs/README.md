@@ -33,8 +33,9 @@ before a behavior-changing implementation decision is made.
 - [Operations runbook](runbook-operations.md)
 - [Incident runbook](runbook-incidents.md)
 - [Observability baseline](observability-baseline.md)
-- [Vercel preview checklist](deployment-vercel.md)
-- [Cloudflare security baseline](cloudflare-security-baseline.md)
+- [ADR-008 — data residency and self-hosted stack](adr/ADR-008-data-residency-self-hosted-stack.md) — active infrastructure decision; migration tasks MIG-01..MIG-07
+- [Vercel preview checklist](deployment-vercel.md) — historical since ADR-008
+- [Cloudflare security baseline](cloudflare-security-baseline.md) — historical since ADR-008
 
 ## Supporting references
 

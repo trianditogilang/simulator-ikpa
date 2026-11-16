@@ -1,5 +1,7 @@
 # Deployment Vercel — Simulator IKPA
 
+> **Historis sejak 2026-11-15.** [ADR-008](adr/ADR-008-data-residency-self-hosted-stack.md) memindahkan deployment ke VPS di Indonesia. Dokumen ini hanya mencatat kondisi Preview Vercel sampai MIG-02 dan F13-09 selesai; jangan mengaktifkan Production atau domain di Vercel.
+
 **Status:** Preview/staging aktif; Production/domain publik belum diaktifkan.
 Adapter Nitro untuk TanStack Start sudah dipakai oleh project Vercel. Nilai
 credential tetap hanya berada pada Vercel Environment Variables/secret manager.

@@ -4,7 +4,9 @@
 - Tanggal: 31 Agustus 2026
 - Pemilik: Security Agent
 - Task: F0-10
-- Terkait: F0-11, ADR-004, ADR-006, ADR-007
+- Terkait: F0-11, ADR-004, ADR-006, ADR-007, ADR-008
+
+> **Catatan ADR-008 (2026-11-15):** masa retensi, klasifikasi, dan prosedur pada dokumen ini tidak berubah. Yang berubah adalah lokasinya: setelah MIG-06 selesai, "R2"/"lifecycle R2" dibaca sebagai direktori import privat di VPS dengan pembersihan terjadwal (hapus saat job terminal, sapu berkas yatim paling lambat 7 hari); setelah MIG-03 selesai, "Clerk ID"/`clerk_user_id` dibaca sebagai ID user auth internal. Aplikasi kini menyimpan hash kata sandi dan sesi; keduanya berklasifikasi `RESTRICTED` dan tidak boleh masuk log. Backup di luar VPS utama harus tetap berada di Indonesia.
 
 ## Tujuan
 

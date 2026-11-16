@@ -1,0 +1,18 @@
+.git
+.github
+.vscode
+.claude
+.agents
+**/node_modules
+**/.output
+**/dist
+**/.vercel
+**/.tanstack
+**/test-results
+docs
+referensi
+# Secrets never enter the build context or the image.
+.env
+.env.*
+**/.env
+**/.env.*

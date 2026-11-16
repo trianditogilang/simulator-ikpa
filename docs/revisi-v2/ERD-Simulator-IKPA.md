@@ -2,6 +2,15 @@
 
 > Dokumen ini adalah model data aktif Revisi v2. Baseline v1.0 dipertahankan di bagian bawah hanya untuk histori; bila ada konflik, kontrak aktif v2 berlaku.
 
+## Addendum ADR-008 — 2026-11-15 — Residensi Data dan Identitas Self-Hosted
+
+> Addendum ini adalah yang terbaru dan berlaku bila bertentangan dengan bagian lain dokumen ini. Rincian: [ADR-008](../adr/ADR-008-data-residency-self-hosted-stack.md).
+
+1. **Database:** PostgreSQL dijalankan pada VPS di Indonesia, bukan NeonDB (MIG-01). Skema tabel domain tidak berubah.
+2. **Identitas (target MIG-03):** `users.clerk_user_id` diganti rujukan ke user auth milik Better Auth, dan `organizations.clerk_org_id` dihapus. Tabel auth (user, session, account, verification) berada pada database yang sama. Nama kolom, tipe, constraint, dan aturan `ON DELETE` final belum ditetapkan; semuanya dicatat sebagai addendum ERD lanjutan pada tahap desain MIG-03 sebelum migration dibuat.
+3. **Hard delete (mengubah butir 4 Addendum AUTH-01 setelah MIG-03):** penghapusan akun menjadi satu transaksi lokal pada PostgreSQL; langkah "hapus akun Clerk terlebih dahulu" dan webhook `user.deleted` tidak berlaku lagi. Aturan cascade kepemilikan dan `SET NULL` untuk atribusi tetap.
+4. **Masa transisi:** sampai MIG-03 selesai, kolom `clerk_user_id`/`clerk_org_id` dan butir 4 Addendum AUTH-01 tetap menggambarkan skema yang berjalan.
+
 ## Addendum AUTH-01 — 2026-09-12 — Fondasi Data Akses
 
 > Addendum ini menambah kontrak fondasi data AUTH-01 tanpa mengubah baseline historis di bawah garis pemisah. Bila ada konflik, addendum terbaru yang berlaku.

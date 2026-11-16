@@ -2,6 +2,8 @@
 
 **Status:** Partial / Needs Fix (F13-11).
 
+> **Catatan ADR-008 (2026-11-15):** Vercel Logs dan layanan observability di luar Indonesia tidak dipakai. Target F13-11 adalah log terstruktur ke stdout dengan rotasi di host VPS dan alert lewat SMTP. Rujukan QStash di bawah dibaca sebagai endpoint job cron setelah MIG-04.
+
 ## Already available
 
 - QStash route mengembalikan `x-request-id`.

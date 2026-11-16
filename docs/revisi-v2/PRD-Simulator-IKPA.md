@@ -4,6 +4,16 @@
 >
 > Keputusan produk 2026-09-13: Audit Log Admin dan route `/admin-kppn/audit-logs` dipensiunkan. Admin hanya memakai monitoring, policy, kalender, dan manajemen akses; pencatatan internal backend tetap menjadi detail implementasi.
 
+## Addendum ADR-008 — 2026-11-15 — Residensi Data dan Stack Self-Hosted
+
+> Addendum ini adalah yang terbaru dan berlaku bila bertentangan dengan bagian lain dokumen ini. Rincian: [ADR-008](../adr/ADR-008-data-residency-self-hosted-stack.md) dan addendum ADR-008 pada TSD.
+
+1. **Residensi data:** data aplikasi dan data identitas disimpan dan diproses pada server di Indonesia. Stack dan deploy yang ditetapkan dokumen ini (NeonDB, Clerk Auth, Upstash QStash, Resend, Vercel, Cloudflare/R2) diganti PostgreSQL di VPS, Better Auth, cron di VPS, SMTP, storage lokal, dan reverse proxy di VPS sesuai task MIG-01–MIG-07 serta F13-09–F13-11.
+2. **Login:** pengguna mendaftar dan masuk sendiri dengan email dan kata sandi; undangan dari Admin KPPN tetap tersedia tetapi bukan syarat. Otorisasi tetap ditentukan mapping akses internal.
+3. **Tidak ada perubahan produk:** kebutuhan fungsional, IA 8 indikator, reminder mandatory, dan acceptance criteria V2-AC-01..24 tidak berubah. Perbaikan tampilan dan perilaku fitur ditangani terpisah lewat task UIFIX dengan amandemen dokumen ini bila perilaku berubah.
+4. **Masa transisi:** sampai task MIG terkait selesai, bagian lama dokumen ini tetap menggambarkan perilaku yang berjalan.
+5. **Verifikasi kedua:** "MFA opsional/bila diaktifkan" pada dokumen ini dibaca sebagai kode OTP ke email, yang diminta saat mendaftar, saat reset kata sandi, dan saat login dari perangkat yang belum dikenal. Pengguna tidak perlu memasang aplikasi tambahan.
+
 ## Addendum Revisi v2 — 2026-09-09
 
 1. **IA 8 indikator dikunci (PRE-F13):** sidebar Operator = Dashboard IKPA + 8 indikator (Revisi DIPA, Deviasi Halaman III, Penyerapan Anggaran, Belanja Kontraktual, Penyelesaian Tagihan, UP/TUP & KKP, Capaian Output, Dispensasi SPM) + Reminder Center + Lainnya (Riwayat, Laporan, Panduan, Pengaturan).

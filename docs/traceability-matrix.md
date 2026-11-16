@@ -310,6 +310,7 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 | WCAG AA dan keyboard dasar | F5-02 | Planned |
 | Tenant isolation | F8-04, F13-02, F13-06 | Planned |
 | Observability dan alert | F13-11 | Planned |
+| Residensi data di Indonesia (ADR-008) | MIG-00–MIG-07, F13-09, F13-10 | MIG-00 selesai (keputusan dan addendum); implementasi Planned. Bukti F13-02..F13-08 pada stack Clerk/Neon/Vercel wajib diverifikasi ulang pada MIG-07 |
 
 ## 9. Coverage Summary
 

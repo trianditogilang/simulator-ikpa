@@ -15,7 +15,14 @@ const config = defineConfig(({ command }) => {
 
 	return {
 		resolve: { tsconfigPaths: true },
-		plugins: [devtools(), tailwindcss(), tanstackStart(), nitro(), viteReact()],
+		plugins: [
+			devtools(),
+			tailwindcss(),
+			tanstackStart(),
+			// ADR-008: pin the preset so no host (e.g. Vercel) is auto-detected.
+			nitro({ preset: "node-server" }),
+			viteReact(),
+		],
 	};
 });
 

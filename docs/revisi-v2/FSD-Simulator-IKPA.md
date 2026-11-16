@@ -4,6 +4,17 @@
 >
 > Keputusan produk 2026-09-13: kemampuan Audit Log Admin (ADM-11, `/admin-kppn/audit-logs`) dipensiunkan. Menu, route, dan reader Admin tidak tersedia; pencatatan internal untuk menjaga integritas mutasi domain tetap berada di backend.
 
+## Addendum ADR-008 — 2026-11-15 — Residensi Data dan Stack Self-Hosted
+
+> Addendum ini adalah yang terbaru dan berlaku bila bertentangan dengan bagian lain dokumen ini. Rincian: [ADR-008](../adr/ADR-008-data-residency-self-hosted-stack.md) dan addendum ADR-008 pada TSD.
+
+1. **Login (PUB-02 dan alur akses):** setelah MIG-03 selesai, "login melalui Clerk" dibaca sebagai login email + kata sandi yang dikelola aplikasi (Better Auth). Pengguna dapat mendaftar sendiri; undangan Admin KPPN tetap tersedia tetapi bukan syarat. Hanya email terverifikasi yang dapat dipetakan sebagai akses aktif.
+2. **Perilaku akses yang dipertahankan:** onboarding kode + nama satker, satu Operator aktif per satker, slot admin, hard delete dengan proteksi self dan admin terakhir, serta blind auth guard.
+3. **Reminder dan job:** "QStash" dibaca sebagai scheduler cron di VPS dan "Resend" sebagai pengiriman SMTP setelah MIG-04 dan MIG-05 selesai. Aturan idempotency, retry, dan lead time tidak berubah.
+4. **Integrasi eksternal (§ daftar integrasi):** Clerk, Neon, QStash, Resend, Vercel, dan Cloudflare digantikan komponen self-hosted sesuai tabel pada addendum ADR-008 TSD.
+5. **Masa transisi:** sampai task MIG terkait selesai, bagian lama dokumen ini tetap menggambarkan perilaku yang berjalan.
+6. **Kode OTP email:** saat mendaftar, saat reset kata sandi, dan saat login dari perangkat yang belum dikenal, pengguna memasukkan kode 6 digit yang dikirim ke emailnya. Kode berlaku sekitar 10 menit dan sekali pakai; kirim ulang dan percobaan salah dibatasi. Login berikutnya dari perangkat yang sama cukup email + kata sandi.
+
 ## Addendum Revisi v2 — 2026-09-09
 
 1. **Workspace per indikator (CORR-02/03/04):** actual YTD terkunci, sisa tahun editable, skor via engine; `?`/drawer rumus singkat wajib.

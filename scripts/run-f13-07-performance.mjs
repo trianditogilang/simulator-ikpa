@@ -1,7 +1,7 @@
 import { performance } from "node:perf_hooks";
 import { randomUUID } from "node:crypto";
 import dotenv from "dotenv";
-import { Pool } from "@neondatabase/serverless";
+import { Pool } from "pg";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { resolveUserAccess } from "@simulator-ikpa/access-control";
 import { createDbClient } from "@simulator-ikpa/db";

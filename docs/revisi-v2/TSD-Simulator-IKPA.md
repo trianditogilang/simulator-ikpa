@@ -4,6 +4,31 @@
 >
 > Keputusan produk 2026-09-13: reader Audit Log Admin dan route `/admin-kppn/audit-logs` dipensiunkan. Helper/table audit internal tetap dipakai oleh mutasi domain dan tidak diekspos sebagai menu Admin.
 
+## Addendum ADR-008 — 2026-11-15 — Residensi Data dan Stack Self-Hosted
+
+> Addendum ini adalah yang terbaru dan berlaku bila bertentangan dengan bagian lain dokumen ini. Rincian dan alasan: [ADR-008](../adr/ADR-008-data-residency-self-hosted-stack.md).
+
+1. **Target arsitektur:** seluruh komponen yang menyimpan atau memproses data aplikasi dijalankan pada VPS di Indonesia. Penyebutan Vercel, Neon/NeonDB, Clerk, Upstash QStash, Resend, dan Cloudflare (termasuk R2) pada dokumen ini dibaca sesuai tabel berikut setelah task terkait selesai.
+
+   | Bagian dokumen | Stack lama | Target | Task |
+   |---|---|---|---|
+   | Database, environment | Neon | PostgreSQL di VPS, `pg` + `drizzle-orm/node-postgres` | MIG-01 |
+   | Hosting, deployment | Vercel | Nitro `node-server` dalam container di VPS | MIG-02, F13-09 |
+   | Auth, middleware, webhook | Clerk | Better Auth self-hosted; email + kata sandi, daftar mandiri, undangan Admin opsional; tanpa webhook identity | MIG-03 |
+   | Endpoint job (§6.8) | QStash signed request | Cron VPS + shared secret; idempotency dan retry tidak berubah | MIG-04 |
+   | Email | Resend | SMTP; template React Email tidak berubah | MIG-05 |
+   | Storage import | R2 / signed URL | Direktori privat di VPS; batas 10 MB dan 10.000 baris tetap | MIG-06 |
+   | Keamanan edge | Cloudflare | Reverse proxy + TLS + firewall + rate limit di VPS | F13-10 |
+   | Observability | Vercel Logs; Sentry opsional | Log terstruktur di host + alert SMTP | F13-11 |
+
+2. **Masa transisi:** sampai task MIG untuk suatu komponen selesai, implementasi dan bagian lama dokumen ini tetap menggambarkan perilaku yang berjalan. Setiap task MIG memperbarui bagian yang disentuhnya; dokumen tidak ditulis ulang sekaligus.
+3. **Kolom identitas:** `users.clerk_user_id` diganti rujukan ke user auth dan `organizations.clerk_org_id` dihapus. Bentuk final ditetapkan pada desain MIG-03 dan dicatat sebagai addendum ERD sebelum migration dibuat.
+4. **Variabel environment:** `CLERK_*`, `QSTASH_*`, `RESEND_API_KEY`, dan `R2_*` dihapus bertahap dan diganti secret auth, secret job, serta konfigurasi SMTP dan storage lokal. Secret disimpan pada environment server di VPS, bukan pada penyedia hosting.
+5. **Pengecualian mode Fase 13:** penggantian dependency dan perubahan lintas folder diizinkan hanya untuk MIG-01–MIG-07. Formula, IA 8 indikator, actual/what-if, Slot A/B/C, reminder mandatory, dan V2-AC-01..24 tidak berubah.
+6. **Verifikasi ulang:** bukti F13-02 sampai F13-08 diperoleh pada stack lama dan wajib dihijaukan ulang pada stack baru (MIG-07) sebelum F13-13.
+7. **OTP email menggantikan "MFA opsional":** kode OTP dikirim ke email saat mendaftar, saat reset kata sandi, dan saat login dari perangkat yang belum dikenal. Kode 6 digit, berlaku sekitar 10 menit, sekali pakai, disimpan ter-hash, dengan batas percobaan dan kirim ulang; tidak masuk log atau response. Tidak ada TOTP atau SMS. MIG-05 dikerjakan bersama MIG-03.
+8. **Status MIG-02 (2026-11-16):** runtime hosting sudah berjalan sebagai Nitro `node-server` dalam container (`Dockerfile`, `docker-compose.yml`, `Caddyfile` di root repo) dengan PostgreSQL 16 UTF8 dan reverse proxy Caddy; batas body di proxy 15 MB, batas berkas import 10 MB tetap di aplikasi. Bagian arsitektur, keamanan, dan langkah deployment yang masih menyebut Vercel diperbarui saat deployment VPS dikerjakan (F13-09).
+
 ## Addendum Revisi v2 — 2026-09-09
 
 1. **Admin read-only:** setiap query Admin KPPN wajib `assertAdminKppnScope`; tanpa mutasi data operasional; tanpa sel kuning (tanpa input editable).
