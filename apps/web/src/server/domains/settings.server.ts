@@ -1,7 +1,4 @@
-import {
-	assertOperatorOrgScope,
-	syncClerkUser,
-} from "@simulator-ikpa/access-control";
+import { assertOperatorOrgScope } from "@simulator-ikpa/access-control";
 import { createDbClient } from "@simulator-ikpa/db";
 import {
 	fiscalYears,
@@ -17,7 +14,6 @@ import { getAccessResolutionForSession } from "../access.server";
 import { writeAudit } from "../audit/write-audit";
 import {
 	ACTIVE_ORGANIZATION_COOKIE,
-	getClerkIdentity,
 	getServerAuthSession,
 } from "../auth-session.server";
 import { failIfProduction } from "../runtime-guards";
@@ -75,7 +71,7 @@ export async function handleRegisterSatkerOnboarding(data: {
 	isBlu?: boolean;
 }) {
 	const auth = await getServerAuthSession();
-	if (!auth.isAuthenticated || !auth.clerkUserId) {
+	if (!auth.isAuthenticated || !auth.userId) {
 		throw new Error("Sesi tidak valid. Silakan login terlebih dahulu.");
 	}
 
@@ -92,22 +88,14 @@ export async function handleRegisterSatkerOnboarding(data: {
 		};
 	}
 
-	// 1. Ensure user exists
-	let [user] = await db
+	// 1. The session user always has a users row (same table as the auth user)
+	const [user] = await db
 		.select()
 		.from(users)
-		.where(eq(users.clerkUserId, auth.clerkUserId))
+		.where(eq(users.id, auth.userId))
 		.limit(1);
-
 	if (!user) {
-		const identity = process.env.CLERK_SECRET_KEY
-			? await getClerkIdentity(auth.clerkUserId)
-			: {
-					clerkUserId: auth.clerkUserId,
-					email: auth.email || `${auth.clerkUserId}@kemenkeu.go.id`,
-					name: auth.name || "Operator Satker",
-				};
-		user = await syncClerkUser(db, identity);
+		throw new Error("Sesi tidak valid. Silakan login terlebih dahulu.");
 	}
 
 	const normalizedKode = data.kodeSatker.trim().toUpperCase();

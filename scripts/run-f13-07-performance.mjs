@@ -12,6 +12,7 @@ import {
 	simulations,
 } from "@simulator-ikpa/db/schema";
 import { planDeliveries } from "@simulator-ikpa/policy-reminder";
+import { assertLoopbackUrl } from "./auth-fixture.mjs";
 import { parseImportFile } from "../apps/web/src/server/import/parser.ts";
 import { getActiveReminderEvents, getWorkdayCalendar } from "../apps/web/src/server/reminders/active-events.queries.ts";
 import { calculateAndPersistSnapshot } from "../apps/web/src/server/simulation/calculate.ts";
@@ -20,12 +21,18 @@ import { buildOperatorXlsxBuffer } from "../apps/web/src/server/exports/operator
 dotenv.config({ path: ".env.f13-02.local", quiet: true });
 
 const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
-const operatorClerkUserId = process.env.F13_02_CLERK_OPERATOR_USER_ID;
 
-if (!databaseUrl || !operatorClerkUserId) {
+if (!databaseUrl) {
 	console.error(
-		"F13-07 requires the isolated test database and Clerk Operator ID in .env.f13-02.local.",
+		"F13-07 requires DATABASE_URL (environment or .env.f13-02.local) for the isolated test database.",
 	);
+	process.exit(2);
+}
+try {
+	// The benchmark writes fixture snapshots: never against a remote database.
+	assertLoopbackUrl(databaseUrl, "DATABASE_URL");
+} catch (error) {
+	console.error(error.message);
 	process.exit(2);
 }
 
@@ -87,12 +94,19 @@ async function collectQueryPlan(name, query, params) {
 }
 
 async function main() {
-	const access = await resolveUserAccess(db, { clerkUserId: operatorClerkUserId });
+	const operator = await pool.query(
+		`SELECT user_id FROM user_accesses
+		 WHERE access_type = 'operator_satker' AND active = true AND status = 'active'
+		 ORDER BY created_at LIMIT 1`,
+	);
+	const access = await resolveUserAccess(db, {
+		userId: operator.rows[0]?.user_id ?? null,
+	});
 	if (
 		access.status !== "operator_single_scope" &&
 		access.status !== "operator_multiple_scopes"
 	) {
-		throw new Error("Configured Clerk identity is not mapped to an Operator scope.");
+		throw new Error("No seeded Operator is mapped to a satker in the test database.");
 	}
 
 	let target = null;

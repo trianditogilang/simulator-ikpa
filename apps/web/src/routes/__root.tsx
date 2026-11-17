@@ -1,4 +1,3 @@
-import { ClerkProvider } from "@clerk/tanstack-react-start";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import {
 	createRootRouteWithContext,
@@ -11,8 +10,6 @@ import type { RouterContext } from "../router";
 import { getAuthSessionFn } from "../server/access";
 
 import appCss from "../styles.css?url";
-
-const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.trim();
 
 export const Route = createRootRouteWithContext<RouterContext>()({
 	beforeLoad: async () => ({
@@ -68,13 +65,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
-				{clerkPublishableKey ? (
-					<ClerkProvider publishableKey={clerkPublishableKey}>
-						{body}
-					</ClerkProvider>
-				) : (
-					body
-				)}
+				{body}
 				<Scripts />
 			</body>
 		</html>

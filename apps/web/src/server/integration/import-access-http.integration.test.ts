@@ -17,11 +17,11 @@ import {
 
 const baseUrl = process.env.F13_02_HTTP_URL;
 const testDatabaseUrl = process.env.DATABASE_URL;
-const configuredClerkUserId = process.env.F13_02_CLERK_OPERATOR_USER_ID;
-const sessionToken = process.env.F13_02_CLERK_SESSION_TOKEN;
-if (!baseUrl || !testDatabaseUrl || !configuredClerkUserId || !sessionToken) {
+const configuredOperatorUserId = process.env.F13_02_OPERATOR_USER_ID;
+const sessionToken = process.env.F13_02_SESSION_COOKIE;
+if (!baseUrl || !testDatabaseUrl || !configuredOperatorUserId || !sessionToken) {
 	throw new Error(
-		"F13-02 import/access HTTP integration requires the isolated database and short-lived Clerk session.",
+		"F13-02 import/access HTTP integration requires the isolated database and short-lived session.",
 	);
 }
 
@@ -87,7 +87,7 @@ async function callServerFn(args: {
 		accept: "application/json",
 	});
 	const authToken = args.authToken ?? sessionToken;
-	if (authToken) headers.set("authorization", `Bearer ${authToken}`);
+	if (authToken) headers.set("cookie", authToken);
 	if (args.cookie) headers.set("cookie", args.cookie);
 	const init: RequestInit = { method: args.method, headers };
 	let url = `${baseUrl}/_serverFn/${encodeURIComponent(args.id)}`;
@@ -154,14 +154,14 @@ beforeAll(async () => {
 		.innerJoin(userAccesses, eq(userAccesses.userId, users.id))
 		.where(
 			and(
-				eq(users.clerkUserId, configuredClerkUserId),
+				eq(users.id, configuredOperatorUserId),
 				eq(userAccesses.accessType, "operator_satker"),
 				eq(userAccesses.active, true),
 			),
 		)
 		.limit(1);
 	if (!operator?.orgId) {
-		throw new Error("Configured Clerk operator is not mapped to an active organization.");
+		throw new Error("Configured operator is not mapped to an active organization.");
 	}
 	operatorUserId = operator.id;
 	orgId = operator.orgId;
@@ -260,13 +260,13 @@ afterAll(async () => {
 });
 
 describe("F13-02 access and import authenticated HTTP boundary", () => {
-	it("getAuthSessionFn returns the verified Clerk session without peer data", async () => {
+	it("getAuthSessionFn returns the verified session without peer data", async () => {
 		const id = await findServerFnId("/src/server/access.ts", "getAuthSessionFn");
 		const result = await callServerFn({ id, method: "GET", data: undefined });
 		expect(result.status).toBe(200);
 		// Seroval encodes booleans as tagged values; the final `s:2` is true.
 		expect(result.body).toMatch(/isAuthenticated.*?s":2/i);
-		expectBodyContains(result.body, configuredClerkUserId);
+		expectBodyContains(result.body, configuredOperatorUserId);
 		expectBodyContains(result.body, peerOrgId, false);
 		expectBodyContains(result.body, peerImportMarker, false);
 	});

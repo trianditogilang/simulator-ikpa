@@ -4,17 +4,20 @@ import {
 	handleQStashDaily,
 	handleQStashSend,
 	getPublicQStashUrl,
-	sendNotificationWithResend,
+	sendNotificationEmail,
 	verifyQStashSignature,
 } from "./handler";
 import { handleQStashImport } from "../import/process-job";
+import { sendMail } from "../mailer.server";
+
+vi.mock("../mailer.server", () => ({ sendMail: vi.fn() }));
 
 const envKeys = [
 	"NODE_ENV",
 	"APP_URL",
 	"QSTASH_CURRENT_SIGNING_KEY",
 	"QSTASH_NEXT_SIGNING_KEY",
-	"RESEND_API_KEY",
+	"SMTP_HOST",
 	"NOTIFICATION_SENDER_EMAIL",
 ] as const;
 const originalEnv = Object.fromEntries(
@@ -171,7 +174,7 @@ describe("QStash production safeguards", () => {
 
 	it("fails closed when production delivery provider is unavailable", async () => {
 		process.env.NODE_ENV = "production";
-		delete process.env.RESEND_API_KEY;
+		delete process.env.SMTP_HOST;
 		delete process.env.NOTIFICATION_SENDER_EMAIL;
 		const body = "{}";
 		const url = "https://example.test/api/qstash/send";
@@ -191,76 +194,43 @@ describe("QStash production safeguards", () => {
 		});
 	});
 
-	it("calls Resend with a safe payload and idempotency key", async () => {
-		const fetchMock = vi.fn().mockResolvedValue(
-			new Response(JSON.stringify({ id: "re_test_message" }), {
-				status: 200,
-				headers: { "content-type": "application/json" },
-			}),
-		);
-		vi.stubGlobal("fetch", fetchMock);
+	it("sends over SMTP with a safe payload", async () => {
+		vi.mocked(sendMail).mockResolvedValue("<smtp-test-message>");
 
-		const providerId = await sendNotificationWithResend(
-			{ apiKey: "test-resend-key", from: "IKPA <noreply@example.test>" },
-			{
-				entityType: "output_report_due",
-				scheduledFor: new Date("2026-09-11T01:00:00.000Z"),
-				idempotencyKey: "f13-03-idempotency-001",
-				payloadJson: {
-					recipient: "delivered@resend.dev",
-					subject: "Reminder test",
-					text: "A <safe> reminder",
-				},
+		const providerId = await sendNotificationEmail({
+			entityType: "output_report_due",
+			scheduledFor: new Date("2026-09-11T01:00:00.000Z"),
+			payloadJson: {
+				recipient: "delivered@example.test",
+				subject: "Reminder test",
+				text: "A <safe> reminder",
 			},
-		);
+		});
 
-		expect(providerId).toBe("re_test_message");
-		expect(fetchMock).toHaveBeenCalledTimes(1);
-		const [requestUrl, requestInit] = fetchMock.mock.calls[0] as [
-			string,
-			RequestInit,
-		];
-		expect(requestUrl).toBe("https://api.resend.com/emails");
-		expect(requestInit.method).toBe("POST");
-		expect(
-			new Headers(requestInit.headers).get("Idempotency-Key"),
-		).toBe("f13-03-idempotency-001");
-		const requestBody = JSON.parse(String(requestInit.body)) as {
-			from: string;
-			to: string[];
-			subject: string;
-			html: string;
-			text: string;
-		};
-		expect(requestBody).toMatchObject({
-			from: "IKPA <noreply@example.test>",
-			to: ["delivered@resend.dev"],
+		expect(providerId).toBe("<smtp-test-message>");
+		expect(sendMail).toHaveBeenCalledTimes(1);
+		const mail = vi.mocked(sendMail).mock.calls[0][0];
+		expect(mail).toMatchObject({
+			to: ["delivered@example.test"],
 			subject: "Reminder test",
 			text: "A <safe> reminder",
 		});
-		expect(requestBody.html).toContain("&lt;safe&gt;");
+		expect(mail.html).toContain("&lt;safe&gt;");
 	});
 
-	it("never exposes a provider response body in delivery errors", async () => {
-		vi.stubGlobal(
-			"fetch",
-			vi.fn().mockResolvedValue(
-				new Response("peer-secret-response-body", { status: 401 }),
-			),
+	it("never exposes an SMTP server reply in delivery errors", async () => {
+		vi.mocked(sendMail).mockRejectedValue(
+			new Error("550 peer-secret-response-body"),
 		);
 
 		await expect(
-			sendNotificationWithResend(
-				{ apiKey: "test-resend-key", from: "noreply@example.test" },
-				{
-					entityType: "output_report_due",
-					scheduledFor: new Date("2026-09-11T01:00:00.000Z"),
-					idempotencyKey: "f13-03-idempotency-002",
-					payloadJson: { recipient: "delivered@resend.dev" },
-				},
-			),
+			sendNotificationEmail({
+				entityType: "output_report_due",
+				scheduledFor: new Date("2026-09-11T01:00:00.000Z"),
+				payloadJson: { recipient: "delivered@example.test" },
+			}),
 		).rejects.toMatchObject({
-			code: "RESEND_HTTP_401",
+			code: "SMTP_SEND_FAILED",
 			statusCode: 502,
 			message: "Notification provider rejected the message.",
 		});

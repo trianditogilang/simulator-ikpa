@@ -17,11 +17,11 @@ import { and, eq, inArray } from "drizzle-orm";
 
 const baseUrl = process.env.F13_02_HTTP_URL;
 const testDatabaseUrl = process.env.DATABASE_URL;
-const configuredClerkUserId = process.env.F13_02_CLERK_OPERATOR_USER_ID;
-const sessionToken = process.env.F13_02_CLERK_SESSION_TOKEN;
-if (!baseUrl || !testDatabaseUrl || !configuredClerkUserId || !sessionToken) {
+const configuredOperatorUserId = process.env.F13_02_OPERATOR_USER_ID;
+const sessionToken = process.env.F13_02_SESSION_COOKIE;
+if (!baseUrl || !testDatabaseUrl || !configuredOperatorUserId || !sessionToken) {
 	throw new Error(
-		"F13-02 simulation HTTP integration requires the isolated database and short-lived Clerk session.",
+		"F13-02 simulation HTTP integration requires the isolated database and short-lived session.",
 	);
 }
 
@@ -75,7 +75,7 @@ async function callServerFn(args: {
 	const headers = new Headers({
 		"x-tsr-serverFn": "true",
 		accept: "application/json",
-		authorization: `Bearer ${sessionToken}`,
+		cookie: `${sessionToken}`,
 	});
 	const init: RequestInit = { method: args.method, headers };
 	let url = `${baseUrl}/_serverFn/${encodeURIComponent(args.id)}`;
@@ -153,12 +153,12 @@ beforeAll(async () => {
 		.where(
 			and(
 				eq(userAccesses.accessType, "operator_satker"),
-				eq(users.clerkUserId, configuredClerkUserId),
+				eq(users.id, configuredOperatorUserId),
 			),
 		)
 		.limit(1);
 	if (!operator?.orgId) {
-		throw new Error("Configured Clerk operator is not mapped to an organization.");
+		throw new Error("Configured operator is not mapped to an organization.");
 	}
 	operatorUserId = operator.id;
 	orgId = operator.orgId;

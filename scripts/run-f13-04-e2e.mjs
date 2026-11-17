@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
-import { createClerkClient } from "@clerk/backend";
+import { assertLoopbackUrl, createFixtureSession } from "./auth-fixture.mjs";
 import { createSql } from "./pg-sql.mjs";
 
 function readEnvFile(path) {
@@ -40,16 +40,12 @@ function waitForHttp(url, timeoutMs = 120_000) {
 	});
 }
 
+// The env file is optional; values already in the process environment win.
 const envPath = resolve(".env.f13-02.local");
-if (!existsSync(envPath)) {
-	console.error("Missing .env.f13-02.local. Create it from the isolated test branch first.");
-	process.exit(2);
-}
-
-const providerEnv = readEnvFile(envPath);
-const env = { ...process.env, ...providerEnv, NODE_ENV: "test" };
-if (!env.DATABASE_URL || !env.CLERK_SECRET_KEY || !env.F13_02_CLERK_OPERATOR_USER_ID) {
-	console.error("F13-04 requires the isolated database, Clerk secret, and seeded Operator ID.");
+const fileEnv = existsSync(envPath) ? readEnvFile(envPath) : {};
+const env = { ...fileEnv, ...process.env, NODE_ENV: "test" };
+if (!env.DATABASE_URL) {
+	console.error("F13-04 requires DATABASE_URL for the isolated test database.");
 	process.exit(2);
 }
 
@@ -65,12 +61,37 @@ if (targetUrl) {
 	}
 }
 
+
+if (!targetUrl) {
+	console.error(
+		"F13-04 needs the URL of a running app that uses the isolated database, e.g. node scripts/run-f13-04-e2e.mjs http://127.0.0.1:3000",
+	);
+	process.exit(2);
+}
+try {
+	assertLoopbackUrl(env.DATABASE_URL, "DATABASE_URL");
+} catch (error) {
+	console.error(error.message);
+	process.exit(2);
+}
+const baseUrl = targetUrl.replace(/\/$/, "");
+
 const fixtureTag = randomUUID();
 const sql = createSql(env.DATABASE_URL);
-const clerkClient = createClerkClient({ secretKey: env.CLERK_SECRET_KEY });
-const session = await clerkClient.sessions.createSession({
-	userId: env.F13_02_CLERK_OPERATOR_USER_ID,
-});
+const [operator] = await sql`
+	SELECT u.id, u.email
+	FROM users u
+	INNER JOIN user_accesses ua ON ua.user_id = u.id
+	WHERE ua.access_type = 'operator_satker'
+		AND ua.active = true
+		AND ua.status = 'active'
+	ORDER BY ua.created_at
+	LIMIT 1
+`;
+if (!operator) {
+	console.error("No active Operator fixture found in the isolated test database.");
+	process.exit(2);
+}
 
 async function cleanupFixture() {
 	for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -91,14 +112,14 @@ async function seedHistoryFixture() {
 		SELECT u.id AS user_id, ua.org_id
 		FROM users u
 		INNER JOIN user_accesses ua ON ua.user_id = u.id
-		WHERE u.clerk_user_id = ${env.F13_02_CLERK_OPERATOR_USER_ID}
+		WHERE u.id = ${operator.id}
 			AND ua.access_type = 'operator_satker'
 			AND ua.active = true
 			AND ua.status = 'active'
 		LIMIT 1
 	`;
 	if (!identity?.user_id || !identity.org_id) {
-		throw new Error("Configured Clerk user has no active Operator organization in the test database.");
+		throw new Error("Operator fixture has no active organization in the test database.");
 	}
 
 	const [fiscalYear] = await sql`
@@ -179,18 +200,20 @@ let resultStatus = 1;
 try {
 	await cleanupFixture();
 	await seedHistoryFixture();
-	if (targetUrl) await waitForHttp(`${targetUrl.replace(/\/$/, "")}/`);
-
-	const token = await clerkClient.sessions.getToken(session.id, undefined, 3600);
+	await waitForHttp(`${baseUrl}/api/auth/ok`);
+	await sql`DELETE FROM auth_rate_limits`;
+	const sessionCookie = await createFixtureSession({
+		baseUrl,
+		email: operator.email,
+	});
 	const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 	const childEnv = {
 		...env,
 		F13_04_E2E: "1",
 		F13_04_E2E_TAG: fixtureTag,
-		F13_04_CLERK_SESSION_TOKEN: token.jwt,
+		F13_04_SESSION_COOKIE: sessionCookie,
 	};
-	if (targetUrl) childEnv.F13_04_HTTP_URL = targetUrl.replace(/\/$/, "");
-	else delete childEnv.F13_04_HTTP_URL;
+	childEnv.F13_04_HTTP_URL = baseUrl;
 
 	const result = spawnSync(
 		npmCommand,
@@ -212,11 +235,6 @@ try {
 	console.error(`F13-04 E2E runner failed: ${error instanceof Error ? error.message : "unknown error"}`);
 } finally {
 	await cleanupFixture();
-	try {
-		await clerkClient.sessions.revokeSession(session.id);
-	} catch {
-		// Best effort; never print credentials or tokens.
-	}
 }
 
 process.exit(resultStatus);

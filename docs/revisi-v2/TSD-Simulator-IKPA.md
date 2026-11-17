@@ -28,6 +28,13 @@
 6. **Verifikasi ulang:** bukti F13-02 sampai F13-08 diperoleh pada stack lama dan wajib dihijaukan ulang pada stack baru (MIG-07) sebelum F13-13.
 7. **OTP email menggantikan "MFA opsional":** kode OTP dikirim ke email saat mendaftar, saat reset kata sandi, dan saat login dari perangkat yang belum dikenal. Kode 6 digit, berlaku sekitar 10 menit, sekali pakai, disimpan ter-hash, dengan batas percobaan dan kirim ulang; tidak masuk log atau response. Tidak ada TOTP atau SMS. MIG-05 dikerjakan bersama MIG-03.
 8. **Status MIG-02 (2026-11-16):** runtime hosting sudah berjalan sebagai Nitro `node-server` dalam container (`Dockerfile`, `docker-compose.yml`, `Caddyfile` di root repo) dengan PostgreSQL 16 UTF8 dan reverse proxy Caddy; batas body di proxy 15 MB, batas berkas import 10 MB tetap di aplikasi. Bagian arsitektur, keamanan, dan langkah deployment yang masih menyebut Vercel diperbarui saat deployment VPS dikerjakan (F13-09).
+9. **Status MIG-03 dan MIG-05 (2026-11-17):** autentikasi berjalan pada Better Auth self-hosted dan email pada SMTP; bagian Auth, middleware, webhook, dan email yang masih menyebut Clerk/Resend dibaca sesuai butir ini.
+   - **Sesi:** cookie `HttpOnly`, `SameSite=Lax` (dan `Secure` saat `APP_URL` memakai HTTPS), berlaku 7 hari; server membaca sesi per request lewat `getServerAuthSession()` dan otorisasi tetap lewat Access Resolver (ADR-007). Tidak ada middleware request global dan tidak ada webhook identity.
+   - **Endpoint:** `/api/auth/*` hanya membuka daftar, masuk, keluar, pembacaan sesi, verifikasi email dengan OTP, reset kata sandi dengan OTP, dan OTP perangkat baru. Login tanpa kata sandi, TOTP, backup code, penonaktifan langkah kedua, serta ubah email/kata sandi/profil mandiri ditutup.
+   - **OTP:** 6 digit, berlaku 10 menit, sekali pakai, disimpan ter-hash, maksimal 5 percobaan salah per kode, dan maksimal 5 pengiriman per 15 menit per alamat email; batas per IP disimpan di database. Kata sandi minimal 10 karakter, di-hash dengan scrypt.
+   - **Environment:** `BETTER_AUTH_SECRET` (minimal 32 karakter), `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `NOTIFICATION_SENDER_EMAIL`. `CLERK_*`, `VITE_CLERK_PUBLISHABLE_KEY`, dan `RESEND_API_KEY` tidak dibaca lagi.
+   - **Email:** OTP dan undangan dikirim langsung lewat SMTP; reminder tetap lewat tabel delivery dengan klaim eksklusif per baris (SMTP tidak memiliki idempotency key). Pengembangan dan test memakai Mailpit (`docker compose --profile dev up -d mailpit`).
+   - **Skema:** lihat Addendum MIG-03 pada ERD.
 
 ## Addendum Revisi v2 — 2026-09-09
 

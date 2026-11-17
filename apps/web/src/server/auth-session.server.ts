@@ -1,63 +1,35 @@
-import { auth, clerkClient } from "@clerk/tanstack-react-start/server";
 import { getCookie, getRequest } from "@tanstack/react-start/server";
+import { getAuth } from "./auth.server";
 import {
 	type AuthSession,
 	createUnauthenticatedAuthSession,
-	getAuthContextFromRequest,
 } from "./auth-session";
 
 export const ACTIVE_ORGANIZATION_COOKIE = "ikpa_active_org";
 
 /**
- * Returns the verified identity for the current request.
- * Clerk is authoritative whenever its server key is configured. The local
- * cookie parser is intentionally restricted to non-production demo mode.
+ * Returns the verified identity for the current request from the Better Auth
+ * session cookie. Without a configured database there is no way to verify a
+ * session, so the request is treated as unauthenticated (fail closed).
  */
 export async function getServerAuthSession(): Promise<AuthSession> {
-	if (process.env.CLERK_SECRET_KEY) {
-		const { userId } = await auth();
-		if (!userId) {
-			return createUnauthenticatedAuthSession();
-		}
-
-		return {
-			userId: null,
-			clerkUserId: userId,
-			email: null,
-			name: null,
-			isAuthenticated: true,
-		};
-	}
-
-	if (process.env.NODE_ENV === "production") {
+	if (!process.env.DIRECT_URL && !process.env.DATABASE_URL) {
 		return createUnauthenticatedAuthSession();
 	}
 
-	return getAuthContextFromRequest(getRequest());
+	const session = await getAuth().api.getSession({
+		headers: getRequest().headers,
+	});
+	if (!session) return createUnauthenticatedAuthSession();
+
+	return {
+		userId: session.user.id,
+		email: session.user.email,
+		name: session.user.name,
+		isAuthenticated: true,
+	};
 }
 
 export function getRequestedOrganizationIdFromRequest(): string | undefined {
 	return getCookie(ACTIVE_ORGANIZATION_COOKIE);
-}
-
-/**
- * Loads verified Clerk profile data only when a real user is not yet
- * provisioned internally. This keeps normal access checks read-only while
- * allowing the existing sync service to provision a newly authenticated user.
- */
-export async function getClerkIdentity(clerkUserId: string) {
-	const user = await clerkClient().users.getUser(clerkUserId);
-	const email =
-		user.primaryEmailAddress?.emailAddress ??
-		user.emailAddresses[0]?.emailAddress;
-
-	if (!email) {
-		throw new Error("Authenticated Clerk user has no verified email address");
-	}
-
-	return {
-		clerkUserId,
-		email,
-		name: user.fullName,
-	};
 }

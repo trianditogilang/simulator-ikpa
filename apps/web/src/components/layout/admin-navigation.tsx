@@ -10,7 +10,6 @@ import {
 	Scale,
 	TriangleAlert,
 } from "lucide-react";
-import { useUser } from "@clerk/tanstack-react-start";
 import { Dialog } from "radix-ui";
 import type { ComponentProps } from "react";
 import { useEffect, useState } from "react";
@@ -161,63 +160,37 @@ function SectionLabel({ children }: { children: string }) {
 }
 
 type AdminNavigationProfile = {
-	clerkName?: string | null;
-	clerkEmail?: string | null;
+	profileName?: string | null;
+	profileEmail?: string | null;
 };
 
 export function AdminNavigation(props: AdminNavigationProps) {
-	if (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
-		return <ClerkAdminNavigation {...props} />;
-	}
-	return <AdminNavigationContent {...props} />;
-}
-
-function ClerkAdminNavigation(props: AdminNavigationProps) {
-	const { user, isLoaded } = useUser();
-	const [dbAdminName, setDbAdminName] = useState<string | null>(null);
+	const [profile, setProfile] = useState<AdminNavigationProfile>({});
 
 	useEffect(() => {
-		if (isLoaded && user && !props.adminName) {
-			getCurrentAdminProfileFn()
-				.then((profile) => {
-					if (profile?.name) setDbAdminName(profile.name);
-				})
-				.catch(() => {});
-		}
-	}, [isLoaded, user, props.adminName]);
+		getCurrentAdminProfileFn()
+			.then((user) => {
+				if (user) setProfile({ profileName: user.name, profileEmail: user.email });
+			})
+			.catch(() => {});
+	}, []);
 
-	const metadataName =
-		(user?.publicMetadata?.registeredName as string | null) ?? null;
-	const clerkName =
-		props.adminName ||
-		dbAdminName ||
-		metadataName ||
-		(isLoaded && user
-			? ((user.fullName as string | null) ||
-					(user.firstName as string | null) ||
-					(user.primaryEmailAddress?.emailAddress as string | null) ||
-					null)
-			: null);
-	const clerkEmail =
-		isLoaded && user
-				? ((user.primaryEmailAddress?.emailAddress as string | null) ?? null)
-				: null;
-	return <AdminNavigationContent {...props} clerkName={clerkName} clerkEmail={clerkEmail} />;
+	return <AdminNavigationContent {...props} {...profile} />;
 }
 
 function AdminNavigationContent({
 	currentPath,
 	className,
-	clerkName = null,
-	clerkEmail = null,
+	profileName = null,
+	profileEmail = null,
 	...props
 }: AdminNavigationProps & AdminNavigationProfile) {
 	const [isMoreOpen, setIsMoreOpen] = useState(false);
 	const moreIsActive = moreItems.some((item) =>
 		isAdminRouteActive(currentPath, item.href),
 	);
-	const displayName = props.adminName || clerkName || "Admin KPPN Malang";
-	const displayEmail = clerkEmail || "admin.kppn@kemenkeu.go.id";
+	const displayName = props.adminName || profileName || "Admin KPPN Malang";
+	const displayEmail = profileEmail || "admin.kppn@kemenkeu.go.id";
 	const displayInitial = displayName.charAt(0).toUpperCase();
 
 	return (

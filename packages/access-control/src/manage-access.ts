@@ -1,7 +1,11 @@
 import type { DbClient } from "@simulator-ikpa/db";
-import { auditLogs, userAccesses, users } from "@simulator-ikpa/db/schema";
+import {
+	auditLogs,
+	authVerifications,
+	userAccesses,
+	users,
+} from "@simulator-ikpa/db/schema";
 import { and, count, eq, isNotNull, ne } from "drizzle-orm";
-import { UserSyncConflictError } from "./sync-user";
 
 export class LastAdminRevocationError extends Error {
 	public readonly statusCode = 400;
@@ -39,15 +43,6 @@ export class SelfDeleteError extends Error {
 	}
 }
 
-export class EmailLockedError extends Error {
-	public readonly statusCode = 400;
-	public readonly code = "EMAIL_LOCKED";
-	constructor(message = "Email terkunci karena akun sudah terklaim Clerk. Hanya akun manual_* yang dapat diubah emailnya.") {
-		super(message);
-		this.name = "EmailLockedError";
-	}
-}
-
 export interface GrantOperatorAccessInput {
 	actorUserId: string;
 	targetUserId: string;
@@ -79,20 +74,6 @@ export interface HardDeleteUserInput {
 	actorUserId: string;
 	targetUserId: string;
 	requestId?: string | null;
-	/**
-	 * Runs after all local deletion guards pass and immediately before the
-	 * users row is deleted. The web layer uses this hook to remove the
-	 * corresponding Clerk account without coupling this package to Clerk.
-	 */
-	beforeDelete?: (targetUser: typeof users.$inferSelect) => Promise<void>;
-}
-
-export interface UpdateUserProfileInput {
-	actorUserId: string;
-	targetUserId: string;
-	name?: string | null;
-	email?: string | null;
-	requestId?: string | null;
 }
 
 export interface CreatePendingAccessInput {
@@ -105,9 +86,8 @@ export interface CreatePendingAccessInput {
 }
 
 export interface ClaimPendingAccessInput {
-	clerkUserId: string;
-	email: string;
-	name?: string | null;
+	/** users.id of the authenticated session user. */
+	userId: string;
 	requestId?: string | null;
 }
 
@@ -201,41 +181,11 @@ export async function hardDeleteUser(db: DbClient, input: HardDeleteUserInput) {
 		if (Number(cntRes?.total ?? 0) <= 1) throw new LastAdminRevocationError("Tidak dapat menghapus admin terakhir pada scope KPPN.");
 	}
 	return await runWithFallback(db, async (tx) => {
-		if (input.beforeDelete) await input.beforeDelete(targetUser);
+		// Trusted-device and pending-OTP records reference the user by value, not FK.
+		await tx.delete(authVerifications).where(eq(authVerifications.value, input.targetUserId));
 		const [deleted] = await tx.delete(users).where(eq(users.id, input.targetUserId)).returning();
 		return deleted ?? targetUser;
 	});
-}
-
-export async function updateUserProfile(db: DbClient, input: UpdateUserProfileInput) {
-	const [targetUser] = await db.select().from(users).where(eq(users.id, input.targetUserId)).limit(1);
-	if (!targetUser) throw new Error("User tidak ditemukan.");
-	const updates: Record<string, unknown> = {};
-	let emailChanged = false;
-	let normalizedEmail: string | null = null;
-	if (input.email !== undefined && input.email !== null) {
-		normalizedEmail = normalizeEmail(input.email);
-		if (normalizedEmail !== targetUser.email) {
-			const isManual = targetUser.clerkUserId.startsWith("manual_");
-			if (!isManual) throw new EmailLockedError();
-			const [existing] = await db.select().from(users).where(eq(users.email, normalizedEmail)).limit(1);
-			if (existing && existing.id !== targetUser.id) throw new Error("Email sudah digunakan pengguna lain.");
-			updates.email = normalizedEmail;
-			emailChanged = true;
-		}
-	}
-	if (input.name !== undefined && input.name !== null) {
-		const trimmed = input.name.trim();
-		if (trimmed && trimmed !== targetUser.name) updates.name = trimmed;
-	}
-	if (Object.keys(updates).length === 0) return targetUser;
-	(updates as Record<string, Date>).updatedAt = new Date();
-	const [updated] = await db.update(users).set(updates as unknown as Parameters<typeof db.update>[0] extends never ? never : Record<string, unknown>).where(eq(users.id, input.targetUserId)).returning();
-	await db.insert(auditLogs).values({ actorId: input.actorUserId, actorAccessType: "admin_kppn", action: "update_user_profile", entityType: "users", entityId: input.targetUserId, orgId: null, beforeJson: targetUser as unknown as Record<string, unknown>, afterJson: updated as unknown as Record<string, unknown>, requestId: input.requestId ?? null });
-	if (emailChanged) {
-		// normalize audit extra?
-	}
-	return updated;
 }
 
 export async function createPendingAccess(db: DbClient, input: CreatePendingAccessInput) {
@@ -299,74 +249,28 @@ export async function createPendingAccess(db: DbClient, input: CreatePendingAcce
 	});
 }
 
+/**
+ * Activates invitations (pending accesses) addressed to the session user's
+ * email. Ownership of the mailbox is proven by the email OTP, so an unverified
+ * account never claims anything.
+ */
 export async function claimPendingAccess(db: DbClient, input: ClaimPendingAccessInput) {
-	const normalizedEmail = normalizeEmail(input.email);
+	const [user] = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
+	if (!user?.emailVerified) return null;
 
-	// Find all pending accesses for this email
 	const pendingAccesses = await db
 		.select()
 		.from(userAccesses)
 		.where(
 			and(
-				eq(userAccesses.invitedEmail, normalizedEmail),
+				eq(userAccesses.invitedEmail, normalizeEmail(user.email)),
 				eq(userAccesses.status, "pending"),
 			),
 		);
 
 	if (pendingAccesses.length === 0) return null;
 
-	// Create or claim user
-	let user: typeof users.$inferSelect | null = null;
-
-	const [existingByClerkId] = await db
-		.select()
-		.from(users)
-		.where(eq(users.clerkUserId, input.clerkUserId))
-		.limit(1);
-
-	if (existingByClerkId) {
-		const [updated] = await db
-			.update(users)
-			.set({ email: normalizedEmail, name: input.name?.trim() || existingByClerkId.name, updatedAt: new Date() })
-			.where(eq(users.id, existingByClerkId.id))
-			.returning();
-		user = updated;
-	} else {
-		const [existingByEmail] = await db
-			.select()
-			.from(users)
-			.where(eq(users.email, normalizedEmail))
-			.limit(1);
-
-		if (existingByEmail) {
-			if (
-				existingByEmail.clerkUserId &&
-				!existingByEmail.clerkUserId.startsWith("manual_") &&
-				existingByEmail.clerkUserId !== input.clerkUserId
-			) {
-				throw new UserSyncConflictError(normalizedEmail, existingByEmail.clerkUserId, input.clerkUserId);
-			}
-			const [claimed] = await db
-				.update(users)
-				.set({ clerkUserId: input.clerkUserId, name: input.name?.trim() || existingByEmail.name, updatedAt: new Date() })
-				.where(eq(users.id, existingByEmail.id))
-				.returning();
-			user = claimed;
-		} else {
-			const [created] = await db
-				.insert(users)
-				.values({
-					clerkUserId: input.clerkUserId,
-					email: normalizedEmail,
-					name: input.name?.trim() || normalizedEmail.split("@")[0] || "User",
-				})
-				.returning();
-			user = created;
-		}
-	}
-
 	// Link all pending accesses to the user and activate them
-	if (!user) throw new Error("Gagal memproses user.");
 	const linkedUser = user;
 	let claimedCount = 0;
 	for (const pending of pendingAccesses) {

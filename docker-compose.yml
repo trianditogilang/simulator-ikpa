@@ -1,11 +1,12 @@
 # Simulator IKPA — aplikasi + PostgreSQL + reverse proxy (ADR-008, MIG-02).
 #
-#   POSTGRES_PASSWORD=... docker compose up -d --build
+#   POSTGRES_PASSWORD=... BETTER_AUTH_SECRET=... SMTP_HOST=... docker compose up -d --build
+#   docker compose --profile dev up -d mailpit  # penangkap email lokal (SMTP_HOST=mailpit)
 #   docker compose run --rm migrate            # terapkan migration Drizzle
 #
 # DATABASE_URL sengaja dirakit di sini dan TIDAK dibaca dari .env, supaya
 # container tidak pernah tersambung ke database lain (mis. Neon lama).
-# Variabel auth/scheduler/email ditambahkan oleh MIG-03, MIG-04, dan MIG-05.
+# Auth (MIG-03) dan SMTP (MIG-05) diteruskan di bawah; scheduler menyusul di MIG-04.
 
 x-database-url: &database-url postgresql://ikpa:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD wajib diisi}@db:5432/simulator_ikpa
 
@@ -37,6 +38,14 @@ services:
       DATABASE_URL: *database-url
       DIRECT_URL: *database-url
       APP_URL: ${APP_URL:-http://localhost}
+      # Kunci penanda tangan sesi/cookie Better Auth, minimal 32 karakter acak.
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET wajib diisi}
+      # OTP dan undangan bergantung pada SMTP; lokal: SMTP_HOST=mailpit, SMTP_PORT=1025.
+      SMTP_HOST: ${SMTP_HOST:?SMTP_HOST wajib diisi}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      NOTIFICATION_SENDER_EMAIL: ${NOTIFICATION_SENDER_EMAIL:?NOTIFICATION_SENDER_EMAIL wajib diisi}
     depends_on:
       db:
         condition: service_healthy
@@ -57,6 +66,15 @@ services:
       - caddy_config:/config
     depends_on:
       - app
+
+  # Penangkap email untuk pengembangan dan test. Tidak pernah dijalankan di VPS:
+  # hanya aktif dengan `--profile dev`, dan port-nya hanya di loopback host.
+  mailpit:
+    profiles: ["dev"]
+    image: axllent/mailpit:v1.21
+    ports:
+      - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
 
   migrate:
     profiles: ["tools"]

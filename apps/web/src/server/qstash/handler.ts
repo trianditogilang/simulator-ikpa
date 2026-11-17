@@ -1,8 +1,8 @@
-import { createHash } from "node:crypto";
 import { Receiver } from "@upstash/qstash";
 import type { DbClient } from "@simulator-ikpa/db";
 import { notificationDeliveries } from "@simulator-ikpa/db/schema";
 import { and, eq, lte } from "drizzle-orm";
+import { sendMail } from "../mailer.server";
 
 type DeliveryErrorCode = string;
 
@@ -122,15 +122,14 @@ function newRequestId(): string {
 	);
 }
 
-type ProviderConfig = {
-	apiKey: string;
-	from: string;
-};
-
-function getProviderConfig(): ProviderConfig | null {
-	const apiKey = process.env.RESEND_API_KEY?.trim();
+/**
+ * True when SMTP delivery is configured. Production fails closed without it;
+ * elsewhere an unconfigured provider keeps the existing no-send behaviour.
+ */
+function isDeliveryConfigured(): boolean {
+	const host = process.env.SMTP_HOST?.trim();
 	const from = process.env.NOTIFICATION_SENDER_EMAIL?.trim();
-	if (apiKey && from) return { apiKey, from };
+	if (host && from) return true;
 	if (process.env.NODE_ENV === "production") {
 		throw new DeliveryError(
 			"DELIVERY_PROVIDER_UNAVAILABLE",
@@ -138,7 +137,7 @@ function getProviderConfig(): ProviderConfig | null {
 			503,
 		);
 	}
-	return null;
+	return false;
 }
 
 function asPayload(value: unknown): Record<string, unknown> {
@@ -189,15 +188,12 @@ type DeliveryRow = {
 };
 
 /**
- * Sends one notification through Resend. Provider response bodies are never
- * included in thrown errors so an upstream route cannot leak provider details.
+ * Sends one notification over SMTP. SMTP errors are reduced to a fixed code so
+ * neither the server reply, the body, nor the recipient list can leak through
+ * an upstream route or the delivery row.
  */
-export async function sendNotificationWithResend(
-	provider: ProviderConfig,
-	row: Pick<
-		DeliveryRow,
-		"entityType" | "scheduledFor" | "idempotencyKey" | "payloadJson"
-	>,
+export async function sendNotificationEmail(
+	row: Pick<DeliveryRow, "entityType" | "scheduledFor" | "payloadJson">,
 ): Promise<string> {
 	const payload = asPayload(row.payloadJson);
 	const recipients = getRecipients(payload);
@@ -220,69 +216,16 @@ export async function sendNotificationWithResend(
 			new Date(row.scheduledFor).toISOString() +
 			".";
 	const html = asString(payload.html) ?? "<p>" + escapeHtml(text) + "</p>";
-	const idempotencyKey =
-		row.idempotencyKey.length <= 256
-			? row.idempotencyKey
-			: createHash("sha256").update(row.idempotencyKey).digest("hex");
 
-	let response: Response;
 	try {
-		response = await fetch("https://api.resend.com/emails", {
-			method: "POST",
-			headers: {
-				Authorization: "Bearer " + provider.apiKey,
-				"Content-Type": "application/json",
-				"Idempotency-Key": idempotencyKey,
-			},
-			body: JSON.stringify({
-				from: provider.from,
-				to: recipients,
-				subject,
-				html,
-				text,
-			}),
-		});
+		return await sendMail({ to: recipients, subject, text, html });
 	} catch {
 		throw new DeliveryError(
-			"RESEND_HTTP_503",
-			"Notification provider request failed.",
-			502,
-		);
-	}
-
-	if (!response.ok) {
-		throw new DeliveryError(
-			"RESEND_HTTP_" + response.status,
+			"SMTP_SEND_FAILED",
 			"Notification provider rejected the message.",
 			502,
 		);
 	}
-
-	let responseJson: unknown;
-	try {
-		responseJson = await response.json();
-	} catch {
-		throw new DeliveryError(
-			"RESEND_INVALID_RESPONSE",
-			"Notification provider returned an invalid response.",
-			502,
-		);
-	}
-	const providerId =
-		responseJson &&
-		typeof responseJson === "object" &&
-		"id" in responseJson &&
-		typeof responseJson.id === "string"
-			? responseJson.id
-			: null;
-	if (!providerId) {
-		throw new DeliveryError(
-			"RESEND_INVALID_RESPONSE",
-			"Notification provider response is missing an id.",
-			502,
-		);
-	}
-	return providerId;
 }
 
 function safeDeliveryError(error: unknown): string {
@@ -313,11 +256,12 @@ async function processDueDeliveries(
 		)
 		.limit(Math.max(1, Math.min(batchLimit, 100)))) as DeliveryRow[];
 
-	const provider = getProviderConfig();
+	const configured = isDeliveryConfigured();
 	let sent = 0;
 	let failed = 0;
 	for (const row of rows) {
-		// Resend's idempotency key makes concurrent QStash replays safe.
+		// SMTP has no idempotency key, so the claim itself must be exclusive: only
+		// the run that still sees the attempt count it read may send this row.
 		const [claimed] = await db
 			.update(notificationDeliveries)
 			.set({
@@ -328,6 +272,7 @@ async function processDueDeliveries(
 				and(
 					eq(notificationDeliveries.id, row.id),
 					eq(notificationDeliveries.status, "scheduled"),
+					eq(notificationDeliveries.attemptCount, row.attemptCount),
 				),
 			)
 			.returning({
@@ -336,8 +281,8 @@ async function processDueDeliveries(
 		if (!claimed) continue;
 
 		try {
-			if (provider) {
-				await sendNotificationWithResend(provider, row);
+			if (configured) {
+				await sendNotificationEmail(row);
 			}
 			await db
 				.update(notificationDeliveries)
@@ -378,7 +323,7 @@ export async function handleQStashDaily(
 		);
 	}
 	const requestId = headers.get("x-request-id") ?? newRequestId();
-	getProviderConfig();
+	isDeliveryConfigured();
 	const result = await processDueDeliveries(db, 50);
 	return { requestId, processed: result.sent + result.failed };
 }
@@ -397,7 +342,7 @@ export async function handleQStashSend(
 		);
 	}
 	const requestId = headers.get("x-request-id") ?? newRequestId();
-	getProviderConfig();
+	isDeliveryConfigured();
 	const result = await processDueDeliveries(db, opts?.batchLimit ?? 20);
 	return { requestId, ...result };
 }

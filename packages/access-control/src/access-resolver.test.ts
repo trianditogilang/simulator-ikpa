@@ -7,9 +7,9 @@ const mockOrgId2 = "33333333-3333-4333-8333-333333333333";
 const mockScopeId1 = "44444444-4444-4444-8444-444444444444";
 
 describe("resolveUserAccess", () => {
-	it("returns unauthenticated when clerkUserId is null", async () => {
+	it("returns unauthenticated when userId is null", async () => {
 		const mockDb = {} as unknown as Parameters<typeof resolveUserAccess>[0];
-		const result = await resolveUserAccess(mockDb, { clerkUserId: null });
+		const result = await resolveUserAccess(mockDb, { userId: null });
 
 		expect(result).toEqual({ status: "unauthenticated" });
 	});
@@ -26,7 +26,7 @@ describe("resolveUserAccess", () => {
 		} as unknown as Parameters<typeof resolveUserAccess>[0];
 
 		const result = await resolveUserAccess(mockDb, {
-			clerkUserId: "unknown_clerk",
+			userId: "unknown_user",
 		});
 		expect(result).toEqual({ status: "unauthenticated" });
 	});
@@ -48,7 +48,7 @@ describe("resolveUserAccess", () => {
 		} as unknown as Parameters<typeof resolveUserAccess>[0];
 
 		const result = await resolveUserAccess(mockDb, {
-			clerkUserId: "clerk_no_access",
+			userId: "user_no_access",
 		});
 		expect(result).toEqual({
 			status: "unmapped",
@@ -96,7 +96,7 @@ describe("resolveUserAccess", () => {
 		} as unknown as Parameters<typeof resolveUserAccess>[0];
 
 		const result = await resolveUserAccess(mockDb, {
-			clerkUserId: "clerk_mixed",
+			userId: "user_mixed",
 		});
 		expect(result).toEqual({
 			status: "invalid_conflict",
@@ -135,7 +135,7 @@ describe("resolveUserAccess", () => {
 		} as unknown as Parameters<typeof resolveUserAccess>[0];
 
 		const result = await resolveUserAccess(mockDb, {
-			clerkUserId: "clerk_admin",
+			userId: "user_admin",
 		});
 		expect(result).toEqual({
 			status: "admin",
@@ -175,7 +175,7 @@ describe("resolveUserAccess", () => {
 		} as unknown as Parameters<typeof resolveUserAccess>[0];
 
 		const result = await resolveUserAccess(mockDb, {
-			clerkUserId: "clerk_operator",
+			userId: "user_operator",
 		});
 		expect(result).toEqual({
 			status: "operator_single_scope",
@@ -234,7 +234,7 @@ describe("resolveUserAccess", () => {
 
 		// Without requestedOrgId -> activeOrganizationId: null
 		const res1 = await resolveUserAccess(mockDb, {
-			clerkUserId: "clerk_multi",
+			userId: "user_multi",
 		});
 		expect(res1.status).toBe("operator_multiple_scopes");
 		if (res1.status === "operator_multiple_scopes") {
@@ -244,7 +244,7 @@ describe("resolveUserAccess", () => {
 
 		// With valid requestedOrgId -> activeOrganizationId: mockOrgId2
 		const res2 = await resolveUserAccess(mockDb, {
-			clerkUserId: "clerk_multi",
+			userId: "user_multi",
 			requestedOrgId: mockOrgId2,
 		});
 		expect(res2.status).toBe("operator_multiple_scopes");
@@ -254,7 +254,7 @@ describe("resolveUserAccess", () => {
 
 		// With unauthorized requestedOrgId -> activeOrganizationId: null
 		const res3 = await resolveUserAccess(mockDb, {
-			clerkUserId: "clerk_multi",
+			userId: "user_multi",
 			requestedOrgId: "99999999-9999-4999-8999-999999999999",
 		});
 		expect(res3.status).toBe("operator_multiple_scopes");

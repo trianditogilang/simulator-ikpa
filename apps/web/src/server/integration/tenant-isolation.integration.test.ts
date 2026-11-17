@@ -142,13 +142,13 @@ async function expectForbiddenWithoutLeakage(
 
 beforeAll(async () => {
 	const [operatorUser] = await db
-		.select({ id: users.id, clerkUserId: users.clerkUserId })
+		.select({ id: users.id })
 		.from(users)
 		.innerJoin(userAccesses, eq(userAccesses.userId, users.id))
 		.where(eq(userAccesses.accessType, "operator_satker"))
 		.limit(1);
 	const [adminUser] = await db
-		.select({ id: users.id, clerkUserId: users.clerkUserId })
+		.select({ id: users.id })
 		.from(users)
 		.innerJoin(userAccesses, eq(userAccesses.userId, users.id))
 		.where(eq(userAccesses.accessType, "admin_kppn"))
@@ -158,10 +158,10 @@ beforeAll(async () => {
 	}
 
 	const operatorAccess = await resolveUserAccess(db, {
-		clerkUserId: operatorUser.clerkUserId,
+		userId: operatorUser.id,
 	});
 	const adminAccess = await resolveUserAccess(db, {
-		clerkUserId: adminUser.clerkUserId,
+		userId: adminUser.id,
 	});
 	if (
 		(operatorAccess.status !== "operator_single_scope" &&

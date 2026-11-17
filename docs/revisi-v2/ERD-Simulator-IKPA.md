@@ -2,6 +2,27 @@
 
 > Dokumen ini adalah model data aktif Revisi v2. Baseline v1.0 dipertahankan di bagian bawah hanya untuk histori; bila ada konflik, kontrak aktif v2 berlaku.
 
+## Addendum MIG-03 — 2026-11-16 — Skema Identitas Better Auth
+
+> Addendum ini menetapkan bentuk final yang ditunda oleh butir 2 Addendum ADR-008 (disetujui pemilik 2026-11-16) dan berlaku bila bertentangan dengan bagian lain dokumen ini. Implementasi: migration `0007_better_auth_identity.sql`, `packages/db/src/schema/{identity,auth}.ts`.
+
+1. **`users` adalah tabel user Better Auth.** `users.id` (uuid) menjadi identitas kanonis request; tidak ada tabel user auth terpisah dan tidak ada sinkronisasi. Seluruh foreign key ke `users.id` dan seluruh tabel domain tidak berubah.
+2. **Perubahan kolom:** `users.clerk_user_id` dan `organizations.clerk_org_id` dihapus. `users` mendapat `email_verified boolean NOT NULL DEFAULT false`, `two_factor_enabled boolean NOT NULL DEFAULT true`, dan `image text NULL` (kolom inti library, tidak dipakai).
+3. **Tabel auth baru** (semua `id uuid` buatan database):
+
+   | Tabel | Isi | Relasi |
+   |---|---|---|
+   | `auth_sessions` | `token` unik, `expires_at`, `ip_address`, `user_agent` | `user_id → users` `ON DELETE CASCADE` |
+   | `auth_accounts` | `provider_id = 'credential'`, `password` (hash scrypt); kolom OAuth bawaan nullable dan tidak dipakai | `user_id → users` `ON DELETE CASCADE` |
+   | `auth_verifications` | `identifier`, `value`, `expires_at`: OTP ter-hash, tantangan login yang menunggu OTP, dan perangkat tepercaya (`trust-device-*`, `value` = id user) | tanpa FK |
+   | `auth_two_factors` | diwajibkan plugin; TOTP dimatikan sehingga tidak berisi baris | `user_id → users` `ON DELETE CASCADE` |
+   | `auth_rate_limits` | `key` unik, `count`, `last_request`: batas per IP dan kuota kirim OTP per email | tanpa FK |
+
+4. **Perangkat tepercaya** tidak memiliki tabel sendiri: cookie bertanda tangan dipasangkan dengan baris `trust-device-*` di `auth_verifications`, berlaku 30 hari dan diperpanjang pada setiap login dari perangkat itu. Baris tersebut dan seluruh sesi user dihapus saat kata sandi di-reset, saat Admin mengubah email user, dan saat akun dihapus.
+5. **Undangan** tidak memiliki tabel atau token sendiri: undangan adalah baris `user_accesses` berstatus `pending` dengan `invited_email`. Baris itu dikaitkan ke `users.id` dan diaktifkan pada request pertama setelah email user terverifikasi OTP; akun yang emailnya belum terverifikasi tidak pernah mengklaim.
+6. **Hard delete** adalah satu transaksi lokal: baris `auth_verifications` milik user dihapus, lalu `DELETE FROM users` meng-cascade sesi, akun, mapping, dan data milik user sesuai butir 4 Addendum AUTH-01. Langkah "hapus akun Clerk" dan webhook `user.deleted` tidak ada lagi.
+7. **Data lama:** tidak ada migrasi data identitas (hanya data uji). Baris `users` hasil seed tidak memiliki kata sandi; kata sandi dibuat lewat alur lupa kata sandi (OTP email).
+
 ## Addendum ADR-008 — 2026-11-15 — Residensi Data dan Identitas Self-Hosted
 
 > Addendum ini adalah yang terbaru dan berlaku bila bertentangan dengan bagian lain dokumen ini. Rincian: [ADR-008](../adr/ADR-008-data-residency-self-hosted-stack.md).

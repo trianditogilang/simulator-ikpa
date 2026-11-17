@@ -16,7 +16,6 @@ import { Route as OperatorRouteRouteImport } from './routes/operator/route'
 import { Route as SelectOrganizationRouteImport } from './routes/select-organization'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
-import { Route as SsoCallbackRouteImport } from './routes/sso-callback'
 import { Route as AdminKppnAccessRouteImport } from './routes/admin-kppn/access'
 import { Route as AdminKppnDashboardRouteImport } from './routes/admin-kppn/dashboard'
 import { Route as AdminKppnReportsRouteImport } from './routes/admin-kppn/reports'
@@ -39,9 +38,9 @@ import { Route as AdminKppnPolicyFairnessRouteImport } from './routes/admin-kppn
 import { Route as AdminKppnPolicyHistoryRouteImport } from './routes/admin-kppn/policy/history'
 import { Route as AdminKppnPolicyRemindersRouteImport } from './routes/admin-kppn/policy/reminders'
 import { Route as AdminKppnPolicyWorkdaysRouteImport } from './routes/admin-kppn/policy/workdays'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiQstashDailyRouteImport } from './routes/api/qstash/daily'
 import { Route as ApiQstashSendRouteImport } from './routes/api/qstash/send'
-import { Route as ApiWebhooksClerkRouteImport } from './routes/api/webhooks/clerk'
 import { Route as OperatorDataBudgetRevisionsRouteImport } from './routes/operator/data/budget-revisions'
 import { Route as OperatorDataContractsInvoicesRouteImport } from './routes/operator/data/contracts-invoices'
 import { Route as OperatorDataOutputAchievementRouteImport } from './routes/operator/data/output-achievement'
@@ -84,11 +83,6 @@ const SignInRoute = SignInRouteImport.update({
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
   path: '/sign-up',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SsoCallbackRoute = SsoCallbackRouteImport.update({
-  id: '/sso-callback',
-  path: '/sso-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminKppnAccessRoute = AdminKppnAccessRouteImport.update({
@@ -205,6 +199,11 @@ const AdminKppnPolicyWorkdaysRoute = AdminKppnPolicyWorkdaysRouteImport.update({
   path: '/policy/workdays',
   getParentRoute: () => AdminKppnRouteRoute,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiQstashDailyRoute = ApiQstashDailyRouteImport.update({
   id: '/api/qstash/daily',
   path: '/api/qstash/daily',
@@ -213,11 +212,6 @@ const ApiQstashDailyRoute = ApiQstashDailyRouteImport.update({
 const ApiQstashSendRoute = ApiQstashSendRouteImport.update({
   id: '/api/qstash/send',
   path: '/api/qstash/send',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiWebhooksClerkRoute = ApiWebhooksClerkRouteImport.update({
-  id: '/api/webhooks/clerk',
-  path: '/api/webhooks/clerk',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OperatorDataBudgetRevisionsRoute =
@@ -276,7 +270,6 @@ export interface FileRoutesByFullPath {
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/sso-callback': typeof SsoCallbackRoute
   '/admin-kppn/access': typeof AdminKppnAccessRoute
   '/admin-kppn/dashboard': typeof AdminKppnDashboardRoute
   '/admin-kppn/reports': typeof AdminKppnReportsRoute
@@ -298,9 +291,9 @@ export interface FileRoutesByFullPath {
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
   '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
   '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/qstash/daily': typeof ApiQstashDailyRoute
   '/api/qstash/send': typeof ApiQstashSendRoute
-  '/api/webhooks/clerk': typeof ApiWebhooksClerkRoute
   '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
   '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
@@ -319,7 +312,6 @@ export interface FileRoutesByTo {
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/sso-callback': typeof SsoCallbackRoute
   '/admin-kppn/access': typeof AdminKppnAccessRoute
   '/admin-kppn/dashboard': typeof AdminKppnDashboardRoute
   '/admin-kppn/reports': typeof AdminKppnReportsRoute
@@ -341,9 +333,9 @@ export interface FileRoutesByTo {
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
   '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
   '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/qstash/daily': typeof ApiQstashDailyRoute
   '/api/qstash/send': typeof ApiQstashSendRoute
-  '/api/webhooks/clerk': typeof ApiWebhooksClerkRoute
   '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
   '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
@@ -363,7 +355,6 @@ export interface FileRoutesById {
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/sso-callback': typeof SsoCallbackRoute
   '/admin-kppn/access': typeof AdminKppnAccessRoute
   '/admin-kppn/dashboard': typeof AdminKppnDashboardRoute
   '/admin-kppn/reports': typeof AdminKppnReportsRoute
@@ -385,9 +376,9 @@ export interface FileRoutesById {
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
   '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
   '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/qstash/daily': typeof ApiQstashDailyRoute
   '/api/qstash/send': typeof ApiQstashSendRoute
-  '/api/webhooks/clerk': typeof ApiWebhooksClerkRoute
   '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
   '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
@@ -408,7 +399,6 @@ export interface FileRouteTypes {
     | '/select-organization'
     | '/sign-in'
     | '/sign-up'
-    | '/sso-callback'
     | '/admin-kppn/access'
     | '/admin-kppn/dashboard'
     | '/admin-kppn/reports'
@@ -430,9 +420,9 @@ export interface FileRouteTypes {
     | '/admin-kppn/policy/history'
     | '/admin-kppn/policy/reminders'
     | '/admin-kppn/policy/workdays'
+    | '/api/auth/$'
     | '/api/qstash/daily'
     | '/api/qstash/send'
-    | '/api/webhooks/clerk'
     | '/operator/data/budget-revisions'
     | '/operator/data/contracts-invoices'
     | '/operator/data/output-achievement'
@@ -451,7 +441,6 @@ export interface FileRouteTypes {
     | '/select-organization'
     | '/sign-in'
     | '/sign-up'
-    | '/sso-callback'
     | '/admin-kppn/access'
     | '/admin-kppn/dashboard'
     | '/admin-kppn/reports'
@@ -473,9 +462,9 @@ export interface FileRouteTypes {
     | '/admin-kppn/policy/history'
     | '/admin-kppn/policy/reminders'
     | '/admin-kppn/policy/workdays'
+    | '/api/auth/$'
     | '/api/qstash/daily'
     | '/api/qstash/send'
-    | '/api/webhooks/clerk'
     | '/operator/data/budget-revisions'
     | '/operator/data/contracts-invoices'
     | '/operator/data/output-achievement'
@@ -494,7 +483,6 @@ export interface FileRouteTypes {
     | '/select-organization'
     | '/sign-in'
     | '/sign-up'
-    | '/sso-callback'
     | '/admin-kppn/access'
     | '/admin-kppn/dashboard'
     | '/admin-kppn/reports'
@@ -516,9 +504,9 @@ export interface FileRouteTypes {
     | '/admin-kppn/policy/history'
     | '/admin-kppn/policy/reminders'
     | '/admin-kppn/policy/workdays'
+    | '/api/auth/$'
     | '/api/qstash/daily'
     | '/api/qstash/send'
-    | '/api/webhooks/clerk'
     | '/operator/data/budget-revisions'
     | '/operator/data/contracts-invoices'
     | '/operator/data/output-achievement'
@@ -538,10 +526,9 @@ export interface RootRouteChildren {
   SelectOrganizationRoute: typeof SelectOrganizationRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
-  SsoCallbackRoute: typeof SsoCallbackRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiQstashDailyRoute: typeof ApiQstashDailyRoute
   ApiQstashSendRoute: typeof ApiQstashSendRoute
-  ApiWebhooksClerkRoute: typeof ApiWebhooksClerkRoute
   ApiJobsImportProcessRoute: typeof ApiJobsImportProcessRoute
 }
 
@@ -594,13 +581,6 @@ declare module '@tanstack/react-router' {
       path: '/sign-up'
       fullPath: '/sign-up'
       preLoaderRoute: typeof SignUpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sso-callback': {
-      id: '/sso-callback'
-      path: '/sso-callback'
-      fullPath: '/sso-callback'
-      preLoaderRoute: typeof SsoCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-kppn/access': {
@@ -757,6 +737,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminKppnPolicyWorkdaysRouteImport
       parentRoute: typeof AdminKppnRouteRoute
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/qstash/daily': {
       id: '/api/qstash/daily'
       path: '/api/qstash/daily'
@@ -769,13 +756,6 @@ declare module '@tanstack/react-router' {
       path: '/api/qstash/send'
       fullPath: '/api/qstash/send'
       preLoaderRoute: typeof ApiQstashSendRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/webhooks/clerk': {
-      id: '/api/webhooks/clerk'
-      path: '/api/webhooks/clerk'
-      fullPath: '/api/webhooks/clerk'
-      preLoaderRoute: typeof ApiWebhooksClerkRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/operator/data/budget-revisions': {
@@ -923,10 +903,9 @@ const rootRouteChildren: RootRouteChildren = {
   SelectOrganizationRoute: SelectOrganizationRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
-  SsoCallbackRoute: SsoCallbackRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiQstashDailyRoute: ApiQstashDailyRoute,
   ApiQstashSendRoute: ApiQstashSendRoute,
-  ApiWebhooksClerkRoute: ApiWebhooksClerkRoute,
   ApiJobsImportProcessRoute: ApiJobsImportProcessRoute,
 }
 export const routeTree = rootRouteImport

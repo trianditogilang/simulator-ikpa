@@ -1,25 +1,21 @@
 import { test as base, expect, type Page } from "@playwright/test";
+import { addSessionCookie } from "./session-cookie";
 
 type AdminFixtures = {
 	adminPage: Page;
 };
 
-/**
- * Adds the short-lived Clerk Admin session to browser requests. The runner
- * owns session creation and revocation; no token is written to disk.
- */
+/** Admin KPPN session for F13-05; the runner owns session creation. */
 export const test = base.extend<AdminFixtures>({
-	adminPage: async ({ page }, use) => {
-		const sessionToken = process.env.F13_05_CLERK_SESSION_TOKEN;
-		if (!sessionToken) {
+	adminPage: async ({ page, baseURL }, use) => {
+		const sessionCookie = process.env.F13_05_SESSION_COOKIE;
+		if (!sessionCookie || !baseURL) {
 			throw new Error(
 				"F13-05 requires the authenticated runner; use node scripts/run-f13-05-e2e.mjs.",
 			);
 		}
 
-		await page.context().setExtraHTTPHeaders({
-			authorization: `Bearer ${sessionToken}`,
-		});
+		await addSessionCookie(page.context(), sessionCookie, baseURL);
 		await use(page);
 	},
 });

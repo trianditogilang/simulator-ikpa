@@ -19,20 +19,20 @@ import { and, eq, sql } from "drizzle-orm";
 
 const baseUrl = process.env.F13_02_HTTP_URL;
 const testDatabaseUrl = process.env.DATABASE_URL;
-const configuredOperatorClerkUserId = process.env.F13_02_CLERK_OPERATOR_USER_ID;
-const configuredAdminClerkUserId = process.env.F13_02_CLERK_ADMIN_USER_ID;
-const operatorSessionToken = process.env.F13_02_CLERK_SESSION_TOKEN;
-const adminSessionToken = process.env.F13_02_CLERK_ADMIN_SESSION_TOKEN;
+const configuredOperatorUserId = process.env.F13_02_OPERATOR_USER_ID;
+const configuredAdminUserId = process.env.F13_02_ADMIN_USER_ID;
+const operatorSessionToken = process.env.F13_02_SESSION_COOKIE;
+const adminSessionToken = process.env.F13_02_ADMIN_SESSION_COOKIE;
 if (
 	!baseUrl ||
 	!testDatabaseUrl ||
-	!configuredOperatorClerkUserId ||
-	!configuredAdminClerkUserId ||
+	!configuredOperatorUserId ||
+	!configuredAdminUserId ||
 	!operatorSessionToken ||
 	!adminSessionToken
 ) {
 	throw new Error(
-		"F13-02 Admin HTTP integration requires the isolated database and temporary Operator/Admin Clerk sessions.",
+		"F13-02 Admin HTTP integration requires the isolated database and temporary Operator/Admin sessions.",
 	);
 }
 
@@ -122,7 +122,7 @@ async function callServerFn(args: {
 	const headers = new Headers({
 		"x-tsr-serverFn": "true",
 		accept: "application/json",
-		authorization: `Bearer ${args.authToken ?? operatorSessionToken}`,
+		cookie: `${args.authToken ?? operatorSessionToken}`,
 	});
 	const init: RequestInit = { method: args.method, headers };
 	let url = `${baseUrl}/_serverFn/${encodeURIComponent(args.id)}`;
@@ -204,12 +204,12 @@ beforeAll(async () => {
 			and(
 				eq(userAccesses.accessType, "operator_satker"),
 				eq(userAccesses.active, true),
-				eq(users.clerkUserId, configuredOperatorClerkUserId),
+				eq(users.id, configuredOperatorUserId),
 			),
 		)
 		.limit(1);
 	if (!operator?.orgId) {
-		throw new Error("Configured Clerk operator is not mapped to an organization.");
+		throw new Error("Configured operator is not mapped to an organization.");
 	}
 	const [admin] = await db
 		.select({ id: users.id, scopeId: userAccesses.kppnScopeId })
@@ -219,12 +219,12 @@ beforeAll(async () => {
 			and(
 				eq(userAccesses.accessType, "admin_kppn"),
 				eq(userAccesses.active, true),
-				eq(users.clerkUserId, configuredAdminClerkUserId),
+				eq(users.id, configuredAdminUserId),
 			),
 		)
 		.limit(1);
 	if (!admin?.scopeId) {
-		throw new Error("Configured Clerk Admin is not mapped to a KPPN scope.");
+		throw new Error("Configured Admin is not mapped to a KPPN scope.");
 	}
 	adminUserId = admin.id;
 	adminScopeId = admin.scopeId;
@@ -391,7 +391,6 @@ beforeAll(async () => {
 	const [peerUser] = await db
 		.insert(users)
 		.values({
-			clerkUserId: `f13_02_peer_access_${fixtureTag}`,
 			email: peerUserEmail,
 			name: peerUserName,
 		})
@@ -413,7 +412,6 @@ beforeAll(async () => {
 	const [peerAssignmentUser] = await db
 		.insert(users)
 		.values({
-			clerkUserId: `f13_02_peer_assignment_${fixtureTag}`,
 			email: peerAssignmentUserEmail,
 			name: peerAssignmentUserName,
 		})
@@ -422,7 +420,6 @@ beforeAll(async () => {
 	const [ownAssignmentUser] = await db
 		.insert(users)
 		.values({
-			clerkUserId: `f13_02_own_assignment_${fixtureTag}`,
 			email: ownAssignmentUserEmail,
 			name: ownAssignmentUserName,
 		})

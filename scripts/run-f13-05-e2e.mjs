@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
-import { createClerkClient } from "@clerk/backend";
+import { assertLoopbackUrl, createFixtureSession } from "./auth-fixture.mjs";
 import { createSql } from "./pg-sql.mjs";
 
 function readEnvFile(path) {
@@ -40,16 +40,12 @@ function waitForHttp(url, timeoutMs = 120_000) {
 	});
 }
 
+// The env file is optional; values already in the process environment win.
 const envPath = resolve(".env.f13-02.local");
-if (!existsSync(envPath)) {
-	console.error("Missing .env.f13-02.local. Create it from the isolated test branch first.");
-	process.exit(2);
-}
-
-const providerEnv = readEnvFile(envPath);
-const env = { ...process.env, ...providerEnv, NODE_ENV: "test" };
-if (!env.DATABASE_URL || !env.CLERK_SECRET_KEY) {
-	console.error("F13-05 requires the isolated database and Clerk secret.");
+const fileEnv = existsSync(envPath) ? readEnvFile(envPath) : {};
+const env = { ...fileEnv, ...process.env, NODE_ENV: "test" };
+if (!env.DATABASE_URL) {
+	console.error("F13-05 requires DATABASE_URL for the isolated test database.");
 	process.exit(2);
 }
 
@@ -92,8 +88,19 @@ const peerDeliveryEntity = `f13-05-peer-delivery-${fixtureTag}`;
 const peerRecipient = `peer-${fixtureTag}@example.invalid`;
 
 const sql = createSql(env.DATABASE_URL);
-const clerkClient = createClerkClient({ secretKey: env.CLERK_SECRET_KEY });
-let adminSession = null;
+if (!targetUrl) {
+	console.error(
+		"F13-05 needs the URL of a running app that uses the isolated database, e.g. node scripts/run-f13-05-e2e.mjs http://127.0.0.1:3000",
+	);
+	process.exit(2);
+}
+try {
+	assertLoopbackUrl(env.DATABASE_URL, "DATABASE_URL");
+} catch (error) {
+	console.error(error.message);
+	process.exit(2);
+}
+const baseUrl = targetUrl.replace(/\/$/, "");
 let adminUserId = "";
 let adminScopeId = "";
 let activeRuleSetId = "";
@@ -160,7 +167,7 @@ async function seedFixture() {
 	const [admin] = await sql`
 		SELECT
 			u.id AS "adminUserId",
-			u.clerk_user_id AS "clerkUserId",
+			u.email AS "adminEmail",
 			ua.kppn_scope_id AS "scopeId"
 		FROM users u
 		INNER JOIN user_accesses ua ON ua.user_id = u.id
@@ -169,7 +176,7 @@ async function seedFixture() {
 			AND ua.status = 'active'
 		LIMIT 1
 	`;
-	if (!admin?.adminUserId || !admin.scopeId || !admin.clerkUserId) {
+	if (!admin?.adminUserId || !admin.scopeId || !admin.adminEmail) {
 		throw new Error("No active Admin KPPN fixture is mapped in the isolated database.");
 	}
 	adminUserId = admin.adminUserId;
@@ -322,7 +329,7 @@ async function seedFixture() {
 		)
 	`;
 
-	return { adminClerkUserId: admin.clerkUserId };
+	return { adminEmail: admin.adminEmail };
 }
 
 async function verifyRetryAudit() {
@@ -350,18 +357,18 @@ let resultStatus = 1;
 try {
 	await cleanupFixture();
 	const identity = await seedFixture();
-	adminSession = await clerkClient.sessions.createSession({
-		userId: identity.adminClerkUserId,
+	await waitForHttp(`${baseUrl}/api/auth/ok`);
+	await sql`DELETE FROM auth_rate_limits`;
+	const sessionCookie = await createFixtureSession({
+		baseUrl,
+		email: identity.adminEmail,
 	});
-	if (targetUrl) await waitForHttp(`${targetUrl.replace(/\/$/, "")}/`);
-
-	const token = await clerkClient.sessions.getToken(adminSession.id, undefined, 3600);
 	const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 	const childEnv = {
 		...env,
 		F13_05_E2E: "1",
 		F13_05_E2E_TAG: fixtureTag,
-		F13_05_CLERK_SESSION_TOKEN: token.jwt,
+		F13_05_SESSION_COOKIE: sessionCookie,
 		F13_05_OWN_ACTUAL_ORG_ID: ownActualOrgId,
 		F13_05_OWN_ACTUAL_CODE: ownActualCode,
 		F13_05_OWN_FORECAST_CODE: ownForecastCode,
@@ -373,8 +380,7 @@ try {
 		F13_05_DELIVERY_ERROR_MOBILE: deliveryFixtures.MOBILE.error,
 		F13_05_DELIVERY_RECIPIENT_MOBILE: deliveryFixtures.MOBILE.recipient,
 	};
-	if (targetUrl) childEnv.F13_05_HTTP_URL = targetUrl.replace(/\/$/, "");
-	else delete childEnv.F13_05_HTTP_URL;
+	childEnv.F13_05_HTTP_URL = baseUrl;
 
 	const result = spawnSync(
 		npmCommand,
@@ -402,13 +408,6 @@ try {
 	);
 } finally {
 	await cleanupFixture();
-	if (adminSession) {
-		try {
-			await clerkClient.sessions.revokeSession(adminSession.id);
-		} catch {
-			// Best effort; never print credentials or tokens.
-		}
-	}
 }
 
 process.exit(resultStatus);

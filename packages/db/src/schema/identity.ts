@@ -31,7 +31,6 @@ export const organizations = pgTable(
 	"organizations",
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
-		clerkOrgId: text("clerk_org_id").unique(),
 		kppnScopeId: uuid("kppn_scope_id")
 			.references(() => kppnScopes.id, { onDelete: "restrict" })
 			.notNull(),
@@ -57,9 +56,13 @@ export const users = pgTable(
 	"users",
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
-		clerkUserId: text("clerk_user_id").notNull().unique(),
 		email: text("email").notNull().unique(),
 		name: text("name").notNull(),
+		// Better Auth user model fields (ADR-008, MIG-03).
+		emailVerified: boolean("email_verified").default(false).notNull(),
+		image: text("image"),
+		// Email OTP on unknown devices is mandatory for every account.
+		twoFactorEnabled: boolean("two_factor_enabled").default(true).notNull(),
 		createdAt: timestamp("created_at", { withTimezone: true })
 			.defaultNow()
 			.notNull(),
@@ -67,10 +70,7 @@ export const users = pgTable(
 			.defaultNow()
 			.notNull(),
 	},
-	(table) => [
-		uniqueIndex("users_clerk_user_id_idx").on(table.clerkUserId),
-		uniqueIndex("users_email_idx").on(table.email),
-	],
+	(table) => [uniqueIndex("users_email_idx").on(table.email)],
 );
 
 export const userAccesses = pgTable(

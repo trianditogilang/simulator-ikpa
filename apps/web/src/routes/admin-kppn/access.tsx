@@ -11,7 +11,6 @@ import {
 	Trash2,
 	X,
 } from "lucide-react";
-import { useUser } from "@clerk/tanstack-react-start";
 import { useMemo, useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { mockPermissionMatrix } from "@/mocks/auth-presets";
@@ -84,19 +83,8 @@ function AdminAccessManagementPage() {
 
 	const activeAdminCount = accessList.filter((a) => a.accessType === "admin_kppn" && a.accessStatus === "active").length;
 
-	const { user, isLoaded } = useUser();
-	let currentUserEmail: string | null = null;
-	if (isLoaded && user?.primaryEmailAddress?.emailAddress) {
-		currentUserEmail = user.primaryEmailAddress.emailAddress.toLowerCase();
-	} else if (isLoaded && user?.emailAddresses?.[0]?.emailAddress) {
-		currentUserEmail = user.emailAddresses[0].emailAddress.toLowerCase();
-	}
-	if (!currentUserEmail) {
-		const demoAdmin = accessList.find((a) => a.accessType === "admin_kppn");
-		if (demoAdmin) {
-			currentUserEmail = demoAdmin.email.toLowerCase();
-		}
-	}
+	const { auth } = Route.useRouteContext();
+	const currentUserEmail = auth.email?.toLowerCase() ?? null;
 	const editingOriginalRow = isEditMode && editingItem
 		? accessList.find((row) => row.id === editingItem.id) ?? null
 		: null;
@@ -210,10 +198,8 @@ function AdminAccessManagementPage() {
 				setModalError("Konfirmasi perubahan email diperlukan.");
 			} else if (errorText.includes("ACCESS_TYPE_CONFLICT") || msg.includes("Jenis akses pengguna tidak dapat diubah") || msg.includes("Satu pengguna tidak boleh memiliki")) {
 				setModalError("Tipe akses tidak dapat diubah setelah pengguna terdaftar.");
-			} else if (errorText.includes("CLERK_SYNC_FAILED") || msg.includes("menyinkronkan perubahan user ke Clerk")) {
-				setModalError("Perubahan belum disimpan karena gagal menyinkronkan data ke Clerk.");
-			} else if (errorText.includes("CLERK_INVITATION_FAILED") || msg.includes("Undangan Clerk gagal dikirim")) {
-				setModalError("Akses belum disimpan karena undangan Clerk gagal dikirim.");
+			} else if (errorText.includes("INVITATION_EMAIL_FAILED") || msg.includes("Email undangan gagal dikirim")) {
+				setModalError("Akses tersimpan sebagai Menunggu, tetapi email undangan gagal dikirim. Simpan ulang untuk mengirim lagi.");
 			} else {
 				setModalError(`Gagal menyimpan akses: ${msg}`);
 			}
@@ -254,13 +240,7 @@ function AdminAccessManagementPage() {
 			const msg = e instanceof Error ? e.message : "Gagal menghapus akses.";
 			const code = e && typeof e === "object" && "code" in e ? String((e as { code?: unknown }).code ?? "") : "";
 			const errorText = `${code} ${msg}`;
-			if (errorText.includes("CLERK_NOT_CONFIGURED")) {
-				setToastMessage("Penghapusan dibatalkan: koneksi Clerk belum dikonfigurasi.");
-			} else if (errorText.includes("CLERK_DELETE_FAILED") || msg.includes("menghapus akun user di Clerk")) {
-				setToastMessage("Akun belum dihapus karena penghapusan di Clerk gagal.");
-			} else if (errorText.includes("DATABASE_DELETE_FAILED")) {
-				setToastMessage("Akun Clerk sudah dihapus, tetapi data Neon belum bersih. Ulangi penghapusan.");
-			} else if (errorText.includes("SELF_DELETE_FORBIDDEN") || msg.includes("menghapus akun sendiri")) {
+			if (errorText.includes("SELF_DELETE_FORBIDDEN") || msg.includes("menghapus akun sendiri")) {
 				setToastMessage("Tidak dapat menghapus akun Anda sendiri.");
 			} else if (errorText.includes("LAST_ADMIN_PROTECTION") || msg.includes("admin terakhir")) {
 				setToastMessage("Tidak dapat menghapus Admin KPPN aktif terakhir.");
@@ -368,7 +348,7 @@ function AdminAccessManagementPage() {
 													</span>
 													<span className="text-[11px] text-muted-foreground">
 														{isPending
-															? "Undangan Clerk dikirim"
+															? "Undangan dikirim lewat email"
 															: user.accessType === "admin_kppn"
 																? "KPPN 032"
 																: `Kode: ${user.scopeCode}`}

@@ -14,6 +14,12 @@
 4. **Integrasi eksternal (§ daftar integrasi):** Clerk, Neon, QStash, Resend, Vercel, dan Cloudflare digantikan komponen self-hosted sesuai tabel pada addendum ADR-008 TSD.
 5. **Masa transisi:** sampai task MIG terkait selesai, bagian lama dokumen ini tetap menggambarkan perilaku yang berjalan.
 6. **Kode OTP email:** saat mendaftar, saat reset kata sandi, dan saat login dari perangkat yang belum dikenal, pengguna memasukkan kode 6 digit yang dikirim ke emailnya. Kode berlaku sekitar 10 menit dan sekali pakai; kirim ulang dan percobaan salah dibatasi. Login berikutnya dari perangkat yang sama cukup email + kata sandi.
+7. **Rincian alur setelah MIG-03 (2026-11-17):**
+   - Layar masuk, daftar, dan lupa kata sandi memakai satu formulir (di `/`, `/sign-in`, dan `/sign-up`); tidak ada halaman SSO.
+   - Kata sandi minimal 10 karakter. Kode OTP salah lebih dari 5 kali atau kedaluwarsa mengharuskan kode baru.
+   - Perangkat diingat 30 hari dan diperpanjang setiap kali dipakai masuk; reset kata sandi dan perubahan email oleh Admin mengeluarkan user dari semua perangkat.
+   - Undangan Admin dikirim sebagai email berisi tautan pendaftaran. Akses aktif otomatis setelah penerima mendaftar dengan email itu dan memverifikasinya; bila email undangan gagal terkirim, akses tetap tersimpan sebagai "Menunggu".
+   - Akun tanpa kata sandi (hasil seed) mengatur kata sandinya lewat "Lupa kata sandi".
 
 ## Addendum Revisi v2 — 2026-09-09
 

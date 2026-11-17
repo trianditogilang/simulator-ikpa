@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { clerkClient } from "@clerk/tanstack-react-start/server";
 import { and, desc, eq, inArray, isNull, isNotNull, ne, or, sql } from "drizzle-orm";
 import {
 	assertAdminKppnScope,
@@ -17,6 +16,8 @@ import {
 	users,
 } from "@simulator-ikpa/db/schema";
 import { getAccessResolutionForSession } from "./access.server";
+import { revokeSessionsAndTrustedDevices } from "./auth.server";
+import { sendInvitationEmail } from "./auth-emails.server";
 import { getServerAuthSession } from "./auth-session.server";
 import { failIfProduction } from "./runtime-guards";
 
@@ -108,87 +109,9 @@ async function hardDeleteUserAndCleanup(
 		.select({ orgId: userAccesses.orgId })
 		.from(userAccesses)
 		.where(eq(userAccesses.userId, input.targetUserId));
-	let clerkDeleteStarted = false;
-	try {
-		await hardDeleteUser(db, {
-			...input,
-			beforeDelete: async (targetUser) => {
-				clerkDeleteStarted = true;
-				await deleteClerkAccount(targetUser.clerkUserId);
-			},
-		});
-	} catch (error) {
-		const code = getErrorCode(error);
-		if (!clerkDeleteStarted || code?.startsWith("CLERK_")) {
-			throw error;
-		}
-		console.error("Neon user deletion failed after Clerk deletion:", error);
-		throw Object.assign(
-			new Error(
-				"Akun Clerk sudah dihapus, tetapi data user di Neon gagal dihapus. Ulangi penghapusan untuk menyelesaikan sinkronisasi.",
-			),
-			{ statusCode: 500, code: "DATABASE_DELETE_FAILED" },
-		);
-	}
+	await hardDeleteUser(db, input);
 	for (const orgId of new Set(rows.map((row) => row.orgId).filter(Boolean))) {
 		await cleanupOrphanOrganization(db, orgId);
-	}
-}
-
-function getErrorCode(error: unknown): string | null {
-	if (!error || typeof error !== "object" || !("code" in error)) return null;
-	const code = (error as { code?: unknown }).code;
-	return typeof code === "string" ? code : null;
-}
-
-function getErrorStatus(error: unknown): number | null {
-	if (!error || typeof error !== "object" || !("status" in error)) return null;
-	const status = Number((error as { status?: unknown }).status);
-	return Number.isFinite(status) ? status : null;
-}
-
-function isClerkNotFound(error: unknown): boolean {
-	if (getErrorStatus(error) === 404) return true;
-	if (!error || typeof error !== "object" || !("errors" in error)) return false;
-	const errors = (error as { errors?: unknown }).errors;
-	return (
-		Array.isArray(errors) &&
-		errors.some(
-			(item) =>
-				item &&
-				typeof item === "object" &&
-				"code" in item &&
-				String((item as { code?: unknown }).code) === "resource_not_found",
-		)
-	);
-}
-
-function clerkDeleteError(cause: unknown) {
-	console.error("Clerk user deletion failed:", cause);
-	return Object.assign(
-		new Error("Gagal menghapus akun user di Clerk."),
-		{ statusCode: 502, code: "CLERK_DELETE_FAILED" },
-	);
-}
-
-async function deleteClerkAccount(clerkUserId: string) {
-	// Legacy manual records have no corresponding Clerk account. New records
-	// are always invitation-backed and therefore never use this branch.
-	if (clerkUserId.startsWith("manual_")) return;
-	if (!process.env.CLERK_SECRET_KEY) {
-		throw Object.assign(
-			new Error("CLERK_SECRET_KEY belum dikonfigurasi."),
-			{ statusCode: 503, code: "CLERK_NOT_CONFIGURED" },
-		);
-	}
-
-	try {
-		await clerkClient().users.deleteUser(clerkUserId);
-	} catch (error) {
-		// Deletion is idempotent: a successful Clerk deletion followed by a
-		// Neon retry must not leave the local row stuck forever.
-		if (isClerkNotFound(error)) return;
-		throw clerkDeleteError(error);
 	}
 }
 
@@ -214,73 +137,6 @@ async function assertTargetUserInAdminScope(
 		})
 	) {
 		throw new Error("Pemetaan akses berada di luar scope admin.");
-	}
-}
-
-function clerkSyncError(cause: unknown) {
-	console.error("Clerk profile sync failed:", cause);
-	const error = Object.assign(
-		new Error("Gagal menyinkronkan perubahan user ke Clerk."),
-		{ statusCode: 502, code: "CLERK_SYNC_FAILED" },
-	);
-	return error;
-}
-
-async function syncClerkProfile(input: {
-	clerkUserId: string;
-	email?: string;
-	name?: string;
-}) {
-	if (!input.email && !input.name) return;
-	// manual_* rows are legacy records. They are never created anymore and
-	// have no Clerk account to update.
-	if (input.clerkUserId.startsWith("manual_")) return;
-	if (!process.env.CLERK_SECRET_KEY) {
-		throw clerkSyncError(new Error("CLERK_SECRET_KEY belum dikonfigurasi."));
-	}
-
-	try {
-		const client = clerkClient();
-		if (input.email) {
-			const clerkUser = await client.users.getUser(input.clerkUserId);
-			let emailAddress = clerkUser.emailAddresses.find(
-				(address) =>
-					address.emailAddress.toLowerCase() === input.email?.toLowerCase(),
-			);
-			if (!emailAddress) {
-				emailAddress = await client.emailAddresses.createEmailAddress({
-					userId: input.clerkUserId,
-					emailAddress: input.email,
-					verified: true,
-					primary: true,
-				});
-			} else if (emailAddress.verification?.status !== "verified") {
-				emailAddress = await client.emailAddresses.updateEmailAddress(
-					emailAddress.id,
-					{ verified: true, primary: true },
-				);
-			}
-			if (clerkUser.primaryEmailAddressId !== emailAddress.id) {
-				await client.users.updateUser(input.clerkUserId, {
-					primaryEmailAddressID: emailAddress.id,
-					notifyPrimaryEmailAddressChanged: true,
-				});
-			}
-		}
-
-		if (input.name) {
-			const nameParts = input.name.trim().split(/\s+/);
-			const firstName = nameParts.shift() || input.name.trim();
-			await client.users.updateUser(input.clerkUserId, {
-				firstName,
-				lastName: nameParts.join(" "),
-				publicMetadata: {
-					registeredName: input.name.trim(),
-				},
-			});
-		}
-	} catch (error) {
-		throw clerkSyncError(error);
 	}
 }
 
@@ -407,13 +263,13 @@ export const getCurrentAdminProfileFn = createServerFn({ method: "GET" })
 	.validator(() => undefined)
 	.handler(async () => {
 		const auth = await getServerAuthSession();
-		if (!auth.clerkUserId) return null;
+		if (!auth.userId) return null;
 		const db = getDatabase();
 		if (!db) return null;
 		const [user] = await db
 			.select({ name: users.name, email: users.email })
 			.from(users)
-			.where(eq(users.clerkUserId, auth.clerkUserId))
+			.where(eq(users.id, auth.userId))
 			.limit(1);
 		return user ?? null;
 	});
@@ -651,11 +507,6 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 				if (pendingEmail) throw Object.assign(new Error("Email sudah digunakan."), { statusCode: 409, code: "EMAIL_ALREADY_EXISTS" });
 			}
 			if (needEmail || needName) {
-				await syncClerkProfile({
-					clerkUserId: byId.clerkUserId,
-					email: needEmail ? newEmail : undefined,
-					name: needName ? newName : undefined,
-				});
 				const [updated] = await db
 					.update(users)
 					.set({ email: newEmail, name: newName, updatedAt: new Date() })
@@ -664,6 +515,9 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 				if (updated) {
 					user = updated;
 				} else user = byId;
+				// A changed sign-in email ends every session and forgets trusted
+				// devices, so the next sign-in proves the new mailbox by OTP.
+				if (needEmail) await revokeSessionsAndTrustedDevices(db, byId.id);
 			} else user = byId;
 		} else {
 			// New user: check if already exists by email
@@ -675,17 +529,13 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 			if (byEmail) {
 				user = byEmail;
 				if (user.name.trim() !== data.name.trim() && data.name.trim()) {
-					await syncClerkProfile({
-						clerkUserId: user.clerkUserId,
-						name: data.name.trim(),
-					});
 					const [updated] = await db.update(users).set({ name: data.name.trim(), updatedAt: new Date() }).where(eq(users.id, user.id)).returning();
 					if (updated) {
 						user = updated;
 					}
 				}
 			}
-			// If user doesn't exist yet, create pending access + send Clerk invitation
+			// If user doesn't exist yet, create pending access + send the invitation email
 			if (!user) {
 				const normalizedEmail = data.email.toLowerCase().trim();
 
@@ -706,28 +556,15 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 					kppnScopeId: pendingKppnScopeId,
 				});
 
-				// Send Clerk invitation
-				if (process.env.CLERK_SECRET_KEY) {
-					try {
-						const redirectUrl = process.env.APP_URL
-							? `${process.env.APP_URL}/`
-							: "/";
-						await clerkClient().invitations.createInvitation({
-							emailAddress: normalizedEmail,
-							redirectUrl,
-							ignoreExisting: true,
-							publicMetadata: {
-								pendingAccessId: pendingAccess.id,
-								accessType: data.accessType,
-							},
-						});
-					} catch (clerkErr) {
-						console.error("Clerk invitation failed:", clerkErr);
-						throw Object.assign(
-							new Error("Undangan Clerk gagal dikirim."),
-							{ statusCode: 502, code: "CLERK_INVITATION_FAILED" },
-						);
-					}
+				// The pending access is the invitation; the email only tells the
+				// invitee to register. Access is claimed once their email is verified.
+				try {
+					await sendInvitationEmail(normalizedEmail, data.accessType);
+				} catch {
+					throw Object.assign(new Error("Email undangan gagal dikirim."), {
+						statusCode: 502,
+						code: "INVITATION_EMAIL_FAILED",
+					});
 				}
 
 				return { success: true, accessId: pendingAccess.id, pending: true };
