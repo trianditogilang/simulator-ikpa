@@ -29,6 +29,13 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 321 - 2026-11-18
+**Status:** Completed (docs only) — SMTP-DOMAIN-01 dibatalkan; Gmail SMTP dipakai permanen
+- **Keputusan pemilik:** logo Brevo pada footer email akun gratis tidak dapat diterima, jadi pengirim tetap Gmail SMTP dan rencana `notifikasi@ikpa.web.id` lewat Brevo tidak dikerjakan.
+- **Diubah:** TASK-LIST (SMTP-DOMAIN-01 ditandai dibatalkan, checkbox tetap kosong), BACKLOG (status `Cancelled` ditambahkan pada Aturan Status karena belum ada status untuk task yang dibatalkan sebelum dikerjakan; baris SMTP-DOMAIN-01 menjadi `Cancelled`), ADR-008 Amandemen SMTP (Gmail permanen, alasan pembatalan, opsi berdomain gratis lain yang gugur), `.env.example` (contoh Brevo dihapus).
+- **Verifikasi:** `git diff --name-only` hanya berisi dokumen dan `.env.example`; tidak ada perubahan kode.
+- **Berikutnya:** App Password Gmail dari pemilik di `.env.smtp.local`, lalu smoke test + OTP nyata untuk menutup MIG-03/MIG-05, kemudian MIG-07.
+
 ### Session 320 - 2026-11-18
 **Status:** Completed (docs only) — rencana SMTP-DOMAIN-01: email aplikasi berdomain sendiri setelah `ikpa.web.id` dibeli
 - **Pertanyaan pemilik:** cara memakai domain sendiri `ikpa.web.id` untuk email khusus aplikasi. Keputusan pemilik: domain belum dibeli; Gmail SMTP tetap dipakai dulu untuk menutup MIG-03/MIG-05; alamat domain bersifat no-reply (tanpa mailbox dan tanpa forwarding).
