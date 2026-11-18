@@ -41,6 +41,7 @@
    - **Tidak berubah:** klaim eksklusif per baris delivery, status `scheduled`/`sent`/`failed`, retry dari Admin, dan pemulihan import tertahan lebih dari 5 menit.
    - **Environment:** `JOB_SECRET`. `QSTASH_*` tidak dibaca lagi.
 11. **Status MIG-06 (2026-11-18):** berkas import tidak disimpan di storage mana pun. Upload dikirim sebagai base64 (batas body 15 MB di Caddy), di-parse di memori dengan batas 10 MB dan 10.000 baris serta pemeriksaan format dan signature, lalu hanya hasil parse yang masuk `import_jobs` (`storage_key` tetap null). Bagian yang menyebut R2, presigned URL, atau object storage dibaca sesuai butir ini; `R2_*` tidak dibaca lagi.
+12. **Penyedia SMTP (2026-11-18):** Gmail SMTP (`smtp.gmail.com`, port 465/587) dengan App Password akun khusus; `NOTIFICATION_SENDER_EMAIL` sama dengan akun itu. Ini pengecualian residensi untuk isi email; alasan, kuota (±500 penerima/hari), dan jalur keluar dicatat pada Amandemen SMTP ADR-008. Kode tidak berubah karena mailer membaca `SMTP_*`.
 
 ## Addendum Revisi v2 — 2026-09-09
 

@@ -946,7 +946,8 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
 
 - [ ] **MIG-05 — Ganti Resend dengan SMTP.** [Role: Policy & Reminder Agent]
   **Evidence 2026-11-17 (Needs Fix, belum dicentang):** reminder, OTP, reset, dan undangan terkirim lewat SMTP ke Mailpit lokal; template `emails/*` tidak berubah; kegagalan SMTP menjadi delivery `failed` yang dapat di-retry; body dan penerima tidak masuk log. Belum terpenuhi: uji keterkiriman ke kotak masuk Gmail dari domain pengirim (menunggu penyedia SMTP dan DNS dari pemilik).
-  **Files:** `apps/web/src/server/qstash/handler.ts` (pengiriman), `apps/web/src/env.server.ts`
+  **Keputusan 2026-11-18:** penyedia = Gmail SMTP dengan App Password akun khusus (ADR-008 Amandemen SMTP). SPF, DKIM, dan DMARC dikelola Google, jadi langkah DNS pengirim tidak berlaku; "domain pengirim" pada DoD dibaca sebagai `gmail.com`. Uji kotak masuk memakai `scripts/smtp-smoke.mjs` dan alur OTP nyata.
+  **Files:** `apps/web/src/server/jobs/handler.ts` (pengiriman), `apps/web/src/env.server.ts`
   **Depends:** MIG-02; dikerjakan bersama MIG-03; penyedia SMTP dan DNS pengirim (SPF, DKIM, DMARC) ditetapkan pemilik
   **DoD:** Reminder, digest, eskalasi, kode OTP, dan reset kata sandi terkirim lewat SMTP pada environment uji; pengembangan lokal memakai penangkap email lokal; keterkiriman ke kotak masuk Gmail (bukan spam) diuji dari domain pengirim sebelum task ditutup; template `apps/web/src/emails/*` tidak berubah; kegagalan SMTP tercatat sebagai delivery gagal yang dapat di-retry; body email dan daftar penerima penuh tidak masuk log.
 

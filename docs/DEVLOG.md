@@ -29,6 +29,16 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 319 - 2026-11-18
+**Status:** In Progress — MIG-03/MIG-05: penyedia SMTP diputuskan (Gmail SMTP); menunggu App Password dari pemilik untuk uji kotak masuk nyata
+- **Aturan baru pemilik:** rekomendasi provider selalu yang gratis, mudah dipakai, dan cukup untuk ±170 pengguna bersamaan.
+- **Riset:** mail server sendiri di VPS Tencent tidak layak karena port 25 keluar diblokir secara default dan pembukaannya hanya untuk SMTP pihak ketiga (pengiriman langsung dapat berujung larangan permanen). Tidak ditemukan SMTP relay gratis berlokasi di Indonesia; Tencent SES hanya 1.000 email sekali di region Singapura. Opsi gratis yang tersisa: Gmail SMTP (±500 penerima/hari, tanpa domain) dan Brevo free (300/hari, butuh domain + DKIM). Perkiraan beban: < 50 email pada hari biasa, ±170–340 pada hari tenggat.
+- **Keputusan pemilik:** Gmail SMTP dengan akun khusus + App Password. Konflik dengan syarat residensi ADR-008 dilaporkan sebelum memilih dan dicatat sebagai Amandemen SMTP pada ADR-008 (alasan, konsekuensi isi email di Google, kuota, jalur keluar ke Brevo/penyedia lokal lewat env saja). TSD Addendum butir 12, TASK-LIST MIG-05, dan `.env.example` diperbarui; path `Files` MIG-05 dikoreksi ke `server/jobs/handler.ts`.
+- **Kode:** `scripts/smtp-smoke.mjs` (baru) mengirim satu email lewat mailer produk dengan `NODE_ENV=production`, membaca hanya `SMTP_*` dan `NOTIFICATION_SENDER_EMAIL` dari `.env.smtp.local` (di-ignore git) atau env proses, dan tidak mencetak nilai, penerima, maupun balasan server. Mailer tidak diubah.
+- **Verifikasi:** tanpa argumen exit 2; port tertutup exit 1 dengan kode `SMTP_SEND_FAILED`; ke Mailpit lokal exit 0 dan pesan tiba dengan subjek yang benar.
+- **Belum diverifikasi:** pengiriman nyata lewat Gmail dan posisi Inbox/Spam (menunggu App Password); OTP daftar/reset/perangkat baru lewat Gmail; batas kuota harian Gmail tidak diuji.
+- **Berikutnya:** pemilik membuat akun Gmail khusus, mengaktifkan verifikasi 2 langkah, membuat App Password, dan mengisi `.env.smtp.local`; lalu smoke test + OTP nyata, penutupan MIG-03/MIG-05, dan MIG-07.
+
 ### Session 318 - 2026-11-18
 **Status:** Completed — MIG-06: storage import tanpa R2 dan tanpa penyimpanan berkas (DoD diamandemen pemilik); di-commit lokal pada `staging`, belum di-push
 - **Temuan awal:** `uploadImportFn` menerima berkas base64, mem-parse di memori, dan hanya menyimpan hasil parse ke `import_jobs` (`storage_key: null`); tidak ada kode R2/S3 dan tidak ada berkas yang ditulis ke disk. Commit membaca dari `error_report_json`, bukan dari berkas. Menu Import Operator sedang dinonaktifkan.

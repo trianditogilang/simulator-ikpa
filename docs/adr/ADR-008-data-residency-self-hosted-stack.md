@@ -100,11 +100,31 @@ Selama sebuah task MIG belum selesai, implementasi dan bagian spesifikasi lama u
 | Butir | Pemilik | Dibutuhkan sebelum |
 |---|---|---|
 | Penyedia VPS (lokasi pusat data di Indonesia) dan domain — VPS sudah dipilih 2026-11-16 (Tencent Cloud region Indonesia, 2 vCPU, 4 GB, 60 GB); domain masih terbuka | Pemilik produk | F13-09 |
-| Penyedia SMTP berlokasi di Indonesia atau mail server sendiri, beserta DNS pengirim (SPF, DKIM, DMARC) | Pemilik produk | MIG-03 dan MIG-05 dinyatakan selesai |
+| Penyedia SMTP berlokasi di Indonesia atau mail server sendiri, beserta DNS pengirim (SPF, DKIM, DMARC) — diputuskan 2026-11-18: Gmail SMTP, lihat Amandemen SMTP | Pemilik produk | MIG-03 dan MIG-05 dinyatakan selesai |
 | Mitigasi DDoS: cukup firewall + rate limit, atau layanan lokal | Pemilik produk / DevOps | F13-10 |
 | Lokasi backup di luar VPS utama (harus tetap di Indonesia) | Pemilik produk / DevOps | F13-09 |
 | Konfirmasi aturan internal instansi tentang hosting dan domain | Pemilik produk | F13-14 |
 | Daftar perbaikan tampilan dan perilaku fitur | Pemilik produk | UIFIX-00 |
+
+## Amandemen SMTP — 2026-11-18
+
+Keputusan pemilik: email (OTP, undangan, reminder) dikirim lewat **Gmail SMTP** (`smtp.gmail.com`, port 465 atau 587) memakai akun Gmail khusus aplikasi dengan verifikasi 2 langkah dan App Password. Ini pengecualian terhadap syarat "SMTP di Indonesia atau mail server sendiri".
+
+Alasan:
+
+- Pemilik menetapkan provider harus gratis, mudah dioperasikan, dan cukup untuk ±170 pengguna.
+- Mail server sendiri di VPS Tencent tidak dapat dipakai: port 25 keluar diblokir secara default, pembukaannya hanya untuk terhubung ke SMTP pihak ketiga, dan pengiriman langsung dari CVM dapat berujung larangan permanen.
+- Tidak ditemukan SMTP relay gratis yang berlokasi di Indonesia. Tencent Cloud SES hanya memberi 1.000 email sekali, lalu berbayar, dan berjalan di region Singapura.
+- Gmail tidak membutuhkan domain maupun DNS pengirim (SPF, DKIM, dan DMARC dikelola Google), sehingga MIG-03/MIG-05 dapat ditutup sebelum domain dipilih.
+
+Konsekuensi:
+
+- Isi email (kode OTP, undangan, dan teks reminder) beserta alamat penerima diproses Google di luar Indonesia, dan salinannya tersimpan di folder Terkirim akun tersebut. Data anggaran dan identitas di database tetap di VPS Indonesia. Isi email tetap mengikuti aturan minimisasi pada kebijakan retensi.
+- Kuota akun Gmail gratis sekitar 500 penerima per hari. Perkiraan beban: di bawah 50 email pada hari biasa dan ±170–340 pada hari tenggat. Email di atas kuota gagal sebagai delivery `SMTP_SEND_FAILED` dan dapat di-retry keesokan harinya, tetapi OTP yang gagal berarti pengguna tidak bisa masuk sampai kuota pulih.
+- Pengirim tampil sebagai alamat `@gmail.com`; `NOTIFICATION_SENDER_EMAIL` harus sama dengan akun Gmail tersebut.
+- App Password adalah secret: hanya di environment server, dicabut dan diganti bila bocor atau saat operator berganti.
+- Jalur keluar: setelah domain tersedia (F13-09), penggantian ke relay lain (misalnya Brevo free 300 email/hari dengan DKIM domain sendiri) atau penyedia di Indonesia cukup dengan mengganti variabel `SMTP_*`, tanpa perubahan kode.
+- Konfirmasi aturan instansi (F13-14) mencakup pemakaian Gmail ini.
 
 ## Urutan pelaksanaan
 
