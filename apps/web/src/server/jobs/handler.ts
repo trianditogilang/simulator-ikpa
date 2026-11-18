@@ -1,4 +1,4 @@
-import { Receiver } from "@upstash/qstash";
+import { createHash, timingSafeEqual } from "node:crypto";
 import type { DbClient } from "@simulator-ikpa/db";
 import { notificationDeliveries } from "@simulator-ikpa/db/schema";
 import { and, eq, lte } from "drizzle-orm";
@@ -18,98 +18,24 @@ class DeliveryError extends Error {
 	}
 }
 
-function getQStashSignature(headers: Headers): string | null {
-	return (
-		headers.get("upstash-signature") ??
-		headers.get("x-qstash-signature") ??
-		headers.get("Upstash-Signature")
-	);
-}
-
-function firstHeaderValue(headers: Headers, name: string): string | null {
-	return headers.get(name)?.split(",", 1)[0]?.trim() || null;
-}
-
 /**
- * Resolve the public URL signed by QStash. APP_URL is authoritative for the
- * deployed app; forwarded headers keep this usable behind a proxy in other
- * environments. The route path and query are always normalized exactly.
+ * Job endpoints are called by the VPS scheduler with
+ * `Authorization: Bearer $JOB_SECRET` (ADR-008, MIG-04). Fails closed when the
+ * secret is missing or shorter than 32 characters. Both sides are hashed first
+ * so the comparison is constant-time regardless of length.
  */
-export function getPublicQStashUrl(
-	request: Request,
-	pathname: string,
-): string {
-	const normalizedPath = pathname.startsWith("/") ? pathname : `/${pathname}`;
-	const appUrl = process.env.APP_URL?.trim();
-	const requestUrl = new URL(request.url);
-
-	if (appUrl && process.env.NODE_ENV === "production") {
-		try {
-			const publicUrl = new URL(appUrl);
-			if (publicUrl.protocol === "http:" || publicUrl.protocol === "https:") {
-				publicUrl.pathname = normalizedPath;
-				publicUrl.search = "";
-				publicUrl.hash = "";
-				return publicUrl.toString();
-			}
-		} catch {
-			// Fall through to proxy/request URL resolution.
-		}
-	}
-
-	const forwardedHost = firstHeaderValue(request.headers, "x-forwarded-host");
-	const forwardedProto = firstHeaderValue(
-		request.headers,
-		"x-forwarded-proto",
-	);
-	if (forwardedHost) {
-		const protocol = forwardedProto === "http" ? "http:" : "https:";
-		try {
-			return new URL(`${protocol}//${forwardedHost}${normalizedPath}`).toString();
-		} catch {
-			// Fall through to the request URL if forwarded values are malformed.
-		}
-	}
-
-	requestUrl.pathname = normalizedPath;
-	requestUrl.search = "";
-	requestUrl.hash = "";
-	return requestUrl.toString();
+export function verifyJobSecret(headers: Headers): boolean {
+	const secret = process.env.JOB_SECRET?.trim();
+	if (!secret || secret.length < 32) return false;
+	const given = /^Bearer (.+)$/.exec(headers.get("authorization") ?? "")?.[1];
+	if (!given) return false;
+	const digest = (value: string) => createHash("sha256").update(value).digest();
+	return timingSafeEqual(digest(given), digest(secret));
 }
 
-/**
- * Verify the raw QStash request with the official Receiver implementation.
- * Callers must pass the untouched body returned by request.text().
- */
-export async function verifyQStashSignature(
-	headers: Headers,
-	rawBody: string,
-	requestUrl?: string,
-): Promise<boolean> {
-	const signature = getQStashSignature(headers);
-	if (!signature) return false;
-
-	const currentKey = process.env.QSTASH_CURRENT_SIGNING_KEY?.trim();
-	const nextKey = process.env.QSTASH_NEXT_SIGNING_KEY?.trim();
-	if (!currentKey && !nextKey) return false;
-
-	try {
-		const receiver = new Receiver({
-			currentSigningKey: currentKey,
-			nextSigningKey: nextKey,
-			devMode: false,
-		});
-		await receiver.verify({
-			body: rawBody,
-			signature,
-			...(requestUrl ? { url: requestUrl } : {}),
-			...(firstHeaderValue(headers, "upstash-region")
-				? { upstashRegion: firstHeaderValue(headers, "upstash-region")! }
-				: {}),
-		});
-		return true;
-	} catch {
-		return false;
+export function rejectUnauthorizedJob(headers: Headers): void {
+	if (!verifyJobSecret(headers)) {
+		throw new DeliveryError("INVALID_JOB_SECRET", "Invalid job secret.", 401);
 	}
 }
 
@@ -309,38 +235,23 @@ async function processDueDeliveries(
 	return { sent, failed };
 }
 
-export async function handleQStashDaily(
+export async function handleReminderDaily(
 	db: DbClient,
 	headers: Headers,
-	rawBody: string,
-	requestUrl?: string,
 ): Promise<{ requestId: string; processed: number }> {
-	if (!(await verifyQStashSignature(headers, rawBody, requestUrl))) {
-		throw new DeliveryError(
-			"INVALID_SIGNATURE",
-			"Invalid QStash signature.",
-			401,
-		);
-	}
+	rejectUnauthorizedJob(headers);
 	const requestId = headers.get("x-request-id") ?? newRequestId();
 	isDeliveryConfigured();
 	const result = await processDueDeliveries(db, 50);
 	return { requestId, processed: result.sent + result.failed };
 }
 
-export async function handleQStashSend(
+export async function handleReminderSend(
 	db: DbClient,
 	headers: Headers,
-	rawBody: string,
-	opts?: { batchLimit?: number; requestUrl?: string },
+	opts?: { batchLimit?: number },
 ): Promise<{ requestId: string; sent: number; failed: number }> {
-	if (!(await verifyQStashSignature(headers, rawBody, opts?.requestUrl))) {
-		throw new DeliveryError(
-			"INVALID_SIGNATURE",
-			"Invalid QStash signature.",
-			401,
-		);
-	}
+	rejectUnauthorizedJob(headers);
 	const requestId = headers.get("x-request-id") ?? newRequestId();
 	isDeliveryConfigured();
 	const result = await processDueDeliveries(db, opts?.batchLimit ?? 20);

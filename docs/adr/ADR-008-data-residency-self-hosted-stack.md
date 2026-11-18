@@ -1,6 +1,6 @@
 # ADR-008 — Residensi Data dan Stack Self-Hosted di Indonesia
 
-- Status: Accepted (keputusan pemilik 2026-11-15); implementasi berjalan. Per 2026-11-18: MIG-00, MIG-01, MIG-02 selesai; MIG-03 dan MIG-05 terimplementasi (Needs Fix, menunggu SMTP dan DNS pengirim); MIG-04, MIG-06 Ready; MIG-07 Blocked. Status terkini: `docs/BACKLOG.md`
+- Status: Accepted (keputusan pemilik 2026-11-15); implementasi berjalan. Per 2026-11-18: MIG-00, MIG-01, MIG-02, MIG-04 selesai; MIG-03 dan MIG-05 terimplementasi (Needs Fix, menunggu SMTP dan DNS pengirim); MIG-06 Ready; MIG-07 Blocked. Status terkini: `docs/BACKLOG.md`
 - Tanggal: 15 November 2026
 - Pemilik: Solution Architect / Product Owner
 - Task: MIG-00

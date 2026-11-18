@@ -6,7 +6,7 @@
 #
 # DATABASE_URL sengaja dirakit di sini dan TIDAK dibaca dari .env, supaya
 # container tidak pernah tersambung ke database lain (mis. Neon lama).
-# Auth (MIG-03) dan SMTP (MIG-05) diteruskan di bawah; scheduler menyusul di MIG-04.
+# Auth (MIG-03), SMTP (MIG-05), dan secret job (MIG-04) diteruskan di bawah.
 
 x-database-url: &database-url postgresql://ikpa:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD wajib diisi}@db:5432/simulator_ikpa
 
@@ -46,10 +46,27 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       NOTIFICATION_SENDER_EMAIL: ${NOTIFICATION_SENDER_EMAIL:?NOTIFICATION_SENDER_EMAIL wajib diisi}
+      # Bearer secret yang dikirim service `scheduler` ke /api/jobs/*, minimal 32 karakter acak.
+      JOB_SECRET: ${JOB_SECRET:?JOB_SECRET wajib diisi}
     depends_on:
       db:
         condition: service_healthy
     # Tidak ada `ports`: aplikasi hanya dapat dijangkau lewat reverse proxy.
+
+  # Cron VPS (ADR-008, MIG-04): memanggil endpoint job lewat jaringan internal,
+  # karena Caddy menjawab 404 untuk /api/jobs/* dari luar. Jadwal pada config
+  # `crontab` di bawah; hasil tiap panggilan tercatat di log container ini.
+  scheduler:
+    image: alpine:3.20
+    restart: unless-stopped
+    environment:
+      JOB_SECRET: ${JOB_SECRET:?JOB_SECRET wajib diisi}
+    configs:
+      - source: crontab
+        target: /etc/crontabs/root
+    command: ["crond", "-f", "-l", "8"]
+    depends_on:
+      - app
 
   proxy:
     image: caddy:2
@@ -87,6 +104,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+# Jadwal dalam UTC (WIB = UTC+7): daily 06.00 WIB, kirim reminder tiap 15 menit,
+# pemulihan import tertahan tiap 10 menit. `$$` = `$` literal untuk crond.
+configs:
+  crontab:
+    content: |
+      0 23 * * * wget -q -O- --header "Authorization: Bearer $$JOB_SECRET" --post-data '' http://app:3000/api/jobs/reminders/daily > /proc/1/fd/1 2>&1; echo > /proc/1/fd/1
+      */15 * * * * wget -q -O- --header "Authorization: Bearer $$JOB_SECRET" --post-data '' http://app:3000/api/jobs/reminders/send > /proc/1/fd/1 2>&1; echo > /proc/1/fd/1
+      */10 * * * * wget -q -O- --header "Authorization: Bearer $$JOB_SECRET" --post-data '' http://app:3000/api/jobs/import/process > /proc/1/fd/1 2>&1; echo > /proc/1/fd/1
 
 volumes:
   pgdata:

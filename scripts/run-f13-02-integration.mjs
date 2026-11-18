@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
@@ -47,6 +48,8 @@ if (existsSync(envPath)) {
 	}
 }
 env.DIRECT_URL ||= env.DATABASE_URL;
+// The import-job test calls the handler with the scheduler's bearer secret.
+env.JOB_SECRET ||= randomBytes(32).toString("base64url");
 
 if (!env.DATABASE_URL || !env.DIRECT_URL) {
 	console.error(

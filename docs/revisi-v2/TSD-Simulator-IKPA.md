@@ -35,6 +35,11 @@
    - **Environment:** `BETTER_AUTH_SECRET` (minimal 32 karakter), `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `NOTIFICATION_SENDER_EMAIL`. `CLERK_*`, `VITE_CLERK_PUBLISHABLE_KEY`, dan `RESEND_API_KEY` tidak dibaca lagi.
    - **Email:** OTP dan undangan dikirim langsung lewat SMTP; reminder tetap lewat tabel delivery dengan klaim eksklusif per baris (SMTP tidak memiliki idempotency key). Pengembangan dan test memakai Mailpit (`docker compose --profile dev up -d mailpit`).
    - **Skema:** lihat Addendum MIG-03 pada ERD.
+10. **Status MIG-04 (2026-11-18):** QStash diganti cron di VPS; §6.8 dibaca sesuai butir ini.
+   - **Endpoint:** `POST /api/jobs/reminders/daily`, `POST /api/jobs/reminders/send`, dan `POST /api/jobs/import/process` (path sesuai tabel §6.8; `/api/qstash/*` dihapus). Setiap request wajib membawa `Authorization: Bearer <JOB_SECRET>`; secret minimal 32 karakter, dibandingkan waktu-konstan, dan bila tidak di-set semua request ditolak 401 `INVALID_JOB_SECRET`. Body request tidak dipakai.
+   - **Pemicu:** service compose `scheduler` (busybox `crond` pada `alpine:3.20`, tanpa dependency npm) memanggil `http://app:3000` lewat jaringan internal. Jadwal UTC: daily 23.00 (06.00 WIB), send setiap 15 menit, pemulihan import tertahan setiap 10 menit. Caddy menjawab 404 untuk `/api/jobs/*` dari luar.
+   - **Tidak berubah:** klaim eksklusif per baris delivery, status `scheduled`/`sent`/`failed`, retry dari Admin, dan pemulihan import tertahan lebih dari 5 menit.
+   - **Environment:** `JOB_SECRET`. `QSTASH_*` tidak dibaca lagi.
 
 ## Addendum Revisi v2 — 2026-09-09
 

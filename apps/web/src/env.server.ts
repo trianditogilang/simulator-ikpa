@@ -21,9 +21,8 @@ const serverEnvSchema = z.object({
 		.string()
 		.email()
 		.default("notifikasi-ikpa@kemenkeu.go.id"),
-	QSTASH_TOKEN: z.string().optional(),
-	QSTASH_CURRENT_SIGNING_KEY: z.string().optional(),
-	QSTASH_NEXT_SIGNING_KEY: z.string().optional(),
+	// Bearer secret the VPS scheduler sends to /api/jobs/* (ADR-008, MIG-04).
+	JOB_SECRET: z.string().min(32).optional(),
 	R2_ACCOUNT_ID: z.string().optional(),
 	R2_ACCESS_KEY_ID: z.string().optional(),
 	R2_SECRET_ACCESS_KEY: z.string().optional(),

@@ -1,8 +1,12 @@
 # Reverse proxy Simulator IKPA (ADR-008, MIG-02).
 # SITE_ADDRESS ":80" = HTTP lokal; nama domain = TLS Let's Encrypt otomatis.
-# Rate limit, HSTS, dan pembatasan endpoint job ditambahkan pada F13-10.
+# Rate limit dan HSTS ditambahkan pada F13-10.
 
 {$SITE_ADDRESS::80} {
+	# Endpoint job hanya dipanggil service `scheduler` lewat jaringan internal
+	# (http://app:3000); dari luar selalu 404 (ADR-008, MIG-04).
+	respond /api/jobs/* 404
+
 	# Batas berkas import 10 MB ditegakkan aplikasi (server/import.ts). Berkas
 	# dikirim sebagai base64 (±13,4 MB untuk 10 MB), jadi batas body 15 MB.
 	request_body {
