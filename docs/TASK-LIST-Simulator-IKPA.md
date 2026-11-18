@@ -950,7 +950,9 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Depends:** MIG-02; dikerjakan bersama MIG-03; penyedia SMTP dan DNS pengirim (SPF, DKIM, DMARC) ditetapkan pemilik
   **DoD:** Reminder, digest, eskalasi, kode OTP, dan reset kata sandi terkirim lewat SMTP pada environment uji; pengembangan lokal memakai penangkap email lokal; keterkiriman ke kotak masuk Gmail (bukan spam) diuji dari domain pengirim sebelum task ditutup; template `apps/web/src/emails/*` tidak berubah; kegagalan SMTP tercatat sebagai delivery gagal yang dapat di-retry; body email dan daftar penerima penuh tidak masuk log.
 
-- [ ] **MIG-06 — Simpan berkas import pada storage lokal privat.** [Role: Import & Export Agent]
+- [x] **MIG-06 — Simpan berkas import pada storage lokal privat.** [Role: Import & Export Agent]
+  **Amandemen DoD (keputusan pemilik 2026-11-18):** `uploadImportFn` tidak pernah menyimpan berkas; berkas di-parse di memori dan hanya hasilnya yang masuk `import_jobs` (`storage_key` selalu null). Karena berkas tidak pernah menyentuh disk, syarat "tidak dilayani publik", "dihapus saat job terminal", dan "sapuan yatim 7 hari" terpenuhi tanpa direktori storage, dan direktori tidak dibuat. Bila kelak berkas perlu disimpan (misalnya untuk commit penuh pada IMPORT-FIX-01), DoD asli berlaku kembali.
+  **Evidence 2026-11-18:** `R2_*` dihapus dari `env.server.ts` dan `.env.example`; komentar batas Vercel/R2 diperbarui; unit test baru `server/import/parser.test.ts` mengunci penolakan format, signature ZIP pada `.csv`, > 10 MB, dan > 10.000 baris. Typecheck, 46 file/322 test, lint, build, `check:migrations`, secret scan; migrate + seed dari database kosong; integration F13-02 91 lulus + 2 skip (termasuk ServerFn upload/list/get/commit/cancel import). Rincian: DEVLOG Session 318.
   **Files:** `apps/web/src/server/import.ts`, adapter storage server baru, `apps/web/src/env.server.ts`
   **Depends:** MIG-02
   **DoD:** Berkas import disimpan dengan nama acak buatan server di direktori yang tidak dilayani publik; dihapus saat job terminal; sapuan berkas yatim maksimal 7 hari terjadwal; validasi extension, MIME, signature, 10 MB, dan 10.000 baris tetap; variabel `R2_*` dihapus.
@@ -981,7 +983,13 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
 - [ ] **UIFIX-00 — Inventarisasi dan klasifikasi perbaikan.** [Role: Product & IKPA Analyst]
   **File:** `docs/BACKLOG.md`
   **Depends:** daftar perbaikan dari pemilik
+  **Kandidat tercatat:** IMPORT-FIX-01 di bawah.
   **DoD:** Setiap butir memiliki ID `UIFIX-nn`, halaman/komponen terdampak, dan klasifikasi: *tampilan saja* (freeze-exception seperti `UI-DISPLAY-ONLY-*`, boleh paralel dengan MIG) atau *perilaku* (wajib amandemen FSD/acceptance criteria v2 dan regression test, dikerjakan setelah MIG-06). Butir pada layar masuk, daftar, atau Manajemen Akses digabung ke MIG-03.
+
+- [ ] **IMPORT-FIX-01 — Commit import memakai seluruh baris valid, bukan 100 pertama.** [Role: Import & Export Agent]
+  **Temuan 2026-11-18 (MIG-06):** `uploadImportFn` menyimpan hanya `validRows.slice(0, 100)` di `error_report_json`, dan `commitImportFn` meng-commit dari situ, sehingga berkas dengan lebih dari 100 baris valid terpotong diam-diam dan job tetap `completed`. Menu Import sedang dinonaktifkan, jadi belum berdampak pada pengguna.
+  **Files:** `apps/web/src/server/import.ts` (dan storage berkas bila dipilih) · **Depends:** keputusan pemilik mengaktifkan kembali menu Import; klasifikasi perilaku pada UIFIX-00
+  **DoD:** Seluruh baris valid (hingga 10.000) ter-commit atau user diberi tahu dengan jelas; regression test untuk berkas > 100 baris; tenant isolation F13-02 tetap lulus.
 
 - [ ] **F13-09 â€” Konfigurasi deployment VPS Indonesia (semula deployment Vercel; diubah ADR-008).** [Role: DevOps Agent]
   **Files:** `docs/deployment-vps.md` (baru), `docker-compose.yml`, konfigurasi reverse proxy; `docs/deployment-vercel.md` historis · **Depends:** MIG-07  

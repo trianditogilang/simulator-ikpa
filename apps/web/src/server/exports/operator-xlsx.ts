@@ -25,7 +25,7 @@ import { sanitizeForExport } from "../import/parser";
 import { assertProductionFileSignature, failIfProduction } from "../runtime-guards";
 
 // ponytail: exceljs direct; ceiling = true streaming for >10k rows
-// upgrade path: streaming writer + R2 presigned download URL for large exports
+// upgrade path: streaming writer for large exports
 
 function getDatabase() {
 	const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;

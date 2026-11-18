@@ -40,6 +40,7 @@
    - **Pemicu:** service compose `scheduler` (busybox `crond` pada `alpine:3.20`, tanpa dependency npm) memanggil `http://app:3000` lewat jaringan internal. Jadwal UTC: daily 23.00 (06.00 WIB), send setiap 15 menit, pemulihan import tertahan setiap 10 menit. Caddy menjawab 404 untuk `/api/jobs/*` dari luar.
    - **Tidak berubah:** klaim eksklusif per baris delivery, status `scheduled`/`sent`/`failed`, retry dari Admin, dan pemulihan import tertahan lebih dari 5 menit.
    - **Environment:** `JOB_SECRET`. `QSTASH_*` tidak dibaca lagi.
+11. **Status MIG-06 (2026-11-18):** berkas import tidak disimpan di storage mana pun. Upload dikirim sebagai base64 (batas body 15 MB di Caddy), di-parse di memori dengan batas 10 MB dan 10.000 baris serta pemeriksaan format dan signature, lalu hanya hasil parse yang masuk `import_jobs` (`storage_key` tetap null). Bagian yang menyebut R2, presigned URL, atau object storage dibaca sesuai butir ini; `R2_*` tidak dibaca lagi.
 
 ## Addendum Revisi v2 — 2026-09-09
 

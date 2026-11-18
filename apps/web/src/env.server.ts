@@ -23,10 +23,6 @@ const serverEnvSchema = z.object({
 		.default("notifikasi-ikpa@kemenkeu.go.id"),
 	// Bearer secret the VPS scheduler sends to /api/jobs/* (ADR-008, MIG-04).
 	JOB_SECRET: z.string().min(32).optional(),
-	R2_ACCOUNT_ID: z.string().optional(),
-	R2_ACCESS_KEY_ID: z.string().optional(),
-	R2_SECRET_ACCESS_KEY: z.string().optional(),
-	R2_BUCKET_NAME: z.string().default("simulator-ikpa-imports"),
 	APP_URL: z.string().default("http://localhost:3000"),
 });
 

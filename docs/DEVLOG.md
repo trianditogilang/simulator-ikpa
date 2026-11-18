@@ -4,7 +4,7 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Current Phase
 
-**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06/F13-07/F13-08 selesai; MIG-00, MIG-01, MIG-02, dan MIG-04 selesai; MIG-03 dan MIG-05 Needs Fix (implementasi selesai, menunggu SMTP pemilik); F13-09 Blocked menunggu MIG-04, MIG-06, dan MIG-07.**
+**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06/F13-07/F13-08 selesai; MIG-00, MIG-01, MIG-02, MIG-04, dan MIG-06 selesai; MIG-03 dan MIG-05 Needs Fix (implementasi selesai, menunggu SMTP pemilik); F13-09 Blocked menunggu MIG-04, MIG-06, dan MIG-07.**
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
 - Baseline hijau: typecheck lulus, workspace Vitest 46 test files/329 tests lulus setelah source export retired dan regression webhook, `npm run lint` exit 0 (78 warning legacy), production build lulus, dan E2E smoke desktop/mobile 2/2 lulus.
@@ -25,8 +25,20 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - SEC-AUDIT-01 (2026-11-17): `npm audit --omit=dev --audit-level=high` kembali exit 0 setelah `@tanstack/react-start` 1.169.5, `zod` 4.6.7, `vite` 8.2.6, dan turunan transitif dinaikkan; baseline test, integration, dan E2E tidak berubah. Residual: 8 advisory moderate dan peer `drizzle-kit` yang tidak valid terhadap `better-auth`.
 - SEC-AUDIT-02 (2026-11-18): `drizzle-kit` 0.30.6 → 0.31.11 sehingga peer `better-auth` valid dan `npm ls` exit 0; skema hasil migration identik, integration dan E2E tidak berubah. Audit produksi kembali exit 1 karena advisory baru `picomatch` (GHSA-fc5q-39xc-vjpf, belum ada patch) yang juga menggagalkan HEAD sebelumnya; ditangani SEC-AUDIT-03.
 - MIG-04 (2026-11-18): QStash diganti service compose `scheduler` (busybox `crond`) yang memanggil `/api/jobs/*` dengan Bearer `JOB_SECRET` lewat jaringan internal; Caddy menjawab 404 dari luar. Baseline: 45 file/318 test, integration 91 + 2 skip, F13-03 2/2 lewat SMTP Mailpit, E2E Operator dan Admin 12/12. Storage import (MIG-06) masih stack lama.
+- MIG-06 (2026-11-18): berkas import tidak pernah disimpan (parse di memori), sehingga DoD direktori privat diamandemen pemilik dan `R2_*` dihapus. Baseline: 46 file/322 test, integration 91 + 2 skip. Temuan IMPORT-FIX-01: commit import hanya memakai 100 baris valid pertama.
 
 ## Recent Sessions
+
+### Session 318 - 2026-11-18
+**Status:** Completed — MIG-06: storage import tanpa R2 dan tanpa penyimpanan berkas (DoD diamandemen pemilik); di-commit lokal pada `staging`, belum di-push
+- **Temuan awal:** `uploadImportFn` menerima berkas base64, mem-parse di memori, dan hanya menyimpan hasil parse ke `import_jobs` (`storage_key: null`); tidak ada kode R2/S3 dan tidak ada berkas yang ditulis ke disk. Commit membaca dari `error_report_json`, bukan dari berkas. Menu Import Operator sedang dinonaktifkan.
+- **Keputusan pemilik:** pertahankan parse di memori. Syarat DoD "tidak dilayani publik", "hapus saat job terminal", dan "sapuan yatim 7 hari" terpenuhi karena berkas tidak pernah disimpan; direktori storage dan sapuan tidak dibuat. Opsi menyimpan ke disk ditolak karena berkas itu tidak akan dibaca siapa pun.
+- **Kode:** `R2_*` dihapus dari `env.server.ts` dan `.env.example` (bagian 5 diganti catatan); komentar batas body Vercel 4,5 MB/R2 pada `server/import.ts` dan rujukan R2 pada `server/exports/operator-xlsx.ts` diperbarui. Tidak ada perubahan perilaku. Unit test baru `server/import/parser.test.ts` (4 test) mengunci penolakan format tak didukung, signature ZIP pada `.csv`, ukuran > 10 MB, dan > 10.000 baris; sebelumnya batas-batas ini belum punya test. Pemeriksaan nama berkas `.csv`/`.xlsx` dan batas base64 di `uploadImportFn` sendiri tetap tanpa test khusus.
+- **Dokumen:** TASK-LIST (MIG-06 dicentang dengan amandemen DoD; kandidat IMPORT-FIX-01), TSD Addendum ADR-008 butir 11, catatan MIG-06 pada kebijakan retensi, status ADR-008, traceability matrix, dan baris MIG-07 di BACKLOG.
+- **Verifikasi:** `npm run typecheck` 0 error; `npm test` 46 file/322 test; `npm run lint` 0 error/74 warning; `npm run build` ber-preset `node-server`; `check:migrations` dan secret scan lulus. Compose dari `down -v`: migrate 8 migration + seed lulus; integration F13-02 91 lulus + 2 skip dari 93, termasuk upload/list/get/commit/cancel import lintas tenant. Stack dibongkar dengan `down -v`.
+- **Belum diverifikasi:** E2E F13-04/F13-05 tidak dijalankan ulang karena tidak ada perubahan UI, route, atau perilaku server; upload nyata 10 MB lewat Caddy tetap belum diuji karena menu Import nonaktif; CI GitHub belum dijalankan.
+- **Temuan di luar scope (IMPORT-FIX-01, Blocked):** `uploadImportFn` menyimpan `validRows.slice(0, 100)` dan `commitImportFn` meng-commit dari situ, sehingga berkas dengan lebih dari 100 baris valid terpotong diam-diam dan job tetap `completed`. Ditahan sampai pemilik mengaktifkan kembali menu Import. `apps/web/.env` dan `apps/web/.env.local` lokal (tidak di-track) masih memuat contoh `R2_*`; tidak diubah.
+- **Berikutnya:** seluruh task MIG yang tersisa bergantung pada pemilik: MIG-03/MIG-05 menunggu penyedia SMTP dan DNS pengirim, lalu MIG-07. Juga terbuka: SEC-AUDIT-03 (patch `picomatch`), UIFIX-00 (daftar perbaikan), IMPORT-FIX-01, dan push commit lokal.
 
 ### Session 317 - 2026-11-18
 **Status:** Completed — MIG-04: QStash diganti cron di VPS; di-commit lokal pada `staging`, belum di-push
