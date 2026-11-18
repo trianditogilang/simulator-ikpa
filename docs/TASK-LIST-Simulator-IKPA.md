@@ -6,6 +6,8 @@
 
 > Simulator adalah alat bantu internal, bukan sumber nilai IKPA resmi. Parameter 2026 yang belum diverifikasi tidak boleh dianggap final atau mandatory.
 
+> **Catatan sinkronisasi (2026-11-18):** basis v1 di atas adalah histori. Kontrak aktif adalah `docs/revisi-v2/` beserta addendum-nya, dan stack mengikuti [ADR-008](adr/ADR-008-data-residency-self-hosted-stack.md): PostgreSQL + `pg`, Nitro `node-server` dalam container, Better Auth, SMTP, cron VPS, dan storage lokal. Rujukan Clerk, Neon, QStash, Resend, Vercel, Cloudflare, atau R2 pada task yang sudah selesai adalah bukti stack lama.
+
 ## 1. Cara Menggunakan Task List
 
 - Kerjakan task sesuai dependensi, bukan hanya urutan nomor.
@@ -932,6 +934,7 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Evidence 2026-11-17 (Needs Fix, belum dicentang):** seluruh butir DoD terverifikasi lokal: daftar/masuk mandiri, OTP email saat daftar, reset, dan perangkat baru (6 digit, 10 menit, sekali pakai, ter-hash, batas percobaan dan kirim ulang), undangan opsional, onboarding kode + nama satker, blind guard, hard delete; `/api/webhooks/clerk`, `sso-callback`, dan `@clerk/*` dihapus. Typecheck, 45 file/320 test, lint, build, `check:migrations`, 8 migration dari database kosong lewat compose, integration 91 + 1 skip, E2E Operator dan Admin 12/12 pada image container. Task ditahan terbuka karena ADR-008 mensyaratkan penyedia SMTP dan DNS pengirim sebelum dinyatakan selesai; CI baru belum dijalankan di GitHub. Rincian dan residual: DEVLOG Session 313.
   **Files:** `apps/web/src/start.ts`, `apps/web/src/server/auth-session.server.ts`, `apps/web/src/server/admin-access.ts`, `apps/web/src/server/access.server.ts`, `apps/web/src/env.server.ts`, komponen `components/public/*` dan `components/auth/*`, `routes/__root.tsx`, `routes/admin-kppn/access.tsx`, `packages/db/src/schema/identity.ts` + migration, `packages/access-control/src/*`, fixture E2E dan integration test
   **Depends:** MIG-01, MIG-02; dikerjakan bersama MIG-05 karena OTP email adalah bagian alur login
+  **Catatan keputusan 2026-11-16:** pemilik memilih undangan tanpa token; undangan diklaim saat penerima mendaftar dengan email itu dan memverifikasinya lewat OTP (FSD Addendum ADR-008 butir 7). Kata "bertoken" pada langkah (b) tidak berlaku lagi.
   **Langkah:** (a) desain skema identitas + addendum ERD; (b) server: sesi, middleware, daftar/masuk, undangan bertoken, hard delete satu transaksi; (c) UI masuk/daftar/lupa kata sandi dan Manajemen Akses; (d) fixture E2E, integration test, dan CI tanpa secret Clerk/Neon.
   **DoD:** Daftar dan masuk mandiri dengan email + kata sandi; kode OTP email diminta saat daftar, reset kata sandi, dan login dari perangkat yang belum dikenal (6 digit, ±10 menit, sekali pakai, ter-hash, dengan batas percobaan dan kirim ulang); tanpa aplikasi authenticator; undangan Admin opsional; onboarding kode + nama satker, satu Operator aktif per satker, slot admin, proteksi self/admin terakhir, dan blind guard tetap lulus test yang ada; `/api/webhooks/clerk` dan `sso-callback` dihapus; hash kata sandi dan token tidak pernah masuk log atau response; tidak ada impor `@clerk/*`.
 
@@ -955,6 +958,22 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Files:** `package.json` workspace, `.github/workflows/ci.yml`, `.env.example`, `docs/uat-report.md`
   **Depends:** MIG-01–MIG-06
   **DoD:** Paket dan variabel environment Clerk, Neon, QStash, Resend, dan R2 terhapus; integration tenant isolation (F13-02), policy/reminder (F13-03), E2E Operator dan Admin (F13-04, F13-05), performance baseline (F13-07), dan CI quality gate (F13-08) hijau pada stack baru; security review ulang untuk autentikasi, sesi, reset kata sandi, undangan, dan endpoint job tanpa temuan critical/high (F13-06).
+
+### Sub-fase SEC-AUDIT — Pemeliharaan Dependency Audit
+
+> **Dasar:** gate `npm audit --omit=dev --audit-level=high` pada F13-06/F13-08. Task ini tidak mengubah perilaku produk; tidak ada kenaikan major tanpa persetujuan pemilik. Ditambahkan ke task list pada 2026-11-18 karena sebelumnya hanya tercatat di BACKLOG.
+
+- [x] **SEC-AUDIT-01 — Hijaukan audit produksi tanpa mengubah perilaku produk.** [Role: DevOps/Security Agent]
+  **Files:** `apps/web/package.json`, `package-lock.json`
+  **DoD:** Audit produksi exit 0 tanpa kenaikan major; typecheck, test, lint, build, integration, dan E2E tidak berubah. Selesai 2026-11-17 (`434710c`, DEVLOG Session 314).
+
+- [x] **SEC-AUDIT-02 — Naikkan `drizzle-kit` agar peer `better-auth` valid.** [Role: DevOps/Security Agent]
+  **Files:** `packages/db/package.json`, `package-lock.json`
+  **DoD:** `npm ls` exit 0; migration dari database kosong menghasilkan skema identik; dependency lain tidak berubah. Selesai 2026-11-18 (`05c14c6`, DEVLOG Session 315). Belum diverifikasi: `drizzle-kit generate` (butuh TTY).
+
+- [ ] **SEC-AUDIT-03 — Kembalikan audit produksi ke exit 0 setelah advisory `picomatch`.** [Role: DevOps/Security Agent]
+  **Files:** `package-lock.json` (perkiraan) · **Depends:** versi patch `picomatch` untuk GHSA-fc5q-39xc-vjpf, atau keputusan penerimaan risiko oleh pemilik
+  **DoD:** `npm audit --omit=dev --audit-level=high` exit 0 tanpa menurunkan `vite` atau kenaikan major; gate standar, integration, dan E2E tidak berubah.
 
 ### Sub-fase UIFIX — Perbaikan Tampilan dan Perilaku Fitur
 
@@ -1008,7 +1027,7 @@ Task teknis harus memeriksa dokumentasi terkini lagi saat mulai dikerjakan karen
 - [TanStack Start â€” routing](https://tanstack.com/start/latest/docs/framework/react/guide/routing): file-based routes berada di `src/routes` dan route tree dihasilkan oleh tooling.
 - [TanStack Start â€” middleware](https://tanstack.com/start/latest/docs/framework/react/guide/middleware): global request middleware dikonfigurasi melalui `createStart` di `src/start.ts`.
 - [TanStack Start â€” server functions](https://tanstack.com/start/latest/docs/framework/react/guide/server-functions): loader dan komponen dapat memanggil server functions; otorisasi tetap server-authoritative.
-- [Clerk TanStack React Start quickstart](https://clerk.com/docs/tanstack-react-start/getting-started/quickstart): `clerkMiddleware()` dipasang pada request middleware; route tetap public sampai guard diterapkan; `auth()` digunakan server-side.
+- [Better Auth — TanStack Start](https://www.better-auth.com/docs/integrations/tanstack): handler dipasang pada server route catch-all `src/routes/api/auth/$.ts` (GET/POST ke `auth.handler`); sesi dibaca server-side. Menggantikan rujukan Clerk sejak MIG-03 (ADR-008).
 - [Drizzle ORM PostgreSQL schema](https://orm.drizzle.team/docs/schemas): schema, enum, table, FK, index, dan inferred types didefinisikan secara type-safe.
 - [Drizzle Kit migrate](https://orm.drizzle.team/docs/drizzle-kit-migrate): migration SQL yang belum diterapkan dijalankan dan dicatat pada migration log; migration generated harus direview dan diuji pada database kosong.
 

@@ -4,6 +4,8 @@
 **Environment:** Authenticated Preview verification pada `https://simulator-ikpa-web-git-staging-trianditogilang.vercel.app` dengan branch Neon test dan sesi Clerk Operator/Admin sementara; fixture data dibuat dan dibersihkan pada database test, release UAT lintas fase tetap belum selesai.
 **Contract:** [Acceptance Criteria Revisi v2](revisi-v2/ACCEPTANCE-CRITERIA.md)
 
+**Catatan ADR-008 (2026-11-18):** bukti di bawah berasal dari stack lama (Vercel Preview, Neon, Clerk). UAT F13-13 diulang pada staging VPS setelah MIG-07 dan F13-09.
+
 `Done` di bawah berarti bukti unit/pure atau smoke lokal tersedia; bukan berarti
 UAT authenticated sudah lulus. Setiap criteria yang belum memiliki bukti
 staging tetap menahan go-live.

@@ -4,7 +4,9 @@
 - Tanggal: 31 Agustus 2026
 - Pemilik: Product & IKPA Analyst
 - Task: F0-09
-- Terkait: F0-11, F2-05, F8-03, F8-04, ADR-005
+- Terkait: F0-11, F2-05, F8-03, F8-04, ADR-005, ADR-008
+
+> **Scope note (2026-11-18):** sejak MIG-03 (ADR-008), "login Clerk" dan "session Clerk" pada ADR ini dibaca sebagai login dan sesi Better Auth, dan identitas canonical `clerk_user_id` dibaca sebagai `users.id` (Addendum MIG-03 pada ERD v2). Precedence, hasil resolver, dan `user_accesses` sebagai sumber otorisasi tidak berubah.
 
 ## Konteks
 

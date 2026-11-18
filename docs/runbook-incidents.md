@@ -1,5 +1,7 @@
 # Runbook Insiden — Simulator IKPA
 
+> **Catatan ADR-008 (2026-11-18):** database kini PostgreSQL di VPS (bukan branch Neon) dan email dikirim lewat SMTP (MIG-05). QStash masih dipakai sampai MIG-04 selesai. Prosedur VPS lengkap menyusul pada F13-09.
+
 ## Database unavailable (`NO_DB` / `DATABASE_UNAVAILABLE`)
 
 1. Hentikan promote dan cek status provider database.
@@ -11,8 +13,9 @@
 ## Delivery provider unavailable
 
 1. Pertahankan delivery `failed`/`scheduled`; jangan mengubahnya menjadi `sent`.
-2. Periksa `RESEND_API_KEY` dan QStash current/next signing key melalui secret
-   manager.
+2. Periksa variabel `SMTP_*` dan `NOTIFICATION_SENDER_EMAIL` serta QStash
+   current/next signing key melalui secret manager (`RESEND_API_KEY` tidak
+   dipakai lagi sejak MIG-05).
 3. Setelah provider tervalidasi, retry hanya delivery failed dalam scope Admin
    yang sesuai dan cek audit log/idempotency.
 

@@ -27,6 +27,15 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 316 - 2026-11-18
+**Status:** Completed — DOC-SYNC-01: dokumen referensi diselaraskan dengan ADR-008 dan TASK-LIST (docs only)
+- **Pemicu:** pemilik meminta pengecekan apakah pekerjaan SEC-AUDIT mengikuti `TASK-LIST-Simulator-IKPA.md` dan apakah dokumen rujukan sudah mengikuti keputusan stack terakhir. Temuan proses: SEC-AUDIT-01 dan SEC-AUDIT-02 dikerjakan sebagai task ad hoc yang hanya tercatat di BACKLOG/DEVLOG, tanpa entri dan checkbox di TASK-LIST; entri DEVLOG Session 314 dan 315 juga tidak menyebut task berikutnya yang terbuka (syarat minimum TASK-LIST §1).
+- **Sudah sinkron (tidak diubah):** addendum ADR-008 pada PRD/FSD/TSD/ERD v2 (termasuk status MIG-02, MIG-03/05 pada TSD butir 8–9, FSD butir 7, dan Addendum MIG-03 ERD), scope note ADR-006, baris ADR-008 pada traceability matrix, catatan ADR-008 pada kebijakan retensi, observability, dan go-live checklist. Sisa rujukan QStash dan R2 pada `.env.example` dan dokumen lama benar menurut aturan transisi ADR-008 karena MIG-04 dan MIG-06 belum dikerjakan.
+- **Diubah:** TASK-LIST (catatan bahwa basis v1 historis dan stack mengikuti ADR-008; sub-fase SEC-AUDIT dengan SEC-AUDIT-01/02 dicentang dan SEC-AUDIT-03 terbuka; catatan keputusan undangan tanpa token pada MIG-03, karena langkah (b) masih berbunyi "undangan bertoken"; rujukan Context7 Clerk pada §20 diganti Better Auth TanStack Start, diverifikasi lewat Context7 `/better-auth/better-auth` v1.7.15). ADR-008: baris status ("implementasi belum dimulai") dan keputusan terbuka VPS (sudah dipilih 2026-11-16, domain masih terbuka). ADR-007: scope note Better Auth dan `users.id`. Runbook insiden: catatan stack baru dan langkah `RESEND_API_KEY` diganti variabel SMTP. Laporan UAT: catatan bahwa bukti berasal dari stack lama.
+- **Verifikasi:** `git diff --name-only` hanya berisi file `docs/`; tidak ada area `docs/operator-freeze.md` yang tersentuh.
+- **Tidak diubah dengan sengaja:** header "Basis: PRD v1.3 …" dan evidence F13-02..F13-08 pada TASK-LIST (histori); ADR-005 yang menyebut Clerk/Resend/QStash sebagai contoh adapter.
+- **Berikutnya:** MIG-04 (Ready) — ganti QStash dengan cron VPS + shared secret, dimulai dari laporan rencana. MIG-03/MIG-05 menunggu SMTP dan DNS pengirim dari pemilik; SEC-AUDIT-03 menunggu patch `picomatch`.
+
 ### Session 315 - 2026-11-18
 **Status:** Completed — SEC-AUDIT-02: `drizzle-kit` naik ke 0.31.11; hasil di-commit lokal pada `staging`, belum di-push. Gate audit dipindah ke SEC-AUDIT-03 atas keputusan pemilik
 - **Lingkup:** hanya `packages/db/package.json` (`drizzle-kit` `^0.30.1` → `^0.31.11`) dan `package-lock.json`. Tidak ada kode aplikasi, migration, maupun area `docs/operator-freeze.md` yang berubah; dependency lain tidak disentuh.
