@@ -963,6 +963,12 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Depends:** MIG-01–MIG-06
   **DoD:** Paket dan variabel environment Clerk, Neon, QStash, Resend, dan R2 terhapus; integration tenant isolation (F13-02), policy/reminder (F13-03), E2E Operator dan Admin (F13-04, F13-05), performance baseline (F13-07), dan CI quality gate (F13-08) hijau pada stack baru; security review ulang untuk autentikasi, sesi, reset kata sandi, undangan, dan endpoint job tanpa temuan critical/high (F13-06).
 
+- [ ] **SMTP-DOMAIN-01 — Pindahkan pengirim email ke `notifikasi@ikpa.web.id` lewat Brevo free.** [Role: Policy & Reminder Agent]
+  **Dasar:** keputusan pemilik 2026-11-18 — Gmail SMTP dipakai dulu (ADR-008 Amandemen SMTP); setelah domain tersedia, pengirim memakai alamat no-reply berdomain sendiri (tanpa mailbox dan tanpa forwarding) lewat Brevo free (300 email/hari, DKIM domain sendiri). Tidak ada perubahan kode; hanya variabel `SMTP_*`.
+  **Files:** `.env.smtp.local` / environment server (tidak di-commit), `docs/adr/ADR-008-data-residency-self-hosted-stack.md`, `docs/revisi-v2/TSD-Simulator-IKPA.md`
+  **Depends:** domain `ikpa.web.id` terdaftar (sejalan dengan F13-09); akun Brevo, verifikasi domain (Brevo code, DKIM, DMARC `p=none`), dan SMTP key dibuat pemilik; MIG-05
+  **DoD:** `scripts/smtp-smoke.mjs` exit 0 ke Gmail dan ke alamat kemenkeu dan email tiba di Kotak Masuk (bukan Spam); header asli Gmail menunjukkan DKIM dan DMARC pass untuk `ikpa.web.id`; OTP daftar dan reset terkirim lewat Brevo dan dapat dipakai masuk; gate standar tidak berubah; DMARC dinaikkan ke `p=quarantine` setelah laporan bersih ±1–2 minggu.
+
 ### Sub-fase SEC-AUDIT — Pemeliharaan Dependency Audit
 
 > **Dasar:** gate `npm audit --omit=dev --audit-level=high` pada F13-06/F13-08. Task ini tidak mengubah perilaku produk; tidak ada kenaikan major tanpa persetujuan pemilik. Ditambahkan ke task list pada 2026-11-18 karena sebelumnya hanya tercatat di BACKLOG.

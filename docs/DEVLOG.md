@@ -29,6 +29,15 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 320 - 2026-11-18
+**Status:** Completed (docs only) — rencana SMTP-DOMAIN-01: email aplikasi berdomain sendiri setelah `ikpa.web.id` dibeli
+- **Pertanyaan pemilik:** cara memakai domain sendiri `ikpa.web.id` untuk email khusus aplikasi. Keputusan pemilik: domain belum dibeli; Gmail SMTP tetap dipakai dulu untuk menutup MIG-03/MIG-05; alamat domain bersifat no-reply (tanpa mailbox dan tanpa forwarding).
+- **Analisis:** pengirim gratis yang mendukung DKIM domain sendiri adalah Brevo free (300 email/hari, logo Brevo di footer pada akun gratis). Opsi yang gugur: Zoho Mail Free tidak menyediakan SMTP; Gmail gratis dengan "Kirim sebagai" `@ikpa.web.id` tidak dapat menandatangani DKIM domain itu sehingga gagal DMARC; mail server sendiri terhalang blokir port 25 Tencent. Tidak ada perubahan kode karena mailer membaca `SMTP_*` dan port 587 memakai STARTTLS.
+- **Diubah:** TASK-LIST (task SMTP-DOMAIN-01 dengan Depends dan DoD), ADR-008 Amandemen SMTP (jalur keluar konkret: host Brevo, record DNS, DMARC `p=none` lalu `p=quarantine`, batasan, Gmail sebagai cadangan), `.env.example` (contoh blok Brevo), BACKLOG (SMTP-DOMAIN-01 Blocked).
+- **Risiko tercatat:** kuota 300/hari lebih kecil dari Gmail 500/hari; hari onboarding massal ±170 OTP atau hari tenggat dengan penerima tambahan bisa melewatinya. OTP yang gagal tidak dapat di-retry; mitigasinya onboarding bertahap atau kembali sementara ke env Gmail.
+- **Verifikasi:** `git diff --name-only` hanya berisi dokumen dan `.env.example`; tidak ada perubahan kode.
+- **Berikutnya:** tetap menunggu App Password Gmail di `.env.smtp.local` untuk menutup MIG-03/MIG-05; SMTP-DOMAIN-01 setelah domain dibeli.
+
 ### Session 319 - 2026-11-18
 **Status:** In Progress — MIG-03/MIG-05: penyedia SMTP diputuskan (Gmail SMTP); menunggu App Password dari pemilik untuk uji kotak masuk nyata
 - **Aturan baru pemilik:** rekomendasi provider selalu yang gratis, mudah dipakai, dan cukup untuk ±170 pengguna bersamaan.
