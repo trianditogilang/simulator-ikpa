@@ -30,6 +30,14 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Recent Sessions
 
+### Session 323 - 2026-11-23
+**Status:** In Progress — MIG-03/MIG-05 tetap Needs Fix: uji Gmail SMTP nyata sebagian besar lulus
+- **Lingkungan:** stack compose lokal dari database kosong (8 migration + seed exit 0) dengan `--env-file .env.compose.local --env-file .env.smtp.local`; kedua berkas di-ignore git. `.env.compose.local` berisi secret acak lokal (`POSTGRES_PASSWORD`, `BETTER_AUTH_SECRET`, `JOB_SECRET`) dan `HTTP_PORT=8080`; `.env.smtp.local` berisi akun Gmail khusus `simulator.ikpa.notif@gmail.com` + App Password.
+- **Lulus:** `scripts/smtp-smoke.mjs` exit 0; pemilik mengonfirmasi OTP reset kata sandi dan OTP perangkat baru tiba di Kotak Masuk dan dapat dipakai masuk (database: akun `credential` dibuat 13:08 UTC, `2fa-attempts` lalu `trust-device` tercatat); satu baris `notification_deliveries` uji (`entity_type` `uji_smtp_mig05`) dikirim job `/api/jobs/reminders/send` lewat service `scheduler` dengan Bearer `JOB_SECRET` (`sent: 1`, `failed: 0`, status `sent`, tanpa `error_message`).
+- **Catatan:** email pemilik sudah ada di seed sebagai Admin KPPN 032 Pendamping, sehingga setelah masuk ia diarahkan ke halaman Admin; ini perilaku seed yang benar, bukan defect. Karena itu tidak ada user baru yang terbentuk dan OTP daftar untuk email baru belum terbukti.
+- **Belum diverifikasi:** OTP daftar dengan email di luar seed; penempatan email reminder (Kotak Masuk/Spam) di Gmail pemilik; cookie `Secure` di balik TLS (menunggu F13-09).
+- **Berikutnya:** pemilik menyerahkan daftar perubahan UI/UX layar masuk/daftar (digabung ke MIG-03 sesuai UIFIX-00), lalu uji OTP daftar dan tutup MIG-03/MIG-05.
+
 ### Session 322 - 2026-11-23
 **Status:** Completed — SEC-AUDIT-03: audit produksi kembali exit 0 tanpa perubahan kode atau lockfile
 - **Temuan:** `gh api /advisories/GHSA-fc5q-39xc-vjpf` menunjukkan advisory ditarik (`withdrawn_at` 2026-11-18T15:38:56Z); `picomatch` terpasang tetap 4.0.7 dan 2.3.2.
