@@ -981,9 +981,9 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Files:** `packages/db/package.json`, `package-lock.json`
   **DoD:** `npm ls` exit 0; migration dari database kosong menghasilkan skema identik; dependency lain tidak berubah. Selesai 2026-11-18 (`05c14c6`, DEVLOG Session 315). Belum diverifikasi: `drizzle-kit generate` (butuh TTY).
 
-- [ ] **SEC-AUDIT-03 — Kembalikan audit produksi ke exit 0 setelah advisory `picomatch`.** [Role: DevOps/Security Agent]
+- [x] **SEC-AUDIT-03 — Kembalikan audit produksi ke exit 0 setelah advisory `picomatch`.** [Role: DevOps/Security Agent]
   **Files:** `package-lock.json` (perkiraan) · **Depends:** versi patch `picomatch` untuk GHSA-fc5q-39xc-vjpf, atau keputusan penerimaan risiko oleh pemilik
-  **DoD:** `npm audit --omit=dev --audit-level=high` exit 0 tanpa menurunkan `vite` atau kenaikan major; gate standar, integration, dan E2E tidak berubah.
+  **DoD:** `npm audit --omit=dev --audit-level=high` exit 0 tanpa menurunkan `vite` atau kenaikan major; gate standar, integration, dan E2E tidak berubah. Selesai 2026-11-23 tanpa perubahan lockfile: advisory ditarik GitHub (DEVLOG Session 322).
 
 ### Sub-fase UIFIX — Perbaikan Tampilan dan Perilaku Fitur
 

@@ -26,8 +26,17 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - SEC-AUDIT-02 (2026-11-18): `drizzle-kit` 0.30.6 → 0.31.11 sehingga peer `better-auth` valid dan `npm ls` exit 0; skema hasil migration identik, integration dan E2E tidak berubah. Audit produksi kembali exit 1 karena advisory baru `picomatch` (GHSA-fc5q-39xc-vjpf, belum ada patch) yang juga menggagalkan HEAD sebelumnya; ditangani SEC-AUDIT-03.
 - MIG-04 (2026-11-18): QStash diganti service compose `scheduler` (busybox `crond`) yang memanggil `/api/jobs/*` dengan Bearer `JOB_SECRET` lewat jaringan internal; Caddy menjawab 404 dari luar. Baseline: 45 file/318 test, integration 91 + 2 skip, F13-03 2/2 lewat SMTP Mailpit, E2E Operator dan Admin 12/12. Storage import (MIG-06) masih stack lama.
 - MIG-06 (2026-11-18): berkas import tidak pernah disimpan (parse di memori), sehingga DoD direktori privat diamandemen pemilik dan `R2_*` dihapus. Baseline: 46 file/322 test, integration 91 + 2 skip. Temuan IMPORT-FIX-01: commit import hanya memakai 100 baris valid pertama.
+- SEC-AUDIT-03 (2026-11-23): advisory `picomatch` GHSA-fc5q-39xc-vjpf ditarik, sehingga audit produksi kembali exit 0 tanpa perubahan dependency; residual tetap 8 moderate.
 
 ## Recent Sessions
+
+### Session 322 - 2026-11-23
+**Status:** Completed — SEC-AUDIT-03: audit produksi kembali exit 0 tanpa perubahan kode atau lockfile
+- **Temuan:** `gh api /advisories/GHSA-fc5q-39xc-vjpf` menunjukkan advisory ditarik (`withdrawn_at` 2026-11-18T15:38:56Z); `picomatch` terpasang tetap 4.0.7 dan 2.3.2.
+- **Verifikasi:** `npm audit --omit=dev --audit-level=high --registry=https://registry.npmjs.org` exit 0 (8 moderate: `vitest`/`@vitest/mocker`, `drizzle-kit`/`esbuild`, `exceljs`/`uuid`); `npm run check` exit 0 (typecheck, seluruh test workspace, lint 0 error/74 warning). Integration dan E2E tidak diulang karena kode dan lockfile tidak berubah.
+- **Catatan lingkungan:** registry lokal `registry.npmmirror.com` menjawab 404 untuk endpoint audit, jadi audit lokal wajib memakai `--registry=https://registry.npmjs.org`; CI memakai registry default npm dan tidak terdampak.
+- **Belum diverifikasi:** langkah "Dependency audit" pada CI GitHub (commit belum di-push).
+- **Berikutnya:** seluruh task terbuka lain menunggu pemilik — App Password Gmail untuk MIG-03/MIG-05, lalu MIG-07 → F13-09; daftar UIFIX-00; due date residual F13-06; push commit lokal.
 
 ### Session 321 - 2026-11-18
 **Status:** Completed (docs only) — SMTP-DOMAIN-01 dibatalkan; Gmail SMTP dipakai permanen
