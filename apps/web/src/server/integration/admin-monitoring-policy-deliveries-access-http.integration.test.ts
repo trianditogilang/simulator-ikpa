@@ -39,7 +39,8 @@ if (
 const db = createDbClient(testDatabaseUrl);
 const fixtureTag = randomUUID().replaceAll("-", "").slice(0, 12);
 const peerScopeCode = `F13-02-ADM-SCOPE-${fixtureTag}`;
-const peerOrgCode = `F13A${fixtureTag.slice(0, 8)}`.toUpperCase();
+// A valid 6-digit code (owner 2026-11-24), so the scope guard, not the format check, refuses it.
+const peerOrgCode = String(700000 + Math.floor(Math.random() * 100000));
 const peerOrgName = `F13-02 admin peer ${fixtureTag}`;
 const peerKppnName = `F13-02 admin peer KPPN ${fixtureTag}`;
 const ownSimulationName = `F13-02 admin own snapshot ${fixtureTag}`;

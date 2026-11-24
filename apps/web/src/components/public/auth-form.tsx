@@ -54,6 +54,10 @@ function describeError(error: AuthError): string {
 		case "USER_ALREADY_EXISTS":
 		case "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL":
 			return "Email ini sudah terdaftar. Silakan Masuk, atau pilih Lupa kata sandi jika Anda tidak ingat kata sandi.";
+		case "EMAIL_REQUEST_PENDING":
+			return "Email ini sedang menunggu persetujuan Admin KPPN. Silakan Masuk untuk melihat status permintaan.";
+		case "KODE_SATKER_INVALID":
+			return KODE_SATKER_RULE;
 		case "SATKER_ALREADY_HAS_OPERATOR":
 			// The server names the satker and the masked Operator email.
 			return error.message ?? "Satker ini sudah memiliki akun. Silakan Masuk.";

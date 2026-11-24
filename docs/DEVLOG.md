@@ -52,6 +52,24 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
   - `curl` dan browser pane ke image baru: kode 5 digit ditolak di klien; 411782 menampilkan pesan dengan kalimat Admin; tidak ada user yang dibuat.
   - E2E Operator 12/12 dan Admin 12/12 terhadap build produksi pada `f13test` (dihapus setelahnya).
   - Badge di panel Admin hanya diuji lewat data integration, belum dilihat di layar.
+- **Koreksi pemilik (sesudah commit `fed619c`):** daftar dengan kode `11111` (KPPBC, Operator aktif) menampilkan pesan 6 digit, bukan pesan satker. Pemilik menegaskan kode satker harus tepat 6 digit di semua jalur.
+  - `assignUserAccessFn` (undangan/ubah akses Operator oleh Admin) kini menolak kode yang bukan 6 digit (`KODE_SATKER_INVALID`). Kolom kode di modal Admin dibatasi 6 karakter.
+  - Hook sign-up juga memeriksa format untuk pemanggil API langsung.
+  - Fixture runner `F13ADM` diganti `999001`, dan kode uji integration diganti kode 6 digit acak.
+  - Atas pilihan pemilik, data lokal yang tidak valid dihapus: satker `11111` (KPPBC) dan baris fixture lama `F13ADM`.
+    - Ikut terhapus: 1 akses Operator dan 2 tahun anggaran. 5 baris audit tetap ada dengan `org_id` kosong.
+    - Akun gilangrah6@gmail.com tetap ada tanpa satker.
+    - Kini semua `organizations.kode_satker` lokal sudah 6 digit.
+  - Verifikasi: `npm run check` exit 0 (web 136); integration 101 + 2 skip, ditambah test undangan Admin dengan kode 5 digit → ditolak tanpa akun. Fixture peer di `admin-monitoring…` dan `settings-http` kini 6 digit.
+  - `curl` ke image baru: `12345` → `KODE_SATKER_INVALID`.
+  - Belum dicek: form di browser (pane login sebagai Admin), dan E2E tidak diulang.
+- **Keputusan pemilik (email yang dipakai ulang):** gilangrah6@gmail.com menjadi akun yatim (tanpa akses, tanpa permintaan), sehingga tidak terlihat di Kelola Akses tetapi tetap ditolak saat Daftar. Pemilik memutuskan email yang tidak terlihat oleh Admin boleh dipakai Daftar lagi, tanpa panel baru.
+  - Daftar kini hanya menolak email dengan akses aktif atau undangan `pending` (`EMAIL_ALREADY_REGISTERED`), dan email dengan permintaan `pending` (`EMAIL_REQUEST_PENDING`, pesan baru).
+  - Akun yatim tidak dihapus, karena FK cascade akan ikut menghapus audit dan simulasi. `releaseOrphanEmail` mencabut sesi/kredensial/2FA dan mengganti emailnya menjadi `released-<id>@released.invalid`. Pelepasan dijalankan paling akhir, sehingga daftar yang ditolak tidak melepas apa pun.
+  - Kompromi: email akun yatim bisa dilepas sebelum OTP membuktikan kepemilikan; dampaknya kecil karena akun itu tidak punya akses.
+  - Verifikasi: typecheck dan lint exit 0, `npm run check` exit 0. Integration 102 + 2 skip, termasuk dua test baru: email dengan permintaan `pending` ditolak; email akun yatim dipakai ulang, baris lama menjadi `released-…`, dan akun baru belum terverifikasi.
+  - Percobaan pertama gagal karena subquery `exists` di select satu tabel tidak terhubung ke `users`; diganti dengan query terpisah berdasarkan id.
+  - Image compose dibangun ulang. Daftar dengan gilangrah6@gmail.com belum dicoba, karena akan mengirim OTP nyata; pemilik akan mencobanya sendiri.
 - **Belum diverifikasi:** CI GitHub; cookie `Secure` di balik TLS (MIG-07/F13-09).
 - **Berikutnya:** commit setelah disetujui pemilik, lalu MIG-07.
 

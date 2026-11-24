@@ -108,7 +108,7 @@ await sql`DELETE FROM access_requests WHERE user_id = ${requesterUser.id}`;
 // satker, so the harness adds this one idempotently.
 await sql`
 	INSERT INTO organizations (kppn_scope_id, kode_satker, name, kppn_name)
-	SELECT ua.kppn_scope_id, 'F13ADM', 'Satker Fixture Admin F13', s.name
+	SELECT ua.kppn_scope_id, '999001', 'Satker Fixture Admin F13', s.name
 	FROM user_accesses ua
 	INNER JOIN kppn_scopes s ON s.id = ua.kppn_scope_id
 	WHERE ua.user_id = ${adminUser.id} AND ua.access_type = 'admin_kppn'
@@ -126,7 +126,7 @@ await sql`
 		WHERE ua.user_id = ${operatorUser.id} AND f.year = 2026
 		LIMIT 1
 	) fy
-	WHERE o.kode_satker = 'F13ADM'
+	WHERE o.kode_satker = '999001'
 		AND NOT EXISTS (
 			SELECT 1 FROM fiscal_years x WHERE x.org_id = o.id AND x.year = 2026
 		)

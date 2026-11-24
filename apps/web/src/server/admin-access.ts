@@ -18,6 +18,7 @@ import {
 } from "@simulator-ikpa/db/schema";
 import { getAccessResolutionForSession } from "./access.server";
 import { revokeSessionsAndTrustedDevices } from "./auth.server";
+import { KODE_SATKER_PATTERN, KODE_SATKER_RULE } from "./auth-session";
 import {
 	sendAccessRequestDecisionEmail,
 	sendInvitationEmail,
@@ -366,6 +367,9 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 			const rawName = (data.satkerName ?? "").trim();
 			if (!rawKode) {
 				throw Object.assign(new Error("Kode satker wajib diisi untuk peran Operator Satker."), { statusCode: 400, code: "KODE_SATKER_REQUIRED" });
+			}
+			if (!KODE_SATKER_PATTERN.test(rawKode)) {
+				throw Object.assign(new Error(KODE_SATKER_RULE), { statusCode: 400, code: "KODE_SATKER_INVALID" });
 			}
 			if (!rawName) {
 				throw Object.assign(new Error("Nama satker wajib diisi untuk kode satker baru."), { statusCode: 400, code: "SATKER_NAME_REQUIRED" });

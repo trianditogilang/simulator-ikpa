@@ -543,7 +543,7 @@ function AdminAccessManagementPage() {
 									<>
 										<div>
 											<span className="text-muted-foreground block mb-1 font-medium">Kode Satker</span>
-											<input aria-label="Kode satker" type="text" required value={kodeInput} onChange={(e) => setKodeInput(e.target.value.toUpperCase())} placeholder="Contoh: 411782" className="h-9 w-full rounded-lg border border-border bg-surface px-3 font-mono text-foreground focus:border-primary focus:outline-none" />
+											<input aria-label="Kode satker" type="text" inputMode="numeric" maxLength={6} required value={kodeInput} onChange={(e) => setKodeInput(e.target.value.toUpperCase())} placeholder="Contoh: 411782" className="h-9 w-full rounded-lg border border-border bg-surface px-3 font-mono text-foreground focus:border-primary focus:outline-none" />
 										</div>
 										<div>
 											<span className="text-muted-foreground block mb-1 font-medium">Nama Satker</span>

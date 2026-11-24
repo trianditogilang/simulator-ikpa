@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { createDbClient, type DbClient } from "@simulator-ikpa/db";
 import {
+	accessRequests,
 	authAccounts,
 	authRateLimits,
 	authSessions,
@@ -24,6 +25,8 @@ import {
 import {
 	hasLetterAndDigit,
 	MIN_PASSWORD_LENGTH,
+	KODE_SATKER_PATTERN,
+	KODE_SATKER_RULE,
 	maskEmailHint,
 } from "./auth-session";
 
@@ -154,30 +157,91 @@ export async function findSatkerTakenMessage(
 }
 
 /**
- * Sign-up stops before any account or code is made when the email is
- * registered (Better Auth would answer a silent fake success) or the satker
- * already has an Operator.
+ * Owner decision 2026-11-24: an account the Admin cannot see (no active
+ * access, no pending request) gives its email back for a new sign-up. The row
+ * is kept, so its audit trail and simulations survive (deleting it would
+ * cascade them); only the email, password, sessions, and second step go.
+ */
+async function releaseOrphanEmail(db: DbClient, userId: string) {
+	await revokeSessionsAndTrustedDevices(db, userId);
+	await db.delete(authAccounts).where(eq(authAccounts.userId, userId));
+	await db.delete(authTwoFactors).where(eq(authTwoFactors.userId, userId));
+	await db
+		.update(users)
+		.set({ email: `released-${userId}@released.invalid`, emailVerified: false, updatedAt: new Date() })
+		.where(eq(users.id, userId));
+}
+
+/**
+ * Sign-up stops before any account or code is made, in this order, when the
+ * email has an active access or a pending invitation, the email has a pending
+ * request, the satker already has an Operator, or the code is not 6 digits.
+ * Any other existing account with that email is an orphan and is released
+ * last, so a refused sign-up never releases anything.
  */
 async function assertSignUpAvailable(
 	db: DbClient,
 	body: Record<string, unknown> | undefined,
 ) {
 	const text = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+	const email = text(body?.email).toLowerCase();
 	const [registered] = await db
 		.select({ id: users.id })
 		.from(users)
-		.where(eq(users.email, text(body?.email).toLowerCase()))
+		.where(eq(users.email, email))
 		.limit(1);
-	if (registered) {
+	const [access] = registered
+		? await db
+				.select({ id: userAccesses.id })
+				.from(userAccesses)
+				.where(
+					and(
+						eq(userAccesses.userId, registered.id),
+						eq(userAccesses.active, true),
+						eq(userAccesses.status, "active"),
+					),
+				)
+				.limit(1)
+		: [];
+	const [pendingRequest] = registered
+		? await db
+				.select({ id: accessRequests.id })
+				.from(accessRequests)
+				.where(and(eq(accessRequests.userId, registered.id), eq(accessRequests.status, "pending")))
+				.limit(1)
+		: [];
+	const [invited] = await db
+		.select({ id: userAccesses.id })
+		.from(userAccesses)
+		.where(
+			and(
+				eq(userAccesses.invitedEmail, email),
+				eq(userAccesses.status, "pending"),
+				eq(userAccesses.active, true),
+			),
+		)
+		.limit(1);
+	if (access || invited) {
 		throw new APIError("BAD_REQUEST", {
 			code: "EMAIL_ALREADY_REGISTERED",
 			message: "Email sudah terdaftar.",
+		});
+	}
+	if (pendingRequest) {
+		throw new APIError("BAD_REQUEST", {
+			code: "EMAIL_REQUEST_PENDING",
+			message: "Email ini sedang menunggu persetujuan Admin KPPN. Silakan Masuk untuk melihat status permintaan.",
 		});
 	}
 	const taken = await findSatkerTakenMessage(db, text(body?.kodeSatker), text(body?.namaSatker));
 	if (taken) {
 		throw new APIError("BAD_REQUEST", { code: "SATKER_ALREADY_HAS_OPERATOR", message: taken });
 	}
+	// The forms check this too; this guards direct API calls (owner 2026-11-24).
+	if (!KODE_SATKER_PATTERN.test(text(body?.kodeSatker))) {
+		throw new APIError("BAD_REQUEST", { code: "KODE_SATKER_INVALID", message: KODE_SATKER_RULE });
+	}
+	if (registered) await releaseOrphanEmail(db, registered.id);
 }
 
 function createAuth(db: DbClient) {

@@ -38,14 +38,17 @@ if (
 const db = createDbClient(testDatabaseUrl);
 const tag = randomUUID().replaceAll("-", "").slice(0, 6).toUpperCase();
 // Owner decision 2026-11-24: kode satker is exactly 6 digits.
-const randomKode = () => String(900000 + Math.floor(Math.random() * 100000));
+const randomKode = () => String(900000 + Math.floor(Math.random() * 90000));
 const newKode = randomKode();
 const nameMatchKode = randomKode();
 const newName = `Satker Permintaan F13 ${tag}`;
-const inviteKode = `F13IV${tag}`;
+const inviteKode = randomKode();
 const inviteEmail = `f13-invite-${tag.toLowerCase()}@example.test`;
 const bareEmail = `f13-bare-${tag.toLowerCase()}@example.test`;
 const duplicateEmail = `f13-dup-${tag.toLowerCase()}@example.test`;
+const orphanEmail = `f13-orphan-${tag.toLowerCase()}@example.test`;
+const pendingEmail = `f13-pending-${tag.toLowerCase()}@example.test`;
+let releasedUserId: string | undefined;
 const deniedPattern = /ditolak|wewenang|unauthorized|forbidden|sudah memiliki akses|hanya admin kppn/i;
 
 async function findServerFnId(sourcePath: string, exportName: string) {
@@ -119,7 +122,10 @@ async function signIn(email: string) {
 afterAll(async () => {
 	await db.delete(userAccesses).where(eq(userAccesses.userId, requesterUserId as string));
 	await db.delete(accessRequests).where(eq(accessRequests.userId, requesterUserId as string));
-	await db.delete(users).where(inArray(users.email, [inviteEmail, bareEmail, duplicateEmail]));
+	await db
+		.delete(users)
+		.where(inArray(users.email, [inviteEmail, bareEmail, duplicateEmail, orphanEmail, pendingEmail]));
+	if (releasedUserId) await db.delete(users).where(eq(users.id, releasedUserId));
 	await db.delete(organizations).where(inArray(organizations.kodeSatker, [newKode, inviteKode]));
 });
 
@@ -244,6 +250,25 @@ describe("Access request and invitation HTTP flow", () => {
 		expect(accesses).toEqual([{ id: expect.any(String), orgId: org.id }]);
 	});
 
+	it("an invitation needs a 6-digit code", async () => {
+		const result = await call(
+			adminAccess,
+			"assignUserAccessFn",
+			"POST",
+			{
+				email: inviteEmail,
+				name: `Undangan ${tag}`,
+				accessType: "operator_satker",
+				kodeSatker: "12345",
+				satkerName: `Satker Undangan ${tag}`,
+			},
+			adminSession,
+		);
+		expect(result.body).toContain("6 digit");
+		const [invited] = await db.select({ id: users.id }).from(users).where(eq(users.email, inviteEmail));
+		expect(invited).toBeUndefined();
+	});
+
 	it("an invitation creates a password-less account with active access", async () => {
 		await call(
 			adminAccess,
@@ -309,8 +334,54 @@ describe("Access request and invitation HTTP flow", () => {
 			expect(taken.body.message).toContain(`Satker ${own.kode} – ${own.name}`);
 			expect(taken.body.message).not.toContain(own.email);
 		}
+		const badKode = await signUp({ email: freshEmail, kodeSatker: "12345", namaSatker: `Satker Bebas ${tag}` });
+		expect(badKode).toMatchObject({ status: 400, body: { code: "KODE_SATKER_INVALID" } });
+
 		const [created] = await db.select({ id: users.id }).from(users).where(eq(users.email, freshEmail));
 		expect(created).toBeUndefined();
+	});
+
+	it("sign-up refuses an email with a pending request and reuses an orphan email", async () => {
+		const signUp = async (email: string) => {
+			const response = await fetch(`${baseUrl}/api/auth/sign-up/email`, {
+				method: "POST",
+				headers: { "content-type": "application/json", origin: baseUrl as string },
+				body: JSON.stringify({
+					name: "Uji Daftar",
+					email,
+					password: "rahasia2026x",
+					kodeSatker: randomKode(),
+					namaSatker: `Satker Ulang ${tag} ${email.length}`,
+				}),
+			});
+			return { status: response.status, body: (await response.json()) as { code?: string } };
+		};
+
+		const [pending] = await db
+			.insert(users)
+			.values({ email: pendingEmail, name: "Menunggu", emailVerified: true })
+			.returning({ id: users.id });
+		await db.insert(accessRequests).values({ userId: pending.id, kodeSatker: randomKode(), satkerName: `Satker Tunggu ${tag}` });
+		const waiting = await signUp(pendingEmail);
+		expect(waiting).toMatchObject({ status: 400, body: { code: "EMAIL_REQUEST_PENDING" } });
+
+		// No access and no pending request: the Admin cannot see it, so the
+		// email is released for the new sign-up and the old row is kept.
+		const [orphan] = await db
+			.insert(users)
+			.values({ email: orphanEmail, name: "Akun yatim", emailVerified: true })
+			.returning({ id: users.id });
+		releasedUserId = orphan.id;
+		const reused = await signUp(orphanEmail);
+		expect(reused.status).toBe(200);
+		const [released] = await db.select({ email: users.email }).from(users).where(eq(users.id, orphan.id));
+		expect(released.email).toBe(`released-${orphan.id}@released.invalid`);
+		const [fresh] = await db
+			.select({ id: users.id, emailVerified: users.emailVerified })
+			.from(users)
+			.where(eq(users.email, orphanEmail));
+		expect(fresh.id).not.toBe(orphan.id);
+		expect(fresh.emailVerified).toBe(false);
 	});
 
 	it("sign-in explains an unknown email and a password-less account", async () => {
