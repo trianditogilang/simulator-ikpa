@@ -27,17 +27,52 @@ export async function sendOtpEmail(
 	await sendMail({ to, subject: "Kode verifikasi Simulator IKPA", text });
 }
 
+function appUrl(): string {
+	return (process.env.APP_URL ?? "").replace(/\/$/, "");
+}
+
 export async function sendInvitationEmail(
 	to: string,
 	accessType: "operator_satker" | "admin_kppn",
 ): Promise<void> {
 	const role = accessType === "admin_kppn" ? "Admin KPPN" : "Operator Satker";
-	const appUrl = (process.env.APP_URL ?? "").replace(/\/$/, "");
 	const text = [
 		`Anda diundang menggunakan Simulator IKPA sebagai ${role}.`,
 		"",
-		`Daftar dengan alamat email ini di ${appUrl}/sign-up.`,
-		"Akses Anda aktif otomatis setelah email terverifikasi.",
+		`1. Buka ${appUrl()}/sign-in.`,
+		'2. Klik "Lupa kata sandi?" dan masukkan alamat email ini.',
+		"3. Masukkan kode yang kami kirim, lalu buat kata sandi Anda.",
+		"",
+		"Akses Anda sudah aktif dan dapat dipakai setelah kata sandi dibuat.",
 	].join("\n");
 	await sendMail({ to, subject: "Undangan Simulator IKPA", text });
+}
+
+/** Tells a self-service requester the Admin KPPN decision. */
+export async function sendAccessRequestDecisionEmail(
+	to: string,
+	decision: "approved" | "rejected",
+	satker: { kodeSatker: string; satkerName: string },
+): Promise<void> {
+	const label = `${satker.kodeSatker} - ${satker.satkerName}`;
+	const text =
+		decision === "approved"
+			? [
+					`Permintaan akses Operator Satker untuk ${label} telah disetujui Admin KPPN.`,
+					"",
+					`Masuk di ${appUrl()}/sign-in untuk mulai menggunakan Simulator IKPA.`,
+				].join("\n")
+			: [
+					`Permintaan akses Operator Satker untuk ${label} ditolak Admin KPPN.`,
+					"",
+					`Periksa kembali kode dan nama satker di ${appUrl()}/sign-in, lalu ajukan ulang atau hubungi Admin KPPN.`,
+				].join("\n");
+	await sendMail({
+		to,
+		subject:
+			decision === "approved"
+				? "Akses Simulator IKPA disetujui"
+				: "Permintaan akses Simulator IKPA ditolak",
+		text,
+	});
 }

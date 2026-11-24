@@ -24,11 +24,12 @@ if (!baseUrl || !testDatabaseUrl || !configuredOperatorUserId || !sessionToken) 
 const db = createDbClient(testDatabaseUrl);
 const fixtureTag = randomUUID().replaceAll("-", "").slice(0, 12);
 const peerScopeCode = `F13-02-SET-SCOPE-${fixtureTag}`;
-const peerOrgCode = `F13SE${fixtureTag.slice(0, 7)}`.toUpperCase();
+// A valid 6-digit code (owner 2026-11-24), so the guards, not the format check, refuse it.
+const peerOrgCode = String(800000 + Math.floor(Math.random() * 100000));
 const peerOrgName = `F13-02 settings peer ${fixtureTag}`;
 const peerKppnName = `F13-02 settings peer KPPN ${fixtureTag}`;
 const attemptedPeerName = `F13-02 attempted peer update ${fixtureTag}`;
-const deniedPattern = /ditolak|wewenang|unauthorized|forbidden|tidak ditemukan|tidak valid|terdaftar/i;
+const deniedPattern = /ditolak|wewenang|unauthorized|forbidden|tidak ditemukan|tidak valid|terdaftar|sudah memiliki akses/i;
 
 let operatorUserId = "";
 let orgId = "";
@@ -220,15 +221,16 @@ describe("F13-02 settings authenticated HTTP boundary", () => {
 		await expectPeerUnchanged();
 	});
 
-	it("registerSatkerOnboardingFn cannot claim an existing peer Satker", async () => {
-		const id = await findServerFnId("registerSatkerOnboardingFn");
+	it("requestSatkerAccessFn cannot claim an existing peer Satker", async () => {
+		// A mapped Operator is refused outright; nobody's request ever touches
+		// an organization before an Admin approves it (2026-11-23).
+		const id = await findServerFnId("requestSatkerAccessFn");
 		const result = await callServerFn({
 			id,
 			method: "POST",
 			data: {
 				kodeSatker: peerOrgCode,
 				name: attemptedPeerName,
-				isBlu: true,
 			},
 		});
 		expectDenied(result);

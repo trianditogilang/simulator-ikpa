@@ -930,7 +930,9 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Depends:** MIG-01
   **DoD:** Build memakai Nitro preset `node-server`; `docker compose up` menjalankan aplikasi + PostgreSQL lokal dan smoke publik desktop/mobile lulus; batas upload 10 MB diatur di reverse proxy; audit panggilan pihak ketiga dari browser (font, script, analytics) selesai dan hasilnya tercatat; tidak ada dependensi pada Vercel.
 
-- [ ] **MIG-03 — Ganti Clerk dengan Better Auth.** [Role: Auth & Access Agent]
+- [x] **MIG-03 — Ganti Clerk dengan Better Auth.** [Role: Auth & Access Agent]
+  **Evidence 2026-11-24 (Completed):** pemilik meninjau layar masuk/daftar/reset dan panel Permintaan Akses, menyetujui dan menolak permintaan nyata; daftar ganda (email terdaftar atau satker ber-Operator) ditolak sebelum akun dibuat. `npm run check`, integration 100 + 2 skip, E2E Operator dan Admin 12/12 (build produksi, database uji terpisah). CI GitHub belum dijalankan (commit belum di-push). Rincian: DEVLOG Session 326.
+  **Amandemen pemilik 2026-11-23 (masih Needs Fix):** layar masuk/daftar diubah (tombol mata, konfirmasi kata sandi, aturan huruf + angka) dan jalur akses diganti: daftar mandiri menjadi permintaan akses yang disetujui Admin KPPN, undangan membuat akun tanpa kata sandi yang diaktifkan lewat Lupa kata sandi, serta pesan "Email belum terdaftar" (FSD Addendum ADR-008 butir 8, migration `0008_access_requests`). Rincian: DEVLOG Session 324–325.
   **Evidence 2026-11-17 (Needs Fix, belum dicentang):** seluruh butir DoD terverifikasi lokal: daftar/masuk mandiri, OTP email saat daftar, reset, dan perangkat baru (6 digit, 10 menit, sekali pakai, ter-hash, batas percobaan dan kirim ulang), undangan opsional, onboarding kode + nama satker, blind guard, hard delete; `/api/webhooks/clerk`, `sso-callback`, dan `@clerk/*` dihapus. Typecheck, 45 file/320 test, lint, build, `check:migrations`, 8 migration dari database kosong lewat compose, integration 91 + 1 skip, E2E Operator dan Admin 12/12 pada image container. Task ditahan terbuka karena ADR-008 mensyaratkan penyedia SMTP dan DNS pengirim sebelum dinyatakan selesai; CI baru belum dijalankan di GitHub. Rincian dan residual: DEVLOG Session 313.
   **Files:** `apps/web/src/start.ts`, `apps/web/src/server/auth-session.server.ts`, `apps/web/src/server/admin-access.ts`, `apps/web/src/server/access.server.ts`, `apps/web/src/env.server.ts`, komponen `components/public/*` dan `components/auth/*`, `routes/__root.tsx`, `routes/admin-kppn/access.tsx`, `packages/db/src/schema/identity.ts` + migration, `packages/access-control/src/*`, fixture E2E dan integration test
   **Depends:** MIG-01, MIG-02; dikerjakan bersama MIG-05 karena OTP email adalah bagian alur login
@@ -944,7 +946,8 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Depends:** MIG-02
   **DoD:** Endpoint job menolak request tanpa shared secret yang benar; pemicu harian dan pengiriman berjalan dari cron; idempotency key, status delivery, dan retry F13-03 tetap lulus; replay tidak menggandakan notifikasi; tidak ada impor `@upstash/qstash`.
 
-- [ ] **MIG-05 — Ganti Resend dengan SMTP.** [Role: Policy & Reminder Agent]
+- [x] **MIG-05 — Ganti Resend dengan SMTP.** [Role: Policy & Reminder Agent]
+  **Evidence 2026-11-24 (Completed):** lewat Gmail SMTP nyata, OTP daftar/reset/perangkat baru, reminder uji, dan email persetujuan akses tiba di Kotak Masuk Gmail; email uji ke alamat non-Gmail (`pknstan.ac.id`) juga tiba di Kotak Masuk (dikonfirmasi pemilik). Rincian: DEVLOG Session 323 dan 326.
   **Evidence 2026-11-17 (Needs Fix, belum dicentang):** reminder, OTP, reset, dan undangan terkirim lewat SMTP ke Mailpit lokal; template `emails/*` tidak berubah; kegagalan SMTP menjadi delivery `failed` yang dapat di-retry; body dan penerima tidak masuk log. Belum terpenuhi: uji keterkiriman ke kotak masuk Gmail dari domain pengirim (menunggu penyedia SMTP dan DNS dari pemilik).
   **Keputusan 2026-11-18:** penyedia = Gmail SMTP dengan App Password akun khusus (ADR-008 Amandemen SMTP). SPF, DKIM, dan DMARC dikelola Google, jadi langkah DNS pengirim tidak berlaku; "domain pengirim" pada DoD dibaca sebagai `gmail.com`. Uji kotak masuk memakai `scripts/smtp-smoke.mjs` dan alur OTP nyata.
   **Files:** `apps/web/src/server/jobs/handler.ts` (pengiriman), `apps/web/src/env.server.ts`
@@ -986,6 +989,15 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **DoD:** `npm audit --omit=dev --audit-level=high` exit 0 tanpa menurunkan `vite` atau kenaikan major; gate standar, integration, dan E2E tidak berubah. Selesai 2026-11-23 tanpa perubahan lockfile: advisory ditarik GitHub (DEVLOG Session 322).
 
 ### Sub-fase UIFIX — Perbaikan Tampilan dan Perilaku Fitur
+
+- [ ] **INVITE-BULK-01 — Undangan massal Operator Satker dari Excel.** [Role: Auth & Access Agent]
+  **Dasar:** keputusan pemilik 2026-11-23 — satker KPPN Malang (±150) masuk lewat undangan Admin agar Admin tidak memverifikasi permintaan satu per satu saat peluncuran.
+  **Files:** `apps/web/src/server/admin-access.ts`, `apps/web/src/routes/admin-kppn/access.tsx` · **Depends:** MIG-03; format daftar satker dan PIC (kode, nama satker, email) dari pemilik
+  **DoD:** Admin mengunggah satu berkas, melihat pratinjau per baris (valid, duplikat, satker sudah punya Operator) sebelum mengirim; setiap baris valid menjalankan jalur undangan yang sama dengan `assignUserAccessFn`; laporan hasil per baris; tenant isolation F13-02 tetap lulus.
+
+- [ ] **DEMO-01 — Mode demo untuk umum.** [Role: Product & IKPA Analyst]
+  **Dasar:** keinginan pemilik 2026-11-23 agar aplikasi dapat dicoba umum tanpa mengklaim satker sungguhan.
+  **Depends:** keputusan produk pemilik (bentuk demo, data contoh, batas waktu/akun) · **DoD:** ditetapkan setelah keputusan; data demo terpisah dari data satker asli dan tidak dapat mengubahnya.
 
 - [ ] **UIFIX-00 — Inventarisasi dan klasifikasi perbaikan.** [Role: Product & IKPA Analyst]
   **File:** `docs/BACKLOG.md`

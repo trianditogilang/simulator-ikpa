@@ -2,14 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, inArray, isNull, isNotNull, ne, or, sql } from "drizzle-orm";
 import {
 	assertAdminKppnScope,
-	createPendingAccess,
 	ForbiddenError,
 	grantAdminAccess,
 	grantOperatorAccess,
 	hardDeleteUser,
 } from "@simulator-ikpa/access-control";
+import { uuidSchema } from "@simulator-ikpa/contracts";
 import { createDbClient } from "@simulator-ikpa/db";
 import {
+	accessRequests,
 	kppnScopes,
 	organizations,
 	userAccesses,
@@ -17,8 +18,12 @@ import {
 } from "@simulator-ikpa/db/schema";
 import { getAccessResolutionForSession } from "./access.server";
 import { revokeSessionsAndTrustedDevices } from "./auth.server";
-import { sendInvitationEmail } from "./auth-emails.server";
+import {
+	sendAccessRequestDecisionEmail,
+	sendInvitationEmail,
+} from "./auth-emails.server";
 import { getServerAuthSession } from "./auth-session.server";
+import { registerSatkerForUser } from "./domains/settings.server";
 import { failIfProduction } from "./runtime-guards";
 
 function getDatabase() {
@@ -168,6 +173,11 @@ export const listAdminUserAccessFn = createServerFn({ method: "GET" })
 				adminSlot: userAccesses.adminSlot,
 				active: userAccesses.active,
 				createdAt: userAccesses.createdAt,
+				// Invited (or seeded) accounts have no password until "Lupa kata sandi".
+				awaitingPassword: sql<boolean>`not exists (
+					select 1 from auth_accounts a
+					where a.user_id = ${users.id} and a.provider_id = 'credential'
+				)`,
 			})
 			.from(userAccesses)
 			.innerJoin(users, eq(userAccesses.userId, users.id))
@@ -229,6 +239,7 @@ export const listAdminUserAccessFn = createServerFn({ method: "GET" })
 				scopeCode: r.kodeSatker ?? "032",
 				adminSlot: r.adminSlot ?? null,
 				status: r.active ? ("active" as const) : ("inactive" as const),
+				awaitingPassword: Boolean(r.awaitingPassword),
 				createdAt: r.createdAt.toISOString(),
 			})),
 			...pendingRows.map((r) => ({
@@ -243,6 +254,7 @@ export const listAdminUserAccessFn = createServerFn({ method: "GET" })
 				scopeCode: r.kodeSatker ?? "032",
 				adminSlot: r.adminSlot ?? null,
 				status: "pending" as const,
+				awaitingPassword: false,
 				createdAt: r.createdAt.toISOString(),
 			})),
 		];
@@ -481,6 +493,7 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 		}
 
 		let user: typeof users.$inferSelect | null = null;
+		let invitedUser: typeof users.$inferSelect | null = null;
 		if (data.targetUserId) {
 			const [byId] = await db.select().from(users).where(eq(users.id, data.targetUserId)).limit(1);
 			if (!byId) throw new Error("User target tidak ditemukan.");
@@ -535,91 +548,96 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 					}
 				}
 			}
-			// If user doesn't exist yet, create pending access + send the invitation email
+			// Invitation (owner decision 2026-11-23): the account exists from now
+			// on, without a password. The invitee signs in through "Lupa kata
+			// sandi", whose email OTP proves the mailbox and marks it verified.
 			if (!user) {
 				const normalizedEmail = data.email.toLowerCase().trim();
-
-				// Determine org/scope for pending access
-				let pendingOrgId: string | null = null;
-				let pendingKppnScopeId: string | null = null;
-				if (data.accessType === "operator_satker") {
-					pendingOrgId = operatorOrgId;
-				} else {
-					pendingKppnScopeId = allowedKppnScopeIds[0] ?? null;
-				}
-
-				const pendingAccess = await createPendingAccess(db, {
-					actorUserId,
-					email: normalizedEmail,
-					accessType: data.accessType,
-					orgId: pendingOrgId,
-					kppnScopeId: pendingKppnScopeId,
-				});
-
-				// The pending access is the invitation; the email only tells the
-				// invitee to register. Access is claimed once their email is verified.
-				try {
-					await sendInvitationEmail(normalizedEmail, data.accessType);
-				} catch {
-					throw Object.assign(new Error("Email undangan gagal dikirim."), {
-						statusCode: 502,
-						code: "INVITATION_EMAIL_FAILED",
-					});
-				}
-
-				return { success: true, accessId: pendingAccess.id, pending: true };
+				const [created] = await db
+					.insert(users)
+					.values({
+						email: normalizedEmail,
+						name: data.name.trim() || normalizedEmail,
+						emailVerified: false,
+					})
+					.returning();
+				user = created;
+				invitedUser = created;
 			}
 		}
 		if (!user) throw new Error("Gagal memproses user.");
+		const targetUser = user;
 
-		if (data.accessType === "operator_satker") {
-			if (!operatorOrgId) throw new Error("Satker naungan wajib dipilih untuk peran Operator Satker.");
-			if (targetAccessForEdit?.accessType === "operator_satker") {
-				if (await findOtherVisibleOperator(db, operatorOrgId, data.targetAccessId, data.targetUserId)) {
-					throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
+		const grant = async (): Promise<{ success: true; accessId: string }> => {
+			if (data.accessType === "operator_satker") {
+				if (!operatorOrgId) throw new Error("Satker naungan wajib dipilih untuk peran Operator Satker.");
+				if (targetAccessForEdit?.accessType === "operator_satker") {
+					if (await findOtherVisibleOperator(db, operatorOrgId, data.targetAccessId, data.targetUserId)) {
+						throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
+					}
+					if (targetAccessForEdit.orgId !== operatorOrgId) {
+						await db
+							.update(userAccesses)
+							.set({ orgId: operatorOrgId, updatedAt: new Date() })
+							.where(eq(userAccesses.id, targetAccessForEdit.id));
+						await cleanupOrphanOrganization(db, targetAccessForEdit.orgId);
+					}
+					return { success: true, accessId: targetAccessForEdit.id };
 				}
-				if (targetAccessForEdit.orgId !== operatorOrgId) {
-					await db
-						.update(userAccesses)
-						.set({ orgId: operatorOrgId, updatedAt: new Date() })
-						.where(eq(userAccesses.id, targetAccessForEdit.id));
-					await cleanupOrphanOrganization(db, targetAccessForEdit.orgId);
+				const [existingMapping] = await db.select({ id: userAccesses.id }).from(userAccesses).where(and(eq(userAccesses.userId, targetUser.id), eq(userAccesses.orgId, operatorOrgId), eq(userAccesses.accessType, "operator_satker"), eq(userAccesses.status, "active"), eq(userAccesses.active, true))).limit(1);
+				if (existingMapping) {
+					return { success: true, accessId: existingMapping.id };
 				}
-				return { success: true, accessId: targetAccessForEdit.id };
-			}
-			const [existingMapping] = await db.select({ id: userAccesses.id }).from(userAccesses).where(and(eq(userAccesses.userId, user.id), eq(userAccesses.orgId, operatorOrgId), eq(userAccesses.accessType, "operator_satker"), eq(userAccesses.status, "active"), eq(userAccesses.active, true))).limit(1);
-			if (existingMapping) {
-				return { success: true, accessId: existingMapping.id };
-			}
-			const created = await grantOperatorAccess(db, {
-				actorUserId,
-				targetUserId: user.id,
-				orgId: operatorOrgId,
-			});
-			return { success: true, accessId: created.id };
-		} else {
-			if (targetAccessForEdit?.accessType === "admin_kppn") {
-				if (
-					!targetAccessForEdit.kppnScopeId ||
-					!allowedKppnScopeIds.includes(targetAccessForEdit.kppnScopeId)
-				) {
-					throw new Error("Pemetaan akses berada di luar scope admin.");
+				const created = await grantOperatorAccess(db, {
+					actorUserId,
+					targetUserId: targetUser.id,
+					orgId: operatorOrgId,
+				});
+				return { success: true, accessId: created.id };
+			} else {
+				if (targetAccessForEdit?.accessType === "admin_kppn") {
+					if (
+						!targetAccessForEdit.kppnScopeId ||
+						!allowedKppnScopeIds.includes(targetAccessForEdit.kppnScopeId)
+					) {
+						throw new Error("Pemetaan akses berada di luar scope admin.");
+					}
+					return { success: true, accessId: targetAccessForEdit.id };
 				}
-				return { success: true, accessId: targetAccessForEdit.id };
+				const kppnScopeId = allowedKppnScopeIds[0];
+				if (!kppnScopeId) throw new Error("Scope KPPN tidak valid.");
+				const [existingMapping] = await db.select({ id: userAccesses.id }).from(userAccesses).where(and(eq(userAccesses.userId, targetUser.id), eq(userAccesses.kppnScopeId, kppnScopeId), eq(userAccesses.accessType, "admin_kppn"), eq(userAccesses.status, "active"), eq(userAccesses.active, true))).limit(1);
+				if (existingMapping) {
+					return { success: true, accessId: existingMapping.id };
+				}
+				const created = await grantAdminAccess(db, {
+					actorUserId,
+					targetUserId: targetUser.id,
+					kppnScopeId,
+				});
+				return { success: true, accessId: created.id };
 			}
-			const kppnScopeId = allowedKppnScopeIds[0];
-			if (!kppnScopeId) throw new Error("Scope KPPN tidak valid.");
-			const [existingMapping] = await db.select({ id: userAccesses.id }).from(userAccesses).where(and(eq(userAccesses.userId, user.id), eq(userAccesses.kppnScopeId, kppnScopeId), eq(userAccesses.accessType, "admin_kppn"), eq(userAccesses.status, "active"), eq(userAccesses.active, true))).limit(1);
-			if (existingMapping) {
-				return { success: true, accessId: existingMapping.id };
-			}
-			const created = await grantAdminAccess(db, {
-				actorUserId,
-				targetUserId: user.id,
-				kppnScopeId,
-			});
-			return { success: true, accessId: created.id };
+		};
+
+		let result: { success: true; accessId: string };
+		try {
+			result = await grant();
+		} catch (error) {
+			// A refused invitation must not leave a password-less account behind.
+			if (invitedUser) await db.delete(users).where(eq(users.id, invitedUser.id));
+			throw error;
 		}
+		if (invitedUser) {
+			try {
+				await sendInvitationEmail(invitedUser.email, data.accessType);
+			} catch {
+				throw Object.assign(new Error("Email undangan gagal dikirim."), {
+					statusCode: 502,
+					code: "INVITATION_EMAIL_FAILED",
+				});
+			}
+		}
+		return result;
 	});
 
 export const hardDeleteUserFn = createServerFn({ method: "POST" })
@@ -678,4 +696,140 @@ export const removeUserAccessFn = createServerFn({ method: "POST" })
 			return { success: true };
 		}
 		throw new Error("Parameter hapus tidak valid.");
+	});
+
+/**
+ * Self-service requests land in KPPN-032 (the onboarding scope), so only an
+ * Admin of that scope sees or decides them. Returns null for anyone else.
+ */
+async function getRequestScopeAdmin() {
+	const auth = await getServerAuthSession();
+	const access = await getAccessResolutionForSession(auth);
+	const { allowedKppnScopeIds } = assertAdminKppnScope(access);
+	const actorUserId = access.status === "admin" ? access.userId : null;
+	const db = getDatabase();
+	if (!db || !actorUserId) return null;
+	const [scope] = await db
+		.select({ id: kppnScopes.id })
+		.from(kppnScopes)
+		.where(eq(kppnScopes.code, "KPPN-032"))
+		.limit(1);
+	if (!scope || !allowedKppnScopeIds.includes(scope.id)) return null;
+	return { db, actorUserId };
+}
+
+async function findPendingRequest(db: AdminDb, requestId: string) {
+	const [request] = await db
+		.select({
+			id: accessRequests.id,
+			userId: accessRequests.userId,
+			kodeSatker: accessRequests.kodeSatker,
+			satkerName: accessRequests.satkerName,
+			email: users.email,
+		})
+		.from(accessRequests)
+		.innerJoin(users, eq(accessRequests.userId, users.id))
+		.where(
+			and(eq(accessRequests.id, requestId), eq(accessRequests.status, "pending")),
+		)
+		.limit(1);
+	if (!request) {
+		throw Object.assign(new Error("Permintaan akses tidak ditemukan."), {
+			statusCode: 404,
+			code: "ACCESS_REQUEST_NOT_FOUND",
+		});
+	}
+	return request;
+}
+
+export const listAccessRequestsFn = createServerFn({ method: "GET" })
+	.validator(() => undefined)
+	.handler(async () => {
+		const ctx = await getRequestScopeAdmin();
+		if (!ctx) return { requests: [] };
+		const rows = await ctx.db
+			.select({
+				id: accessRequests.id,
+				email: users.email,
+				kodeSatker: accessRequests.kodeSatker,
+				satkerName: accessRequests.satkerName,
+				createdAt: accessRequests.createdAt,
+				existingOrgId: organizations.id,
+				existingOrgName: organizations.name,
+			})
+			.from(accessRequests)
+			.innerJoin(users, eq(accessRequests.userId, users.id))
+			.leftJoin(
+				organizations,
+				eq(organizations.kodeSatker, accessRequests.kodeSatker),
+			)
+			.where(eq(accessRequests.status, "pending"))
+			.orderBy(accessRequests.createdAt);
+		const perKode = new Map<string, number>();
+		for (const row of rows) perKode.set(row.kodeSatker, (perKode.get(row.kodeSatker) ?? 0) + 1);
+		const requests = [];
+		for (const row of rows) {
+			// Verification hints for the Admin: is the code known, and taken?
+			const hasOperator = row.existingOrgId
+				? Boolean(await findOtherVisibleOperator(ctx.db, row.existingOrgId))
+				: false;
+			requests.push({
+				id: row.id,
+				email: row.email,
+				kodeSatker: row.kodeSatker,
+				satkerName: row.satkerName,
+				createdAt: row.createdAt.toISOString(),
+				existingOrgName: row.existingOrgName,
+				hasOperator,
+				duplicateCount: perKode.get(row.kodeSatker) ?? 1,
+			});
+		}
+		return { requests };
+	});
+
+export const approveAccessRequestFn = createServerFn({ method: "POST" })
+	.validator((data: { requestId: string }) => ({ requestId: uuidSchema.parse(data.requestId) }))
+	.handler(async ({ data }) => {
+		const ctx = await getRequestScopeAdmin();
+		if (!ctx) throw new ForbiddenError("Permintaan akses berada di luar wewenang admin.");
+		const request = await findPendingRequest(ctx.db, data.requestId);
+		await registerSatkerForUser(ctx.db, {
+			userId: request.userId,
+			kodeSatker: request.kodeSatker,
+			name: request.satkerName,
+			actorId: ctx.actorUserId,
+			actorAccessType: "admin_kppn",
+		});
+		await ctx.db.delete(accessRequests).where(eq(accessRequests.id, request.id));
+		try {
+			await sendAccessRequestDecisionEmail(request.email, "approved", request);
+		} catch (error) {
+			// The access is granted either way; the Operator can simply sign in.
+			console.warn("Access approval email failed:", error instanceof Error ? error.name : "unknown");
+		}
+		return { success: true };
+	});
+
+export const rejectAccessRequestFn = createServerFn({ method: "POST" })
+	.validator((data: { requestId: string }) => ({ requestId: uuidSchema.parse(data.requestId) }))
+	.handler(async ({ data }) => {
+		const ctx = await getRequestScopeAdmin();
+		if (!ctx) throw new ForbiddenError("Permintaan akses berada di luar wewenang admin.");
+		const request = await findPendingRequest(ctx.db, data.requestId);
+		// The account stays: the requester can correct the data and file again.
+		await ctx.db
+			.update(accessRequests)
+			.set({
+				status: "rejected",
+				decidedBy: ctx.actorUserId,
+				decidedAt: new Date(),
+				updatedAt: new Date(),
+			})
+			.where(eq(accessRequests.id, request.id));
+		try {
+			await sendAccessRequestDecisionEmail(request.email, "rejected", request);
+		} catch (error) {
+			console.warn("Access rejection email failed:", error instanceof Error ? error.name : "unknown");
+		}
+		return { success: true };
 	});

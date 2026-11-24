@@ -1,16 +1,17 @@
 import {
+	getMyAccessRequestFn,
 	getSatkerSettingsFn,
-	registerSatkerOnboardingFn,
+	type MyAccessRequest,
+	requestSatkerAccessFn,
 	type SatkerSettingsData,
 	updateSatkerSettingsFn,
 } from "@/server/settings";
 
-export type { SatkerSettingsData };
+export type { MyAccessRequest, SatkerSettingsData };
 
-export interface RegisterSatkerInput {
+export interface RequestSatkerAccessInput {
 	kodeSatker: string;
 	name: string;
-	isBlu?: boolean;
 }
 
 export interface UpdateSatkerInput {
@@ -31,13 +32,12 @@ export async function updateSatkerSettings(
 	return updateSatkerSettingsFn({ data: input });
 }
 
-export async function registerSatkerOnboarding(
-	input: RegisterSatkerInput,
-): Promise<{
-	success: boolean;
-	orgId: string;
-	satkerName: string;
-	kodeSatker: string;
-}> {
-	return registerSatkerOnboardingFn({ data: input });
+export async function requestSatkerAccess(
+	input: RequestSatkerAccessInput,
+): Promise<{ success: true }> {
+	return requestSatkerAccessFn({ data: input });
+}
+
+export async function fetchMyAccessRequest(): Promise<MyAccessRequest> {
+	return getMyAccessRequestFn();
 }

@@ -1,13 +1,23 @@
-import { LoaderCircle, LogIn, UserPlus } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { Eye, EyeOff, LoaderCircle, LogIn, UserPlus } from "lucide-react";
+import { type ComponentProps, type FormEvent, useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import { MIN_PASSWORD_LENGTH } from "@/server/auth-session";
+import { requestSatkerAccess } from "@/services/settings-service";
+import {
+	hasLetterAndDigit,
+	KODE_SATKER_PATTERN,
+	KODE_SATKER_RULE,
+	MIN_PASSWORD_LENGTH,
+	PASSWORD_RULE_HINT,
+} from "@/server/auth-session";
 
 type Mode = "sign-in" | "sign-up" | "forgot";
 /** Which email code the OTP step is waiting for. */
 type OtpStep = "verify-email" | "new-device" | "reset";
 
-type AuthError = { code?: string; status?: number } | null | undefined;
+type AuthError =
+	| { code?: string; status?: number; message?: string }
+	| null
+	| undefined;
 
 export function isSafeRedirectIntent(value: unknown): value is string {
 	return (
@@ -38,9 +48,19 @@ function describeError(error: AuthError): string {
 			return "Terlalu banyak percobaan salah. Minta kode baru.";
 		case "PASSWORD_TOO_SHORT":
 			return `Kata sandi minimal ${MIN_PASSWORD_LENGTH} karakter.`;
+		case "PASSWORD_NEEDS_LETTER_AND_DIGIT":
+			return LETTER_AND_DIGIT_ERROR;
+		case "EMAIL_ALREADY_REGISTERED":
 		case "USER_ALREADY_EXISTS":
 		case "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL":
-			return "Email sudah terdaftar. Silakan masuk.";
+			return "Email ini sudah terdaftar. Silakan Masuk, atau pilih Lupa kata sandi jika Anda tidak ingat kata sandi.";
+		case "SATKER_ALREADY_HAS_OPERATOR":
+			// The server names the satker and the masked Operator email.
+			return error.message ?? "Satker ini sudah memiliki akun. Silakan Masuk.";
+		case "EMAIL_NOT_REGISTERED":
+			return "Email belum terdaftar, silakan Daftar Akun Baru atau hubungi Admin KPPN.";
+		case "PASSWORD_NOT_SET":
+			return "Akun Anda belum memiliki kata sandi. Klik Lupa kata sandi untuk membuatnya.";
 		default:
 			return "Permintaan gagal. Coba lagi.";
 	}
@@ -51,8 +71,47 @@ const inputClass =
 const labelClass = "block text-xs font-semibold text-foreground";
 const primaryButtonClass =
 	"inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60";
+// `!`: the unlayered `button { font-size/weight: inherit }` in styles.css
+// otherwise beats these utilities and the link renders larger than its label.
 const linkButtonClass =
-	"text-xs font-semibold text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60";
+	"text-xs! font-semibold! text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60";
+
+const LETTER_AND_DIGIT_ERROR = "Kata sandi harus berisi huruf dan angka.";
+
+/**
+ * Password field with a show/hide toggle. Hidden shows the eye-slash icon;
+ * the button label names the action for screen readers.
+ */
+function PasswordInput({
+	onValueChange,
+	...props
+}: Omit<ComponentProps<"input">, "type" | "onChange" | "className"> & {
+	onValueChange: (value: string) => void;
+}) {
+	const [visible, setVisible] = useState(false);
+	const Icon = visible ? Eye : EyeOff;
+	return (
+		<div className="relative">
+			<input
+				{...props}
+				className={`${inputClass} pr-10`}
+				onChange={(event) => onValueChange(event.target.value)}
+				required
+				type={visible ? "text" : "password"}
+			/>
+			<button
+				aria-label={visible ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+				aria-pressed={visible}
+				className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-lg text-muted-foreground transition hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60"
+				disabled={props.disabled}
+				onClick={() => setVisible((value) => !value)}
+				type="button"
+			>
+				<Icon aria-hidden="true" className="size-4" />
+			</button>
+		</div>
+	);
+}
 
 const otpHint: Record<OtpStep, string> = {
 	"verify-email": "untuk memverifikasi email Anda",
@@ -73,9 +132,11 @@ export type AuthFormProps = {
 export function AuthForm({ initialMode = "sign-in", redirectTo }: AuthFormProps) {
 	const [mode, setMode] = useState<Mode>(initialMode);
 	const [otpStep, setOtpStep] = useState<OtpStep | null>(null);
-	const [name, setName] = useState("");
+	const [kodeSatker, setKodeSatker] = useState("");
+	const [namaSatker, setNamaSatker] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
 	const [otp, setOtp] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -88,6 +149,7 @@ export function AuthForm({ initialMode = "sign-in", redirectTo }: AuthFormProps)
 		setOtpStep(null);
 		setOtp("");
 		setPassword("");
+		setConfirmPassword("");
 		setError(null);
 		setNotice(null);
 	}
@@ -119,11 +181,32 @@ export function AuthForm({ initialMode = "sign-in", redirectTo }: AuthFormProps)
 		const normalizedEmail = email.trim().toLowerCase();
 
 		if (mode === "sign-up") {
+			// Same rules as requestSatkerAccessSchema on the server.
+			if (!KODE_SATKER_PATTERN.test(kodeSatker.trim())) {
+				setError(KODE_SATKER_RULE);
+				return;
+			}
+			if (namaSatker.trim().length < 3) {
+				setError("Nama Satker minimal 3 karakter.");
+				return;
+			}
+			if (!hasLetterAndDigit(password)) {
+				setError(LETTER_AND_DIGIT_ERROR);
+				return;
+			}
+			if (password !== confirmPassword) {
+				setError("Konfirmasi kata sandi tidak sama.");
+				return;
+			}
 			const created = await run(() =>
 				authClient.signUp.email({
-					name: name.trim(),
+					// The Operator's profile name is the satker name.
+					name: namaSatker.trim(),
 					email: normalizedEmail,
 					password,
+					// Read by the server sign-up hook only; Better Auth keeps just its
+					// declared user fields. Spread because the client type lists those.
+					...{ kodeSatker: kodeSatker.trim(), namaSatker: namaSatker.trim() },
 				}),
 			);
 			if (created) setOtpStep("verify-email");
@@ -136,6 +219,7 @@ export function AuthForm({ initialMode = "sign-in", redirectTo }: AuthFormProps)
 			);
 			if (requested) {
 				setPassword("");
+				setConfirmPassword("");
 				setOtpStep("reset");
 			}
 			return;
@@ -174,6 +258,14 @@ export function AuthForm({ initialMode = "sign-in", redirectTo }: AuthFormProps)
 		const code = otp.trim();
 
 		if (otpStep === "reset") {
+			if (!hasLetterAndDigit(password)) {
+				setError(LETTER_AND_DIGIT_ERROR);
+				return;
+			}
+			if (password !== confirmPassword) {
+				setError("Konfirmasi kata sandi tidak sama.");
+				return;
+			}
 			const done = await run(() =>
 				authClient.emailOtp.resetPassword({
 					email: normalizedEmail,
@@ -193,7 +285,20 @@ export function AuthForm({ initialMode = "sign-in", redirectTo }: AuthFormProps)
 				? authClient.twoFactor.verifyOtp({ code, trustDevice: true })
 				: authClient.emailOtp.verifyEmail({ email: normalizedEmail, otp: code }),
 		);
-		if (verified) window.location.assign(destination);
+		if (!verified) return;
+		if (mode === "sign-up") {
+			// The verified session files the access request; /access-pending shows
+			// its state and offers the form again if this call did not go through.
+			try {
+				await requestSatkerAccess({
+					kodeSatker: kodeSatker.trim(),
+					name: namaSatker.trim(),
+				});
+			} catch {}
+			window.location.assign("/access-pending");
+			return;
+		}
+		window.location.assign(destination);
 	}
 
 	async function resendOtp() {
@@ -269,21 +374,33 @@ export function AuthForm({ initialMode = "sign-in", redirectTo }: AuthFormProps)
 						<label className={labelClass} htmlFor="auth-new-password">
 							Kata sandi baru
 						</label>
-						<input
+						<PasswordInput
 							autoComplete="new-password"
-							className={inputClass}
 							disabled={busy}
 							id="auth-new-password"
 							minLength={MIN_PASSWORD_LENGTH}
 							name="new-password"
-							onChange={(event) => setPassword(event.target.value)}
-							required
-							type="password"
+							onValueChange={setPassword}
 							value={password}
 						/>
 						<p className="text-[11px] text-muted-foreground">
-							Minimal {MIN_PASSWORD_LENGTH} karakter.
+							{PASSWORD_RULE_HINT}
 						</p>
+					</div>
+				) : null}
+				{otpStep === "reset" ? (
+					<div className="space-y-1.5">
+						<label className={labelClass} htmlFor="auth-new-password-confirm">
+							Konfirmasi kata sandi baru
+						</label>
+						<PasswordInput
+							autoComplete="new-password"
+							disabled={busy}
+							id="auth-new-password-confirm"
+							name="new-password-confirm"
+							onValueChange={setConfirmPassword}
+							value={confirmPassword}
+						/>
 					</div>
 				) : null}
 				{feedback}
@@ -349,21 +466,43 @@ export function AuthForm({ initialMode = "sign-in", redirectTo }: AuthFormProps)
 					</p>
 				) : null}
 				{mode === "sign-up" ? (
-					<div className="space-y-1.5">
-						<label className={labelClass} htmlFor="auth-name">
-							Nama lengkap
-						</label>
-						<input
-							autoComplete="name"
-							className={inputClass}
-							disabled={busy}
-							id="auth-name"
-							name="name"
-							onChange={(event) => setName(event.target.value)}
-							required
-							value={name}
-						/>
-					</div>
+					<>
+						<div className="space-y-1.5">
+							<label className={labelClass} htmlFor="auth-kode-satker">
+								Kode Satker
+							</label>
+							<input
+								autoComplete="off"
+								className={inputClass}
+								disabled={busy}
+								id="auth-kode-satker"
+								inputMode="numeric"
+								maxLength={6}
+								name="kode-satker"
+								onChange={(event) => setKodeSatker(event.target.value)}
+								placeholder="Contoh: 411782"
+								required
+								value={kodeSatker}
+							/>
+						</div>
+						<div className="space-y-1.5">
+							<label className={labelClass} htmlFor="auth-nama-satker">
+								Nama Satker
+							</label>
+							<input
+								autoComplete="organization"
+								className={inputClass}
+								disabled={busy}
+								id="auth-nama-satker"
+								maxLength={200}
+								name="nama-satker"
+								onChange={(event) => setNamaSatker(event.target.value)}
+								placeholder="Contoh: KPP Pratama Malang Selatan"
+								required
+								value={namaSatker}
+							/>
+						</div>
+					</>
 				) : null}
 				<div className="space-y-1.5">
 					<label className={labelClass} htmlFor="auth-email">
@@ -397,27 +536,39 @@ export function AuthForm({ initialMode = "sign-in", redirectTo }: AuthFormProps)
 								</button>
 							) : null}
 						</div>
-						<input
+						<PasswordInput
 							autoComplete={
 								mode === "sign-up" ? "new-password" : "current-password"
 							}
-							className={inputClass}
 							disabled={busy}
 							id="auth-password"
 							minLength={mode === "sign-up" ? MIN_PASSWORD_LENGTH : undefined}
 							name="password"
-							onChange={(event) => setPassword(event.target.value)}
-							required
-							type="password"
+							onValueChange={setPassword}
 							value={password}
 						/>
 						{mode === "sign-up" ? (
 							<p className="text-[11px] text-muted-foreground">
-								Minimal {MIN_PASSWORD_LENGTH} karakter.
+								{PASSWORD_RULE_HINT}
 							</p>
 						) : null}
 					</div>
 				)}
+				{mode === "sign-up" ? (
+					<div className="space-y-1.5">
+						<label className={labelClass} htmlFor="auth-password-confirm">
+							Konfirmasi kata sandi
+						</label>
+						<PasswordInput
+							autoComplete="new-password"
+							disabled={busy}
+							id="auth-password-confirm"
+							name="password-confirm"
+							onValueChange={setConfirmPassword}
+							value={confirmPassword}
+						/>
+					</div>
+				) : null}
 				{feedback}
 				<button className={primaryButtonClass} disabled={busy} type="submit">
 					{spinner}

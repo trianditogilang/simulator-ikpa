@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import {
 	Building2,
 	CheckCircle2,
+	Clock,
 	LoaderCircle,
 	LogOut,
 	MessageCircle,
@@ -10,7 +11,11 @@ import {
 import { type ComponentProps, type FormEvent, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { SignOutAction } from "@/components/auth/sign-out-action";
-import { registerSatkerOnboarding } from "@/services/settings-service";
+import { KODE_SATKER_PATTERN, KODE_SATKER_RULE } from "@/server/auth-session";
+import {
+	type MyAccessRequest,
+	requestSatkerAccess,
+} from "@/services/settings-service";
 
 const defaultContactHref =
 	"https://wa.me/6281234567890?text=Halo%20Admin%20KPPN%2C%20saya%20ingin%20meminta%20akses%20Simulator%20IKPA";
@@ -18,6 +23,8 @@ const defaultContactHref =
 export type AccessPendingProps = Omit<ComponentProps<"section">, "children"> & {
 	email?: string;
 	contactHref?: string;
+	/** The user's own access request, read by the route loader. */
+	request?: MyAccessRequest;
 };
 
 export function maskEmail(email: string) {
@@ -36,15 +43,19 @@ export function maskEmail(email: string) {
 export function AccessPending({
 	email,
 	contactHref = defaultContactHref,
+	request = null,
 	className,
 	...props
 }: AccessPendingProps) {
 	const maskedEmail = email ? maskEmail(email) : "Identitas terverifikasi";
 	const [activeTab, setActiveTab] = useState<"register" | "info">("register");
+	const [current, setCurrent] = useState<MyAccessRequest>(request);
+	const isWaiting = current?.status === "pending";
+	const isRejected = current?.status === "rejected";
 
 	// Form states
-	const [kodeSatker, setKodeSatker] = useState("");
-	const [namaSatker, setNamaSatker] = useState("");
+	const [kodeSatker, setKodeSatker] = useState(current?.kodeSatker ?? "");
+	const [namaSatker, setNamaSatker] = useState(current?.satkerName ?? "");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState(false);
@@ -56,8 +67,8 @@ export function AccessPending({
 		const cleanKode = kodeSatker.trim();
 		const cleanNama = namaSatker.trim();
 
-		if (cleanKode.length < 4) {
-			setError("Kode Satker minimal 4 karakter (contoh: 411782).");
+		if (!KODE_SATKER_PATTERN.test(cleanKode)) {
+			setError(KODE_SATKER_RULE);
 			return;
 		}
 
@@ -68,22 +79,18 @@ export function AccessPending({
 
 		setIsSubmitting(true);
 		try {
-			const res = await registerSatkerOnboarding({
-				kodeSatker: cleanKode,
-				name: cleanNama,
+			await requestSatkerAccess({ kodeSatker: cleanKode, name: cleanNama });
+			setSuccess(true);
+			setCurrent({
+				kodeSatker: cleanKode.toUpperCase(),
+				satkerName: cleanNama,
+				status: "pending",
 			});
-
-			if (res.success) {
-				setSuccess(true);
-				setTimeout(() => {
-					window.location.assign("/operator/dashboard");
-				}, 600);
-			}
 		} catch (err: unknown) {
 			const msg =
 				err instanceof Error
 					? err.message
-					: "Gagal mendaftarkan Satker. Silakan coba lagi.";
+					: "Gagal mengirim permintaan akses. Silakan coba lagi.";
 			setError(msg);
 		} finally {
 			setIsSubmitting(false);
@@ -110,14 +117,18 @@ export function AccessPending({
 						className="mt-1 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
 						id="access-pending-heading"
 					>
-						{activeTab === "register"
-							? "Daftarkan Satuan Kerja"
-							: "Akses Belum Diberikan"}
+						{activeTab === "info"
+							? "Akses Belum Diberikan"
+							: isWaiting
+								? "Menunggu Persetujuan Admin KPPN"
+								: "Ajukan Akses Satuan Kerja"}
 					</h1>
 					<p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-muted-foreground sm:text-sm">
-						{activeTab === "register"
-							? "Lengkapi identitas satuan kerja Anda untuk langsung memulai simulasi IKPA sebagai Operator Satker."
-							: "Email Anda belum dipetakan ke lingkup Satker atau KPPN manapun."}
+						{activeTab === "info"
+							? "Email Anda belum dipetakan ke lingkup Satker atau KPPN manapun."
+							: isWaiting
+								? "Admin KPPN akan memeriksa permintaan Anda. Anda akan menerima email setelah akses disetujui."
+								: "Isi identitas satuan kerja Anda. Akses Operator Satker aktif setelah disetujui Admin KPPN."}
 					</p>
 				</div>
 
@@ -132,7 +143,7 @@ export function AccessPending({
 								: "text-muted-foreground hover:text-foreground"
 						}`}
 					>
-						Daftarkan Satker Mandiri
+						{isWaiting ? "Status Permintaan" : "Ajukan Akses Satker"}
 					</button>
 					<button
 						type="button"
@@ -162,8 +173,32 @@ export function AccessPending({
 					</span>
 				</div>
 
-				{/* TAB 1: REGISTER SATKER */}
-				{activeTab === "register" && (
+				{/* TAB 1a: REQUEST WAITING FOR AN ADMIN DECISION */}
+				{activeTab === "register" && isWaiting && current && (
+					<div className="space-y-3">
+						{success && (
+							<output className="flex items-center gap-2.5 rounded-lg border border-success/30 bg-success/10 p-3 text-xs text-success">
+								<CheckCircle2 className="size-4 shrink-0" />
+								<p className="font-semibold">Permintaan akses terkirim.</p>
+							</output>
+						)}
+						<div className="flex items-start gap-2.5 rounded-xl border border-border bg-surface/60 p-4 text-xs">
+							<Clock aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+							<dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+								<dt className="text-muted-foreground">Kode Satker</dt>
+								<dd className="font-semibold text-foreground">{current.kodeSatker}</dd>
+								<dt className="text-muted-foreground">Nama Satker</dt>
+								<dd className="font-semibold text-foreground">{current.satkerName}</dd>
+							</dl>
+						</div>
+						<p className="text-[11px] leading-relaxed text-muted-foreground">
+							Data salah? Hubungi Admin KPPN lewat tab Informasi &amp; Kontak Admin.
+						</p>
+					</div>
+				)}
+
+				{/* TAB 1b: REQUEST FORM (first request, or again after a rejection) */}
+				{activeTab === "register" && !isWaiting && (
 					<form onSubmit={handleRegister} className="space-y-4">
 						{error && (
 							<div
@@ -175,13 +210,17 @@ export function AccessPending({
 							</div>
 						)}
 
-						{success && (
-							<output className="flex items-center gap-2.5 rounded-lg border border-success/30 bg-success/10 p-3 text-xs text-success">
-								<CheckCircle2 className="size-4 shrink-0" />
-								<p className="font-semibold">
-									Satker berhasil didaftarkan! Mengalihkan ke dashboard...
+						{isRejected && (
+							<div
+								role="alert"
+								className="flex items-start gap-2.5 rounded-lg border border-warning/30 bg-warning-surface p-3 text-xs text-foreground"
+							>
+								<ShieldAlert className="mt-0.5 size-4 shrink-0 text-warning" />
+								<p>
+									Permintaan sebelumnya ditolak Admin KPPN. Periksa kode dan nama
+									satker, lalu ajukan ulang atau hubungi Admin KPPN.
 								</p>
-							</output>
+							</div>
 						)}
 
 						<div className="space-y-1.5">
@@ -195,7 +234,8 @@ export function AccessPending({
 								id="onboarding-kode"
 								type="text"
 								required
-								maxLength={12}
+								inputMode="numeric"
+								maxLength={6}
 								placeholder="Contoh: 411782"
 								value={kodeSatker}
 								onChange={(e) => setKodeSatker(e.target.value)}
@@ -219,7 +259,7 @@ export function AccessPending({
 								type="text"
 								required
 								maxLength={200}
-								placeholder="Contoh: Kantor Pelayanan Perbendaharaan Satker Contoh"
+								placeholder="Contoh: KPP Pratama Malang Selatan"
 								value={namaSatker}
 								onChange={(e) => setNamaSatker(e.target.value)}
 								disabled={isSubmitting || success}
@@ -235,10 +275,10 @@ export function AccessPending({
 							{isSubmitting ? (
 								<>
 									<LoaderCircle className="size-4 animate-spin" />
-									<span>Mendaftarkan Satker...</span>
+									<span>Mengirim permintaan...</span>
 								</>
 							) : (
-								<span>Daftarkan &amp; Buka Dashboard</span>
+								<span>Ajukan Akses</span>
 							)}
 						</button>
 					</form>

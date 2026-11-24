@@ -22,6 +22,8 @@
 5. **Undangan** tidak memiliki tabel atau token sendiri: undangan adalah baris `user_accesses` berstatus `pending` dengan `invited_email`. Baris itu dikaitkan ke `users.id` dan diaktifkan pada request pertama setelah email user terverifikasi OTP; akun yang emailnya belum terverifikasi tidak pernah mengklaim.
 6. **Hard delete** adalah satu transaksi lokal: baris `auth_verifications` milik user dihapus, lalu `DELETE FROM users` meng-cascade sesi, akun, mapping, dan data milik user sesuai butir 4 Addendum AUTH-01. Langkah "hapus akun Clerk" dan webhook `user.deleted` tidak ada lagi.
 7. **Data lama:** tidak ada migrasi data identitas (hanya data uji). Baris `users` hasil seed tidak memiliki kata sandi; kata sandi dibuat lewat alur lupa kata sandi (OTP email).
+8. **Permintaan akses (2026-11-23, migration `0008_access_requests`):** tabel `access_requests` (`id`, `user_id` unik → `users` `ON DELETE CASCADE`, `kode_satker`, `satker_name`, `status` enum `access_request_status` `pending`/`rejected`, `decided_by` → `users` `ON DELETE SET NULL`, `decided_at`, `created_at`, `updated_at`; index `status`). Satu permintaan per user; tidak menyentuh `organizations` dan `user_accesses` sampai disetujui. Persetujuan menghapus baris dan audit `onboard_satker` menyimpan jejaknya.
+9. **Undangan sejak 2026-11-23** membuat baris `users` tanpa kata sandi dan `user_accesses` berstatus `active`; baris `pending` ber-`invited_email` (butir 5) hanya tersisa untuk data lama dan tetap diklaim seperti sebelumnya.
 
 ## Addendum ADR-008 — 2026-11-15 — Residensi Data dan Identitas Self-Hosted
 

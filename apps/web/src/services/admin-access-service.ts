@@ -1,7 +1,10 @@
 import {
+	approveAccessRequestFn,
 	assignUserAccessFn,
 	hardDeleteUserFn,
+	listAccessRequestsFn,
 	listAdminUserAccessFn,
+	rejectAccessRequestFn,
 	removeUserAccessFn,
 } from "@/server/admin-access";
 
@@ -17,7 +20,36 @@ export interface AdminUserAccessRecord {
 	scopeCode: string;
 	adminSlot: number | null;
 	status: "active" | "inactive" | "pending";
+	/** Invited/seeded account that has not set a password yet. */
+	awaitingPassword: boolean;
 	createdAt: string;
+}
+
+export interface AccessRequestRecord {
+	id: string;
+	email: string;
+	kodeSatker: string;
+	satkerName: string;
+	createdAt: string;
+	/** Name of the organization already registered under this code, if any. */
+	existingOrgName: string | null;
+	hasOperator: boolean;
+	/** Pending requests for the same code, this one included (owner 2026-11-24). */
+	duplicateCount: number;
+}
+
+export async function fetchAccessRequests(): Promise<{
+	requests: AccessRequestRecord[];
+}> {
+	return listAccessRequestsFn();
+}
+
+export async function approveAccessRequest(requestId: string) {
+	return approveAccessRequestFn({ data: { requestId } });
+}
+
+export async function rejectAccessRequest(requestId: string) {
+	return rejectAccessRequestFn({ data: { requestId } });
 }
 
 export async function fetchAdminUserAccesses(): Promise<{

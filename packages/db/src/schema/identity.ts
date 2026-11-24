@@ -9,7 +9,11 @@ import {
 	uniqueIndex,
 	uuid,
 } from "drizzle-orm/pg-core";
-import { accessStatusEnum, accessTypeEnum } from "./enums";
+import {
+	accessRequestStatusEnum,
+	accessStatusEnum,
+	accessTypeEnum,
+} from "./enums";
 
 export const kppnScopes = pgTable(
 	"kppn_scopes",
@@ -118,4 +122,34 @@ export const userAccesses = pgTable(
 				sql`${table.accessType} = 'operator_satker' AND ${table.active} = true AND ${table.orgId} IS NOT NULL`,
 			),
 	],
+);
+
+/**
+ * Self-service Operator Satker request (one per user). It grants nothing and
+ * never touches `organizations` until an Admin KPPN approves it; approval
+ * deletes the row and the onboarding audit entry keeps the trail.
+ */
+export const accessRequests = pgTable(
+	"access_requests",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		userId: uuid("user_id")
+			.references(() => users.id, { onDelete: "cascade" })
+			.notNull()
+			.unique(),
+		kodeSatker: text("kode_satker").notNull(),
+		satkerName: text("satker_name").notNull(),
+		status: accessRequestStatusEnum("status").default("pending").notNull(),
+		decidedBy: uuid("decided_by").references(() => users.id, {
+			onDelete: "set null",
+		}),
+		decidedAt: timestamp("decided_at", { withTimezone: true }),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => [index("access_requests_status_idx").on(table.status)],
 );

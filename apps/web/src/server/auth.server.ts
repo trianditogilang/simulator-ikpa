@@ -6,20 +6,26 @@ import {
 	authSessions,
 	authTwoFactors,
 	authVerifications,
+	organizations,
+	userAccesses,
 	users,
 } from "@simulator-ikpa/db/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { APIError } from "better-auth/api";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { emailOTP, twoFactor } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, or, sql } from "drizzle-orm";
 import {
 	OTP_VALID_MINUTES,
 	type OtpPurpose,
 	sendOtpEmail,
 } from "./auth-emails.server";
-import { MIN_PASSWORD_LENGTH } from "./auth-session";
+import {
+	hasLetterAndDigit,
+	MIN_PASSWORD_LENGTH,
+	maskEmailHint,
+} from "./auth-session";
 
 const OTP_ALLOWED_ATTEMPTS = 5;
 const OTP_EMAIL_MAX_SENDS = 5;
@@ -104,6 +110,76 @@ export async function revokeSessionsAndTrustedDevices(
 	await db.delete(authVerifications).where(eq(authVerifications.value, userId));
 }
 
+/**
+ * Owner decision 2026-11-24: a satker code or name that already has a visible
+ * Operator is refused on both doors (sign-up and the access-pending form),
+ * naming the satker and the Operator's masked email. Returns the message, or
+ * null when the satker is free. Same "visible Operator" rule as
+ * findVisibleOperatorForOrganization.
+ */
+export async function findSatkerTakenMessage(
+	db: DbClient,
+	kodeInput: string,
+	namaInput: string,
+): Promise<string | null> {
+	const kode = kodeInput.trim().toUpperCase();
+	const nama = namaInput.trim().toLowerCase();
+	if (!kode && !nama) return null;
+	const [taken] = await db
+		.select({
+			kode: organizations.kodeSatker,
+			name: organizations.name,
+			email: sql<string | null>`coalesce(${users.email}, ${userAccesses.invitedEmail})`,
+		})
+		.from(organizations)
+		.innerJoin(userAccesses, eq(userAccesses.orgId, organizations.id))
+		.leftJoin(users, eq(users.id, userAccesses.userId))
+		.where(
+			and(
+				or(
+					eq(organizations.kodeSatker, kode),
+					sql`lower(trim(${organizations.name})) = ${nama}`,
+				),
+				eq(userAccesses.accessType, "operator_satker"),
+				eq(userAccesses.active, true),
+				or(
+					and(eq(userAccesses.status, "active"), isNotNull(userAccesses.userId)),
+					and(eq(userAccesses.status, "pending"), isNull(userAccesses.userId)),
+				),
+			),
+		)
+		.limit(1);
+	if (!taken?.email) return null;
+	return `Satker ${taken.kode} – ${taken.name} sudah memiliki akun dengan email ${maskEmailHint(taken.email)}. Silakan Masuk menggunakan email tersebut. Jika Operator sudah berganti, hubungi Admin KPPN Malang.`;
+}
+
+/**
+ * Sign-up stops before any account or code is made when the email is
+ * registered (Better Auth would answer a silent fake success) or the satker
+ * already has an Operator.
+ */
+async function assertSignUpAvailable(
+	db: DbClient,
+	body: Record<string, unknown> | undefined,
+) {
+	const text = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+	const [registered] = await db
+		.select({ id: users.id })
+		.from(users)
+		.where(eq(users.email, text(body?.email).toLowerCase()))
+		.limit(1);
+	if (registered) {
+		throw new APIError("BAD_REQUEST", {
+			code: "EMAIL_ALREADY_REGISTERED",
+			message: "Email sudah terdaftar.",
+		});
+	}
+	const taken = await findSatkerTakenMessage(db, text(body?.kodeSatker), text(body?.namaSatker));
+	if (taken) {
+		throw new APIError("BAD_REQUEST", { code: "SATKER_ALREADY_HAS_OPERATOR", message: taken });
+	}
+}
+
 function createAuth(db: DbClient) {
 	const sendOtp = async (email: string, otp: string, purpose: OtpPurpose) => {
 		await consumeOtpEmailQuota(db, email);
@@ -125,6 +201,58 @@ function createAuth(db: DbClient) {
 			},
 		}),
 		disabledPaths,
+		hooks: {
+			before: createAuthMiddleware(async (ctx) => {
+				// Owner decision 2026-11-23: sign-in and password reset say plainly
+				// when an email has no account (sign-up already reveals that), and
+				// point invited/seeded accounts without a password to the reset.
+				if (
+					ctx.path === "/sign-in/email" ||
+					ctx.path === "/email-otp/request-password-reset"
+				) {
+					const email = ctx.body?.email;
+					if (typeof email !== "string") return;
+					const found = await ctx.context.internalAdapter.findUserByEmail(
+						email.trim().toLowerCase(),
+						{ includeAccounts: true },
+					);
+					if (!found) {
+						throw new APIError("BAD_REQUEST", {
+							code: "EMAIL_NOT_REGISTERED",
+							message: "Email belum terdaftar.",
+						});
+					}
+					const hasPassword = found.accounts.some(
+						(account) => account.providerId === "credential",
+					);
+					if (ctx.path === "/sign-in/email" && !hasPassword) {
+						throw new APIError("BAD_REQUEST", {
+							code: "PASSWORD_NOT_SET",
+							message: "Akun belum memiliki kata sandi.",
+						});
+					}
+					return;
+				}
+
+				// Every path that sets a new password; sign-in keeps accepting older ones.
+				if (
+					ctx.path !== "/sign-up/email" &&
+					ctx.path !== "/email-otp/reset-password"
+				) {
+					return;
+				}
+				if (ctx.path === "/sign-up/email") {
+					await assertSignUpAvailable(db, ctx.body);
+				}
+				const password = ctx.body?.password;
+				if (typeof password === "string" && !hasLetterAndDigit(password)) {
+					throw new APIError("BAD_REQUEST", {
+						code: "PASSWORD_NEEDS_LETTER_AND_DIGIT",
+						message: "Kata sandi harus berisi huruf dan angka.",
+					});
+				}
+			}),
+		},
 		emailAndPassword: {
 			enabled: true,
 			requireEmailVerification: true,

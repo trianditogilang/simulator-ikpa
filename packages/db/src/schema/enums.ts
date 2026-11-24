@@ -10,6 +10,12 @@ export const accessStatusEnum = pgEnum("access_status", [
 	"active",
 ]);
 
+/** Self-service Operator request awaiting an Admin KPPN decision. */
+export const accessRequestStatusEnum = pgEnum("access_request_status", [
+	"pending",
+	"rejected",
+]);
+
 export const ruleSetStatusEnum = pgEnum("rule_set_status", [
 	"draft",
 	"published",

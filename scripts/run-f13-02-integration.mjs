@@ -91,6 +91,18 @@ if (!operatorUser || !adminUser) {
 // Repeated local runs must not trip the per-mailbox OTP quota.
 await sql`DELETE FROM auth_rate_limits`;
 
+// An unmapped, verified account for the access-request suite (MIG-03,
+// 2026-11-23). It starts every run without accesses or requests.
+const requesterEmail = "f13-02-requester@example.test";
+await sql`
+	INSERT INTO users (email, name, email_verified)
+	VALUES (${requesterEmail}, 'Pemohon Akses F13', true)
+	ON CONFLICT (email) DO NOTHING
+`;
+const [requesterUser] = await sql`SELECT id FROM users WHERE email = ${requesterEmail}`;
+await sql`DELETE FROM user_accesses WHERE user_id = ${requesterUser.id}`;
+await sql`DELETE FROM access_requests WHERE user_id = ${requesterUser.id}`;
+
 // The Admin suite needs a satker in the Admin's KPPN scope that has no active
 // Operator, with a 2026 fiscal year. The seed only creates the Operator's
 // satker, so the harness adds this one idempotently.
@@ -145,6 +157,10 @@ try {
 		baseUrl: httpUrl,
 		email: adminUser.email,
 	});
+	const requesterCookie = await createFixtureSession({
+		baseUrl: httpUrl,
+		email: requesterEmail,
+	});
 	const result = spawnSync(
 		npmCommand,
 		["run", "test:integration", "--workspace", "@simulator-ikpa/web"],
@@ -157,6 +173,8 @@ try {
 				F13_02_ADMIN_SESSION_COOKIE: adminCookie,
 				F13_02_OPERATOR_USER_ID: operatorUser.id,
 				F13_02_ADMIN_USER_ID: adminUser.id,
+				F13_02_REQUESTER_SESSION_COOKIE: requesterCookie,
+				F13_02_REQUESTER_USER_ID: requesterUser.id,
 			},
 			stdio: "inherit",
 			shell: process.platform === "win32",

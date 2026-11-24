@@ -4,7 +4,7 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Current Phase
 
-**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06/F13-07/F13-08 selesai; MIG-00, MIG-01, MIG-02, MIG-04, dan MIG-06 selesai; MIG-03 dan MIG-05 Needs Fix (implementasi selesai, menunggu SMTP pemilik); F13-09 Blocked menunggu MIG-04, MIG-06, dan MIG-07.**
+**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06/F13-07/F13-08 selesai; MIG-00, MIG-01, MIG-02, MIG-04, dan MIG-06 selesai; MIG-03 dan MIG-05 selesai 2026-11-24; F13-09 Blocked menunggu MIG-07.**
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
 - Baseline hijau: typecheck lulus, workspace Vitest 46 test files/329 tests lulus setelah source export retired dan regression webhook, `npm run lint` exit 0 (78 warning legacy), production build lulus, dan E2E smoke desktop/mobile 2/2 lulus.
@@ -29,6 +29,64 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - SEC-AUDIT-03 (2026-11-23): advisory `picomatch` GHSA-fc5q-39xc-vjpf ditarik, sehingga audit produksi kembali exit 0 tanpa perubahan dependency; residual tetap 8 moderate.
 
 ## Recent Sessions
+
+### Session 326 - 2026-11-24
+**Status:** Completed — MIG-03 dan MIG-05 ditutup: tinjauan pemilik, uji email nyata, dan penolakan daftar ganda
+- **Tinjauan pemilik:** panel Permintaan Akses Operator tampil di `/admin-kppn/access`. Pemilik menyetujui `UBC 4111012342` (kutniatisri@gmail.com), sehingga akses Operator `active` dan baris permintaan terhapus. Ia juga menolak `777001` (status `rejected`). Log app tanpa kegagalan kirim email.
+- **Email nyata:** reminder uji 2026-11-23 ditemukan pemilik di Kotak Masuk Gmail. `scripts/smtp-smoke.mjs` ke alamat non-Gmail (`pknstan.ac.id`) exit 0. Pemilik mengonfirmasi email itu dan email persetujuan UBC tiba di Kotak Masuk.
+- **Keputusan pemilik (daftar ganda):** daftar ditolak bila email sudah terdaftar, atau kode/nama satker sudah punya Operator; pesan menyebut satker dan email Operator tersamar (FSD/TSD Addendum ADR-008). Ini membalik prinsip lama "permintaan tidak membocorkan keberadaan satker" khusus untuk satker yang sudah ber-Operator; probing dibatasi rate limit sign-up 10/menit per IP.
+- **Diubah:** `auth.server.ts` (`assertSignUpAvailable` pada hook `/sign-up/email`), `auth-session.ts` (`maskEmailHint` + test), `auth-form.tsx` (kode/nama dikirim di body sign-up, dua pesan baru), integration test baru di `access-request-http.integration.test.ts`. Temuan: sebelum perubahan ini, Better Auth menjawab sukses semu untuk email terdaftar, sehingga pengguna dibawa ke layar OTP tanpa kode.
+- **Verifikasi:** `npm run check` exit 0 (web 135 test); integration 100 lulus + 2 skip pada database terpisah `f13test` (dibuat di Postgres compose agar kata sandi akun seed di database lokal tidak direset); `curl` ke image baru menjawab kedua kode dan tidak membuat user; browser pane menampilkan pesan satker.
+- **E2E:** Admin 12/12 dan Operator 12/12 pada database uji `f13test` (dihapus setelahnya). Operator terhadap server dev dua kali gagal 10/12 pada "navigates each of the eight indicator workspaces" karena batas 120 detik: `networkidle` tidak pernah tercapai di Vite dev (live-reload), jadi tiap halaman menunggu 15 detik. Terhadap build produksi (`.output/server/index.mjs`) lulus 12/12 dalam 1,2 menit. Bukan regresi; runner E2E sebaiknya tetap diarahkan ke build/image.
+- **Lanjutan (redundansi email/kode/nama satker):** pemilik meminta analisis kasus data ganda. Keputusannya:
+  - kode satker wajib tepat 6 digit (`KODE_SATKER_PATTERN`), supaya kode yang kehilangan nol di depan dari Excel tidak menjadi satker ganda;
+  - pergantian Operator lewat Admin KPPN, dengan kalimat "Jika Operator sudah berganti, hubungi Admin KPPN Malang." pada pesan tolak;
+  - dua permintaan untuk kode yang sama tetap diterima dan ditandai `duplicateCount` di panel Admin, supaya permintaan palsu tidak bisa mengunci satker.
+  - Celah yang ditutup: form di `/access-pending` sebelumnya tidak menjalankan cek satker-sudah-ber-Operator. Sekarang `findSatkerTakenMessage` dipakai bersama hook sign-up dan `handleRequestSatkerAccess`.
+  - Label pesan diperbaiki menjadi "Lupa kata sandi".
+  - Sengaja tidak dikerjakan: alias Gmail, pembersihan akun yang tidak pernah verifikasi, dan pencocokan nama yang lebih longgar.
+  - Format kode di jalur Admin (`assignUserAccessFn`) belum diubah; diputuskan bersama INVITE-BULK-01.
+- **Verifikasi lanjutan:**
+  - `npm run check` exit 0 (web 136 test).
+  - Integration 100 + 2 skip. Fixture `settings-http` kini memakai kode 6 digit, dan test baru mencakup form Menunggu Akses serta `duplicateCount`.
+  - `curl` dan browser pane ke image baru: kode 5 digit ditolak di klien; 411782 menampilkan pesan dengan kalimat Admin; tidak ada user yang dibuat.
+  - E2E Operator 12/12 dan Admin 12/12 terhadap build produksi pada `f13test` (dihapus setelahnya).
+  - Badge di panel Admin hanya diuji lewat data integration, belum dilihat di layar.
+- **Belum diverifikasi:** CI GitHub; cookie `Secure` di balik TLS (MIG-07/F13-09).
+- **Berikutnya:** commit setelah disetujui pemilik, lalu MIG-07.
+
+### Session 325 - 2026-11-23
+**Status:** In Progress — MIG-03 tetap Needs Fix: jalur akses diganti menjadi undangan + permintaan akses yang disetujui Admin
+- **Keputusan pemilik:** aplikasi terbuka ke internet, jadi pendaftaran yang langsung aktif ditolak. Dengan cara lama, orang asing dapat mengklaim kode satker, bahkan melihat data satker yang Operator-nya kosong, karena `handleRegisterSatkerOnboarding` membuat akses `active` dan mengganti nama organisasi. Satker KPPN Malang diundang Admin; penerima membuat kata sandi lewat Lupa kata sandi; daftar mandiri menjadi permintaan akses; halaman Masuk menampilkan "Email belum terdaftar". Undangan massal (INVITE-BULK-01) dan mode demo (DEMO-01) dicatat sebagai task `Blocked`. Rancangan: `docs/superpowers/specs/2026-11-23-daftar-satker-langsung-design.md`; amandemen FSD butir 8, TSD butir 9, ERD Addendum MIG-03 butir 8–9.
+- **Diubah:**
+  - Tabel `access_requests` + enum `access_request_status`. Migration `0008_access_requests.sql` ditulis tangan seperti 0004–0007, karena snapshot Drizzle berhenti di 0003 dan `drizzle-kit generate` meminta konfirmasi rename lewat TTY.
+  - `settings.server.ts`: `registerSatkerForUser` (guard lama dipertahankan, organisasi yang sudah ada tidak diganti namanya), `handleRequestSatkerAccess`, `handleGetMyAccessRequest`. `registerSatkerOnboardingFn` diganti `requestSatkerAccessFn` + `getMyAccessRequestFn`.
+  - `admin-access.ts`: `listAccessRequestsFn`, `approveAccessRequestFn`, `rejectAccessRequestFn`. Undangan email baru membuat `users` tanpa kata sandi dengan akses `active`; akun dihapus bila pemberian akses gagal. Flag `awaitingPassword` ditambahkan.
+  - `auth-emails.server.ts`: isi email undangan dan email keputusan.
+  - `auth.server.ts`: `EMAIL_NOT_REGISTERED` / `PASSWORD_NOT_SET`.
+  - UI: form Daftar (Kode/Nama Satker), `/access-pending` tiga keadaan, panel Permintaan Akses + dialog Tolak, badge "Menunggu – Belum membuat kata sandi".
+  - Test: `access-request-http.integration.test.ts` (8 test baru); `settings-http` diperbarui; runner F13-02 menambah sesi pemohon tanpa akses.
+- **Verifikasi:**
+  - Gate lokal: `npm run check` exit 0 (lint 0 error/74 warning), `check:migrations` lulus, build `node-server` lulus, secret scan lulus.
+  - Migrate dari database kosong sementara (`migcheck`): 9 migration, 36 tabel. 0008 diterapkan ke database compose lokal tanpa menghapus data.
+  - Integration `run-f13-02-integration.mjs`: 99 lulus + 2 skip dari 101.
+  - E2E Operator dan Admin 12/12 terhadap image compose lewat Caddy (`http://localhost:8080`, SMTP sementara ke Mailpit).
+  - Browser pane (Mailpit): daftar email uji → OTP → "Menunggu Persetujuan Admin KPPN" dengan kode/nama yang diajukan; Masuk dengan email asing menampilkan "Email belum terdaftar…".
+- **Revisi pemilik (konfirmasi pada reset):** langkah reset Lupa kata sandi kini meminta "Konfirmasi kata sandi baru" dan menolak kirim bila tidak sama, sama seperti form Daftar (`auth-form.tsx`). `npm run check` exit 0; image app dibangun ulang (Gmail SMTP) dan bundle yang dilayani memuat kolom baru. Belum dicoba di browser karena butuh OTP nyata.
+- **Catatan:** runner E2E mengganti kata sandi akun seed Admin/Operator (alamat milik pemilik) dengan kata sandi acak. Pemilik perlu memakai Lupa kata sandi lagi. Permintaan uji `777001 Satker Uji Tampilan` sengaja dibiarkan di database lokal untuk ditinjau di panel Admin.
+- **Belum diverifikasi:** tampilan panel Permintaan Akses Admin di browser (hanya lewat integration); email keputusan dan undangan baru lewat Gmail nyata; CI GitHub.
+- **Berikutnya:** pemilik meninjau tampilan dan menguji alur dengan email nyata, lalu commit dan tutup MIG-03/MIG-05.
+
+### Session 324 - 2026-11-23
+**Status:** In Progress — MIG-03 tetap Needs Fix: perubahan layar masuk/daftar dari pemilik
+- **Keputusan pemilik:** semua kolom kata sandi memakai tombol tampilkan/sembunyikan berikon mata; formulir daftar meminta kata sandi dua kali; kata sandi harus berisi huruf dan angka. Ditafsirkan sebagai minimal satu huruf dan satu angka (simbol tetap boleh), hanya untuk kata sandi baru (daftar dan reset); masuk tetap menerima kata sandi lama. Amandemen dicatat pada FSD dan TSD Addendum ADR-008.
+- **Diubah:** `components/public/auth-form.tsx` (komponen `PasswordInput` dengan ikon `EyeOff` saat tersembunyi dan `Eye` saat terlihat, kolom "Konfirmasi kata sandi", validasi klien), `server/auth-session.ts` (`hasLetterAndDigit`, `PASSWORD_RULE_HINT`) + `auth-session.test.ts`, `server/auth.server.ts` (`hooks.before` menolak `/sign-up/email` dan `/email-otp/reset-password` dengan `400 PASSWORD_NEEDS_LETTER_AND_DIGIT`), `scripts/auth-fixture.mjs` (kata sandi acak fixture diberi akhiran huruf + angka agar tidak gagal sesekali).
+- **Verifikasi:** `npm run check` exit 0 (web 21 file/134 test, lint 0 error/74 warning); `tsc` web 0 error. Pada image compose yang dibangun ulang: `curl` ke `/api/auth/sign-up/email` (huruf saja, angka saja) dan `/api/auth/email-otp/reset-password` (huruf saja) menjawab 400 dengan kode di atas dan tidak membuat user. Browser pane: halaman Daftar menampilkan dua kolom kata sandi bertombol mata, pesan "Konfirmasi kata sandi tidak sama." dan "Kata sandi harus berisi huruf dan angka."; halaman Masuk memiliki tombol mata.
+- **Revisi pemilik (ukuran "Lupa kata sandi?"):** tautan tampil 14px/400 padahal ber-class `text-xs font-semibold`, karena aturan global tanpa layer `button { font-size: inherit; font-weight: inherit }` di `styles.css` mengalahkan utility Tailwind. `linkButtonClass` di form auth kini memakai `text-xs! font-semibold!`, sehingga semua tautan form auth menjadi 12px/600 seperti label (diukur dengan `getComputedStyle` pada image compose baru). Aturan global itu tidak diubah karena dampaknya ke seluruh tombol aplikasi.
+- **Revisi pemilik (placeholder nama satker):** "Contoh: Kantor Pelayanan Perbendaharaan Satker Contoh" diganti "Contoh: KPP Pratama Malang Selatan" pada onboarding (`components/access/access-pending.tsx`) dan modal Manajemen Akses Admin (`routes/admin-kppn/access.tsx`); data mock/seed tidak diubah. Display-only.
+- **Bukti tambahan:** pemilik mendaftar dengan email baru di luar seed, memverifikasi OTP daftar, dan tiba di onboarding "Operator Baru", sehingga OTP daftar untuk email baru kini terbukti.
+- **Belum diverifikasi:** kolom kata sandi baru pada langkah reset di browser (butuh OTP; memakai komponen yang sama); E2E Operator/Admin dan integration pada stack baru setelah perubahan ini; tinjauan visual pemilik.
+- **Berikutnya:** pemilik meninjau tampilan, uji OTP daftar dengan email di luar seed, jalankan ulang integration + E2E, lalu tutup MIG-03/MIG-05.
 
 ### Session 323 - 2026-11-23
 **Status:** In Progress — MIG-03/MIG-05 tetap Needs Fix: uji Gmail SMTP nyata sebagian besar lulus

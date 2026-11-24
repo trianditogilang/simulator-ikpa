@@ -104,7 +104,8 @@ export async function createFixtureSession({ baseUrl, email }) {
 		return response.json().catch(() => null);
 	};
 
-	const password = randomBytes(24).toString("base64url");
+	// Suffix guarantees the letter + digit rule that base64url alone may miss.
+	const password = `${randomBytes(24).toString("base64url")}a1`;
 
 	await clearMailbox(email);
 	await post("/email-otp/request-password-reset", { email });

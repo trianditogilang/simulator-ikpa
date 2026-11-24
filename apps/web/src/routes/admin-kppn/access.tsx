@@ -1,6 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
 	CheckCircle2,
+	Clock,
 	Edit,
 	Plus,
 	Save,
@@ -15,16 +16,25 @@ import { useMemo, useState } from "react";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { mockPermissionMatrix } from "@/mocks/auth-presets";
 import {
+	type AccessRequestRecord,
+	approveAccessRequest,
 	assignAccess,
+	fetchAccessRequests,
 	fetchAdminUserAccesses,
+	rejectAccessRequest,
 	removeAccess,
 } from "@/services/admin-access-service";
 
 export const Route = createFileRoute("/admin-kppn/access")({
 	loader: async () => {
-		const accessData = await fetchAdminUserAccesses();
+		const [accessData, requestData] = await Promise.all([
+			fetchAdminUserAccesses(),
+			// A failed read only hides the request list; access management works on.
+			fetchAccessRequests().catch(() => ({ requests: [] as AccessRequestRecord[] })),
+		]);
 		return {
 			accesses: accessData.accesses,
+			requests: requestData.requests,
 		};
 	},
 	component: AdminAccessManagementPage,
@@ -42,7 +52,19 @@ interface AccessRow {
 	scopeName: string;
 	adminSlot: number | null;
 	status: "active" | "inactive" | "pending";
+	awaitingPassword: boolean;
 	createdAt: string;
+}
+
+function describeRequestError(error: unknown): string {
+	const msg = error instanceof Error ? error.message : "";
+	const code = error && typeof error === "object" && "code" in error ? String((error as { code?: unknown }).code ?? "") : "";
+	const text = `${code} ${msg}`;
+	if (text.includes("SATKER_OPERATOR_EXISTS")) return "Satker ini sudah memiliki Operator aktif. Hapus atau ubah Operator lama dulu bila permintaan ini benar.";
+	if (text.includes("ORGANIZATION_NAME_MISMATCH")) return "Kode satker sudah terdaftar dengan nama berbeda dan memiliki Operator.";
+	if (text.includes("SATKER_ALREADY_REGISTERED")) return "Kode satker terdaftar di lingkup KPPN lain.";
+	if (text.includes("ACCESS_REQUEST_NOT_FOUND")) return "Permintaan sudah diproses atau tidak ditemukan.";
+	return `Gagal memproses permintaan: ${msg || "coba lagi."}`;
 }
 
 function AdminAccessManagementPage() {
@@ -61,8 +83,12 @@ function AdminAccessManagementPage() {
 		scopeName: a.scopeName,
 		adminSlot: a.adminSlot,
 		status: a.status,
+		awaitingPassword: a.awaitingPassword,
 		createdAt: a.createdAt.slice(0, 10),
 	}));
+	const accessRequests = loaderData.requests;
+	const [requestBusyId, setRequestBusyId] = useState<string | null>(null);
+	const [rejectTarget, setRejectTarget] = useState<AccessRequestRecord | null>(null);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [roleFilter, setRoleFilter] = useState<string>("all");
 	const [editingItem, setEditingItem] = useState<AccessRow | null>(null);
@@ -127,6 +153,7 @@ function AdminAccessManagementPage() {
 			scopeName: "",
 			adminSlot: null,
 			status: "active",
+			awaitingPassword: false,
 			createdAt: new Date().toISOString().slice(0, 10),
 		});
 		setKodeInput("");
@@ -199,7 +226,7 @@ function AdminAccessManagementPage() {
 			} else if (errorText.includes("ACCESS_TYPE_CONFLICT") || msg.includes("Jenis akses pengguna tidak dapat diubah") || msg.includes("Satu pengguna tidak boleh memiliki")) {
 				setModalError("Tipe akses tidak dapat diubah setelah pengguna terdaftar.");
 			} else if (errorText.includes("INVITATION_EMAIL_FAILED") || msg.includes("Email undangan gagal dikirim")) {
-				setModalError("Akses tersimpan sebagai Menunggu, tetapi email undangan gagal dikirim. Simpan ulang untuk mengirim lagi.");
+				setModalError("Akses tersimpan, tetapi email undangan gagal dikirim. Minta pengguna membuka halaman Masuk lalu klik Lupa kata sandi.");
 			} else {
 				setModalError(`Gagal menyimpan akses: ${msg}`);
 			}
@@ -252,6 +279,28 @@ function AdminAccessManagementPage() {
 		setTimeout(() => setToastMessage(null), 4000);
 	};
 
+	const decideRequest = async (request: AccessRequestRecord, decision: "approve" | "reject") => {
+		setRequestBusyId(request.id);
+		try {
+			if (decision === "approve") await approveAccessRequest(request.id);
+			else await rejectAccessRequest(request.id);
+			setToastIsError(false);
+			setToastMessage(
+				decision === "approve"
+					? `Akses Operator ${request.satkerName} - ${request.kodeSatker} - ${request.email} disetujui`
+					: `Permintaan ${request.satkerName} - ${request.kodeSatker} - ${request.email} ditolak`,
+			);
+			await router.invalidate();
+		} catch (e) {
+			setToastIsError(true);
+			setToastMessage(describeRequestError(e));
+		} finally {
+			setRequestBusyId(null);
+			setRejectTarget(null);
+			setTimeout(() => setToastMessage(null), 4000);
+		}
+	};
+
 	const currentUserAccess = accessList.find(
 		(u) =>
 			currentUserEmail &&
@@ -296,6 +345,70 @@ function AdminAccessManagementPage() {
 					<span className="text-muted-foreground text-[11px] font-medium">Admin Aktif: {activeAdminCount}</span>
 				</div>
 
+				{accessRequests.length > 0 && (
+					<section aria-labelledby="access-requests-heading" className="space-y-3 rounded-xl border border-amber-300/60 bg-amber-50/40 p-4 shadow-xs">
+						<div className="flex items-center gap-2">
+							<Clock aria-hidden="true" className="size-4 text-amber-700" />
+							<h2 id="access-requests-heading" className="text-sm font-semibold text-foreground">
+								Permintaan Akses Operator ({accessRequests.length})
+							</h2>
+						</div>
+						<p className="text-[11px] text-muted-foreground">
+							Cocokkan email dan kode satker dengan data PIC satker sebelum menyetujui. Akses aktif hanya setelah disetujui.
+						</p>
+						<ul className="divide-y divide-border/60 rounded-lg border border-border/80 bg-background">
+							{accessRequests.map((request) => (
+								<li key={request.id} className="flex flex-col gap-2 p-3 text-xs sm:flex-row sm:items-center sm:justify-between">
+									<div className="min-w-0 space-y-0.5">
+										<p className="font-semibold text-foreground">{request.satkerName} - {request.kodeSatker}</p>
+										<p className="break-all text-muted-foreground">{request.email} • diajukan {request.createdAt.slice(0, 10)}</p>
+										{request.existingOrgName ? (
+											<p className={request.hasOperator ? "text-danger" : "text-amber-700"}>
+												Kode sudah ada di sistem: {request.existingOrgName}
+												{request.hasOperator ? " • sudah punya Operator aktif" : ""}
+											</p>
+										) : (
+											<p className="text-muted-foreground">Kode satker baru di sistem</p>
+										)}
+										{request.duplicateCount > 1 ? (
+											<p className="font-semibold text-danger">
+												{request.duplicateCount} permintaan untuk kode ini. Setujui satu, tolak yang lain.
+											</p>
+										) : null}
+									</div>
+									<div className="flex shrink-0 items-center gap-1.5">
+										<button type="button" disabled={requestBusyId !== null} onClick={() => decideRequest(request, "approve")} className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60">
+											<CheckCircle2 className="size-3" />
+											<span>{requestBusyId === request.id ? "Memproses..." : "Setujui"}</span>
+										</button>
+										<button type="button" disabled={requestBusyId !== null} onClick={() => setRejectTarget(request)} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-semibold text-danger transition hover:bg-danger/10 disabled:opacity-60">
+											<X className="size-3" />
+											<span>Tolak</span>
+										</button>
+									</div>
+								</li>
+							))}
+						</ul>
+					</section>
+				)}
+
+				{rejectTarget && (
+					<div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4 backdrop-blur-xs">
+						<div role="dialog" aria-modal="true" aria-labelledby="reject-request-heading" className="w-full max-w-md space-y-4 rounded-xl border border-border bg-background p-6 shadow-2xl">
+							<h3 id="reject-request-heading" className="text-base font-semibold text-foreground">Tolak permintaan akses?</h3>
+							<p className="text-xs leading-relaxed text-muted-foreground">
+								{rejectTarget.satkerName} - {rejectTarget.kodeSatker} ({rejectTarget.email}) akan menerima email penolakan. Akunnya tetap ada dan dapat mengajukan ulang.
+							</p>
+							<div className="flex justify-end gap-2">
+								<button type="button" disabled={requestBusyId !== null} onClick={() => setRejectTarget(null)} className="rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-surface-muted">Batal</button>
+								<button type="button" disabled={requestBusyId !== null} onClick={() => decideRequest(rejectTarget, "reject")} className="rounded-lg bg-danger px-3.5 py-2 text-xs font-semibold text-white hover:bg-danger/90 disabled:opacity-60">
+									{requestBusyId ? "Memproses..." : "Tolak Permintaan"}
+								</button>
+							</div>
+						</div>
+					</div>
+				)}
+
 				<div className="space-y-3 rounded-xl border border-border/80 bg-surface p-4 shadow-xs">
 					<div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 						<div className="relative flex-1">
@@ -333,6 +446,7 @@ function AdminAccessManagementPage() {
 								{sortedFilteredList.map((user) => {
 									const isCurrentUser = currentUserEmail ? user.email.toLowerCase() === currentUserEmail : false;
 									const isPending = user.accessStatus === "pending";
+									const isAwaitingPassword = !isPending && user.awaitingPassword;
 									return (
 										<tr key={user.id} className={`transition-colors hover:bg-surface-muted/30 ${isCurrentUser ? "bg-primary/[0.06] border-b-2 border-primary/20" : ""} ${isPending ? "opacity-70" : ""}`}>
 											<td className="py-3 pl-4 pr-2">
@@ -349,16 +463,14 @@ function AdminAccessManagementPage() {
 													<span className="text-[11px] text-muted-foreground">
 														{isPending
 															? "Undangan dikirim lewat email"
-															: user.accessType === "admin_kppn"
-																? "KPPN 032"
-																: `Kode: ${user.scopeCode}`}
+															: `${user.accessType === "admin_kppn" ? "KPPN 032" : `Kode: ${user.scopeCode}`}${isAwaitingPassword ? " • Belum membuat kata sandi" : ""}`}
 													</span>
 												</div>
 											</td>
 											<td className="px-3 py-3 font-medium text-foreground">
 												{user.email}
 												{isCurrentUser && <span className="ml-1.5 inline-flex rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">Anda</span>}
-												{isPending && <span className="ml-1.5 inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">Menunggu</span>}
+												{(isPending || isAwaitingPassword) && <span className="ml-1.5 inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">Menunggu</span>}
 											</td>
 											<td className="px-3 py-3">
 												<span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${user.accessType === "admin_kppn" ? "bg-primary/10 text-primary" : "bg-surface-muted text-foreground"}`}>{user.accessType === "admin_kppn" ? "Admin KPPN" : "Operator"}</span>
@@ -435,7 +547,7 @@ function AdminAccessManagementPage() {
 										</div>
 										<div>
 											<span className="text-muted-foreground block mb-1 font-medium">Nama Satker</span>
-											<input aria-label="Nama satker" type="text" required value={satkerNameInput} onChange={(e) => setSatkerNameInput(e.target.value)} placeholder="Contoh: Kantor Pelayanan Perbendaharaan Satker Contoh" className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none" />
+											<input aria-label="Nama satker" type="text" required value={satkerNameInput} onChange={(e) => setSatkerNameInput(e.target.value)} placeholder="Contoh: KPP Pratama Malang Selatan" className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none" />
 										</div>
 									</>
 								)}

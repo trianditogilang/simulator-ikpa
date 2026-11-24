@@ -36,8 +36,9 @@ export function SignUpPanel({
 						Daftar Akun Baru
 					</h1>
 					<p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-						Buat akun baru untuk mulai menggunakan simulator IKPA. Anda dapat
-						mendaftarkan satuan kerja Anda setelah akun dibuat.
+						Daftarkan akun Operator untuk satuan kerja Anda. Akses aktif setelah
+						disetujui Admin KPPN. Sudah menerima undangan? Masuk dan gunakan Lupa
+						kata sandi.
 					</p>
 				</div>
 				<AuthForm initialMode="sign-up" redirectTo={redirectIntent} />
