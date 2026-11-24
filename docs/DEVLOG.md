@@ -69,7 +69,11 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
   - Kompromi: email akun yatim bisa dilepas sebelum OTP membuktikan kepemilikan; dampaknya kecil karena akun itu tidak punya akses.
   - Verifikasi: typecheck dan lint exit 0, `npm run check` exit 0. Integration 102 + 2 skip, termasuk dua test baru: email dengan permintaan `pending` ditolak; email akun yatim dipakai ulang, baris lama menjadi `released-…`, dan akun baru belum terverifikasi.
   - Percobaan pertama gagal karena subquery `exists` di select satu tabel tidak terhubung ke `users`; diganti dengan query terpisah berdasarkan id.
-  - Image compose dibangun ulang. Daftar dengan gilangrah6@gmail.com belum dicoba, karena akan mengirim OTP nyata; pemilik akan mencobanya sendiri.
+  - Image compose dibangun ulang. Pemilik kemudian berhasil Daftar ulang dengan gilangrah6@gmail.com, officialbwkc@gmail.com, dan officialbwkk@gmail.com. Pesan "sudah terdaftar" untuk dua email dummy sebelumnya berasal dari image lama. Di-commit sebagai `27c6e4a`.
+- **Keputusan pemilik (akun yatim kosong):** akun yatim tanpa audit, simulasi, atau snapshot kini dihapus, bukan dilepas. Akun yang punya riwayat tetap dilepas emailnya, supaya riwayat satker tidak ikut terhapus.
+  - Audit dibaca lewat database, tanpa halaman baru (pemilik 2026-11-24; ADM-11 tetap pensiun). Cara Drizzle Studio/psql dicatat di `docs/runbook-operations.md` § Jejak audit.
+  - Verifikasi: `npm run check` exit 0; integration 102 + 2 skip. Test akun yatim kini mencakup dua kasus: akun kosong dihapus, dan akun dengan audit menjadi `released-…` dengan audit tetap ada.
+  - Image compose dibangun ulang.
 - **Belum diverifikasi:** CI GitHub; cookie `Secure` di balik TLS (MIG-07/F13-09).
 - **Berikutnya:** commit setelah disetujui pemilik, lalu MIG-07.
 

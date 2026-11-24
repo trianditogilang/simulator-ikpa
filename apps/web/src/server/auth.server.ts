@@ -2,12 +2,15 @@ import { createHash } from "node:crypto";
 import { createDbClient, type DbClient } from "@simulator-ikpa/db";
 import {
 	accessRequests,
+	auditLogs,
 	authAccounts,
 	authRateLimits,
 	authSessions,
 	authTwoFactors,
 	authVerifications,
 	organizations,
+	scoreSnapshots,
+	simulations,
 	userAccesses,
 	users,
 } from "@simulator-ikpa/db/schema";
@@ -158,12 +161,27 @@ export async function findSatkerTakenMessage(
 
 /**
  * Owner decision 2026-11-24: an account the Admin cannot see (no active
- * access, no pending request) gives its email back for a new sign-up. The row
- * is kept, so its audit trail and simulations survive (deleting it would
- * cascade them); only the email, password, sessions, and second step go.
+ * access, no pending request) gives its email back for a new sign-up. An
+ * account with no history (no audit entry, simulation, or snapshot, e.g. a
+ * sign-up whose OTP never arrived) is deleted. One with history keeps its row,
+ * because deleting it would cascade that history; only the email, password,
+ * sessions, and second step go.
  */
 async function releaseOrphanEmail(db: DbClient, userId: string) {
+	const hasHistory = async () => {
+		const [audit] = await db.select({ id: auditLogs.id }).from(auditLogs).where(eq(auditLogs.actorId, userId)).limit(1);
+		if (audit) return true;
+		const [simulation] = await db.select({ id: simulations.id }).from(simulations).where(eq(simulations.createdBy, userId)).limit(1);
+		if (simulation) return true;
+		const [snapshot] = await db.select({ id: scoreSnapshots.id }).from(scoreSnapshots).where(eq(scoreSnapshots.createdBy, userId)).limit(1);
+		return Boolean(snapshot);
+	};
 	await revokeSessionsAndTrustedDevices(db, userId);
+	if (!(await hasHistory())) {
+		// Cascades its auth rows and any rejected request.
+		await db.delete(users).where(eq(users.id, userId));
+		return;
+	}
 	await db.delete(authAccounts).where(eq(authAccounts.userId, userId));
 	await db.delete(authTwoFactors).where(eq(authTwoFactors.userId, userId));
 	await db

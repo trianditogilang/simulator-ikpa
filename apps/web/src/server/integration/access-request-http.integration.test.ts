@@ -4,6 +4,7 @@ import { fromCrossJSON, toJSONAsync } from "seroval";
 import { createDbClient } from "@simulator-ikpa/db";
 import {
 	accessRequests,
+	auditLogs,
 	authAccounts,
 	organizations,
 	userAccesses,
@@ -47,6 +48,7 @@ const inviteEmail = `f13-invite-${tag.toLowerCase()}@example.test`;
 const bareEmail = `f13-bare-${tag.toLowerCase()}@example.test`;
 const duplicateEmail = `f13-dup-${tag.toLowerCase()}@example.test`;
 const orphanEmail = `f13-orphan-${tag.toLowerCase()}@example.test`;
+const historyEmail = `f13-history-${tag.toLowerCase()}@example.test`;
 const pendingEmail = `f13-pending-${tag.toLowerCase()}@example.test`;
 let releasedUserId: string | undefined;
 const deniedPattern = /ditolak|wewenang|unauthorized|forbidden|sudah memiliki akses|hanya admin kppn/i;
@@ -124,7 +126,7 @@ afterAll(async () => {
 	await db.delete(accessRequests).where(eq(accessRequests.userId, requesterUserId as string));
 	await db
 		.delete(users)
-		.where(inArray(users.email, [inviteEmail, bareEmail, duplicateEmail, orphanEmail, pendingEmail]));
+		.where(inArray(users.email, [inviteEmail, bareEmail, duplicateEmail, orphanEmail, historyEmail, pendingEmail]));
 	if (releasedUserId) await db.delete(users).where(eq(users.id, releasedUserId));
 	await db.delete(organizations).where(inArray(organizations.kodeSatker, [newKode, inviteKode]));
 });
@@ -366,22 +368,33 @@ describe("Access request and invitation HTTP flow", () => {
 		expect(waiting).toMatchObject({ status: 400, body: { code: "EMAIL_REQUEST_PENDING" } });
 
 		// No access and no pending request: the Admin cannot see it, so the
-		// email is released for the new sign-up and the old row is kept.
+		// email is reused. Without history the old account is deleted.
 		const [orphan] = await db
 			.insert(users)
 			.values({ email: orphanEmail, name: "Akun yatim", emailVerified: true })
 			.returning({ id: users.id });
-		releasedUserId = orphan.id;
-		const reused = await signUp(orphanEmail);
-		expect(reused.status).toBe(200);
-		const [released] = await db.select({ email: users.email }).from(users).where(eq(users.id, orphan.id));
-		expect(released.email).toBe(`released-${orphan.id}@released.invalid`);
+		expect((await signUp(orphanEmail)).status).toBe(200);
+		const [gone] = await db.select({ id: users.id }).from(users).where(eq(users.id, orphan.id));
+		expect(gone).toBeUndefined();
 		const [fresh] = await db
 			.select({ id: users.id, emailVerified: users.emailVerified })
 			.from(users)
 			.where(eq(users.email, orphanEmail));
 		expect(fresh.id).not.toBe(orphan.id);
 		expect(fresh.emailVerified).toBe(false);
+
+		// With history (an audit entry) the old row stays and only its email goes.
+		const [withHistory] = await db
+			.insert(users)
+			.values({ email: historyEmail, name: "Akun berriwayat", emailVerified: true })
+			.returning({ id: users.id });
+		releasedUserId = withHistory.id;
+		await db.insert(auditLogs).values({ actorId: withHistory.id, entityType: "users", action: "f13_history_fixture" });
+		expect((await signUp(historyEmail)).status).toBe(200);
+		const [released] = await db.select({ email: users.email }).from(users).where(eq(users.id, withHistory.id));
+		expect(released.email).toBe(`released-${withHistory.id}@released.invalid`);
+		const kept = await db.select({ id: auditLogs.id }).from(auditLogs).where(eq(auditLogs.actorId, withHistory.id));
+		expect(kept).toHaveLength(1);
 	});
 
 	it("sign-in explains an unknown email and a password-less account", async () => {
