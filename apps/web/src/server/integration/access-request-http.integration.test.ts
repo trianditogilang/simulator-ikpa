@@ -194,6 +194,11 @@ describe("Access request and invitation HTTP flow", () => {
 
 		const mine = await call(settings, "getMyAccessRequestFn", "GET", undefined, requesterSession);
 		expect(mine.body.includes(newKode)).toBe(true);
+
+		// The requester's own pending request does not block a refile.
+		const refile = await call(settings, "requestSatkerAccessFn", "POST", { kodeSatker: newKode, name: newName }, requesterSession);
+		expect(refile.body).not.toContain("sudah diajukan");
+		expect((await myRequest())?.status).toBe("pending");
 	});
 
 	it("only an Admin lists and decides requests", async () => {
@@ -210,12 +215,35 @@ describe("Access request and invitation HTTP flow", () => {
 		expect(deniedPattern.test(approveAsOperator.body)).toBe(true);
 		expect(await requesterAccesses()).toEqual([]);
 
-		// A second person asking for the same code is flagged, not blocked.
+		// Owner decision 2026-11-24: a code or name someone already requested is
+		// refused at sign-up. Older duplicate rows (inserted directly here) still
+		// get the badge.
+		const freshEmail = `f13-dupsignup-${tag.toLowerCase()}@example.test`;
+		for (const satker of [
+			{ kodeSatker: newKode, namaSatker: `Nama lain ${tag}` },
+			{ kodeSatker: nameMatchKode, namaSatker: ` ${newName.toUpperCase()} ` },
+		]) {
+			const response = await fetch(`${baseUrl}/api/auth/sign-up/email`, {
+				method: "POST",
+				headers: { "content-type": "application/json", origin: baseUrl as string },
+				body: JSON.stringify({ name: "Uji Daftar", email: freshEmail, password: "rahasia2026x", ...satker }),
+			});
+			const body = (await response.json()) as { code?: string; message?: string };
+			expect(response.status).toBe(400);
+			expect(body.code).toBe("SATKER_REQUEST_PENDING");
+			expect(body.message).toContain(`Satker ${newKode} – ${newName} sudah diajukan`);
+		}
+		const [notCreated] = await db.select({ id: users.id }).from(users).where(eq(users.email, freshEmail));
+		expect(notCreated).toBeUndefined();
+
 		const [other] = await db
 			.insert(users)
 			.values({ email: duplicateEmail, name: "Peminta kedua", emailVerified: true })
 			.returning({ id: users.id });
 		await db.insert(accessRequests).values({ userId: other.id, kodeSatker: newKode, satkerName: newName });
+		// The access-pending form refuses someone else's pending satker too.
+		const blocked = await call(settings, "requestSatkerAccessFn", "POST", { kodeSatker: newKode, name: newName }, requesterSession);
+		expect(blocked.body).toContain("sudah diajukan");
 		const asAdmin = await call(adminAccess, "listAccessRequestsFn", "GET", undefined, adminSession);
 		type Listed = { requests: { kodeSatker: string; duplicateCount: number }[] };
 		const decoded = fromCrossJSON(JSON.parse(asAdmin.body), { refs: new Map() }) as
@@ -250,6 +278,9 @@ describe("Access request and invitation HTTP flow", () => {
 		expect(org?.name).toBe(newName);
 		const accesses = await requesterAccesses();
 		expect(accesses).toEqual([{ id: expect.any(String), orgId: org.id }]);
+		// Owner decision 2026-11-24: the Operator account carries the satker name.
+		const [account] = await db.select({ name: users.name }).from(users).where(eq(users.id, requesterUserId as string));
+		expect(account.name).toBe(newName);
 	});
 
 	it("an invitation needs a 6-digit code", async () => {
@@ -286,10 +317,11 @@ describe("Access request and invitation HTTP flow", () => {
 			adminSession,
 		);
 		const [invited] = await db
-			.select({ id: users.id, emailVerified: users.emailVerified })
+			.select({ id: users.id, name: users.name, emailVerified: users.emailVerified })
 			.from(users)
 			.where(eq(users.email, inviteEmail));
-		expect(invited).toMatchObject({ emailVerified: false });
+		// The typed person name is ignored: the account carries the satker name.
+		expect(invited).toMatchObject({ name: `Satker Undangan ${tag}`, emailVerified: false });
 		const [access] = await db
 			.select({ status: userAccesses.status, active: userAccesses.active })
 			.from(userAccesses)

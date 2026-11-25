@@ -59,7 +59,8 @@ function describeError(error: AuthError): string {
 		case "KODE_SATKER_INVALID":
 			return KODE_SATKER_RULE;
 		case "SATKER_ALREADY_HAS_OPERATOR":
-			// The server names the satker and the masked Operator email.
+		case "SATKER_REQUEST_PENDING":
+			// The server names the satker and the masked email.
 			return error.message ?? "Satker ini sudah memiliki akun. Silakan Masuk.";
 		case "EMAIL_NOT_REGISTERED":
 			return "Email belum terdaftar, silakan Daftar Akun Baru atau hubungi Admin KPPN.";

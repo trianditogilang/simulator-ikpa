@@ -9,7 +9,7 @@ import {
 	userAccesses,
 	users,
 } from "@simulator-ikpa/db/schema";
-import { and, eq, isNotNull, isNull, or } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
 import { getAccessResolutionForSession } from "../access.server";
 import { writeAudit } from "../audit/write-audit";
 import { findSatkerTakenMessage } from "../auth.server";
@@ -200,6 +200,9 @@ export async function registerSatkerForUser(
 		await db.update(userAccesses).set({ active: true, updatedAt: new Date() }).where(eq(userAccesses.id, existingAccess.id));
 	}
 
+	// Owner decision 2026-11-24: an Operator account is named after its satker.
+	await db.update(users).set({ name: org.name, updatedAt: new Date() }).where(eq(users.id, input.userId));
+
 	// 7. Write audit log
 	await writeAudit(db, {
 		actorId: input.actorId,
@@ -263,8 +266,9 @@ export async function handleGetMyAccessRequest(): Promise<MyAccessRequest> {
 /**
  * Files (or refiles) the session user's request to become Operator of a
  * satker. It grants nothing and touches no organization. Since 2026-11-24 it
- * refuses a satker that already has an Operator, like sign-up does (owner
- * decision: the masked Operator email beats silent probing protection).
+ * refuses a satker that already has an Operator or someone else's pending
+ * request, like sign-up does (owner decision: the masked email beats silent
+ * probing protection).
  */
 export async function handleRequestSatkerAccess(data: {
 	kodeSatker: string;
@@ -279,12 +283,9 @@ export async function handleRequestSatkerAccess(data: {
 		});
 	}
 
-	const taken = await findSatkerTakenMessage(db, data.kodeSatker, data.name);
+	const taken = await findSatkerTakenMessage(db, data.kodeSatker, data.name, user.id);
 	if (taken) {
-		throw Object.assign(new Error(taken), {
-			statusCode: 409,
-			code: "SATKER_ALREADY_HAS_OPERATOR",
-		});
+		throw Object.assign(new Error(taken.message), { statusCode: 409, code: taken.code });
 	}
 
 	const values = {
@@ -455,6 +456,25 @@ export async function handleUpdateSatkerSettings(data: {
 		})
 		.where(eq(organizations.id, data.orgId))
 		.returning();
+	// Operator accounts carry the satker name (owner decision 2026-11-24).
+	await db
+		.update(users)
+		.set({ name: data.name, updatedAt: new Date() })
+		.where(
+			inArray(
+				users.id,
+				db
+					.select({ id: userAccesses.userId })
+					.from(userAccesses)
+					.where(
+						and(
+							eq(userAccesses.orgId, data.orgId),
+							eq(userAccesses.accessType, "operator_satker"),
+							eq(userAccesses.active, true),
+						),
+					),
+			),
+		);
 
 	const actorId =
 		access.status === "operator_single_scope" ||

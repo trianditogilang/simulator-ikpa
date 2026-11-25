@@ -197,7 +197,10 @@ function AdminAccessManagementPage() {
 		setShowEmailChangeConfirm(false);
 		try {
 			await assignAccess({
-				name: editingItem.name.trim() || editingItem.email.split("@")[0] || "User",
+				// Owner decision 2026-11-24: an Operator account is named after its satker.
+				name: editingItem.accessType === "operator_satker"
+					? satkerNameInput.trim()
+					: editingItem.name.trim() || editingItem.email.split("@")[0] || "User",
 				email: editingItem.email.trim(),
 				accessType: editingItem.accessType,
 				kodeSatker: editingItem.accessType === "operator_satker" ? kodeInput.trim().toUpperCase() : null,
@@ -511,10 +514,12 @@ function AdminAccessManagementPage() {
 								</button>
 							</div>
 							<div className="space-y-3.5 text-xs">
-								<div>
-									<span className="text-muted-foreground block mb-1 font-medium">Nama</span>
-									<input aria-label="Nama pengguna" type="text" value={editingItem.name} onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })} placeholder="Nama" className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none" />
-								</div>
+								{editingItem.accessType === "admin_kppn" && (
+									<div>
+										<span className="text-muted-foreground block mb-1 font-medium">Nama</span>
+										<input aria-label="Nama pengguna" type="text" value={editingItem.name} onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })} placeholder="Nama" className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none" />
+									</div>
+								)}
 								<div>
 									<span className="text-muted-foreground block mb-1 font-medium">Email Akun</span>
 									<input aria-label="Email akun" type="email" required value={editingItem.email} onChange={(e) => { setEditingItem({ ...editingItem, email: e.target.value }); setModalError(null); setEmailConfirmed(false); }} placeholder="user@domain.com" className="h-9 w-full rounded-lg border border-border bg-surface px-3 text-foreground focus:border-primary focus:outline-none" />

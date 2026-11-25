@@ -74,6 +74,15 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
   - Audit dibaca lewat database, tanpa halaman baru (pemilik 2026-11-24; ADM-11 tetap pensiun). Cara Drizzle Studio/psql dicatat di `docs/runbook-operations.md` § Jejak audit.
   - Verifikasi: `npm run check` exit 0; integration 102 + 2 skip. Test akun yatim kini mencakup dua kasus: akun kosong dihapus, dan akun dengan audit menjadi `released-…` dengan audit tetap ada.
   - Image compose dibangun ulang.
+- **Keputusan pemilik (kode satker yang sudah diajukan):** Daftar dan form Menunggu Akses kini juga menolak kode atau nama satker yang ada di permintaan `pending` milik email lain (`SATKER_REQUEST_PENDING`, pesan memuat email pemohon tersamar). Ini menggantikan aturan sebelumnya "dua permintaan tetap diterima"; permintaan palsu dibereskan Admin dengan menolaknya.
+  - `findSatkerTakenMessage` kini mengembalikan `{ code, message }` dan menerima `exceptUserId`, supaya pemohon tetap bisa mengajukan ulang permintaannya sendiri. Badge `duplicateCount` tetap ada untuk data ganda lama.
+  - Verifikasi: `npm run check` exit 0 (web 136); integration 102 + 2 skip, test diperluas dengan Daftar (kode dan nama) dan form Menunggu Akses yang ditolak, serta pengajuan ulang milik sendiri yang tetap diterima. Image compose dibangun ulang; `curl` ke :8080 dengan kode 123456 dan nama " kpknl " → `SATKER_REQUEST_PENDING`, tanpa user dibuat.
+  - Data lokal: dua permintaan pending lama, 123456 dan 123455, sama-sama bernama "KPKNL". Keduanya dibiarkan; badge hanya menghitung kode yang sama, jadi nama ganda ini tidak ditandai.
+- **Keputusan pemilik (nama akun Operator):** Operator Satker tidak perlu nama pribadi; di mana pun namanya tampil, yang dipakai nama satker.
+  - Modal Admin menyembunyikan kolom "Nama" untuk Operator. `users.name` diisi nama satker di `assignUserAccessFn`, `registerSatkerForUser` (persetujuan), dan `handleUpdateSatkerSettings` (rename satker). Migration `0009_operator_account_name` menyamakan data lama.
+  - Pendekatan sinkronisasi saat menulis dipilih supaya semua tampilan (`auth-card`, Pengaturan Satker, reminder, pembuat simulasi) ikut tanpa diubah satu per satu. Batas: Operator dengan lebih dari satu satker hanya menyimpan satu nama.
+  - Verifikasi: `npm run check` exit 0; `check:migrations` OK; integration 102 + 2 skip, test undangan dan persetujuan kini memeriksa `users.name`. Image dan migrate compose dijalankan ulang: officialtgrid berubah dari "Operator Satker 411782" ke nama satkernya. Browser pane: modal Edit Operator UBC tanpa kolom Nama, modal Admin masih ada.
+  - Rencana "nama satker sama dengan kode berbeda hanya ditandai di Admin" dihentikan pemilik sebelum dikerjakan; pencocokan nama tetap memblokir.
 - **Belum diverifikasi:** CI GitHub; cookie `Secure` di balik TLS (MIG-07/F13-09).
 - **Berikutnya:** commit setelah disetujui pemilik, lalu MIG-07.
 

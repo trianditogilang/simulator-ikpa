@@ -19,7 +19,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { emailOTP, twoFactor } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { and, eq, isNotNull, isNull, or, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, ne, or, sql } from "drizzle-orm";
 import {
 	OTP_VALID_MINUTES,
 	type OtpPurpose,
@@ -119,15 +119,18 @@ export async function revokeSessionsAndTrustedDevices(
 /**
  * Owner decision 2026-11-24: a satker code or name that already has a visible
  * Operator is refused on both doors (sign-up and the access-pending form),
- * naming the satker and the Operator's masked email. Returns the message, or
- * null when the satker is free. Same "visible Operator" rule as
- * findVisibleOperatorForOrganization.
+ * naming the satker and the Operator's masked email. Same "visible Operator"
+ * rule as findVisibleOperatorForOrganization. Since the same day a satker
+ * someone else already requested (pending) is refused too; `exceptUserId`
+ * lets a requester refile their own request. Returns null when the satker is
+ * free.
  */
 export async function findSatkerTakenMessage(
 	db: DbClient,
 	kodeInput: string,
 	namaInput: string,
-): Promise<string | null> {
+	exceptUserId?: string,
+): Promise<{ code: "SATKER_ALREADY_HAS_OPERATOR" | "SATKER_REQUEST_PENDING"; message: string } | null> {
 	const kode = kodeInput.trim().toUpperCase();
 	const nama = namaInput.trim().toLowerCase();
 	if (!kode && !nama) return null;
@@ -155,8 +158,32 @@ export async function findSatkerTakenMessage(
 			),
 		)
 		.limit(1);
-	if (!taken?.email) return null;
-	return `Satker ${taken.kode} – ${taken.name} sudah memiliki akun dengan email ${maskEmailHint(taken.email)}. Silakan Masuk menggunakan email tersebut. Jika Operator sudah berganti, hubungi Admin KPPN Malang.`;
+	if (taken?.email) {
+		return {
+			code: "SATKER_ALREADY_HAS_OPERATOR",
+			message: `Satker ${taken.kode} – ${taken.name} sudah memiliki akun dengan email ${maskEmailHint(taken.email)}. Silakan Masuk menggunakan email tersebut. Jika Operator sudah berganti, hubungi Admin KPPN Malang.`,
+		};
+	}
+	const [requested] = await db
+		.select({ kode: accessRequests.kodeSatker, name: accessRequests.satkerName, email: users.email })
+		.from(accessRequests)
+		.innerJoin(users, eq(users.id, accessRequests.userId))
+		.where(
+			and(
+				eq(accessRequests.status, "pending"),
+				or(
+					eq(accessRequests.kodeSatker, kode),
+					sql`lower(trim(${accessRequests.satkerName})) = ${nama}`,
+				),
+				exceptUserId ? ne(accessRequests.userId, exceptUserId) : undefined,
+			),
+		)
+		.limit(1);
+	if (!requested) return null;
+	return {
+		code: "SATKER_REQUEST_PENDING",
+		message: `Satker ${requested.kode} – ${requested.name} sudah diajukan dengan email ${maskEmailHint(requested.email)} dan sedang menunggu persetujuan Admin KPPN Malang. Jika pengajuan itu bukan milik Anda, hubungi Admin KPPN Malang.`,
+	};
 }
 
 /**
@@ -193,7 +220,8 @@ async function releaseOrphanEmail(db: DbClient, userId: string) {
 /**
  * Sign-up stops before any account or code is made, in this order, when the
  * email has an active access or a pending invitation, the email has a pending
- * request, the satker already has an Operator, or the code is not 6 digits.
+ * request, the satker already has an Operator or a pending request, or the
+ * code is not 6 digits.
  * Any other existing account with that email is an orphan and is released
  * last, so a refused sign-up never releases anything.
  */
@@ -253,7 +281,7 @@ async function assertSignUpAvailable(
 	}
 	const taken = await findSatkerTakenMessage(db, text(body?.kodeSatker), text(body?.namaSatker));
 	if (taken) {
-		throw new APIError("BAD_REQUEST", { code: "SATKER_ALREADY_HAS_OPERATOR", message: taken });
+		throw new APIError("BAD_REQUEST", taken);
 	}
 	// The forms check this too; this guards direct API calls (owner 2026-11-24).
 	if (!KODE_SATKER_PATTERN.test(text(body?.kodeSatker))) {

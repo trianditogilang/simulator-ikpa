@@ -496,13 +496,15 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 			}
 		}
 
+		// Owner decision 2026-11-24: an Operator account is named after its satker.
+		const accountName = data.accessType === "operator_satker" ? (data.satkerName ?? "").trim() : data.name.trim();
 		let user: typeof users.$inferSelect | null = null;
 		let invitedUser: typeof users.$inferSelect | null = null;
 		if (data.targetUserId) {
 			const [byId] = await db.select().from(users).where(eq(users.id, data.targetUserId)).limit(1);
 			if (!byId) throw new Error("User target tidak ditemukan.");
 			const newEmail = data.email.toLowerCase().trim();
-			const newName = data.name.trim() || byId.name;
+			const newName = accountName || byId.name;
 			const needEmail = newEmail !== byId.email;
 			const needName = newName !== byId.name;
 			if (needEmail && !data.emailConfirmed) {
@@ -545,8 +547,8 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 				.limit(1);
 			if (byEmail) {
 				user = byEmail;
-				if (user.name.trim() !== data.name.trim() && data.name.trim()) {
-					const [updated] = await db.update(users).set({ name: data.name.trim(), updatedAt: new Date() }).where(eq(users.id, user.id)).returning();
+				if (user.name.trim() !== accountName && accountName) {
+					const [updated] = await db.update(users).set({ name: accountName, updatedAt: new Date() }).where(eq(users.id, user.id)).returning();
 					if (updated) {
 						user = updated;
 					}
@@ -561,7 +563,7 @@ export const assignUserAccessFn = createServerFn({ method: "POST" })
 					.insert(users)
 					.values({
 						email: normalizedEmail,
-						name: data.name.trim() || normalizedEmail,
+						name: accountName || normalizedEmail,
 						emailVerified: false,
 					})
 					.returning();
