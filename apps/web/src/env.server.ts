@@ -9,20 +9,20 @@ const serverEnvSchema = z.object({
 		.min(1, "DATABASE_URL is required for database connection")
 		.optional(),
 	DIRECT_URL: z.string().optional(),
-	CLERK_SECRET_KEY: z.string().optional(),
-	VITE_CLERK_PUBLISHABLE_KEY: z.string().optional(),
-	RESEND_API_KEY: z.string().optional(),
+	// Session/cookie signing secret for Better Auth (ADR-008, MIG-03).
+	BETTER_AUTH_SECRET: z.string().min(32).optional(),
+	// SMTP (ADR-008, MIG-05). Outside production the default is the local
+	// mail catcher on 127.0.0.1:1025.
+	SMTP_HOST: z.string().optional(),
+	SMTP_PORT: z.coerce.number().int().positive().optional(),
+	SMTP_USER: z.string().optional(),
+	SMTP_PASSWORD: z.string().optional(),
 	NOTIFICATION_SENDER_EMAIL: z
 		.string()
 		.email()
 		.default("notifikasi-ikpa@kemenkeu.go.id"),
-	QSTASH_TOKEN: z.string().optional(),
-	QSTASH_CURRENT_SIGNING_KEY: z.string().optional(),
-	QSTASH_NEXT_SIGNING_KEY: z.string().optional(),
-	R2_ACCOUNT_ID: z.string().optional(),
-	R2_ACCESS_KEY_ID: z.string().optional(),
-	R2_SECRET_ACCESS_KEY: z.string().optional(),
-	R2_BUCKET_NAME: z.string().default("simulator-ikpa-imports"),
+	// Bearer secret the VPS scheduler sends to /api/jobs/* (ADR-008, MIG-04).
+	JOB_SECRET: z.string().min(32).optional(),
 	APP_URL: z.string().default("http://localhost:3000"),
 });
 
@@ -49,8 +49,11 @@ function validateServerEnv(): ServerEnv {
 		if (!parsed.data.DATABASE_URL) {
 			missingProductionEnvs.push("DATABASE_URL");
 		}
-		if (!parsed.data.CLERK_SECRET_KEY) {
-			missingProductionEnvs.push("CLERK_SECRET_KEY");
+		if (!parsed.data.BETTER_AUTH_SECRET) {
+			missingProductionEnvs.push("BETTER_AUTH_SECRET");
+		}
+		if (!parsed.data.SMTP_HOST) {
+			missingProductionEnvs.push("SMTP_HOST");
 		}
 
 		if (missingProductionEnvs.length > 0) {

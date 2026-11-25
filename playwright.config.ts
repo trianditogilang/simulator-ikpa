@@ -1,17 +1,30 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const isCi = Boolean(process.env.CI);
+const remoteBaseUrl = process.env.F13_04_HTTP_URL ?? process.env.F13_05_HTTP_URL;
+const e2eSuite = process.env.F13_05_E2E
+	? "admin"
+	: process.env.F13_04_E2E
+		? "operator"
+		: "all";
 
 export default defineConfig({
 	testDir: "./apps/web/e2e",
+	testIgnore:
+		e2eSuite === "admin"
+			? ["**/operator.spec.ts"]
+			: e2eSuite === "operator"
+				? ["**/admin.spec.ts"]
+				: undefined,
 	outputDir: "./test-results/e2e",
-	fullyParallel: true,
+	fullyParallel: !remoteBaseUrl,
 	forbidOnly: isCi,
 	retries: isCi ? 2 : 0,
-	workers: isCi ? 1 : undefined,
+	workers: remoteBaseUrl || isCi ? 1 : undefined,
+	timeout: remoteBaseUrl ? 120_000 : 30_000,
 	reporter: isCi ? "line" : "list",
 	use: {
-		baseURL: "http://127.0.0.1:3000",
+		baseURL: remoteBaseUrl ?? "http://127.0.0.1:3000",
 		screenshot: "only-on-failure",
 		trace: "on-first-retry",
 		video: "on-first-retry",
@@ -32,11 +45,13 @@ export default defineConfig({
 			},
 		},
 	],
-	webServer: {
-		command:
-			"npm run dev --workspace @simulator-ikpa/web -- --host 127.0.0.1 --port 3000",
-		url: "http://127.0.0.1:3000",
-		reuseExistingServer: !isCi,
-		timeout: 120_000,
-	},
+	webServer: remoteBaseUrl
+		? undefined
+		: {
+				command:
+					"npm run dev --workspace @simulator-ikpa/web -- --host 127.0.0.1 --port 3000",
+				url: "http://127.0.0.1:3000",
+				reuseExistingServer: !isCi,
+				timeout: 120_000,
+		},
 });

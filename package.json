@@ -16,6 +16,7 @@
     "test": "npm run test --workspaces --if-present",
     "test:integration": "node scripts/run-f13-02-integration.mjs",
     "test:e2e": "npm run test:e2e --workspace @simulator-ikpa/web",
+    "test:e2e:smoke": "npm run test:e2e --workspace @simulator-ikpa/web -- e2e/smoke.spec.ts",
     "check:generated-routes": "npm run generate-routes && git diff --exit-code -- apps/web/src/routeTree.gen.ts",
     "check:migrations": "npm run check:migrations --workspace @simulator-ikpa/db",
     "check:secrets": "node scripts/check-secrets.mjs",
@@ -24,7 +25,6 @@
     "check": "npm run typecheck && npm run test && npm run lint"
   },
   "devDependencies": {
-    "@clerk/backend": "^3.16.13",
     "@biomejs/biome": "2.4.5",
     "@types/node": "^22.10.2",
     "marked": "^18.0.11",

@@ -92,7 +92,7 @@ export const mockPolicyHistory: PolicyHistoryVersionItem[] = [
 		snapshotUsageCount: 520,
 		deliveryProcessedCount: 1450,
 		impactSummary:
-			"Arsip read-only untuk kebutuhan audit komparasi tahun sebelumnya.",
+			"Arsip read-only untuk komparasi tahun sebelumnya.",
 		parameterDiffs: [],
 	},
 ];

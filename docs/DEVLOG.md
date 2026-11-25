@@ -4,18 +4,666 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Current Phase
 
-**Fase 13 — F13-00/F13-01/F13-02 selesai; F13-03 tetap ditahan.**
+**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06/F13-07/F13-08 selesai; MIG-00, MIG-01, MIG-02, MIG-04, dan MIG-06 selesai; MIG-03 dan MIG-05 selesai 2026-11-24; MIG-07 selesai 2026-11-25; F13-09 Blocked menunggu domain dan lokasi backup.**
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
-- Baseline hijau: typecheck lulus, workspace Vitest 45 test files/307 tests lulus setelah source export retired, `npm run lint` exit 0, production build lulus, E2E smoke desktop/mobile 2/2 lulus, dan smoke route `/` sebelumnya HTTP 200.
-- Catatan environment: browser bundled Playwright belum dapat diunduh karena jaringan; smoke tetap reproducible memakai Chrome lokal melalui `channel: "chrome"`. Lint masih memiliki 79 warning legacy tanpa error.
+- Baseline hijau: typecheck lulus, workspace Vitest 46 test files/329 tests lulus setelah source export retired dan regression webhook, `npm run lint` exit 0 (78 warning legacy), production build lulus, dan E2E smoke desktop/mobile 2/2 lulus.
+- Catatan environment: browser bundled Playwright belum dapat diunduh karena jaringan; smoke tetap reproducible memakai Chrome lokal melalui `channel: "chrome"`. Lint masih memiliki 78 warning legacy tanpa error.
 - F13-01 lulus: konfigurasi test per workspace mencegah E2E masuk Vitest; pure utility/scheduler/workday tests ditambah; bug rounding negatif fixed-point ditutup.
-- F13-06/F13-08 progress: production delivery/import fallback fail-closed, secret/migration/generated-route checks tersedia, dan CI workflow sudah ditulis tetapi belum dijalankan pada remote PR.
+- F13-06 selesai: security source review dan dependency audit resmi tidak menemukan critical/high; production delivery/import/export/provider fallback fail-closed; secret/migration checks lulus. Residual medium rate-limit provider route dan advisory `uuid`/`esbuild` memiliki owner DevOps/Security, due 2026-10-15. Generated-route drift dan remote CI tetap scope F13-08.
+- F13-07 selesai: runner `scripts/run-f13-07-performance.mjs` mengukur kalkulasi median 343,6 ms, dashboard agregat 168,1 ms untuk 20 satker, parser CSV 10k 94,6 ms, scheduler event+planning 127,2 ms, dan Operator XLSX 110,7 ms pada Neon test terisolasi; delapan index scope/batch tersedia dan query plan ditinjau. Production-load, commit async 10k, serta provider latency belum diklaim.
 - F13-12 selesai; UAT/go-live/deployment/observability docs tersedia sebagai checklist dan tetap menyatakan `NO-GO` tanpa staging evidence.
 - F13-02: branch Neon test `f13-02-test-20260910` sudah dimigrasikan dan di-seed; authenticated HTTP isolation suite dengan sesi Clerk test nyata lulus (92 integration tests). Audit seluruh 82 ServerFn aktif telah memiliki test HTTP individual, termasuk `access.ts` dan `import.ts`; PDF Operator dan ekspor Admin tetap retired dari scope aktif.
-- Next action: pertahankan regression suite F13-02; F13-03 tetap ditahan sesuai scope sesi.
+- F13-04 lulus: auth-seeded Playwright runner memakai sesi Clerk Operator nyata dan fixture Neon terisolasi; 12/12 test pada Chromium desktop + Mobile Chrome mencakup dashboard 8 indikator, delapan workspace, what-if actual immutable + Slot B/name, parity/compare bulanan dengan skenario, mandatory reminder, dan Operator XLSX. Fixture dibersihkan tanpa mencetak credential.
+- F13-08 selesai: branch Neon test dilengkapi fiscal year 2026 untuk 18 organisasi KPPN-032 yang hilang dan seluruh FY operator aktif memiliki reminder config dengan policy aktif; workflow tetap fail-closed tanpa `continue-on-error`.
+- Quality Gate `34851608310` pada commit `d968677` hijau seluruh job; authenticated integration mencatat 91 passed + 1 skipped (QStash normal) dari 92 test. F13-09 mempertahankan zero-config Nitro; Production/domain dan evidence UAT tetap ditahan.
+- STAB-RESUME-01 (2026-11-13): setelah jeda proyek, working tree dipulihkan ke `ba54cfe` dan baseline lokal (typecheck, 46 file/329 test, lint, build) diverifikasi ulang; due date residual F13-06 perlu ditetapkan ulang oleh owner.
+- MIG-00 (2026-11-15): ADR-008 menetapkan seluruh stack dipindah ke VPS Indonesia (PostgreSQL, Better Auth, cron, SMTP, storage lokal, reverse proxy). F13-09/F13-10 kini Blocked menunggu MIG-01..MIG-07; kode aplikasi belum berubah dan masih memakai Clerk/Neon/QStash/Resend.
+- MIG-01 (2026-11-15): driver database kini `pg` + `drizzle-orm/node-postgres` dengan pool tunggal; baseline test menjadi 47 file/330 test. Auth, scheduler, email, dan hosting masih stack lama.
+- MIG-03/MIG-05 (2026-11-17): autentikasi memakai Better Auth self-hosted (email + kata sandi, OTP email) dan email memakai SMTP; Clerk dan Resend tidak dipakai lagi. Baseline: 45 file/320 test, lint 0 error/75 warning, integration lokal 91 + 1 skip, E2E Operator dan Admin 12/12 pada image container. QStash (MIG-04) dan storage import (MIG-06) masih stack lama.
+- MIG-02 (2026-11-16): preset Nitro dikunci ke `node-server`; `docker compose up` menjalankan aplikasi + PostgreSQL 16 UTF8 + Caddy dan smoke publik 2/2 lulus lewat proxy. Image belum memuat auth (Clerk tidak diteruskan ke container), jadi belum layak di-deploy sebelum MIG-03. Pemilik sudah melanggan VPS Tencent Cloud region Indonesia (2 vCPU, 4 GB, 60 GB).
+- SEC-AUDIT-01 (2026-11-17): `npm audit --omit=dev --audit-level=high` kembali exit 0 setelah `@tanstack/react-start` 1.169.5, `zod` 4.6.7, `vite` 8.2.6, dan turunan transitif dinaikkan; baseline test, integration, dan E2E tidak berubah. Residual: 8 advisory moderate dan peer `drizzle-kit` yang tidak valid terhadap `better-auth`.
+- SEC-AUDIT-02 (2026-11-18): `drizzle-kit` 0.30.6 → 0.31.11 sehingga peer `better-auth` valid dan `npm ls` exit 0; skema hasil migration identik, integration dan E2E tidak berubah. Audit produksi kembali exit 1 karena advisory baru `picomatch` (GHSA-fc5q-39xc-vjpf, belum ada patch) yang juga menggagalkan HEAD sebelumnya; ditangani SEC-AUDIT-03.
+- MIG-04 (2026-11-18): QStash diganti service compose `scheduler` (busybox `crond`) yang memanggil `/api/jobs/*` dengan Bearer `JOB_SECRET` lewat jaringan internal; Caddy menjawab 404 dari luar. Baseline: 45 file/318 test, integration 91 + 2 skip, F13-03 2/2 lewat SMTP Mailpit, E2E Operator dan Admin 12/12. Storage import (MIG-06) masih stack lama.
+- MIG-06 (2026-11-18): berkas import tidak pernah disimpan (parse di memori), sehingga DoD direktori privat diamandemen pemilik dan `R2_*` dihapus. Baseline: 46 file/322 test, integration 91 + 2 skip. Temuan IMPORT-FIX-01: commit import hanya memakai 100 baris valid pertama.
+- SEC-AUDIT-03 (2026-11-23): advisory `picomatch` GHSA-fc5q-39xc-vjpf ditarik, sehingga audit produksi kembali exit 0 tanpa perubahan dependency; residual tetap 8 moderate.
+- MIG-07 (2026-11-25): gate F13-02..F13-07 hijau lokal pada stack baru, Quality Gate GitHub `45540194127` hijau, security review tanpa critical/high. Baseline: 47 file/326 test, integration 102 + 2 skip, E2E Operator dan Admin 12/12.
 
 ## Recent Sessions
+
+### Session 327 - 2026-11-25
+**Status:** Completed — MIG-07: gate Fase 13 hijau ulang pada stack baru, lokal dan di Quality Gate GitHub
+- **Penutupan (setelah pemilik menyetujui push):** `266d47e` di-push ke `staging`; PR #1 (`staging` → `main`, sudah terbuka sejak September) memuat 21 commit. Quality Gate `45540194127` hijau di seluruh langkah, tanpa secret repository: 47 file unit, migrate + seed database kosong, integration 102 lulus + 2 skip, lint, generated routes, secret scan, audit exit 0 (8 moderate), build, dan smoke 2/2.
+- **Check Vercel gagal di PR:** integrasi Vercel for GitHub masih tersambung ke repo, jadi setiap push membuat deployment Preview, dan kali ini deployment itu gagal. Vercel bukan target sejak ADR-008, jadi ini bukan gate MIG-07. Tidak diperbaiki: pemutusan integrasi (atau mematikan deployment git) adalah keputusan pemilik.
+- **Inventaris stack lama:** tidak ada paket atau variabel Clerk, Neon, QStash, Resend, maupun R2 di manifest workspace, `.env.example`, `.github/workflows/ci.yml`, atau `scripts/`. `npm ls` exit 0. Sisa di `package-lock.json` hanya daftar peer opsional `drizzle-orm`, dan `smtp.resend.com` di bundle server berasal dari daftar layanan bawaan `nodemailer`. Berkas lokal pemilik `.env` dan `.env.f13-02.local` masih memuat nilai Neon/Clerk; runner tidak membacanya ketika `DATABASE_URL` di-set di proses, dan pemilik dapat menghapusnya.
+- **Diubah (dua workaround neon-http):**
+  - `calculate.ts`: simulasi, override, dan snapshot kini disimpan dalam satu `db.transaction`, sehingga kegagalan tidak meninggalkan simulasi tanpa snapshot.
+  - `manage-access.ts`: `runWithFallback` tidak lagi menjalankan ulang operasi tanpa transaksi bila pesan error mengandung "transaction". Di `pg` fallback itu dapat melewati atomisitas guard slot admin dan satu-Operator-per-satker. Cabang tanpa `transaction()` tetap ada hanya untuk mock unit test.
+- **Gate (database uji terpisah `f13test` di Postgres compose, dihapus setelahnya; server build produksi `NODE_ENV=production` di `127.0.0.1:3100`, SMTP ke Mailpit):**
+  - `npm run check` exit 0: 47 file/326 test, lint 0 error/74 warning.
+  - Migrate 10 migration + seed dari database kosong; `check:migrations` OK.
+  - Integration F13-02 102 lulus + 2 skip (2 skip = test F13-03 di suite ini).
+  - Runner F13-03 2/2: tanpa secret ditolak, satu delivery tiba di Mailpit, replay mengirim 0.
+  - E2E Operator `run-f13-04-e2e.mjs` 12/12 (1,2 menit) dan Admin `run-f13-05-e2e.mjs` 12/12 (42 detik), Chromium + Mobile Chrome; smoke publik 2/2.
+  - F13-07 (median): kalkulasi 69 ms, parser 10k 88,5 ms, dashboard agregat 15,6 ms, scheduler 13,3 ms, export XLSX 51,2 ms. Angka ini dari PostgreSQL lokal, bukan pembanding angka Neon.
+  - `check:generated-routes`, secret scan, `git diff --check` lulus; `npm audit --omit=dev --audit-level=high` exit 0 (8 moderate tetap).
+  - Probe build: `/` dan `/sign-in` 200, `/operator/dashboard` 307, `POST /api/jobs/reminders/daily` tanpa secret 401.
+- **Security review ulang (F13-06), tanpa critical/high:**
+  - Sesi dibuat hanya setelah OTP perangkat baru; reset kata sandi mencabut seluruh sesi dan perangkat tepercaya; jalur Better Auth yang tidak dipakai ditutup (`disabledPaths`).
+  - Undangan membuat akun tanpa kata sandi dan `emailVerified: false`; penerima membuktikan kepemilikan email lewat OTP Lupa kata sandi.
+  - Endpoint job: Bearer `JOB_SECRET` minimal 32 karakter, perbandingan konstan-waktu, fail-closed; Caddy menjawab 404 dari luar.
+  - Rate limit per IP membaca `X-Forwarded-For`. Menurut dokumentasi Caddy (context7), `reverse_proxy` mengabaikan nilai kiriman klien tanpa `trusted_proxies`, jadi IP tidak dapat dipalsukan selama Caddy menjadi titik masuk pertama; port aplikasi tidak dipublikasikan.
+- **Residual:**
+  - (medium, baru) TanStack Start 1.169.5 memperingatkan server function belum memakai `createCsrfMiddleware`. Mitigasi yang ada: cookie sesi `SameSite=Lax`, sehingga POST lintas situs tidak membawa sesi. Middleware menolak request tanpa `Sec-Fetch-Site`/`Origin`/`Referer` dan membandingkan origin URL request. Di balik Caddy (HTTP ke `app:3000`) origin itu kemungkinan perlu `origin: APP_URL`, jadi pemasangannya perlu diuji dengan TLS (F13-09/F13-10). Belum dikerjakan.
+  - (low) `token` sesi masih ada di body sign-in dan `get-session`; tanpa tanda tangan cookie dan tanpa plugin bearer token itu tidak dapat dipakai.
+  - (info) Chunk klien `reports-*.js` memuat nama tabel/kolom Drizzle, tanpa data atau secret; kondisi lama.
+- **Belum diverifikasi:** cookie `Secure` di balik TLS (F13-09).
+- **Berikutnya:** F13-09 (deploy VPS) menunggu domain dan lokasi backup dari pemilik; residual CSRF dibawa ke F13-09/F13-10. Pemilik juga memutuskan nasib integrasi Vercel di repo.
+
+### Session 326 - 2026-11-24
+**Status:** Completed — MIG-03 dan MIG-05 ditutup: tinjauan pemilik, uji email nyata, dan penolakan daftar ganda
+- **Tinjauan pemilik:** panel Permintaan Akses Operator tampil di `/admin-kppn/access`. Pemilik menyetujui `UBC 4111012342` (kutniatisri@gmail.com), sehingga akses Operator `active` dan baris permintaan terhapus. Ia juga menolak `777001` (status `rejected`). Log app tanpa kegagalan kirim email.
+- **Email nyata:** reminder uji 2026-11-23 ditemukan pemilik di Kotak Masuk Gmail. `scripts/smtp-smoke.mjs` ke alamat non-Gmail (`pknstan.ac.id`) exit 0. Pemilik mengonfirmasi email itu dan email persetujuan UBC tiba di Kotak Masuk.
+- **Keputusan pemilik (daftar ganda):** daftar ditolak bila email sudah terdaftar, atau kode/nama satker sudah punya Operator; pesan menyebut satker dan email Operator tersamar (FSD/TSD Addendum ADR-008). Ini membalik prinsip lama "permintaan tidak membocorkan keberadaan satker" khusus untuk satker yang sudah ber-Operator; probing dibatasi rate limit sign-up 10/menit per IP.
+- **Diubah:** `auth.server.ts` (`assertSignUpAvailable` pada hook `/sign-up/email`), `auth-session.ts` (`maskEmailHint` + test), `auth-form.tsx` (kode/nama dikirim di body sign-up, dua pesan baru), integration test baru di `access-request-http.integration.test.ts`. Temuan: sebelum perubahan ini, Better Auth menjawab sukses semu untuk email terdaftar, sehingga pengguna dibawa ke layar OTP tanpa kode.
+- **Verifikasi:** `npm run check` exit 0 (web 135 test); integration 100 lulus + 2 skip pada database terpisah `f13test` (dibuat di Postgres compose agar kata sandi akun seed di database lokal tidak direset); `curl` ke image baru menjawab kedua kode dan tidak membuat user; browser pane menampilkan pesan satker.
+- **E2E:** Admin 12/12 dan Operator 12/12 pada database uji `f13test` (dihapus setelahnya). Operator terhadap server dev dua kali gagal 10/12 pada "navigates each of the eight indicator workspaces" karena batas 120 detik: `networkidle` tidak pernah tercapai di Vite dev (live-reload), jadi tiap halaman menunggu 15 detik. Terhadap build produksi (`.output/server/index.mjs`) lulus 12/12 dalam 1,2 menit. Bukan regresi; runner E2E sebaiknya tetap diarahkan ke build/image.
+- **Lanjutan (redundansi email/kode/nama satker):** pemilik meminta analisis kasus data ganda. Keputusannya:
+  - kode satker wajib tepat 6 digit (`KODE_SATKER_PATTERN`), supaya kode yang kehilangan nol di depan dari Excel tidak menjadi satker ganda;
+  - pergantian Operator lewat Admin KPPN, dengan kalimat "Jika Operator sudah berganti, hubungi Admin KPPN Malang." pada pesan tolak;
+  - dua permintaan untuk kode yang sama tetap diterima dan ditandai `duplicateCount` di panel Admin, supaya permintaan palsu tidak bisa mengunci satker.
+  - Celah yang ditutup: form di `/access-pending` sebelumnya tidak menjalankan cek satker-sudah-ber-Operator. Sekarang `findSatkerTakenMessage` dipakai bersama hook sign-up dan `handleRequestSatkerAccess`.
+  - Label pesan diperbaiki menjadi "Lupa kata sandi".
+  - Sengaja tidak dikerjakan: alias Gmail, pembersihan akun yang tidak pernah verifikasi, dan pencocokan nama yang lebih longgar.
+  - Format kode di jalur Admin (`assignUserAccessFn`) belum diubah; diputuskan bersama INVITE-BULK-01.
+- **Verifikasi lanjutan:**
+  - `npm run check` exit 0 (web 136 test).
+  - Integration 100 + 2 skip. Fixture `settings-http` kini memakai kode 6 digit, dan test baru mencakup form Menunggu Akses serta `duplicateCount`.
+  - `curl` dan browser pane ke image baru: kode 5 digit ditolak di klien; 411782 menampilkan pesan dengan kalimat Admin; tidak ada user yang dibuat.
+  - E2E Operator 12/12 dan Admin 12/12 terhadap build produksi pada `f13test` (dihapus setelahnya).
+  - Badge di panel Admin hanya diuji lewat data integration, belum dilihat di layar.
+- **Koreksi pemilik (sesudah commit `fed619c`):** daftar dengan kode `11111` (KPPBC, Operator aktif) menampilkan pesan 6 digit, bukan pesan satker. Pemilik menegaskan kode satker harus tepat 6 digit di semua jalur.
+  - `assignUserAccessFn` (undangan/ubah akses Operator oleh Admin) kini menolak kode yang bukan 6 digit (`KODE_SATKER_INVALID`). Kolom kode di modal Admin dibatasi 6 karakter.
+  - Hook sign-up juga memeriksa format untuk pemanggil API langsung.
+  - Fixture runner `F13ADM` diganti `999001`, dan kode uji integration diganti kode 6 digit acak.
+  - Atas pilihan pemilik, data lokal yang tidak valid dihapus: satker `11111` (KPPBC) dan baris fixture lama `F13ADM`.
+    - Ikut terhapus: 1 akses Operator dan 2 tahun anggaran. 5 baris audit tetap ada dengan `org_id` kosong.
+    - Akun gilangrah6@gmail.com tetap ada tanpa satker.
+    - Kini semua `organizations.kode_satker` lokal sudah 6 digit.
+  - Verifikasi: `npm run check` exit 0 (web 136); integration 101 + 2 skip, ditambah test undangan Admin dengan kode 5 digit → ditolak tanpa akun. Fixture peer di `admin-monitoring…` dan `settings-http` kini 6 digit.
+  - `curl` ke image baru: `12345` → `KODE_SATKER_INVALID`.
+  - Belum dicek: form di browser (pane login sebagai Admin), dan E2E tidak diulang.
+- **Keputusan pemilik (email yang dipakai ulang):** gilangrah6@gmail.com menjadi akun yatim (tanpa akses, tanpa permintaan), sehingga tidak terlihat di Kelola Akses tetapi tetap ditolak saat Daftar. Pemilik memutuskan email yang tidak terlihat oleh Admin boleh dipakai Daftar lagi, tanpa panel baru.
+  - Daftar kini hanya menolak email dengan akses aktif atau undangan `pending` (`EMAIL_ALREADY_REGISTERED`), dan email dengan permintaan `pending` (`EMAIL_REQUEST_PENDING`, pesan baru).
+  - Akun yatim tidak dihapus, karena FK cascade akan ikut menghapus audit dan simulasi. `releaseOrphanEmail` mencabut sesi/kredensial/2FA dan mengganti emailnya menjadi `released-<id>@released.invalid`. Pelepasan dijalankan paling akhir, sehingga daftar yang ditolak tidak melepas apa pun.
+  - Kompromi: email akun yatim bisa dilepas sebelum OTP membuktikan kepemilikan; dampaknya kecil karena akun itu tidak punya akses.
+  - Verifikasi: typecheck dan lint exit 0, `npm run check` exit 0. Integration 102 + 2 skip, termasuk dua test baru: email dengan permintaan `pending` ditolak; email akun yatim dipakai ulang, baris lama menjadi `released-…`, dan akun baru belum terverifikasi.
+  - Percobaan pertama gagal karena subquery `exists` di select satu tabel tidak terhubung ke `users`; diganti dengan query terpisah berdasarkan id.
+  - Image compose dibangun ulang. Pemilik kemudian berhasil Daftar ulang dengan gilangrah6@gmail.com, officialbwkc@gmail.com, dan officialbwkk@gmail.com. Pesan "sudah terdaftar" untuk dua email dummy sebelumnya berasal dari image lama. Di-commit sebagai `27c6e4a`.
+- **Keputusan pemilik (akun yatim kosong):** akun yatim tanpa audit, simulasi, atau snapshot kini dihapus, bukan dilepas. Akun yang punya riwayat tetap dilepas emailnya, supaya riwayat satker tidak ikut terhapus.
+  - Audit dibaca lewat database, tanpa halaman baru (pemilik 2026-11-24; ADM-11 tetap pensiun). Cara Drizzle Studio/psql dicatat di `docs/runbook-operations.md` § Jejak audit.
+  - Verifikasi: `npm run check` exit 0; integration 102 + 2 skip. Test akun yatim kini mencakup dua kasus: akun kosong dihapus, dan akun dengan audit menjadi `released-…` dengan audit tetap ada.
+  - Image compose dibangun ulang.
+- **Keputusan pemilik (kode satker yang sudah diajukan):** Daftar dan form Menunggu Akses kini juga menolak kode atau nama satker yang ada di permintaan `pending` milik email lain (`SATKER_REQUEST_PENDING`, pesan memuat email pemohon tersamar). Ini menggantikan aturan sebelumnya "dua permintaan tetap diterima"; permintaan palsu dibereskan Admin dengan menolaknya.
+  - `findSatkerTakenMessage` kini mengembalikan `{ code, message }` dan menerima `exceptUserId`, supaya pemohon tetap bisa mengajukan ulang permintaannya sendiri. Badge `duplicateCount` tetap ada untuk data ganda lama.
+  - Verifikasi: `npm run check` exit 0 (web 136); integration 102 + 2 skip, test diperluas dengan Daftar (kode dan nama) dan form Menunggu Akses yang ditolak, serta pengajuan ulang milik sendiri yang tetap diterima. Image compose dibangun ulang; `curl` ke :8080 dengan kode 123456 dan nama " kpknl " → `SATKER_REQUEST_PENDING`, tanpa user dibuat.
+  - Data lokal: dua permintaan pending lama, 123456 dan 123455, sama-sama bernama "KPKNL". Keduanya dibiarkan; badge hanya menghitung kode yang sama, jadi nama ganda ini tidak ditandai.
+- **Keputusan pemilik (nama akun Operator):** Operator Satker tidak perlu nama pribadi; di mana pun namanya tampil, yang dipakai nama satker.
+  - Modal Admin menyembunyikan kolom "Nama" untuk Operator. `users.name` diisi nama satker di `assignUserAccessFn`, `registerSatkerForUser` (persetujuan), dan `handleUpdateSatkerSettings` (rename satker). Migration `0009_operator_account_name` menyamakan data lama.
+  - Pendekatan sinkronisasi saat menulis dipilih supaya semua tampilan (`auth-card`, Pengaturan Satker, reminder, pembuat simulasi) ikut tanpa diubah satu per satu. Batas: Operator dengan lebih dari satu satker hanya menyimpan satu nama.
+  - Verifikasi: `npm run check` exit 0; `check:migrations` OK; integration 102 + 2 skip, test undangan dan persetujuan kini memeriksa `users.name`. Image dan migrate compose dijalankan ulang: officialtgrid berubah dari "Operator Satker 411782" ke nama satkernya. Browser pane: modal Edit Operator UBC tanpa kolom Nama, modal Admin masih ada.
+  - Rencana "nama satker sama dengan kode berbeda hanya ditandai di Admin" dihentikan pemilik sebelum dikerjakan; pencocokan nama tetap memblokir.
+- **Belum diverifikasi:** CI GitHub; cookie `Secure` di balik TLS (MIG-07/F13-09).
+- **Berikutnya:** commit setelah disetujui pemilik, lalu MIG-07.
+
+### Session 325 - 2026-11-23
+**Status:** In Progress — MIG-03 tetap Needs Fix: jalur akses diganti menjadi undangan + permintaan akses yang disetujui Admin
+- **Keputusan pemilik:** aplikasi terbuka ke internet, jadi pendaftaran yang langsung aktif ditolak. Dengan cara lama, orang asing dapat mengklaim kode satker, bahkan melihat data satker yang Operator-nya kosong, karena `handleRegisterSatkerOnboarding` membuat akses `active` dan mengganti nama organisasi. Satker KPPN Malang diundang Admin; penerima membuat kata sandi lewat Lupa kata sandi; daftar mandiri menjadi permintaan akses; halaman Masuk menampilkan "Email belum terdaftar". Undangan massal (INVITE-BULK-01) dan mode demo (DEMO-01) dicatat sebagai task `Blocked`. Rancangan: `docs/superpowers/specs/2026-11-23-daftar-satker-langsung-design.md`; amandemen FSD butir 8, TSD butir 9, ERD Addendum MIG-03 butir 8–9.
+- **Diubah:**
+  - Tabel `access_requests` + enum `access_request_status`. Migration `0008_access_requests.sql` ditulis tangan seperti 0004–0007, karena snapshot Drizzle berhenti di 0003 dan `drizzle-kit generate` meminta konfirmasi rename lewat TTY.
+  - `settings.server.ts`: `registerSatkerForUser` (guard lama dipertahankan, organisasi yang sudah ada tidak diganti namanya), `handleRequestSatkerAccess`, `handleGetMyAccessRequest`. `registerSatkerOnboardingFn` diganti `requestSatkerAccessFn` + `getMyAccessRequestFn`.
+  - `admin-access.ts`: `listAccessRequestsFn`, `approveAccessRequestFn`, `rejectAccessRequestFn`. Undangan email baru membuat `users` tanpa kata sandi dengan akses `active`; akun dihapus bila pemberian akses gagal. Flag `awaitingPassword` ditambahkan.
+  - `auth-emails.server.ts`: isi email undangan dan email keputusan.
+  - `auth.server.ts`: `EMAIL_NOT_REGISTERED` / `PASSWORD_NOT_SET`.
+  - UI: form Daftar (Kode/Nama Satker), `/access-pending` tiga keadaan, panel Permintaan Akses + dialog Tolak, badge "Menunggu – Belum membuat kata sandi".
+  - Test: `access-request-http.integration.test.ts` (8 test baru); `settings-http` diperbarui; runner F13-02 menambah sesi pemohon tanpa akses.
+- **Verifikasi:**
+  - Gate lokal: `npm run check` exit 0 (lint 0 error/74 warning), `check:migrations` lulus, build `node-server` lulus, secret scan lulus.
+  - Migrate dari database kosong sementara (`migcheck`): 9 migration, 36 tabel. 0008 diterapkan ke database compose lokal tanpa menghapus data.
+  - Integration `run-f13-02-integration.mjs`: 99 lulus + 2 skip dari 101.
+  - E2E Operator dan Admin 12/12 terhadap image compose lewat Caddy (`http://localhost:8080`, SMTP sementara ke Mailpit).
+  - Browser pane (Mailpit): daftar email uji → OTP → "Menunggu Persetujuan Admin KPPN" dengan kode/nama yang diajukan; Masuk dengan email asing menampilkan "Email belum terdaftar…".
+- **Revisi pemilik (konfirmasi pada reset):** langkah reset Lupa kata sandi kini meminta "Konfirmasi kata sandi baru" dan menolak kirim bila tidak sama, sama seperti form Daftar (`auth-form.tsx`). `npm run check` exit 0; image app dibangun ulang (Gmail SMTP) dan bundle yang dilayani memuat kolom baru. Belum dicoba di browser karena butuh OTP nyata.
+- **Catatan:** runner E2E mengganti kata sandi akun seed Admin/Operator (alamat milik pemilik) dengan kata sandi acak. Pemilik perlu memakai Lupa kata sandi lagi. Permintaan uji `777001 Satker Uji Tampilan` sengaja dibiarkan di database lokal untuk ditinjau di panel Admin.
+- **Belum diverifikasi:** tampilan panel Permintaan Akses Admin di browser (hanya lewat integration); email keputusan dan undangan baru lewat Gmail nyata; CI GitHub.
+- **Berikutnya:** pemilik meninjau tampilan dan menguji alur dengan email nyata, lalu commit dan tutup MIG-03/MIG-05.
+
+### Session 324 - 2026-11-23
+**Status:** In Progress — MIG-03 tetap Needs Fix: perubahan layar masuk/daftar dari pemilik
+- **Keputusan pemilik:** semua kolom kata sandi memakai tombol tampilkan/sembunyikan berikon mata; formulir daftar meminta kata sandi dua kali; kata sandi harus berisi huruf dan angka. Ditafsirkan sebagai minimal satu huruf dan satu angka (simbol tetap boleh), hanya untuk kata sandi baru (daftar dan reset); masuk tetap menerima kata sandi lama. Amandemen dicatat pada FSD dan TSD Addendum ADR-008.
+- **Diubah:** `components/public/auth-form.tsx` (komponen `PasswordInput` dengan ikon `EyeOff` saat tersembunyi dan `Eye` saat terlihat, kolom "Konfirmasi kata sandi", validasi klien), `server/auth-session.ts` (`hasLetterAndDigit`, `PASSWORD_RULE_HINT`) + `auth-session.test.ts`, `server/auth.server.ts` (`hooks.before` menolak `/sign-up/email` dan `/email-otp/reset-password` dengan `400 PASSWORD_NEEDS_LETTER_AND_DIGIT`), `scripts/auth-fixture.mjs` (kata sandi acak fixture diberi akhiran huruf + angka agar tidak gagal sesekali).
+- **Verifikasi:** `npm run check` exit 0 (web 21 file/134 test, lint 0 error/74 warning); `tsc` web 0 error. Pada image compose yang dibangun ulang: `curl` ke `/api/auth/sign-up/email` (huruf saja, angka saja) dan `/api/auth/email-otp/reset-password` (huruf saja) menjawab 400 dengan kode di atas dan tidak membuat user. Browser pane: halaman Daftar menampilkan dua kolom kata sandi bertombol mata, pesan "Konfirmasi kata sandi tidak sama." dan "Kata sandi harus berisi huruf dan angka."; halaman Masuk memiliki tombol mata.
+- **Revisi pemilik (ukuran "Lupa kata sandi?"):** tautan tampil 14px/400 padahal ber-class `text-xs font-semibold`, karena aturan global tanpa layer `button { font-size: inherit; font-weight: inherit }` di `styles.css` mengalahkan utility Tailwind. `linkButtonClass` di form auth kini memakai `text-xs! font-semibold!`, sehingga semua tautan form auth menjadi 12px/600 seperti label (diukur dengan `getComputedStyle` pada image compose baru). Aturan global itu tidak diubah karena dampaknya ke seluruh tombol aplikasi.
+- **Revisi pemilik (placeholder nama satker):** "Contoh: Kantor Pelayanan Perbendaharaan Satker Contoh" diganti "Contoh: KPP Pratama Malang Selatan" pada onboarding (`components/access/access-pending.tsx`) dan modal Manajemen Akses Admin (`routes/admin-kppn/access.tsx`); data mock/seed tidak diubah. Display-only.
+- **Bukti tambahan:** pemilik mendaftar dengan email baru di luar seed, memverifikasi OTP daftar, dan tiba di onboarding "Operator Baru", sehingga OTP daftar untuk email baru kini terbukti.
+- **Belum diverifikasi:** kolom kata sandi baru pada langkah reset di browser (butuh OTP; memakai komponen yang sama); E2E Operator/Admin dan integration pada stack baru setelah perubahan ini; tinjauan visual pemilik.
+- **Berikutnya:** pemilik meninjau tampilan, uji OTP daftar dengan email di luar seed, jalankan ulang integration + E2E, lalu tutup MIG-03/MIG-05.
+
+### Session 323 - 2026-11-23
+**Status:** In Progress — MIG-03/MIG-05 tetap Needs Fix: uji Gmail SMTP nyata sebagian besar lulus
+- **Lingkungan:** stack compose lokal dari database kosong (8 migration + seed exit 0) dengan `--env-file .env.compose.local --env-file .env.smtp.local`; kedua berkas di-ignore git. `.env.compose.local` berisi secret acak lokal (`POSTGRES_PASSWORD`, `BETTER_AUTH_SECRET`, `JOB_SECRET`) dan `HTTP_PORT=8080`; `.env.smtp.local` berisi akun Gmail khusus `simulator.ikpa.notif@gmail.com` + App Password.
+- **Lulus:** `scripts/smtp-smoke.mjs` exit 0; pemilik mengonfirmasi OTP reset kata sandi dan OTP perangkat baru tiba di Kotak Masuk dan dapat dipakai masuk (database: akun `credential` dibuat 13:08 UTC, `2fa-attempts` lalu `trust-device` tercatat); satu baris `notification_deliveries` uji (`entity_type` `uji_smtp_mig05`) dikirim job `/api/jobs/reminders/send` lewat service `scheduler` dengan Bearer `JOB_SECRET` (`sent: 1`, `failed: 0`, status `sent`, tanpa `error_message`).
+- **Catatan:** email pemilik sudah ada di seed sebagai Admin KPPN 032 Pendamping, sehingga setelah masuk ia diarahkan ke halaman Admin; ini perilaku seed yang benar, bukan defect. Karena itu tidak ada user baru yang terbentuk dan OTP daftar untuk email baru belum terbukti.
+- **Belum diverifikasi:** OTP daftar dengan email di luar seed; penempatan email reminder (Kotak Masuk/Spam) di Gmail pemilik; cookie `Secure` di balik TLS (menunggu F13-09).
+- **Berikutnya:** pemilik menyerahkan daftar perubahan UI/UX layar masuk/daftar (digabung ke MIG-03 sesuai UIFIX-00), lalu uji OTP daftar dan tutup MIG-03/MIG-05.
+
+### Session 322 - 2026-11-23
+**Status:** Completed — SEC-AUDIT-03: audit produksi kembali exit 0 tanpa perubahan kode atau lockfile
+- **Temuan:** `gh api /advisories/GHSA-fc5q-39xc-vjpf` menunjukkan advisory ditarik (`withdrawn_at` 2026-11-18T15:38:56Z); `picomatch` terpasang tetap 4.0.7 dan 2.3.2.
+- **Verifikasi:** `npm audit --omit=dev --audit-level=high --registry=https://registry.npmjs.org` exit 0 (8 moderate: `vitest`/`@vitest/mocker`, `drizzle-kit`/`esbuild`, `exceljs`/`uuid`); `npm run check` exit 0 (typecheck, seluruh test workspace, lint 0 error/74 warning). Integration dan E2E tidak diulang karena kode dan lockfile tidak berubah.
+- **Catatan lingkungan:** registry lokal `registry.npmmirror.com` menjawab 404 untuk endpoint audit, jadi audit lokal wajib memakai `--registry=https://registry.npmjs.org`; CI memakai registry default npm dan tidak terdampak.
+- **Belum diverifikasi:** langkah "Dependency audit" pada CI GitHub (commit belum di-push).
+- **Berikutnya:** seluruh task terbuka lain menunggu pemilik — App Password Gmail untuk MIG-03/MIG-05, lalu MIG-07 → F13-09; daftar UIFIX-00; due date residual F13-06; push commit lokal.
+
+### Session 321 - 2026-11-18
+**Status:** Completed (docs only) — SMTP-DOMAIN-01 dibatalkan; Gmail SMTP dipakai permanen
+- **Keputusan pemilik:** logo Brevo pada footer email akun gratis tidak dapat diterima, jadi pengirim tetap Gmail SMTP dan rencana `notifikasi@ikpa.web.id` lewat Brevo tidak dikerjakan.
+- **Diubah:** TASK-LIST (SMTP-DOMAIN-01 ditandai dibatalkan, checkbox tetap kosong), BACKLOG (status `Cancelled` ditambahkan pada Aturan Status karena belum ada status untuk task yang dibatalkan sebelum dikerjakan; baris SMTP-DOMAIN-01 menjadi `Cancelled`), ADR-008 Amandemen SMTP (Gmail permanen, alasan pembatalan, opsi berdomain gratis lain yang gugur), `.env.example` (contoh Brevo dihapus).
+- **Verifikasi:** `git diff --name-only` hanya berisi dokumen dan `.env.example`; tidak ada perubahan kode.
+- **Berikutnya:** App Password Gmail dari pemilik di `.env.smtp.local`, lalu smoke test + OTP nyata untuk menutup MIG-03/MIG-05, kemudian MIG-07.
+
+### Session 320 - 2026-11-18
+**Status:** Completed (docs only) — rencana SMTP-DOMAIN-01: email aplikasi berdomain sendiri setelah `ikpa.web.id` dibeli
+- **Pertanyaan pemilik:** cara memakai domain sendiri `ikpa.web.id` untuk email khusus aplikasi. Keputusan pemilik: domain belum dibeli; Gmail SMTP tetap dipakai dulu untuk menutup MIG-03/MIG-05; alamat domain bersifat no-reply (tanpa mailbox dan tanpa forwarding).
+- **Analisis:** pengirim gratis yang mendukung DKIM domain sendiri adalah Brevo free (300 email/hari, logo Brevo di footer pada akun gratis). Opsi yang gugur: Zoho Mail Free tidak menyediakan SMTP; Gmail gratis dengan "Kirim sebagai" `@ikpa.web.id` tidak dapat menandatangani DKIM domain itu sehingga gagal DMARC; mail server sendiri terhalang blokir port 25 Tencent. Tidak ada perubahan kode karena mailer membaca `SMTP_*` dan port 587 memakai STARTTLS.
+- **Diubah:** TASK-LIST (task SMTP-DOMAIN-01 dengan Depends dan DoD), ADR-008 Amandemen SMTP (jalur keluar konkret: host Brevo, record DNS, DMARC `p=none` lalu `p=quarantine`, batasan, Gmail sebagai cadangan), `.env.example` (contoh blok Brevo), BACKLOG (SMTP-DOMAIN-01 Blocked).
+- **Risiko tercatat:** kuota 300/hari lebih kecil dari Gmail 500/hari; hari onboarding massal ±170 OTP atau hari tenggat dengan penerima tambahan bisa melewatinya. OTP yang gagal tidak dapat di-retry; mitigasinya onboarding bertahap atau kembali sementara ke env Gmail.
+- **Verifikasi:** `git diff --name-only` hanya berisi dokumen dan `.env.example`; tidak ada perubahan kode.
+- **Berikutnya:** tetap menunggu App Password Gmail di `.env.smtp.local` untuk menutup MIG-03/MIG-05; SMTP-DOMAIN-01 setelah domain dibeli.
+
+### Session 319 - 2026-11-18
+**Status:** In Progress — MIG-03/MIG-05: penyedia SMTP diputuskan (Gmail SMTP); menunggu App Password dari pemilik untuk uji kotak masuk nyata
+- **Aturan baru pemilik:** rekomendasi provider selalu yang gratis, mudah dipakai, dan cukup untuk ±170 pengguna bersamaan.
+- **Riset:** mail server sendiri di VPS Tencent tidak layak karena port 25 keluar diblokir secara default dan pembukaannya hanya untuk SMTP pihak ketiga (pengiriman langsung dapat berujung larangan permanen). Tidak ditemukan SMTP relay gratis berlokasi di Indonesia; Tencent SES hanya 1.000 email sekali di region Singapura. Opsi gratis yang tersisa: Gmail SMTP (±500 penerima/hari, tanpa domain) dan Brevo free (300/hari, butuh domain + DKIM). Perkiraan beban: < 50 email pada hari biasa, ±170–340 pada hari tenggat.
+- **Keputusan pemilik:** Gmail SMTP dengan akun khusus + App Password. Konflik dengan syarat residensi ADR-008 dilaporkan sebelum memilih dan dicatat sebagai Amandemen SMTP pada ADR-008 (alasan, konsekuensi isi email di Google, kuota, jalur keluar ke Brevo/penyedia lokal lewat env saja). TSD Addendum butir 12, TASK-LIST MIG-05, dan `.env.example` diperbarui; path `Files` MIG-05 dikoreksi ke `server/jobs/handler.ts`.
+- **Kode:** `scripts/smtp-smoke.mjs` (baru) mengirim satu email lewat mailer produk dengan `NODE_ENV=production`, membaca hanya `SMTP_*` dan `NOTIFICATION_SENDER_EMAIL` dari `.env.smtp.local` (di-ignore git) atau env proses, dan tidak mencetak nilai, penerima, maupun balasan server. Mailer tidak diubah.
+- **Verifikasi:** tanpa argumen exit 2; port tertutup exit 1 dengan kode `SMTP_SEND_FAILED`; ke Mailpit lokal exit 0 dan pesan tiba dengan subjek yang benar.
+- **Belum diverifikasi:** pengiriman nyata lewat Gmail dan posisi Inbox/Spam (menunggu App Password); OTP daftar/reset/perangkat baru lewat Gmail; batas kuota harian Gmail tidak diuji.
+- **Berikutnya:** pemilik membuat akun Gmail khusus, mengaktifkan verifikasi 2 langkah, membuat App Password, dan mengisi `.env.smtp.local`; lalu smoke test + OTP nyata, penutupan MIG-03/MIG-05, dan MIG-07.
+
+### Session 318 - 2026-11-18
+**Status:** Completed — MIG-06: storage import tanpa R2 dan tanpa penyimpanan berkas (DoD diamandemen pemilik); di-commit lokal pada `staging`, belum di-push
+- **Temuan awal:** `uploadImportFn` menerima berkas base64, mem-parse di memori, dan hanya menyimpan hasil parse ke `import_jobs` (`storage_key: null`); tidak ada kode R2/S3 dan tidak ada berkas yang ditulis ke disk. Commit membaca dari `error_report_json`, bukan dari berkas. Menu Import Operator sedang dinonaktifkan.
+- **Keputusan pemilik:** pertahankan parse di memori. Syarat DoD "tidak dilayani publik", "hapus saat job terminal", dan "sapuan yatim 7 hari" terpenuhi karena berkas tidak pernah disimpan; direktori storage dan sapuan tidak dibuat. Opsi menyimpan ke disk ditolak karena berkas itu tidak akan dibaca siapa pun.
+- **Kode:** `R2_*` dihapus dari `env.server.ts` dan `.env.example` (bagian 5 diganti catatan); komentar batas body Vercel 4,5 MB/R2 pada `server/import.ts` dan rujukan R2 pada `server/exports/operator-xlsx.ts` diperbarui. Tidak ada perubahan perilaku. Unit test baru `server/import/parser.test.ts` (4 test) mengunci penolakan format tak didukung, signature ZIP pada `.csv`, ukuran > 10 MB, dan > 10.000 baris; sebelumnya batas-batas ini belum punya test. Pemeriksaan nama berkas `.csv`/`.xlsx` dan batas base64 di `uploadImportFn` sendiri tetap tanpa test khusus.
+- **Dokumen:** TASK-LIST (MIG-06 dicentang dengan amandemen DoD; kandidat IMPORT-FIX-01), TSD Addendum ADR-008 butir 11, catatan MIG-06 pada kebijakan retensi, status ADR-008, traceability matrix, dan baris MIG-07 di BACKLOG.
+- **Verifikasi:** `npm run typecheck` 0 error; `npm test` 46 file/322 test; `npm run lint` 0 error/74 warning; `npm run build` ber-preset `node-server`; `check:migrations` dan secret scan lulus. Compose dari `down -v`: migrate 8 migration + seed lulus; integration F13-02 91 lulus + 2 skip dari 93, termasuk upload/list/get/commit/cancel import lintas tenant. Stack dibongkar dengan `down -v`.
+- **Belum diverifikasi:** E2E F13-04/F13-05 tidak dijalankan ulang karena tidak ada perubahan UI, route, atau perilaku server; upload nyata 10 MB lewat Caddy tetap belum diuji karena menu Import nonaktif; CI GitHub belum dijalankan.
+- **Temuan di luar scope (IMPORT-FIX-01, Blocked):** `uploadImportFn` menyimpan `validRows.slice(0, 100)` dan `commitImportFn` meng-commit dari situ, sehingga berkas dengan lebih dari 100 baris valid terpotong diam-diam dan job tetap `completed`. Ditahan sampai pemilik mengaktifkan kembali menu Import. `apps/web/.env` dan `apps/web/.env.local` lokal (tidak di-track) masih memuat contoh `R2_*`; tidak diubah.
+- **Berikutnya:** seluruh task MIG yang tersisa bergantung pada pemilik: MIG-03/MIG-05 menunggu penyedia SMTP dan DNS pengirim, lalu MIG-07. Juga terbuka: SEC-AUDIT-03 (patch `picomatch`), UIFIX-00 (daftar perbaikan), IMPORT-FIX-01, dan push commit lokal.
+
+### Session 317 - 2026-11-18
+**Status:** Completed — MIG-04: QStash diganti cron di VPS; di-commit lokal pada `staging`, belum di-push
+- **Keputusan pemilik (sebelum kode diubah):** path mengikuti TSD §6.8 (`/api/jobs/reminders/daily`, `/api/jobs/reminders/send`; `/api/jobs/import/process` tetap); cron sebagai service compose; jadwal UTC daily 23.00 (06.00 WIB), send tiap 15 menit, import tiap 10 menit; `/api/jobs/*` ditutup di Caddy sekarang, bukan menunggu F13-10. Jadwal QStash tidak pernah dibuat sebelumnya, jadi jadwal ini baru.
+- **Kode:** `server/qstash/` dipindah ke `server/jobs/`; `verifyQStashSignature` dan `getPublicQStashUrl` diganti `verifyJobSecret` (Bearer, SHA-256 kedua sisi lalu `timingSafeEqual`, gagal tertutup bila `JOB_SECRET` kosong atau < 32 karakter) dan `rejectUnauthorizedJob` (401 `INVALID_JOB_SECRET`). Handler diganti nama `handleReminderDaily`/`handleReminderSend`/`handleImportJob` dan tidak lagi membaca body. Logika pengiriman, klaim eksklusif, status delivery, dan pemulihan import tidak berubah; hanya teks `stuckError` "by QStash" menjadi "by scheduler". `@upstash/qstash` dihapus (lockfile: `@upstash/qstash`, `jose` 5.10.0 miliknya, `crypto-js`, `neverthrow`); `QSTASH_*` diganti `JOB_SECRET` di `env.server.ts`, `.env.example`, compose, dan CI. `routeTree.gen.ts` di-generate ulang.
+- **Infrastruktur:** service `scheduler` (`alpine:3.20`, `crond -f`) dengan crontab sebagai `configs.content` di compose (tidak ada file baru, tidak ada risiko CRLF; `$$JOB_SECRET` sehingga secret tidak tertulis di crontab); `JOB_SECRET` wajib untuk `app` dan `scheduler`. Caddyfile: `respond /api/jobs/* 404`.
+- **Test:** unit `server/jobs/handler.test.ts` 7 test (sebelumnya 9 test QStash/JWT/URL publik), sehingga workspace menjadi 45 file/318 test. `qstash-resend.integration.test.ts` ditulis ulang menjadi `job-delivery.integration.test.ts` (2 test: tanpa secret 401 tanpa menyentuh delivery; satu delivery terkirim lewat SMTP, tiba di Mailpit, replay mengirim 0). Runner `run-f13-03-provider-integration.mjs` kini hanya membaca env proses, menolak database non-loopback, dan tidak lagi butuh `.env.f13-02.local`. Runner F13-02 membuat `JOB_SECRET` acak bila belum ada, sehingga test import tidak lagi bergantung pada kunci QStash di berkas env lokal.
+- **Verifikasi:** `npm run typecheck` 0 error; `npm test` 45 file/318 test; `npm run lint` 0 error/74 warning; `npm run build` ber-preset `node-server` dan bundle server tanpa `upstash`; `check:migrations`, secret scan, dan `npm ls` exit 0. Stack compose dari `down -v`: migrate 8 migration + seed lulus; integration F13-02 91 lulus + 2 skip dari 93 (skip = 2 test F13-03 di suite ini); runner F13-03 2/2; E2E Operator `run-f13-04-e2e.mjs` 12/12 dan Admin `run-f13-05-e2e.mjs` 12/12 lewat Caddy (`:8080`), termasuk retry delivery gagal; log aplikasi tanpa error. Lewat Caddy, ketiga `/api/jobs/*` 404 meski membawa secret; dari container `scheduler` ke `app:3000` ketiganya 200 dengan secret dan 401 dengan secret salah. Crontab tanpa CR; uji terpisah membuktikan busybox `crond` mewariskan env ke job; log `scheduler` mencatat `send` dan `import` menembak pada 13.30.01 UTC. Stack dibongkar dengan `down -v`.
+- **Belum diverifikasi:** jadwal daily 23.00 UTC belum teramati menembak sendiri (perintah yang sama dijalankan manual dan berhasil); CI GitHub belum dijalankan karena belum di-push, dan langkah audit CI masih gagal karena SEC-AUDIT-03. Endpoint daily tetap hanya memproses delivery jatuh tempo (perilaku lama); evaluasi jadwal/enqueue pada TSD §6.7 tidak dikerjakan di sini.
+- **Tidak diubah:** teks "QStash recovery" pada `routes/operator/import.tsx` (glob freeze `docs/operator-freeze.md`); dokumen historis `deployment-vercel.md`.
+- **Berikutnya:** MIG-06 (Ready) — storage import lokal privat, dimulai dari laporan rencana. MIG-03/MIG-05 menunggu SMTP dan DNS pengirim; SEC-AUDIT-03 menunggu patch `picomatch`; MIG-07 setelah MIG-06.
+
+### Session 316 - 2026-11-18
+**Status:** Completed — DOC-SYNC-01: dokumen referensi diselaraskan dengan ADR-008 dan TASK-LIST (docs only)
+- **Pemicu:** pemilik meminta pengecekan apakah pekerjaan SEC-AUDIT mengikuti `TASK-LIST-Simulator-IKPA.md` dan apakah dokumen rujukan sudah mengikuti keputusan stack terakhir. Temuan proses: SEC-AUDIT-01 dan SEC-AUDIT-02 dikerjakan sebagai task ad hoc yang hanya tercatat di BACKLOG/DEVLOG, tanpa entri dan checkbox di TASK-LIST; entri DEVLOG Session 314 dan 315 juga tidak menyebut task berikutnya yang terbuka (syarat minimum TASK-LIST §1).
+- **Sudah sinkron (tidak diubah):** addendum ADR-008 pada PRD/FSD/TSD/ERD v2 (termasuk status MIG-02, MIG-03/05 pada TSD butir 8–9, FSD butir 7, dan Addendum MIG-03 ERD), scope note ADR-006, baris ADR-008 pada traceability matrix, catatan ADR-008 pada kebijakan retensi, observability, dan go-live checklist. Sisa rujukan QStash dan R2 pada `.env.example` dan dokumen lama benar menurut aturan transisi ADR-008 karena MIG-04 dan MIG-06 belum dikerjakan.
+- **Diubah:** TASK-LIST (catatan bahwa basis v1 historis dan stack mengikuti ADR-008; sub-fase SEC-AUDIT dengan SEC-AUDIT-01/02 dicentang dan SEC-AUDIT-03 terbuka; catatan keputusan undangan tanpa token pada MIG-03, karena langkah (b) masih berbunyi "undangan bertoken"; rujukan Context7 Clerk pada §20 diganti Better Auth TanStack Start, diverifikasi lewat Context7 `/better-auth/better-auth` v1.7.15). ADR-008: baris status ("implementasi belum dimulai") dan keputusan terbuka VPS (sudah dipilih 2026-11-16, domain masih terbuka). ADR-007: scope note Better Auth dan `users.id`. Runbook insiden: catatan stack baru dan langkah `RESEND_API_KEY` diganti variabel SMTP. Laporan UAT: catatan bahwa bukti berasal dari stack lama.
+- **Verifikasi:** `git diff --name-only` hanya berisi file `docs/`; tidak ada area `docs/operator-freeze.md` yang tersentuh.
+- **Tidak diubah dengan sengaja:** header "Basis: PRD v1.3 …" dan evidence F13-02..F13-08 pada TASK-LIST (histori); ADR-005 yang menyebut Clerk/Resend/QStash sebagai contoh adapter.
+- **Berikutnya:** MIG-04 (Ready) — ganti QStash dengan cron VPS + shared secret, dimulai dari laporan rencana. MIG-03/MIG-05 menunggu SMTP dan DNS pengirim dari pemilik; SEC-AUDIT-03 menunggu patch `picomatch`.
+
+### Session 315 - 2026-11-18
+**Status:** Completed — SEC-AUDIT-02: `drizzle-kit` naik ke 0.31.11; hasil di-commit lokal pada `staging`, belum di-push. Gate audit dipindah ke SEC-AUDIT-03 atas keputusan pemilik
+- **Lingkup:** hanya `packages/db/package.json` (`drizzle-kit` `^0.30.1` → `^0.31.11`) dan `package-lock.json`. Tidak ada kode aplikasi, migration, maupun area `docs/operator-freeze.md` yang berubah; dependency lain tidak disentuh.
+- **Lockfile:** `drizzle-kit` 0.30.6 → 0.31.11; `esbuild` milik `drizzle-kit` 0.19.12 → 0.25.12 (tambah biner `netbsd-arm64`, `openbsd-arm64`, `openharmony-arm64`); `esbuild-register`, `gel` (beserta `env-paths`, `semver`), dan `@petamoriken/float16` hilang. `@esbuild-kit/*` masih ditarik `drizzle-kit` (esbuild 0.18.20), jadi advisory moderate `esbuild` tetap ada. 28 entri yang berubah di-resolve dari `registry.npmmirror.com`; `integrity` ke-28-nya dicocokkan dengan `registry.npmjs.org`: 28 cocok.
+- **Verifikasi:** `npm ls` exit 0 (peer `better-auth` `>=0.31.4` kini valid); `npm run typecheck` 0 error; `npm test` 45 file/320 test; `npm run lint` 0 error; `npm run build` ber-preset `node-server`; `check:migrations`, `check:generated-routes`, dan secret scan lulus; `docker compose build` lulus. Migration dari database kosong dengan 0.31.11 menghasilkan skema identik dengan 0.30.6 (`pg_dump` sama, hash 8 migration sama).
+- **Gate stack (sesi ini):** `docker compose --profile dev --profile tools down -v`, lalu `db` + `mailpit`, `run --rm --build migrate` (log: `drizzle-kit` v0.31.11, `drizzle-orm` v0.45.2; 35 tabel, 8 baris `__drizzle_migrations`), dan seed di container `migrate` exit 0. Integration `run-f13-02-integration.mjs` 91 lulus + 1 skip dari 92. E2E Operator `run-f13-04-e2e.mjs` 12/12 dan Admin `run-f13-05-e2e.mjs` 12/12 terhadap image container lewat Caddy (`:8080`); log aplikasi tanpa error setelah container dibuat ulang. Stack dibongkar dengan `down -v`; tidak ada container atau listener `:3002` tersisa.
+- **Catatan menjalankan gate:** compose dijalankan dengan `--env-file` kosong agar `.env` lama (Neon/Clerk) tidak ikut diinterpolasi. Akibatnya `APP_URL` jatuh ke default `http://localhost` dan percobaan E2E pertama gagal 403 (`[Better Auth]: Invalid origin: http://127.0.0.1:8080`); setelah `APP_URL=http://127.0.0.1:8080` diset di env proses dan `app` dibuat ulang, keduanya lulus. Runner yang gagal itu juga berhenti dengan assertion libuv Windows (`UV_HANDLE_CLOSING`) saat keluar; tidak muncul pada run yang lulus. Kata sandi database dan secret auth hanya ada di env proses dan scratchpad sesi.
+- **Temuan audit (di luar lingkup, keputusan pemilik: SEC-AUDIT-03):** `npm audit --omit=dev --audit-level=high` kini exit 1 dengan 19 advisory (12 high, 7 moderate). Penyebabnya advisory baru `picomatch` GHSA-fc5q-39xc-vjpf (ReDoS extglob, rentang `*`, belum ada versi patch) yang masuk lewat `vite`, `tinyglobby`/`fdir`, `@tanstack/start-plugin-core`/`router-plugin`, dan `vitest` (peer `better-auth`); saran `npm audit fix --force` menurunkan `vite` ke 6.2.7 (breaking). Worktree sementara pada HEAD `434710c` (tanpa perubahan ini) memberi angka identik, jadi bukan regresi `drizzle-kit`. Moderate tersisa: `esbuild` lewat `@esbuild-kit/core-utils`, `uuid` lewat `exceljs`, `@vitest/mocker`. Registry default mesin ini (`npmmirror`) tidak menyediakan endpoint audit; audit dijalankan dengan `--registry=https://registry.npmjs.org`.
+- **Belum diverifikasi:** `drizzle-kit generate` 0.31 meminta prompt interaktif (butuh TTY), jadi tidak dapat diuji non-interaktif; pembandingan output generate dengan 0.30.6 juga tidak mungkin karena 0.30.6 menolak berjalan dengan `drizzle-orm` 0.45.2. Quality Gate GitHub belum dijalankan karena commit belum di-push; smoke publik dan `run-f13-07-performance.mjs` tidak dijalankan ulang. Lockfile masih bercampur `registry.npmjs.org` dan `registry.npmmirror.com` (kondisi lama).
+
+### Session 314 - 2026-11-17
+**Status:** Completed — SEC-AUDIT-01: `npm audit` produksi kembali exit 0; hasil di-commit lokal pada `staging`, belum di-push
+- **Lingkup:** hanya `apps/web/package.json` (pin `zod` 4.5.4 → 4.6.7; spec `vite` `^8.0.0` → `~8.2.6`) dan `package-lock.json`. Tidak ada kode aplikasi, route, maupun area `docs/operator-freeze.md` yang berubah. Rencana versi disetujui pemilik sebelum file diubah; tidak ada kenaikan major.
+- **Versi:** `@tanstack/react-start` 1.168.49 → 1.169.5 (rilis stabil pertama; API yang dihapus — `.inputValidator()`, `useSession`, `@tanstack/nitro-v2-vite-plugin` — tidak dipakai proyek), `@tanstack/react-router` 1.170.32 → 1.170.46, `@tanstack/router-cli` 1.167.33 → 1.168.0 (agar `@tanstack/router-core` tetap satu salinan, 1.171.39), `vite` 8.2.2 → 8.2.6 (`rolldown` 1.2.19), `seroval` 1.6.4 → 1.8.1, `solid-js` 1.9.19, `shell-quote` 1.12.0, `fast-uri` 3.1.9, `brace-expansion` 1.1.22/2.1.8/5.0.13, `source-map-js` 1.2.2, `undici` 8.12.4. Turunan yang ikut bergeser: `@tanstack/store` 0.9.3 → 0.11.2, `unplugin` 3.7.0, dan alias `h3-v2` (rc.20) hilang sehingga Start memakai `h3` rc.31 yang sama dengan Nitro. `react`/`react-dom` (19.2.8) dan `srvx` (1.0.4) sempat dinaikkan resolver dan dikembalikan ke versi lama lewat entri lockfile.
+- **Cara:** `npm audit fix` dan `npm update` gagal `ERESOLVE` karena peer yang sudah tidak valid sejak MIG-03 (`drizzle-kit` 0.30.6 terhadap peer opsional `better-auth` `>=0.31.4`), jadi pembaruan terarah dijalankan dengan `--force`; setelah itu `npm ci` bersih lulus di Windows dan di image Linux. 74 entri lockfile yang berubah dicocokkan `integrity`-nya dengan `registry.npmjs.org`: 74 cocok.
+- **Verifikasi:** audit exit 0 (0 critical, 0 high, 8 moderate); `npm run typecheck` 0 error; `npm test` 45 file/320 test; `npm run lint` 0 error/75 warning; `npm run build` ber-preset `node-server`; `check:migrations`, `check:generated-routes`, dan secret scan lulus. `docker compose build` lulus; migration pada PostgreSQL 16 kosong 0 → 35 tabel dan seed lulus; integration `run-f13-02-integration.mjs` 91 lulus + 1 skip dari 92; E2E Operator `run-f13-04-e2e.mjs` 12/12 dan E2E Admin `run-f13-05-e2e.mjs` 12/12 terhadap image container lewat Caddy (`:8080`); `/` dan `/sign-in` 200, route terproteksi 307, log aplikasi tanpa error.
+- **Perilaku framework yang teramati:** path dengan percent-encoding rusak (`/%E0%A4%A`) dijawab 400, sesuai catatan migrasi Start 1.169; perilaku sebelum upgrade tidak diukur.
+- **Belum diverifikasi / residual:** Quality Gate GitHub belum dijalankan karena commit belum di-push; E2E smoke publik dan `run-f13-07-performance.mjs` tidak dijalankan ulang. 8 advisory moderate tetap terbuka (`drizzle-kit`/`esbuild`/`@esbuild-kit/*`, `exceljs`/`uuid`, `vitest`/`@vitest/mocker`). Peer `drizzle-kit` yang tidak valid membuat `npm ls` exit 1 dan pembaruan berikutnya tetap butuh `--force`. `tsr generate` mencetak warning Node `replaceRouteChunk` (circular dependency) dengan output identik; tidak dibandingkan dengan sebelum upgrade. Lockfile masih bercampur `registry.npmjs.org` dan `registry.npmmirror.com` (kondisi lama).
+
+### Session 313 - 2026-11-17
+**Status:** Needs Fix — MIG-03 dan MIG-05: implementasi dan verifikasi lokal selesai; penutupan menunggu penyedia SMTP dan DNS pengirim dari pemilik (syarat ADR-008)
+- **Lanjutan Session 312.** Perubahan kode sesi ini: atribut `autoFocus` pada kolom OTP dihapus (satu-satunya error lint) dan pencarian Mailpit pada `scripts/auth-fixture.mjs` dibuat eksak. Addendum MIG-03 ditulis pada ERD, TSD (butir 9), dan FSD (butir 7).
+- **Verifikasi standar:** `npm run typecheck` 0 error; `npm test` 45 file/320 test (baseline 47/330 dikurangi `clerk-webhook.test.ts` 3 test, `sync-user.test.ts` 5 test, dan 2 test `updateUserProfile`; angka 44/312 pada Session 312 salah hitung karena workspace UI terlewat); `npm run lint` 0 error/75 warning; `npm run build` ber-preset `node-server`; `check:migrations` dan secret scan lulus. `check:generated-routes` baru dapat lulus setelah commit karena membandingkan dengan HEAD; generator terbukti deterministik (hash `routeTree.gen.ts` sama sebelum dan sesudah generate).
+- **Migration dari database kosong lewat compose:** `docker compose down -v`, lalu `docker compose run --rm migrate` pada PostgreSQL 16 UTF8: 0 → 35 tabel, 8 migration; seed lulus.
+- **Image container lewat Caddy (`:8080`, `NODE_ENV=production`):** `/`, `/sign-in`, `/sign-up` 200; route terproteksi 307 ke `/`; daftar + OTP lewat Mailpit membuat sesi dengan cookie `HttpOnly; SameSite=Lax`; sign-in dari origin lain ditolak 403; `auth_sessions.ip_address` terisi dari `X-Forwarded-For` dan kunci rate limit memakai IP; log aplikasi tidak memuat kode OTP, alamat email, maupun error ClerkProvider.
+- **Gate terautentikasi pada stack baru:** integration `run-f13-02-integration.mjs` 91 lulus + 1 skip dari 92 (dev server lokal, `NODE_ENV=test`); E2E Operator `run-f13-04-e2e.mjs` 12/12 dan E2E Admin `run-f13-05-e2e.mjs` 12/12 (Chromium + Mobile Chrome) terhadap image container; smoke publik 2/2; `run-f13-07-performance.mjs` berjalan (kalkulasi median 46,9 ms pada database lokal; bukan pembanding untuk angka Neon). Semua sesi fixture dibuat lewat alur reset kata sandi dan OTP nyata.
+- **Belum diverifikasi:** workflow `.github/workflows/ci.yml` baru (service container PostgreSQL + Mailpit, tanpa secret) belum pernah dijalankan di GitHub; keterkiriman SMTP nyata dan kotak masuk Gmail; cookie `Secure` dan TLS (butuh domain, F13-09); alur ubah email oleh Admin hanya tercakup integration test yang ada, tidak diuji manual.
+- **Temuan `npm audit` (di luar scope MIG-03, butuh keputusan pemilik):** `npm audit --omit=dev --audit-level=high` gagal dengan 22 advisory (8 critical, 6 high). Lockfile pada HEAD `04f286d` sudah gagal dengan 15 advisory (8 critical, 5 high), jadi kondisi ini muncul dari advisory yang terbit selama jeda proyek, bukan dari MIG-03: critical pada `@tanstack/react-start`/`start-server-core` (perbaikan = naik ke 1.169.5), `seroval`, dan `shell-quote`; high pada `vite`, `zod`, `fast-uri`, `brace-expansion`, `source-map-js`. Tujuh entri tambahan sejak HEAD adalah alat test/build (`undici` lewat `jsdom`, `vitest`, `drizzle-kit`, `esbuild`) yang kini terhitung non-dev karena menjadi peer dependency `better-auth`; `better-auth` dan `nodemailer` sendiri tidak memiliki advisory. Langkah "Dependency audit" di CI akan gagal sampai dependency diperbarui. Tidak ada dependency yang dinaikkan pada sesi ini.
+- **Residual untuk security review MIG-07:** (1) respons sign-in/verifikasi dan `/api/auth/get-session` memuat field `token` sesi bawaan library; token itu tidak dapat dipakai tanpa cookie bertanda tangan dan plugin bearer tidak aktif, tetapi belum memenuhi bunyi DoD "token tidak pernah masuk response" secara harfiah. (2) Chunk klien `reports-*.js` memuat definisi skema Drizzle (nama tabel/kolom, tanpa data atau secret); kondisi ini sudah ada pada build September dan kini ikut memuat nama tabel auth. (3) Batas per IP sengaja longgar (30 login/menit) karena banyak satker berbagi satu NAT; perlindungan utama adalah OTP perangkat baru, batas percobaan OTP, dan kuota per email.
+- **Catatan runner:** `.env.f13-02.local` milik pemilik masih berisi nilai Neon/Clerk dan `NODE_ENV=production`; runner kini mengutamakan environment proses, menolak database non-loopback, dan menjalankan server dengan `NODE_ENV=test` seperti CI. Berkas itu dapat dihapus pemilik.
+- **Lingkungan:** stack compose (`db`, `mailpit`, `app`, `proxy`) dimatikan dengan `down -v` di akhir sesi; image tetap sebagai cache. Tidak ada perintah yang menyentuh Neon. Berikutnya: keputusan SMTP pemilik, lalu MIG-04 dan MIG-06.
+
+### Session 312 - 2026-11-16
+**Status:** In Progress — MIG-03 (Clerk → Better Auth) bersama MIG-05 (Resend → SMTP); sesi terpotong batas pemakaian sebelum verifikasi penutup selesai
+- **Keputusan pemilik:** MIG-00..MIG-02 di-commit (`04f286d`, belum di-push); skema Opsi A (`users` menjadi tabel user Better Auth); keputusan lain mengikuti rekomendasi yang gratis dan sesuai stack: undangan tanpa token (klaim lewat email terverifikasi OTP), Mailpit sebagai penangkap email lokal, perangkat tepercaya 30 hari bergulir, kata sandi minimal 10 karakter, mode demo `dev_session` dihapus.
+- **Skema:** migration `0007_better_auth_identity.sql` menghapus `users.clerk_user_id` dan `organizations.clerk_org_id`, menambah `users.email_verified`/`image`/`two_factor_enabled`, serta tabel `auth_sessions`, `auth_accounts`, `auth_verifications`, `auth_two_factors` (kosong; TOTP dimatikan), `auth_rate_limits`. Delapan migration lulus dari database kosong pada PostgreSQL 16 UTF8 di Docker (35 tabel) dan seed lulus. **Addendum MIG-03 pada ERD/TSD/FSD belum ditulis.**
+- **Server:** `server/auth.server.ts` (Better Auth 1.7.25: email + kata sandi, `emailOTP` dan `twoFactor` mode OTP, OTP ter-hash, 10 menit, 5 percobaan, kuota kirim 5 per 15 menit per email, endpoint di luar alur produk ditutup lewat `disabledPaths`), `server/mailer.server.ts` (`nodemailer`), `routes/api/auth/$.ts`; `/api/webhooks/clerk`, `sso-callback`, `sync-user.ts`, dan paket `@clerk/*` dihapus. Hard delete kini satu transaksi lokal. Reminder dikirim lewat SMTP dengan klaim delivery eksklusif (syarat `attempt_count`).
+- **Verifikasi yang lulus:** `npm run typecheck`; `npm test` 44 file/312 test; integration terautentikasi lokal 91 lulus + 1 skip dari 92 (`scripts/run-f13-02-integration.mjs`, sesi lewat alur OTP nyata dengan Mailpit); uji HTTP dan browser pada dev server lokal: daftar → OTP → onboarding kode + nama satker → Dashboard Operator, login perangkat baru dengan OTP lalu tanpa OTP pada perangkat tepercaya, reset kata sandi mencabut sesi dan perangkat tepercaya, blind guard ke `/`, undangan terkirim dan diklaim, hapus permanen dari UI.
+- **Belum diverifikasi:** `npm run lint`, `npm run build`, `check:migrations`, `check:generated-routes`; build image dan `docker compose run --rm migrate`; alur auth lewat Caddy (termasuk header IP untuk rate limit); runner E2E F13-04/F13-05 dan F13-07 (sudah dipindah dari Clerk, belum dijalankan); workflow CI baru (belum pernah dijalankan di GitHub); keterkiriman SMTP nyata/Gmail. Jumlah unit test 312, sedangkan hitungan dari baseline 330 dikurangi test yang dihapus adalah 320: selisih 8 belum ditelusuri.
+- **Temuan di luar scope (tidak diubah):** `server/reminders.ts` melempar "Reminder delivery records are unavailable in production" bila Operator belum punya delivery dan `NODE_ENV=production`; akses Admin hasil klaim undangan tidak mendapat `admin_slot` (perilaku sama dengan sebelum migrasi). `scripts/run-f13-03-provider-integration.mjs` dan `qstash-resend.integration.test.ts` masih bernama Resend/QStash; ditulis ulang pada MIG-04.
+- **Lingkungan:** container `db` (port 55432) dan `mailpit` masih berjalan dengan data uji; sandi hanya ada di scratchpad sesi. Tidak ada perintah yang menyentuh Neon.
+
+### Session 311 - 2026-11-16
+**Status:** Completed — pemindahan Docker ke disk E dan serah terima sesi (tanpa perubahan kode; MIG-03 belum dimulai)
+- **Latar:** disk C pemilik tersisa 7,8 GB dari 97 GB; pemilik meminta semua yang bisa dipindah ke `E:\Apps Program Files`. Opsi mengembalikan proyek ke kondisi sebelum MIG-02 tidak diambil karena file MIG-02 tidak memakan ruang di C.
+- **Perubahan lingkungan (bukan repo):** Docker Desktop 4.99.0 di-uninstall dari C lalu dipasang ulang ke `E:\Apps Program Files\Docker\Docker` dengan `--wsl-default-data-root` ke `E:\Apps Program Files\Docker\wsl`; cache npm dipindah ke `E:\Apps Program Files\npm-cache` lewat `.npmrc` user. Image dan cache build MIG-02 ikut terhapus. Ruang bebas C menjadi 16,3 GB. WSL (`C:\Program Files\WSL`, 1,1 GB) dan plugin CLI Docker (`C:\Program Files\Docker\cli-plugins`, 0,7 GB) tetap di C karena tidak dapat dipindah.
+- **Verifikasi dari lokasi baru:** engine 29.9.3 berjalan; `docker compose config` valid; service `db` healthy dengan `server_encoding` UTF8, lalu `docker compose down -v`. Build image aplikasi, migrate/seed, smoke lewat Caddy, dan uji 413 tidak diulang; bukti Session 310 berasal dari instalasi di C dan file proyek tidak berubah sejak itu.
+- **Kondisi repo saat serah terima:** branch `staging`, HEAD `0354e23`; seluruh hasil MIG-00, MIG-01, dan MIG-02 belum di-commit (32 path berubah/baru). Typecheck, 47 file/330 test, lint 0 error/78 warning, build, dan `check:migrations` terakhir lulus pada Session 310.
+- **Keputusan terbuka pemilik:** commit MIG-00..MIG-02 sebelum MIG-03; penyedia SMTP dan DNS pengirim; domain; lokasi backup; mitigasi DDoS; daftar UIFIX.
+- **Catatan untuk sesi berikutnya:** terminal lama belum mengenal `docker`; CLI ada di `E:\Apps Program Files\Docker\Docker\resources\bin`. `.env` masih menunjuk ke Neon lama dan tidak boleh dipakai untuk migrate/seed/test; PostgreSQL lokal tersedia lewat `docker compose up -d db` (port loopback, `POSTGRES_PASSWORD` wajib diisi lewat env). Berikutnya: MIG-03 bersama MIG-05, dimulai dari laporan rencana dan desain skema identitas.
+
+### Session 310 - 2026-11-16
+**Status:** Completed — MIG-02 server Node dalam container
+- **Lingkungan:** Docker Desktop 29.9.3 (engine linux/amd64, Compose v5.7.0) dipasang pemilik; engine baru berjalan setelah restart Windows. Tidak ada file implementasi yang berubah sejak Session 309; sesi ini hanya verifikasi dan dokumen.
+- **Verifikasi Docker:** `docker compose config` valid dan gagal tanpa `POSTGRES_PASSWORD` (exit 1); `DATABASE_URL` container menunjuk service `db`. `docker compose --profile tools build` lulus (`npm ci` + build di Linux; image aplikasi 370 MB). `docker compose up -d`: `db` healthy, `app` dan `proxy` running. Container aplikasi berjalan sebagai user `node`, `NODE_ENV=production`, tanpa file `.env` dan tanpa variabel Clerk/QStash/Resend; port 3000 tidak terjangkau dari host. Database: PostgreSQL 16.16, `server_encoding` UTF8, collate `en_US.utf8`, 0 tabel sebelum migrate; `docker compose run --rm migrate` menerapkan 7 migration (30 tabel); seed dijalankan dua kali di container dengan exit 0; karakter "Σ" tersimpan dan terbaca.
+- **Verifikasi lewat Caddy (`:8080`):** `/` dan `/sign-in` 200 dengan header `Via: 1.1 Caddy`; `/operator/dashboard` dan `/admin-kppn/dashboard` 307 ke `/`; `POST /api/qstash/daily` tanpa signature 401; body 16 MB ditolak 413 oleh proxy dan body 12 MB diteruskan ke aplikasi (401). Smoke publik Playwright 2/2 (Chromium desktop + Mobile Chrome). Audit request browser pada container: 0 host pihak ketiga.
+- **Verifikasi standar (diulang setelah restart):** `npm run typecheck` 0 error; `npm test` 47 file/330 test; `npm run lint` 0 error/78 warning; `npm run build` ber-preset `node-server`; `check:migrations`; secret scan.
+- **Belum diverifikasi:** query aplikasi ke database di dalam container (hanya koneksi TCP `app → db:5432`; seluruh route yang membaca data butuh sesi, menunggu MIG-03); upload import nyata 10 MB lewat proxy (butuh sesi); TLS otomatis Caddy dengan domain (F13-09); integration/E2E authenticated (MIG-03/MIG-07). Tidak ada perintah yang menyentuh database Neon.
+- **Known issue:** pada image tanpa kunci Clerk, `/sign-up` mencatat `SignUp can only be used within the <ClerkProvider />` di log server. Build dengan kunci Clerk tidak mencatat error. Layar ini dibangun ulang pada MIG-03, sehingga tidak diperbaiki di sini.
+- **Pembersihan:** stack uji dimatikan dengan `docker compose down -v`; image tetap ada sebagai cache. Sandi database uji hanya ada di folder scratchpad sesi, tidak di repo. Berikutnya: MIG-03 bersama MIG-05.
+
+### Session 309 - 2026-11-16
+**Status:** In Progress — MIG-02 server Node dalam container (belum Completed: `docker compose up` belum diverifikasi)
+- **Perubahan:** `apps/web/vite.config.ts` mengunci `nitro({ preset: "node-server" })`. File baru di root: `Dockerfile` (build multi-stage Node 22, image akhir hanya berisi `.output`, user non-root), `.dockerignore` (seluruh `.env*` di luar build context), `docker-compose.yml` (PostgreSQL 16 `--encoding=UTF8`, aplikasi tanpa port terbuka, Caddy, dan service `migrate` ber-profile `tools`), `Caddyfile`. `.env.example` bagian database kini PostgreSQL lokal dan mendapat bagian Docker Compose.
+- **Keputusan pemilik (2026-11-16):** reverse proxy Caddy; batas body di proxy 15 MB karena import mengirim berkas sebagai base64 (10 MB ≈ 13,4 MB) dan batas berkas 10 MB tetap ditegakkan `server/import.ts`; sisa string `vercel.app` pada data uji, komentar `import.ts`, dan `.vercel` di `.gitignore` dibiarkan; container berjalan tanpa Clerk sampai MIG-03. Penyedia VPS ditetapkan: Tencent Cloud region Indonesia (2 vCPU, 4 GB RAM, 60 GB); domain, SMTP, lokasi backup, dan mitigasi DDoS masih terbuka.
+- **Keputusan teknis:** `DATABASE_URL` container dirakit di compose dari `POSTGRES_PASSWORD` dan tidak dibaca dari `.env`, sehingga container tidak dapat tersambung ke Neon lama; compose gagal start bila `POSTGRES_PASSWORD` kosong. Variabel Clerk/QStash/Resend tidak diteruskan ke container; masing-masing ditambahkan oleh MIG-03/04/05. Base image glibc (`bookworm-slim`) dan `postgres:16` dipilih agar sama dengan CI dan PostgreSQL 16 yang diuji pada MIG-01.
+- **Verifikasi (tanpa Docker):** `npm run typecheck` 0 error; `npm test` 47 file/330 test; `npm run lint` 0 error/78 warning; `npm run build` menghasilkan `.output/nitro.json` ber-preset `node-server`; `check:migrations` lulus; `routeTree.gen.ts` tidak berubah. Build tanpa `VITE_CLERK_PUBLISHABLE_KEY` (setara build Docker) disalin ke luar repo dan dijalankan dengan `node .output/server/index.mjs` (`NODE_ENV=production`, tanpa kunci Clerk, `DATABASE_URL` lokal yang tidak aktif): `/` dan `/sign-in` 200, `/operator/dashboard` dan `/admin-kppn/dashboard` 307 ke `/`, `POST /api/qstash/daily` tanpa signature 401; smoke publik Playwright 2/2 (Chromium desktop + Mobile Chrome) terhadap server tersebut.
+- **Audit pihak ketiga dari browser:** rekaman request Playwright pada `/`, `/sign-in`, `/sign-up`, dan dua route terproteksi. Build tanpa kunci Clerk: 0 host pihak ketiga; font Inter, script, dan stylesheet seluruhnya dari origin sendiri; tidak ada analytics. Build dengan kunci Clerk (stack berjalan): `<instance>.clerk.accounts.dev` (script, fetch) dan `img.clerk.com` (image); keduanya hilang pada MIG-03. Tautan `wa.me` hanya navigasi atas klik pengguna.
+- **Belum diverifikasi:** build image, `docker compose up` (aplikasi + PostgreSQL + Caddy), sintaks `docker-compose.yml` dan `Caddyfile`, smoke lewat proxy, respons 413 di atas 15 MB, encoding UTF8 pada database container, serta `drizzle-kit migrate` dan seed dari database kosong di container. Integration/E2E authenticated tetap tidak dijalankan (menunggu MIG-03/MIG-07); tidak ada perintah yang menyentuh database Neon.
+- **Risiko:** image tanpa kunci Clerk tidak dapat dipakai login sampai MIG-03, sehingga belum layak di-deploy. Berikutnya: pemilik memasang Docker Desktop, lalu verifikasi compose dan penutupan MIG-02.
+
+### Session 308 - 2026-11-15
+**Status:** Completed — MIG-01 driver database Neon → `pg`
+- **Perubahan:** `packages/db/src/client.ts` memakai `pg.Pool` + `drizzle-orm/node-postgres`. Karena ±25 modul server memanggil `createDbClient()` per request, pool di-cache per connection string di dalam `client.ts`; `createPoolDbClient` menjadi alias dan nama ekspor/tipe tidak berubah, sehingga tidak ada pemanggil yang disentuh. `@neondatabase/serverless` dihapus, `pg`/`@types/pg` ditambah. Tiga runner (`run-f13-02/04/05`) memakai helper tagged-template `scripts/pg-sql.mjs`; `run-f13-07` mengimpor `Pool` dari `pg`. Paket db kini punya test (`client.test.ts`, `vitest.config.ts`) yang menjaga pool tunggal tanpa membutuhkan database.
+- **Verifikasi:** Docker dan PostgreSQL tidak terpasang, sehingga dipakai PostgreSQL 16.15 sementara di folder scratchpad (paket `embedded-postgres`, di luar repo, sudah dimatikan). Dari database kosong: `drizzle-kit migrate` menerapkan 7 migration (30 tabel) dan seed dijalankan dua kali dengan exit 0. `npm run typecheck` 0 error; `npm test` 47 file/330 test (baseline 46/329 + 1 test baru); `npm run lint` 0 error/78 warning; `npm run build`; `check:migrations`; secret scan. Dev server dengan sesi demo (Clerk dan provider dimatikan lewat env proses) terhadap database lokal: 12 halaman 200 (1 publik, 8 Operator, 3 Admin); `/operator/deviasi` dan `/operator/data/contracts-invoices` 307 ke parameter tab bawaan dan tidak diikuti; anonim dan lintas-peran 307, dashboard menulis `simulations`/`score_snapshots`; setelah 100 permintaan tambahan (60 berurutan, 40 bersamaan) koneksi berhenti di 10 dan seluruhnya idle. Bundle server baru tidak memuat Neon dan aset client tidak memuat driver.
+- **Temuan:** database uji pertama terbuat dengan encoding WIN1252 (bawaan Windows) dan menolak karakter "Σ" pada `breakdown_json` (dashboard 500). Dengan UTF8 lulus; syarat UTF8 dicatat pada DoD F13-09. Dengan `pg`, `db.transaction()` kini benar-benar berjalan, sehingga `runWithFallback` di `manage-access.ts` menjadi atomik; blok transaksinya hanya memakai `tx`, jadi hasilnya sama.
+- **Batasan:** integration authenticated (F13-02), E2E (F13-04/05), dan performance (F13-07) tidak dijalankan karena masih membutuhkan Clerk dan database uji Neon; koneksi `pg` ke Neon melalui `.env` yang ada tidak diuji. Komentar `neon-http` di `apps/web/src/server/simulation/calculate.ts:739` kini usang tetapi berada di area freeze dan tidak diubah. `runWithFallback` dapat disederhanakan pada MIG-03. Berikutnya: MIG-02.
+
+### Session 307 - 2026-11-15
+**Status:** Completed — amandemen MIG-00: verifikasi kedua memakai OTP email
+- **Keputusan pemilik:** tanpa aplikasi authenticator dan tanpa SMS. Kode OTP dikirim ke email saat mendaftar, saat reset kata sandi, dan saat login dari perangkat yang belum dikenal; login berikutnya dari perangkat yang sama cukup email + kata sandi.
+- **Perubahan (docs only):** ADR-008 (ketentuan autentikasi, konsekuensi, keputusan terbuka SMTP, urutan pelaksanaan), DoD/Depends MIG-03 dan MIG-05 pada TASK-LIST dan BACKLOG, addendum ADR-008 pada PRD/FSD/TSD v2. MIG-05 kini dikerjakan bersama MIG-03 dan tidak lagi bergantung pada MIG-04.
+- **Batasan:** pengaturan OTP Clerk yang lama tidak tersimpan di repo, sehingga perilaku "perangkat baru" adalah keputusan baru pemilik, bukan salinan terverifikasi. Penyedia SMTP dan DNS pengirim (SPF, DKIM, DMARC) menjadi syarat sebelum MIG-03/MIG-05 ditutup. Berikutnya: MIG-01.
+
+### Session 306 - 2026-11-15
+**Status:** Completed — MIG-00 keputusan residensi data dan stack self-hosted (ADR-008)
+- **Keputusan pemilik:** seluruh layanan luar negeri yang menyimpan atau memproses data aplikasi diganti komponen di VPS Indonesia: Neon → PostgreSQL (`pg`), Vercel → Nitro `node-server`, Clerk → Better Auth (email + kata sandi, daftar mandiri, undangan Admin opsional), QStash → cron + shared secret, Resend → SMTP, R2 → storage lokal, Cloudflare → reverse proxy + firewall. Belum ada data/pengguna produksi, sehingga tidak ada migrasi akun atau dump data. Migrasi dikerjakan sebelum sisa Fase 13 karena F13-09/10/11/13/14 semuanya bergantung pada infrastruktur.
+- **Perubahan (docs only):** ADR-008 baru; scope note ADR-006; addendum ADR-008 pada PRD/FSD/TSD/ERD v2; pengecualian mode Fase 13 dan sub-fase MIG-00..MIG-07 + UIFIX-00 pada TASK-LIST; F13-09/F13-10/F13-11 ditulis ulang untuk VPS dengan ID dipertahankan; catatan pada kebijakan retensi, deployment Vercel (historis), baseline Cloudflare (historis), observability, go-live checklist, traceability matrix, dan indeks docs.
+- **Temuan:** `S3Client` tidak ditemukan di kode; R2 baru sebatas variabel env, sehingga MIG-06 adalah implementasi baru. Clerk diimpor oleh 12 file aplikasi (server: `start.ts`, `auth-session.server.ts`, `admin-access.ts`; sisanya UI/route) di luar fixture test dan CI.
+- **Verifikasi:** `git diff --name-only` dan `git status --short` hanya berisi file `docs/`. Typecheck/test/lint/build tidak dijalankan ulang karena tidak ada kode yang berubah.
+- **Batasan:** ADR-008 tidak memberi penilaian hukum dan tidak memilih penyedia VPS, domain, atau SMTP. Aturan internal instansi tentang hosting/domain, mitigasi DDoS, dan lokasi backup masih keputusan terbuka pemilik. Bukti F13-02..F13-08 berasal dari stack lama dan wajib dihijaukan ulang pada MIG-07. Berikutnya: MIG-01 setelah pemilik meninjau ADR-008.
+
+### Session 305 - 2026-11-13
+**Status:** Completed — STAB-RESUME-01 pemulihan working tree dan baseline setelah jeda proyek
+- **Perubahan:** Working tree `staging` dikembalikan ke `ba54cfe`. Artefak skripsi untracked (132 file, 22,4 MB; hash identik sebelum sumber dihapus) dipindah ke luar repo agar tidak terbaca sebagai kontrak `docs/revisi-v2/`. Empat file workaround data dummy (`reminders.ts`, `reminders/active-events.queries.ts`, `access-resolver.ts`, `sync-user.ts`) disimpan di branch lokal `backup/skripsi-2026-09` (`795c518`, tidak di-push) karena menghapus guard fail-closed F13-06/STAB-RUNTIME; tidak masuk `staging`. `package.json`/`package-lock.json` dipulihkan dan `.npmrc` dihapus (instalasi dependency tidak sengaja). Commit chore: `.gitignore` menambah `.tmp/` dan `__pycache__/`, file output `git log` di root (ikut ter-commit di `1a6e1c8`) dihapus, baris tracker F13-08 diselaraskan menjadi Completed. Tanpa perubahan kode aplikasi.
+- **Verifikasi:** `npm ci` dari lockfile yang dipulihkan + `npm ls --all` exit 0; `npm run typecheck` exit 0; `npm test` 46 file/329 test lulus; `npm run lint` exit 0 (78 warning legacy); `npm run build` lulus; `git diff --check` lulus. Integration/E2E remote dan Quality Gate GitHub tidak dijalankan ulang; `staging` belum di-push.
+- **Batasan:** Due date residual F13-06 (2026-10-15) terlewati; due date baru perlu ditetapkan owner. F13-09/F13-11 tetap Needs Fix dan F13-10/F13-13/F13-14/STAB-ARCHIVE tetap Blocked. Bagian "Files: vercel.json" F13-09 di TASK-LIST belum diselaraskan dengan keputusan zero-config. Folder `.gemini/skills` (3 file terlacak, tree identik dengan `.agents/skills`) hilang dari working tree saat verifikasi berjalan tanpa penyebab teridentifikasi; owner memutuskan folder tetap dihapus, sehingga penghapusannya di-commit terpisah (salinan `.agents/skills` dipertahankan).
+
+### Session 304 - 2026-09-14
+**Status:** Needs Fix — F13-09 Preview redeploy confirmed
+- **Verifikasi:** Setelah rollback zero-config, deployment Vercel `b48fda0` berstatus sukses dan Quality Gate `34857896393` lulus seluruh job (authenticated integration 92 test dengan 1 skip QStash normal, build, migration, secret scan, dan E2E smoke). Tidak ada response body sensitif, credential, token, database production, atau deployment manual disentuh.
+- **Batasan:** Production/domain dan environment terpisah, authenticated mutation/cross-tenant/UAT evidence, serta keputusan promosi tetap memerlukan setup/approval owner. F13-10 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 303 - 2026-09-14
+**Status:** Needs Fix — F13-09 rollback deployment override
+- **Perubahan:** Menghapus `vercel.json` dan mengembalikan dokumentasi ke konfigurasi zero-config Nitro yang terbukti lulus pada deployment sebelumnya; tidak ada perubahan aplikasi.
+- **Verifikasi:** Perubahan hanya meniadakan override yang memicu Vercel failure; Quality Gate GitHub `34856137915` tetap hijau pada commit sebelum override. Rerun Vercel setelah push diperlukan untuk mengonfirmasi pemulihan deployment; tidak ada credential/token/body sensitif dicetak.
+- **Batasan:** Jika deployment tetap gagal, owner perlu membuka log deployment Vercel atau mengonfirmasi Root Directory/Build Settings secara manual. Production/domain dan F13-10/task lain tidak dikerjakan.
+
+### Session 302 - 2026-09-14
+**Status:** Needs Fix — F13-09 Vercel deployment configuration
+- **Perubahan:** Percobaan override `vercel.json` minimal dicatat pada commit `ddcc617`; output directory tidak dioverride. `docs/deployment-vercel.md` sempat mencatat konfigurasi source-controlled tersebut.
+- **Verifikasi:** `npm.cmd run typecheck`, `npm.cmd test` (46 file/329 test), `npm.cmd run lint` (exit 0; warning legacy), `npm.cmd run build`, build `NITRO_PRESET=vercel`, dan `git diff --check` lulus lokal; build Vercel menghasilkan `.vercel/output` dengan function server. Namun Vercel check untuk `ddcc617` gagal, sedangkan commit sebelumnya lulus. Tidak ada response body sensitif, credential, token, database production, atau deployment manual disentuh.
+- **Batasan:** Override dicabut pada follow-up karena root directory/project setting Vercel tidak dapat dikonfirmasi tanpa token owner; zero-config Nitro dipertahankan. Production/domain, environment terpisah, serta authenticated mutation/cross-tenant dan UAT evidence tetap memerlukan setup/approval owner Vercel/Neon/Clerk. F13-10 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 301 - 2026-09-14
+**Status:** Completed — F13-08 CI quality gate
+- **Perubahan:** Pada branch Neon test `f13-02-test-20260910`, 18 fiscal year 2026 KPPN-032 diinsert dengan rule published 2026.1 dan `ON CONFLICT DO NOTHING`; konfigurasi reminder operator diverifikasi/idempoten dengan policy aktif dan schedule target. Artefak fixture uji lama dibersihkan hanya pada branch test. Commit `d968677` menormalkan kode peer Admin, memilih own org tanpa operator aktif, menyelaraskan assertion list access, dan mengembalikan `ForbiddenError` untuk mutasi di luar scope.
+- **Verifikasi:** `npm.cmd run typecheck` dan `git diff --check` lulus. Quality Gate `34851608310` hijau (14 file integration passed, 1 file QStash skipped; 91 passed + 1 skipped = 92 test), termasuk E2E smoke dan seluruh quality step.
+- **Batasan:** Tidak ada secret/token atau response body sensitif yang dicetak; database main/production dan deployment tidak disentuh. F13-03, F13-09, dan task Fase 13 lain tidak dikerjakan.
+
+### Session 300 - 2026-09-14
+**Status:** Needs Fix — F13-08 settings denial regression
+- **Perubahan:** `apps/web/src/server/domains/settings.server.ts` membuat pesan `SATKER_ALREADY_REGISTERED` memuat marker penolakan `ditolak` dan tetap melempar `{ statusCode: 409, code: "SATKER_ALREADY_REGISTERED" }`. `apps/web/src/server/integration/settings-http.integration.test.ts` menormalkan fixture kode peer ke uppercase agar sesuai normalisasi handler.
+- **Verifikasi:** Test authenticated HTTP lokal satu file lulus 3/3 dengan Clerk session dan Neon test; `npm.cmd run typecheck` lulus. Commit `ac9b66a` dipush ke `staging`; Quality Gate `34832871137` menunjukkan settings 3/3 lulus dan total integration 85/92 (3 failed, 4 skipped).
+- **Blocker:** Gate masih gagal pada seeded operator reminder config dan own Admin access fixture; F13-08 tetap Needs Fix dan tidak ada perubahan Neon yang dilakukan. Tidak ada secret, token, atau response body sensitif yang dicetak.
+- **Scope:** F13-09 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 299 - 2026-09-14
+**Status:** Needs Fix — F13-08 latest credential verification
+- Remote Quality Gate `34815876027` menyelesaikan checkout/install, typecheck, unit/golden, dan sesi Clerk; fixture signing key QStash CI tidak lagi menjadi failure. Authenticated integration menyisakan assertion denial pada `settings-http.integration.test.ts` dan `Configured Clerk Admin is not mapped to a KPPN scope`; response body sensitif tidak dicetak.
+- Verifikasi lokal read-only pada `.env.f13-02.local` dan koneksi `DATABASE_URL`/`DIRECT_URL` berhasil. Filter runner settings mengonfirmasi fixture peer tetap tidak berubah ketika assertion gagal, sehingga tidak ada perubahan perilaku aplikasi yang dibenarkan dari diagnosis ini.
+- Percobaan rerun GitHub setelah owner memperbarui credential DB belum terkonfirmasi karena API GitHub mengalami TLS handshake timeout. Tidak ada secret/token, database production, deployment, atau task F13-09/Fase 13 lain yang disentuh.
+
+### Session 298 - 2026-09-14
+**Status:** Needs Fix — F13-08 QStash CI fixture
+- Setelah `DATABASE_URL`/`DIRECT_URL` GitHub diperbarui, rerun `34814720804` berhasil melewati install, typecheck, unit/golden, dan koneksi Neon; sesi Clerk Admin dibuat. Integration kemudian gagal pada `Invalid QStash signature`, settings peer-denial assertion, dan `Configured Clerk Admin is not mapped to a KPPN scope`.
+- `.github/workflows/ci.yml` ditambah key fixture QStash deterministik non-produksi (`QSTASH_CURRENT_SIGNING_KEY`/`QSTASH_NEXT_SIGNING_KEY`) hanya di `.env.f13-02.local` sementara; tidak ada provider secret atau token yang dicetak.
+- Perubahan CI fixture belum dipush pada saat pencatatan. Blocker manual tersisa: mapping Admin Clerk ke KPPN scope Neon test; F13-09 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 297 - 2026-09-14
+**Status:** Needs Fix — F13-08 remote Neon credential check
+- PR `staging` → `main` run `34814347631` lulus checkout, install, typecheck, dan unit/golden. Authenticated integration menerima secret masked dan membuat sesi Clerk, lalu gagal saat query Neon dengan `password authentication failed` (nilai password/URL tidak dicetak); gate sesudahnya terskip.
+- Verifikasi lokal read-only menunjukkan `DATABASE_URL` dan `DIRECT_URL` pada `.env.f13-02.local` dapat melakukan koneksi sederhana. Tidak ada source behavior, mock, database production, atau deployment yang disentuh.
+- Blocker manual: perbarui secret GitHub `DATABASE_URL` dan `DIRECT_URL` menggunakan connection string branch Neon test yang masih valid, lalu rerun PR. F13-09 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 296 - 2026-09-14
+**Status:** Needs Fix — F13-08 local authenticated rerun
+- Setelah `F13_02_CLERK_ADMIN_USER_ID` tersedia lokal, `node scripts/run-f13-02-integration.mjs` melewati pemeriksaan fixture Admin dan berhenti saat `clerkClient.sessions.createSession` dengan error generik `fetch failed`. Tidak ada token, secret, atau response body yang dicetak.
+- Tidak ada perubahan source auth/provider dan tidak ada mock yang dipakai. Mapping Admin pada `.github/workflows/ci.yml` siap diuji di GitHub Actions setelah commit/push; F13-09 dan task lain tidak dikerjakan.
+
+### Session 295 - 2026-09-14
+**Status:** Needs Fix — F13-08 Admin credential mapping
+- Secret repository `F13_02_CLERK_ADMIN_USER_ID` terdeteksi tersedia tanpa membaca atau mencetak nilainya. `.github/workflows/ci.yml` kini memetakan secret tersebut, mewajibkan validasi non-empty, dan menulisnya hanya ke `.env.f13-02.local` sementara yang dibersihkan via trap.
+- `git diff --check` lulus. PR rerun belum dapat dipicu karena perubahan belum di-commit/push; tidak ada source behavior atau database production yang disentuh.
+- Setelah commit/push, Quality Gate perlu dijalankan ulang. Jika preflight lolos, empat fixture integration existing (reminder config, Admin mapping, settings) tetap perlu diperbaiki sebelum F13-08 Completed. F13-09 dan task lain tidak dikerjakan.
+
+### Session 294 - 2026-09-14
+**Status:** Needs Fix — F13-08 remote Quality Gate
+- PR `staging` → `main` terdeteksi dan workflow `Quality Gate` run `34812861063` berjalan. Checkout, install, typecheck, dan unit/golden test lulus.
+- Authenticated integration berhenti aman pada preflight `No active Admin KPPN fixture found in the isolated test database` (exit code 2); lint dan gate setelahnya terskip. Log hanya menampilkan nilai secret sebagai masked, tanpa credential atau response body.
+- Secret names repository sudah diverifikasi tersedia. Blocker manual tersisa: seed/mapping Admin KPPN aktif pada branch Neon test, lalu rerun PR. F13-09 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 293 - 2026-09-14
+**Status:** Needs Fix — F13-08 CI quality gate follow-up
+- `gh secret list` mengonfirmasi lima nama repository secret tersedia tanpa membaca atau mencetak nilainya. `.github/workflows/ci.yml` diselaraskan dari nama `F13_02_*` ke secret repository yang telah dikonfigurasi (`DATABASE_URL`, `DIRECT_URL`, `CLERK_SECRET_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`, dan ID Operator).
+- Rerun `node scripts/run-f13-02-integration.mjs` tetap exit 1: 84/92 test lulus, 4 gagal (reminder config belum tersedia, Admin mapping/own fixture, dan settings peer-denial pattern); 4 test reminder terskip karena setup fixture. Tidak ada response body sensitif atau credential dicetak.
+- Perubahan belum di-commit/push atas instruksi owner. Setelah fixture test diselaraskan, owner perlu commit/push branch `staging` agar pull request menjalankan workflow remote. F13-09 dan task lain tidak dikerjakan.
+
+### Session 292 - 2026-09-14
+**Status:** Completed — Sembunyikan Agentation dan TanStackDevtools di production
+- **Perubahan:** `apps/web/src/routes/__root.tsx` — `<Agentation />` dan `<TanStackDevtools>` dibungkus `{import.meta.env.DEV && ...}` sehingga hanya dirender saat development, bukan di production Vercel.
+- **Verifikasi:** Typecheck 0 error.
+- **Risiko/known issue:** Tidak ada.
+
+### Session 291 - 2026-09-14
+**Status:** Needs Fix — F13-08 CI quality gate
+- **Perubahan:** `.github/workflows/ci.yml` kini menjalankan npm ci, typecheck, workspace unit/golden, authenticated integration, lint, generated-route, migration, secret scan, dependency audit registry resmi, production build, dan E2E smoke tanpa `continue-on-error`. Integration membuat `.env.f13-02.local` hanya selama step dan menghapusnya via trap; secrets ber-prefix `F13_02_*` tidak dicetak.
+- **Perubahan kecil:** `package.json` menambah `test:e2e:smoke` agar CI hanya menjalankan `apps/web/e2e/smoke.spec.ts`; `apps/web/tsr.config.json` menyamakan footer `tsr` dengan plugin TanStack Start sehingga generated-route check deterministik.
+- **Verifikasi lokal:** `npm.cmd ci`, `npm.cmd run typecheck`, `npm.cmd test` (46 file/329 test), `npm.cmd run lint` (exit 0; 78 warning/16 info), `npm.cmd run check:generated-routes`, `npm.cmd run check:migrations`, `npm.cmd run check:secrets`, `npm.cmd run build`, dependency audit resmi (exit 0; 2 moderate), dan `npm.cmd run test:e2e:smoke` (2/2 desktop+mobile) lulus. `node scripts/run-f13-02-integration.mjs` lulus 84/92 test; 4 fixture test existing gagal.
+- **Blocker/coverage:** GitHub remote PR belum dijalankan; repository belum memiliki lima secret `F13_02_DATABASE_URL`, `F13_02_DIRECT_URL`, `F13_02_CLERK_SECRET_KEY`, `F13_02_VITE_CLERK_PUBLISHABLE_KEY`, dan `F13_02_CLERK_OPERATOR_USER_ID`. Fixture reminder config/Admin mapping/settings perlu diselaraskan pada Neon test sebelum gate dapat hijau. F13-09 dan task lain tidak dikerjakan.
+
+### Session 290 - 2026-09-14
+**Status:** Completed — F13-07 performance baseline
+- **Perubahan:** Menambahkan `scripts/run-f13-07-performance.mjs`, runner Node + tsx yang membaca `.env.f13-02.local` tanpa mencetak credential, memakai Neon test terisolasi, dan membersihkan snapshot benchmark.
+- **Cakupan:** Kalkulasi satu satker, query agregat dashboard (20 satker), parser import CSV 10.000 baris, event/planning scheduler, dan builder Operator XLSX. QStash/Resend sengaja tidak dipanggil agar benchmark tidak mengirim email atau mengubah provider.
+- **Hasil:** Dua run baseline stabil; run terakhir menunjukkan kalkulasi median 343,6 ms (p95 364,9), dashboard 168,1 ms, import 94,6 ms, scheduler 127,2 ms, dan export 110,7 ms. Semua diukur setelah warm-up pada branch Neon test.
+- **Query plan:** Delapan index scope/batch ditemukan. `EXPLAIN (FORMAT JSON)` pada tabel kecil memilih Seq Scan/Sort/Hash Join karena low-cardinality; ini dicatat sebagai baseline, bukan bukti production-load. Mitigasi bila volume naik: ukur ulang dengan `EXPLAIN ANALYZE`, pertimbangkan composite/partial index dan kurangi round-trip query kalkulasi.
+- **Quality gate:** Runner exit 0; fixture snapshot dibersihkan; tidak ada database production, deployment, secret, atau token disentuh/dicetak. F13-08 dan task Fase 13 lain tidak dikerjakan.
+- **Coverage tersisa:** Commit async import 10k, latency QStash/Resend, dan authenticated Preview/production-load belum diuji; go-live tetap `NO-GO` sampai evidence deployment/load tersedia.
+
+### Session 289 - 2026-09-13
+**Status:** Completed — F13-06 security review dan production truthfulness
+- **Perubahan:** `apps/web/src/routes/api/webhooks/clerk.ts` kini memverifikasi raw body Svix dengan HMAC digest biner, mendukung `whsec_`/`CLERK_WEBHOOK_SIGNING_SECRET`, dan menolak timestamp replay di luar 5 menit; `apps/web/src/server/clerk-webhook.test.ts` menambah 3 regression test. Dependency production `drizzle-orm` dinaikkan ke 0.45.2 untuk advisory high; Vitest UI dinaikkan ke 4.1.11 untuk menghapus critical/high dev-tree.
+- **Review:** Auth/session, scope tenant, upload/parser, XLSX signature/sanitization, runtime fail-closed, webhook/QStash, SSR/XSS/CSV injection, secrets, dan manifest diaudit. Production tidak memakai mock success/file palsu. Audit source resmi tidak menemukan critical/high.
+- **Verifikasi:** `npm.cmd audit --registry=https://registry.npmjs.org --audit-level=high` exit 0 (6 moderate); `--omit=dev` exit 0 (2 moderate); `npm.cmd run check:secrets`, `check:migrations`, `npm.cmd test` (46 file/329 test), explicit Vitest 4.1.11 UI test (8/8), `npm.cmd run typecheck`, `npm.cmd run lint` (exit 0, 78 warning), dan `npm.cmd run build` lulus. Rerun `node scripts/run-f13-02-integration.mjs` selesai dengan 11 file/84 test lulus dan 4 fixture failures yang sama (reminder config/admin/settings); bukan regresi F13-06. Generated-route check tetap gagal karena generator menghapus declaration block legacy dan file dipulihkan tanpa perubahan.
+- **Residual/owner:** Rate-limit/abuse guard route webhook/QStash/import serta moderate `uuid` via ExcelJS dan `esbuild` via drizzle-kit: Owner DevOps/Security, due 2026-10-15. Generated-route drift diteruskan ke F13-08. Tidak ada deployment, production database, secret, atau token disentuh/dicetak.
+- **Scope:** F13-07 dan task Fase 13 lain tidak dikerjakan.
+
+### Session 288 - 2026-09-13
+**Status:** Completed — F13-05 E2E Admin KPPN
+- **Perubahan:** Menambahkan `apps/web/e2e/admin-auth.fixture.ts`, `apps/web/e2e/admin.spec.ts`, dan `scripts/run-f13-05-e2e.mjs`; konfigurasi membatasi suite per runner. Runner menemukan Admin aktif dari DB test, membuat sesi Clerk sementara dalam memori, men-seed org actual/forecast/empty + peer scope + failed delivery, lalu cleanup/revoke.
+- **Perilaku diverifikasi:** Dashboard agregat 8 indikator; sumber Aktual/Proyeksi/Kosong; daftar/detail satker scoped read-only; peer detail ditolak tanpa peer leakage; retry delivery dan audit; proteksi Admin aktif terakhir; policy editor production fail-safe; Chromium desktop + Mobile Chrome.
+- **Verifikasi:** `node scripts/run-f13-05-e2e.mjs https://simulator-ikpa-web-git-staging-trianditogilang.vercel.app` — 12/12 lulus; `npm.cmd test` — 45 file/326 test lulus; `npm.cmd run typecheck` lulus; `npm.cmd run lint` exit 0 (78 warning legacy); `npm.cmd run build` client+SSR/Nitro lulus; `git diff --check` dijalankan setelah pembaruan dokumentasi.
+- **Coverage tersisa:** Preview policy editor/catalog tetap fail-safe karena rule-set terautentikasi belum tersedia; UI publish policy, multi-admin add/remove, dan interactive sign-in belum dieksekusi. F13-06 dan task Fase 13 lain tetap ditahan; F13-03 tidak dikerjakan dalam sesi ini.
+
+### Session 287 - 2026-09-13
+**Status:** Completed — F13-04 E2E Operator
+- **Perubahan:** Menambahkan fixture auth `apps/web/e2e/operator-auth.fixture.ts`, skenario `apps/web/e2e/operator.spec.ts`, dan runner `scripts/run-f13-04-e2e.mjs`. Runner membuat sesi Clerk Operator sementara di memori, men-seed actual/history/reminder fixture pada branch Neon test, menjalankan target Preview, lalu membersihkan fixture dan mencabut sesi.
+- **Perilaku diverifikasi:** Dashboard authenticated dengan 8 indikator; navigasi delapan workspace; what-if tidak mengubah aktual; penyimpanan Slot B dan sinkronisasi nama; parity Dashboard–Riwayat; compare dua evaluasi bulanan dengan skenario; kontrol mandatory Reminder Center; dan unduhan Operator XLSX. Chromium desktop dan Mobile Chrome lulus.
+- **Verifikasi:** `node scripts/run-f13-04-e2e.mjs https://simulator-ikpa-web-git-staging-trianditogilang.vercel.app` — 12/12 lulus; `npm.cmd test` — 45 file/326 test lulus; `npm.cmd run typecheck` lulus; `npm.cmd run lint` exit 0 (78 warning legacy); `npm.cmd run build` client+SSR/Nitro lulus; `git diff --check` lulus.
+- **Coverage tersisa:** UI sign-in interaktif dan E2E Admin KPPN tidak termasuk runner ini; F13-05 tetap ditahan. Tidak ada F13-03 atau task Fase 13 lain dikerjakan.
+
+### Session 286 - 2026-09-13
+**Status:** Completed - ADM-ACCESS-ITER-01 UI/UX refinements on /admin-kppn/access
+- **Perubahan:**
+  1. Sidebar Navigasi Admin: Menampilkan nama akun yang didaftarkan (misal: "Admin 3") bukan nama Google/Clerk personal ("Triandito Gilang Rahmadian") dengan menambahkan `adminName` prop ke `AdminShell` / `AdminNavigation` dan `getCurrentAdminProfileFn` / `publicMetadata.registeredName`.
+  2. Tombol "Perbedaan Hak Akses" pada header halaman `/admin-kppn/access` dihapus.
+  3. Keterangan konfirmasi hapus permanen diubah menjadi: "Akses akun, data, dan riwayat simulasi akan dihapus permanen."
+  4. Kolom tabel "User Satker" saat status menunggu (pending) kini menampilkan `Menunggu - [Nama Admin / Email]` untuk akun Admin, dan `Menunggu - [Nama Satker]` untuk akun Operator.
+  5. Pesan toast sukses hapus akun diperinci: `Akun [Nama Satker] - [Kode Satker] - [Email] berhasil dihapus` untuk Operator, dan `Akun Admin - [Nama] - [Email] berhasil dihapus` untuk Admin.
+- **Verifikasi:**
+  - `npm run typecheck --workspace @simulator-ikpa/web` lulus (0 error).
+  - `npx biome lint apps/web/src/components/layout/admin-navigation.tsx apps/web/src/components/layout/admin-shell.tsx apps/web/src/routes/admin-kppn/access.tsx apps/web/src/server/admin-access.ts` lulus (0 error).
+  - Seluruh test workspace (`npm test --workspaces --if-present -- --run`) lulus (45 test files, 326 tests).
+
+### Session 285 - 2026-09-13
+**Status:** Completed - AUTH-INVITE-ONLY email OTP first sign-in
+- **Root cause:** `<SignIn />` hanya menjalankan sign-in terhadap identitas Clerk yang sudah ada; akun yang baru diundang masih hanya berupa pending access di Neon sehingga email manual berakhir `account not found`.
+- **Perubahan:** `withSignUp` diaktifkan pada entry point SignIn halaman `/sign-in` dan landing page. Clerk kini dapat meneruskan identifier baru ke sign-up terverifikasi dalam alur yang sama; sinkronisasi Neon tetap terjadi setelah identitas Clerk nyata dibuat (tanpa fake user ID).
+- **Konfigurasi provider:** Clerk Dashboard harus mengaktifkan `Sign-in with email` + `Email verification code`, serta `Verify at sign-up` + `Email verification code` agar OTP tersedia.
+- **Verifikasi:** `npm run typecheck --workspace @simulator-ikpa/web` dan `npm run build --workspace @simulator-ikpa/web` lulus.
+
+### Session 284 - 2026-09-13
+**Status:** Completed - AUTH-HARD-DELETE Clerk/Neon sync reset
+- **Perubahan:** jalur `hardDeleteUserFn`/`removeUserAccessFn` kini memvalidasi Admin scope dan target mapping sebelum menghapus akun Clerk melalui `clerkClient().users.deleteUser`, lalu menghapus row Neon dalam hard delete. Self-delete, Admin aktif terakhir, target lintas scope, dan Clerk yang belum dikonfigurasi ditolak; Clerk 404 diperlakukan idempoten dan kegagalan Neon menghasilkan pesan retry sinkronisasi.
+- **Cascade & fallback:** FK `user_accesses.user_id` tetap cascade dari migration `0004`; migration `0006_hard_delete_user_cascade.sql` menambahkan cascade untuk `simulations.created_by`, `score_snapshots.created_by`, dan `audit_logs.actor_id`. Metadata `created_by`/`updated_by` pada data operasional bersama tetap `SET NULL`. Webhook Clerk `user.deleted` menghapus identitas lokal berdasarkan `clerk_user_id` tanpa membutuhkan email.
+- **UI:** modal menjelaskan penghapusan permanen Clerk/Neon dan toast membedakan sukses, kegagalan Clerk, kegagalan Neon, self-delete, serta Admin terakhir.
+- **Verifikasi:** typecheck access-control/db/web lulus; unit access-control 46/46 dan web 130/130 lulus; `drizzle-kit check` lulus; lint file server/schema lulus.
+
+### Session 283 - 2026-09-13
+**Status:** Completed - AUTH-EDIT-RENAME onboarding satker reuse
+- **Root cause:** jalur onboarding `/access-pending` masih menolak semua kode yang sudah ada di `organizations`, termasuk organisasi yatim/inaktif yang tidak mempunyai mapping Operator aktif atau undangan pending pada Manajemen Akses.
+- **Perubahan:** pemeriksaan onboarding kini memakai status mapping yang sama dengan daftar Admin (`active + user_id` atau `pending + user_id NULL`), memperbolehkan organisasi satu-scope tanpa mapping terlihat untuk dipakai user baru, memperbarui nama satker lama, dan tetap menolak organisasi di luar scope KPPN.
+- **Verifikasi:** `npm run typecheck --workspace @simulator-ikpa/web` lulus; `npm test --workspaces --if-present -- --run` lulus (45 file/326 test); `npx biome lint apps/web/src/server/domains/settings.server.ts` lulus; `git diff --check` lulus.
+
+### Session 282 - 2026-09-13
+**Status:** Completed - AUTH-EDIT-RENAME satker code reuse/orphan cleanup
+- **Root cause:** guard membandingkan nama terhadap seluruh tabel `organizations`, sehingga organisasi orphan setelah user dihapus memblokir kode satker walaupun tidak ada pada daftar akses Admin.
+- **Perubahan:** duplikasi Operator kini hanya menghitung mapping aktif/pending yang tampil; kode orphan/inaktif boleh dipakai ulang dan nama satker diperbarui; penghapusan user/akses membersihkan organisasi orphan yang tidak memiliki data operasional, tanpa cascade-delete data operasional; edit mapping tetap in-place.
+- **Verifikasi:** typecheck web lulus; seluruh workspace test lulus (45 file/326 test); production build client+SSR+Nitro lulus; `git diff --check` lulus.
+
+### Session 281 - 2026-09-13
+**Status:** Completed - Admin Audit Log retired
+- **Perubahan:** Menu Admin `Audit Log`, route `/admin-kppn/audit-logs`, halaman, mock, service, dan server function pembacaan audit dihapus. Menu Admin Policy, Manajemen Akses, monitoring, dan route lain tetap dipertahankan.
+- **Data/runtime:** Pencatatan internal yang dipakai mutasi domain lain tetap dipertahankan agar fungsi transaksi tidak berubah; audit tidak lagi tersedia sebagai tampilan Admin.
+- **Verifikasi:** Route tree digenerate ulang; `npm run typecheck --workspace @simulator-ikpa/web` lulus; referensi route/menu audit tidak tersisa di `apps/web/src`.
+
+### Session 280 - 2026-09-13
+**Status:** Completed - AUTH-EDIT-RENAME follow-up (edit/sync/deduplication)
+- **Root cause:** mode edit hanya mengirim `targetUserId`, sehingga alur grant dapat membuat mapping baru atau menghitung satker milik baris yang sedang diedit sebagai duplikat; pembuatan user lama juga memakai `manual_*` yang tidak memiliki akun Clerk. Query halaman juga membaca kolom `user_accesses.status` sebelum migration runtime diterapkan.
+- **Perubahan:** edit mengirim `targetAccessId` dan memperbarui mapping yang sama; tipe akses dikunci setelah terdaftar dan konflik Operator/Admin ditolak server-side; kode/nama satker tetap editable selama bukan kode satker lain yang benar-benar konflik; profil email/nama di-sync ke Clerk lebih dulu lalu Neon; Clerk invitation retry idempotent; list memakai identitas email kanonis untuk deduplikasi; user baru masuk alur pending invitation tanpa fake user ID; login/webhook meng-claim pending access ke Clerk ID nyata.
+- **Verifikasi:** build web produksi lulus; seluruh workspace typecheck dan test lulus (45 file/326 test); `npm run check:migrations --workspace @simulator-ikpa/db` lulus; migration `0004`/`0005` dan audit read-only Neon menunjukkan kolom/status tersedia, tidak ada duplicate active mapping, dan tidak ada user `manual_*`; `git diff --check` lulus.
+- **Risiko/known issue:** runner F13-02 terisolasi tidak dijadikan gate task ini karena fixture environment gagal menyediakan `Seeded operator reminder config` dan tiga assertion admin/settings ikut gagal; generated-route check masih berbeda pada declaration block legacy yang sudah ada. Production tetap wajib mengonfigurasi `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET`, dan menjalankan migration.
+- **Next:** tidak memulai task lain; pertahankan task F13 yang tercatat pada backlog.
+
+### Session 279 - 2026-09-13
+**Status:** Completed - AUTH-INVITE-ONLY runtime migration fix
+- **Root cause:** `user_accesses.status` sudah dipakai oleh query Manajemen Akses, tetapi kolom belum ada pada target Neon. Migration `0004_clever_wallop` tidak dijalankan karena timestamp journal lebih lama daripada migration terakhir yang sudah tercatat.
+- **Perubahan:** `packages/db/drizzle/meta/_journal.json` memakai timestamp migration yang lebih baru; ditambahkan `0005_nullable_user_access_user.sql` agar `user_id` benar-benar nullable sesuai alur pending invitation; tidak ada perubahan query atau UI.
+- **Verifikasi:** migration `0004` dan `0005` diterapkan ke Neon; query kolom/status dan nullability lulus; `drizzle-kit check` lulus; seluruh workspace test 45 file/323 test lulus; seluruh workspace typecheck lulus; `git diff --check` lulus.
+- **Risiko/known issue:** production/preview tetap harus menyertakan dan menjalankan migration `0004_clever_wallop.sql` serta `0005_nullable_user_access_user.sql`; build lokal tidak dijalankan sampai selesai karena dev server aktif mengunci `.output` (EPERM).
+- **Next:** tidak memulai task lain; pertahankan F13-04 dan task berikutnya sesuai backlog.
+
+### Session 278 - 2026-09-13
+**Status:** Completed - AUTH-INVITE-ONLY invitation-based access management
+- Reset project ke commit `5002d2e0e20fcf3b025e1b61bfa659db9a69bd89` ("fix: manajemen akses")
+- **Schema**: tambah `accessStatusEnum` (`pending`, `active`) ke `packages/db/src/schema/enums.ts`; `user_accesses` tambah kolom `status` (default `active`) + `invitedEmail` text nullable, `userId` nullable; migrasi SQL `0004_clever_wallop.sql` + journal entry (snapshot pending `drizzle-kit generate`)
+- **Access Control**: `packages/access-control/src/manage-access.ts` — `createPendingAccess` idempotent (create `status: 'pending'` dengan `invitedEmail`, return existing jika email+accessType+status sudah pending) + `claimPendingAccess` (link `clerk_user_id`, create/claim user via `syncClerkUser`, activate pending accesses); email dinormalisasi ke lowercase
+- **BE `admin-access.ts`**: `listAdminUserAccessFn` query active (join users) + pending (by invitedEmail); `assignUserAccessFn` ganti `manual_*` → `createPendingAccess` + `clerkClient().invitations.createInvitation()`; `removeUserAccessFn` handle hard delete pending access (no user record)
+- **Webhook**: `apps/web/src/routes/api/webhooks/clerk.ts` — handler Svix-format HMAC-SHA256 verifikasi, handle `user.created`/`user.updated` → `syncClerkUser` + `claimPendingAccess`; `CLERK_WEBHOOK_SECRET` env var required
+- **FE `access.tsx`**: `AccessRow` interface tambah `accessStatus`; pending rows tampilkan badge "Menunggu" + hide Edit/Delete; `activeAdminCount` exclude pending
+- **Service**: `admin-access-service.ts` — `AdminUserAccessRecord` nullable `userId`/`name`/`email`; tambah `removeAccess()` function
+- **Tests**: 43 access-control tests (39 existing + 4 baru: createPendingAccess idempotent, claimPendingAccess success, claimPendingAccess no-pending null); all 108 tests pass across workspace; typecheck 0 error
+- Verifikasi: `npm run test --workspaces --if-present` lulus 108 tests; `npm run typecheck --workspace @simulator-ikpa/web` 0 error; `drizzle-kit generate` belum dijalankan (perlu DB connection untuk snapshot JSON)
+
+### Session 278 - 2026-09-13
+**Status:** Completed - AUTH-EDIT-RENAME edit akses rename/recode + email confirmation
+- **BE `admin-access.ts`**: `assignUserAccessFn` validator tambah `emailConfirmed?: boolean`; edit mode (`targetUserId`) — email changed tanpa `emailConfirmed` → `EMAIL_CONFIRM_REQUIRED` 400; rename/recode logic: same kode + name changed → `db.update(organizations)` + audit `update_organization_name`; diff kode → lookup target org,不存在 → update current org kode+name + audit `update_organization_kode`, 存在 + name match → reassign `orgId` (+ SATKER_OPERATOR_EXISTS guard), 存在 + name mismatch → `ORGANIZATION_NAME_MISMATCH` 409.
+- **FE `access.tsx`**: `originalEmail` snapshot saat `openEditModal`, `emailConfirmed` checkbox muncul saat email berubah, Simpan disabled tanpa konfirmasi; self-edit email → `showEmailChangeConfirm` dialog "Anda mengubah email sendiri — akan logout, lanjut?", `selfEmailChangeConfirmed` flag mencegah loop; `EMAIL_CONFIRM_REQUIRED` error → pesa di modal; `modalError` clear on input change.
+- **Service `admin-access-service.ts`**: `assignAccess` signature tambah `emailConfirmed?: boolean`.
+- Verifikasi: typecheck 0 error; 130 web tests lulus; `git diff` 3 file.
+**Status:** Completed - AUTH-GUARD-BLIND blind auth guard
+- 4 route guard files changed: `operator/route.tsx`, `admin-kppn/route.tsx`, `access-pending.tsx`, `select-organization.tsx`
+- Semua redirect `unauthenticated` diubah dari `throw redirect({ to: "/sign-in", search: { next: location.href } })` → `throw redirect({ to: "/" })` (tanpa return URL)
+- Unused `location` param dihapus dari `beforeLoad` destructuring di ke-4 file
+- `sign-in.tsx` dan `SignInPanel` tetap mempertahankan validasi `next` search param untuk flow Clerk/manual; auth guard hanya tidak lagi menyuntikkan nilainya
+- Verifikasi: typecheck 0 error; 196 tests lulus (web 130 + access 39 + contracts 1 + engine 108 + policy 33 + UI 8); `git diff` hanya 4 file
+
+### Session 276 - 2026-09-12
+**Status:** Completed - AUTH-02 registrasi & manajemen akses
+- `apps/web/src/server/domains/settings.server.ts`: normalisasi `kodeSatker.trim().toUpperCase()` + `name.trim()` mengikat (kode sama nama beda → 409 ORGANIZATION_NAME_MISMATCH), default scope Malang 032 (KPPN-032/KPPN Malang, bukan Jakarta II), guard SATKER_OPERATOR_EXISTS/SATKER_ALREADY_REGISTERED 409 untuk 1-satker-1-operator aktif, audit `onboard_satker`; fallback fallback diubah 089→032.
+- `apps/web/src/server/admin-access.ts`: `listAdminUserAccessFn` filter `active=true` + kirim `adminSlot`, `assignUserAccessFn` terima `kodeSatker+satkerName` (bukan orgId dropdown) dengan normalisasi UPPERCASE + ORGANIZATION_NAME_MISMATCH + buat org baru jika belum ada di 032, `hardDeleteUserFn` baru + `removeUserAccessFn` dialihkan ke hardDelete, hapus path toggle, audit tiap mutasi; ponytail: slot terkecil transaksi di `manage-access.ts` tetap.
+- `apps/web/src/services/admin-access-service.ts`: expose `adminSlot`, `assignAccess({kodeSatker,satkerName})`, `hardDeleteUser(userId)`, `deactivateAccess` dialihkan ke hardDelete.
+- `apps/web/src/routes/admin-kppn/access.tsx`: ponytail - tabel 4 kolom User Satker|Email|Jenis|Aksi (hapus Status & Nama Pengguna/Cakupan), User Satker tampil kode•nama atau Slot admin, modal input kode (UPPERCASE font-mono) + nama satker (bukan dropdown), dialog hapus custom permanen, kunci edit email diri boleh namun kunci ganti tipe diri & hapus/nonaktif diri, typecheck 0.
+- `apps/web/src/components/access/access-pending.tsx`: onboarding form kode+nama saja (hapus BLU checkbox), ponytail + context7: placeholder & validasi tetap.
+- F13-02: `admin-monitoring-policy-deliveries-access-http.integration.test.ts` diperbarui assign pakai kode+nama & hardDelete verify user terhapus (bukan toggle active false), `afterAll` bersihkan; `npm run test --workspaces` hijau (web 130, access-control 39).
+- `drizzle-kit check` hijau; `git diff --name-only` hanya 7 file izin + 1 test F13-02 + docs/migrasi AUTH-01 yang masih uncommitted; F13-03 frozen tak tersentuh.
+
+### Session 275 - 2026-09-12
+**Status:** Completed - AUTH-01 fondasi data
+- Addendum `docs/revisi-v2/ERD-Simulator-IKPA.md` AUTH-01 2026-09-12 (bagian atas, baseline tak diubah): (a) 1 satker = 1 operator AKTIF (partial unique org_id WHERE operator aktif, riwayat nonaktif tetap), (b) kode_satker trim+UPPERCASE mengikat nama (kode sama + nama beda → tolak KODE_SATKER_NAME_MISMATCH), (c) admin_slot integer NULL permanen per (kppn_scope_id, slot) WHERE admin aktif, bebas dipakai ulang setelah hapus/nonaktif, riwayat audit, (d) hapus user = hard delete users + user_accesses (operasional tetap, created_by SET NULL, audit tetap), (e) list akses hanya active=true, (f) scope tunggal KPPN Malang 032 (KPPN-032).
+- Migrasi Drizzle `0003_keen_bulldozer.sql`: `ALTER TABLE user_accesses ADD COLUMN admin_slot integer`, `UPDATE organizations SET kode_satker = UPPER(TRIM(kode_satker))`, `DO NOTICE` pelanggar 1 satker >1 operator aktif (laporkan jangan hapus), `WITH ranked ROW_NUMBER() PARTITION BY kppn_scope_id ORDER BY created_at` backfill slot 1..N, 2 `CREATE UNIQUE INDEX` parsial (kppn_scope_id,admin_slot) WHERE admin aktif + (org_id) WHERE operator aktif; `drizzle-kit generate` + `drizzle-kit check` hijau, jalan di DB kosong; data lama melanggar akan RAISE NOTICE dan gagal di pembuatan index (manual fix).
+- `packages/access-control/src/manage-access.ts`: `grantOperatorAccess` guard OperatorAlreadyExistsError + `grantAdminAccess` alokasi slot terkecil kosong via `findSmallestFreeSlot` dalam transaksi (Set scan), `hardDeleteUser` tolak diri sendiri (SelfDeleteError) + cek admin terakhir per scope (LastAdminRevocationError) + audit `delete_user` + `DELETE FROM users CASCADE`, `updateUserProfile` manual_* bebas / Clerk terklaim dikunci (EmailLockedError) + cek email unik + audit `update_user_profile`. Preserve revoke/toggle LastAdmin.
+- `packages/db/src/schema/identity.ts`: tambah `adminSlot integer("admin_slot")` + 2 `uniqueIndex(...).where(sql...)` parsial.
+- Tests: `packages/access-control/src/manage-access.test.ts` 16 tests (slot-reuse terkecil 2 dari [1,3] & reuse 1 saat kosong, tolak-operator-kedua OperatorAlreadyExistsError, hardDelete self/last-admin/success, update manual bebas vs Clerk terkunci EmailLockedError) + `apps/web/src/server/admin/admin-access.test.ts` 3 tests diperbaiki; `npm run test --workspaces` hijau: web 130 tests, access-control 39 tests (sebelum 31), engine 108, policy 33, ui 8; `npm run typecheck --workspaces` 0 error; `drizzle-kit check` hijau; `git diff` hanya file terdaftar, F13-03 frozen tak tersentuh (delivery/QStash).
+- Next: F13-04 tetap belum mulai (auth-seeded Playwright fixture pending); F13-03 tetap Completed tanpa ubah.
+
+### Session 274 - 2026-09-12
+**Status:** Completed - UI-DISPLAY-ONLY-03 (header what-if responsif HP)
+- Defect terarah dari anotasi staging `/operator/penyerapan` (viewport 559): header card simulasi `flex items-start justify-between` menjepit judul + tombol Simpan di HP. Perbaikan 2 baris class di `what-if-panel.tsx` saja: container → `flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between` (stack di HP, baris mulai sm, desktop identik), span aksi → `flex flex-wrap items-center justify-end gap-2 sm:shrink-0` (tombol wrap rata kanan di HP). Berlaku ke semua card simulasi (revisi dipa, penyerapan, kontraktual, tagihan, dispensasi); tidak ada elemen/logika lain diubah.
+- Verifikasi: typecheck 0 error; build lulus client (2537 modul) + SSR (334 modul) + Nitro; `git diff --name-only` hanya 1 file; `diff --check` bersih.
+- Next: verifikasi visual HP di Preview oleh owner; F13-04 tetap tidak dimulai.
+
+### Session 273 - 2026-09-12
+**Status:** Completed - UI-DISPLAY-ONLY-02 (tema amber penuh, freeze-exception lanjutan)
+- Lanjutan atas perintah owner: Skor Simulasi box → amber di `deviasi.tsx:1342` (card), `budget-revisions.tsx:1015`, `contracts-invoices.tsx:1229/1474`, `spm-dispensation.tsx:762` (`border-amber-200 bg-amber-50/60`, ikon `text-amber-600`, skor `text-amber-700` kontras AA); tabel simulasi deviasi → komposisi acuan penyerapan (container/thead `border-amber-200/80`, `bg-amber-100/50 text-amber-950`, body `divide-amber-100`, baris rencana `bg-amber-50/50`, input `border-amber-300 bg-amber-50/70 text-amber-950`); baris aktual terkunci, box Δ, month pills, panel strategi, dan trace tak disentuh. `UpTupAssumptionPanel` (file komponen sendiri, di luar scope) tak disentuh; `save-scenario-dialog`/engine/server/delivery tak disentuh.
+- Ponytail: aksen simulasi monokrom amber, semantik Δ (success/danger) dan data aktual dipertahankan; Context7: pola Tailwind selaras codebase.
+- Verifikasi: typecheck 0 error; build lulus client (2537 modul) + SSR (334 modul) + Nitro; `git diff --name-only` hanya 6 file code + `BACKLOG.md`/`DEVLOG.md`; `diff --check` bersih (hanya warning LF/CRLF); grep konfirmasi tidak ada sisa `border-warning`/primary/biru di section simulasi.
+- Screenshot: probe lokal menunjukkan Chrome + direktori Playwright + `.env` tersedia, tetapi capture 6 halaman × 2 viewport butuh sesi Operator Clerk + navigasi terautentikasi (wilayah fixture E2E F13-04 yang masih Blocked) — tetap pending manual di Preview; F13-04 tidak dimulai.
+
+### Session 272 - 2026-09-12
+**Status:** Completed - UI-DISPLAY-ONLY-01 (freeze-exception display-only)
+- Eksekusi atas persetujuan owner ("oke lanjut kerjakan"): 6 file display-only, class Tailwind saja tanpa ubah logika/engine/server/delivery; `save-scenario-dialog.tsx` tak disentuh; desktop nav untouched.
+- Nav-5 HP `operator-navigation.tsx`: tambah `shortLabel` (Dashboard/Tagihan/UP-TUP/Reminder) dipakai hanya mode compact + `title` tooltip label penuh; grid `grid-cols-5 [&>*]:min-w-0`, link compact `w-full min-w-0 overflow-hidden`, span `truncate whitespace-nowrap`, tombol Lainnya truncate — tombol kanan aman di 360px.
+- Amber selaras `penyerapan.tsx` + `what-if-panel.tsx`: `deviasi.tsx` toggle Simulasi aktif `bg-amber-600 text-white hover:bg-amber-700` + save bar `border-amber-200 bg-amber-50/30` ikon `text-amber-600` tombol `bg-amber-600 hover:bg-amber-700 text-white`; tombol Simpan Skenario `budget-revisions.tsx`, `contracts-invoices.tsx` (2x), `spm-dispensation.tsx` → amber; `up-tup.tsx` section biru → `border-amber-200 bg-amber-50/30`, divider + empty box → amber, tombol 1976/1986 → amber. Kontras: teks tombol putih di atas amber-600, input `text-amber-950`.
+- Ponytail: hierarki + spacing ikut pola panel amber acuan; Context7: pola Tailwind amber/truncate/grid selaras codebase.
+- Verifikasi: `npm run typecheck --workspace @simulator-ikpa/web` 0 error; `npm run build --workspace @simulator-ikpa/web` lulus client (2537 modul) + SSR (334 modul) + Nitro; `git diff --name-only` hanya 6 file code + `BACKLOG.md`/`DEVLOG.md`; `git diff --check` bersih (hanya warning LF/CRLF).
+- Risiko/known issue: screenshot Preview tiap halaman (desktop 1426 + HP Android Chrome 360) belum dapat diambil di environment ini (tanpa browser/Preview) — pending capture manual owner; F13-04 tetap tidak dimulai.
+
+### Session 271 - 2026-09-12
+**Status:** Proposed (Blocked) - UI-DISPLAY-ONLY-01
+- Paket DISPLAY-ONLY ditahan: 8 file dalam glob `docs/operator-freeze.md` (behavior frozen, F13 verification-first) tanpa defect ID / requirement v2 eksplisit; tidak ada file code disentuh pada sesi ini.
+- Scope usulan (display-only, tanpa logika/engine/server/delivery): `operator-navigation.tsx` (nav-5 HP label pendek + truncate, desktop untouched); `deviasi.tsx` (toggle 711-714 + save bar 1427-1440 → amber); `budget-revisions.tsx:969`, `contracts-invoices.tsx:1135,1428`, `spm-dispensation.tsx:701`, `up-tup.tsx` (section biru + 1976 + 1986 → amber) komposisi amber selaras `penyerapan.tsx:759-841` + `what-if-panel.tsx:42-52`; larangan sentuh `save-scenario-dialog.tsx`/engine/server/delivery.
+- DoD usulan: typecheck 0 error, build client+SSR lolos, `git diff` hanya 8 file di atas, screenshot Preview tiap halaman (desktop 1426 + HP 360), tombol kanan tidak kepotong, kontras terbaca; Ponytail + Context7 dipakai saat eksekusi.
+- Verifikasi sesi ini: `git status` bersih (tidak ada code diff); `BACKLOG.md` tambah baris `UI-DISPLAY-ONLY-01` Proposed (Blocked).
+- Next action: owner setujui freeze-exception + cantumkan defect ID / requirement v2 eksplisit; F13-04 tetap tidak dimulai.
+
+### Session 270 - 2026-09-12
+**Status:** Completed - F13-03 provider callback
+- Memperbaiki `apps/web/src/routes/api/qstash/send.ts` agar membaca body sekali sebagai raw string dan memverifikasi dengan official `@upstash/qstash` `Receiver.verify`; URL signature dinormalisasi ke `APP_URL` publik atau `x-forwarded-host`/`x-forwarded-proto`. Route daily/import memakai helper yang sama.
+- Menambahkan regression test raw-body, URL kanonis, expiry, issuer, body hash, dan current/next key rotation pada `apps/web/src/server/qstash/handler.test.ts`; dependency `@upstash/qstash` dicatat pada manifest dan lockfile.
+- Verifikasi provider: `node scripts/run-f13-03-provider-integration.mjs https://simulator-ikpa-web-git-staging-trianditogilang.vercel.app --qstash` lulus 1 file/1 test setelah commit `5b53359` dideploy ulang; QStash callback memproses delivery melalui Resend dan replay tidak menggandakan attempt.
+- Quality gate: `npm.cmd test` lulus 45 file/311 test; typecheck lulus; lint exit 0 (0 error, warning legacy); build client+SSR lulus; `git diff --check` lulus. Tidak ada token, secret, response body sensitif, database production, atau deployment manual disentuh.
+- F13-04 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 266 - 2026-09-11
+**Status:** Blocked - F13-03; Needs Fix - F13-09
+- Mengganti simulasi delivery pada `apps/web/src/server/qstash/handler.ts` dengan verifikasi JWT QStash (issuer, URL subject, expiry/nbf, hash body, current/next signing key) dan adapter Resend REST yang memakai idempotency key. Status delivery tetap `scheduled`/ `sent`/ `failed`, attempt counter bertambah, dan error provider disimpan sebagai kode aman tanpa body provider. Route daily/send/import kini mengikat URL request untuk signature.
+- Menambahkan `apps/web/src/server/qstash/handler.test.ts` (8 unit test), `apps/web/src/server/integration/qstash-resend.integration.test.ts` (probe provider nyata gated), dan `scripts/run-f13-03-provider-integration.mjs`; test tenant-isolation QStash import diselaraskan ke JWT valid.
+- Verifikasi: `node scripts/run-f13-02-integration.mjs` lulus 14 file/92 test (+1 provider test skip); `npm.cmd test` lulus 45 file/310 test; typecheck lulus; lint exit 0 (77 warning legacy); build client+SSR lulus; `git diff --check` lulus.
+- Authenticated Preview smoke dengan sesi Clerk sementara lulus 11 route Operator (HTTP 200) setelah satu fixture delivery gagal dibuat pada Neon test dan dibersihkan; `/api/qstash/send` tanpa signature ditolak HTTP 401. Tidak ada token, secret, atau response body sensitif dicetak.
+- Probe provider nyata lokal Resend HTTP 401, signed callback ke Preview HTTP 401, dan publish QStash HTTP 401. Status F13-03 tetap Blocked sampai owner memverifikasi/merotasi QStash token + signing keys dan Resend API key + sender terverifikasi pada environment yang sama, lalu menjalankan ulang `node scripts/run-f13-03-provider-integration.mjs <preview-url>`.
+- F13-04 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 267 - 2026-09-11
+**Status:** Blocked - F13-03 provider callback
+- Setelah owner memperbaiki credential, signed HTTP probe langsung ke Preview lulus; jalur Resend melalui handler juga lulus dan fixture Neon test dibersihkan.
+- Probe QStash nyata (`--qstash`) diterima publish HTTP 201, tetapi log delivery aman menunjukkan state `ERROR/RETRY` dan fixture tetap `scheduled` setelah retry window. Tidak ada response body, token, secret, atau credential yang dicetak.
+- `docs/BACKLOG.md` dipertahankan `Blocked`: owner perlu menyelaraskan token dan current/next signing key QStash pada workspace yang sama dengan Preview, redeploy bila env berubah, lalu mengulang probe provider. Tidak ada source behavior baru pada sesi ini.
+- F13-04 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 268 - 2026-09-11
+**Status:** Blocked - F13-03 provider callback
+- Probe QStash nyata diulang setelah owner memperbaiki token; publish melewati boundary auth, tetapi test tetap gagal aman dengan delivery `status=scheduled` setelah retry window. Tidak ada token, secret, credential, atau response body yang dicetak.
+- Signed HTTP langsung ke Preview/Resend tetap menjadi pembanding yang lulus; perubahan token belum membuat callback QStash memproses fixture. BACKLOG mengarahkan pemeriksaan delivery log/status QStash, URL callback, signing key/workspace, dan redeploy Preview bila env berubah.
+- Tidak ada source behavior atau database production yang disentuh; fixture Neon test dibersihkan. F13-04 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 269 - 2026-09-11
+**Status:** Blocked - F13-03 provider callback
+- Runner F13-03 diulang setelah pesan retry lama dibatalkan dan Preview memakai signing key bersih. Fixture Neon baru tetap `scheduled`; test berakhir aman setelah retry window tanpa kebocoran data.
+- Diagnostik message baru menunjukkan publish QStash HTTP 201 dengan event delivery `ERROR/RETRY` (bukan pesan lama). Signed HTTP langsung ke Preview/Resend tetap menjadi pembanding lulus.
+- BACKLOG tetap `Blocked`; pemeriksaan manual delivery log/status callback QStash, destination URL, signing key/workspace, dan redeploy Preview bila env berubah masih diperlukan. Tidak ada source behavior atau database production yang disentuh.
+- F13-04 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 258 - 2026-09-10
+**Status:** Blocked - F13-03
+- Melanjutkan audit Fase 13 setelah F13-02 selesai. Neon/Clerk test branch dan nama env provider terdeteksi tanpa mencetak nilai credential.
+- Verifikasi source menemukan `apps/web/src/server/qstash/handler.ts` masih mengubah delivery menjadi `sent` melalui simulasi pada test/non-production; production sengaja menolak dengan `DELIVERY_PROVIDER_UNAVAILABLE`. Tidak ada adapter Resend nyata, sehingga provider replay/idempotency end-to-end V2-AC-21 belum aman untuk diuji.
+- Verifikasi lokal: QStash safeguard 5 test lulus; package `policy-reminder` 5 file/33 test lulus. Tidak ada source behavior, provider call, database production, deployment, token, atau secret disentuh.
+- Manual setup yang diperlukan: sediakan adapter delivery server-side yang benar-benar terhubung ke sandbox QStash/Resend (dengan sender terverifikasi dan test recipient) pada environment terisolasi; credential tetap hanya di secret manager/.env lokal, tidak melalui chat. Setelah tersedia, ulangi suite F13-03.
+- F13-04 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 259 - 2026-09-10
+**Status:** Needs Fix - F13-09 (Vercel Hobby Preview setup)
+- Menambahkan adapter Nitro untuk target Vercel TanStack Start: dependency `nitro` pada `apps/web/package.json`/`package-lock.json`, plugin `nitro()` pada `apps/web/vite.config.ts`, dan checklist `docs/deployment-vercel.md`.
+- Verifikasi `npm.cmd run build` lulus pada preset Node dan preset Vercel sementara (`NITRO_PRESET=vercel`), dengan artefak `.vercel/output` berisi static assets dan server function.
+- Workspace test 45 file/307 test lulus; typecheck lulus; lint exit 0 dengan 79 warning legacy; `git diff --check` lulus.
+- Project Vercel, environment Preview, URL, dan authenticated staging belum tersedia karena memerlukan setup manual owner. Tidak ada credential, token, database production, deployment, atau schedule QStash disentuh.
+- F13-03 tetap ditahan dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 260 - 2026-09-10
+**Status:** Blocked - F13-09 (Vercel Deployment Protection)
+- Smoke check read-only ke URL Preview yang diberikan owner berhasil mencapai Vercel, tetapi halaman utama dan `/api/qstash/daily` sama-sama merespons HTTP 302 ke Vercel SSO Deployment Protection.
+- Nilai cookie/nonce, credential, token, response body, database, dan provider tidak dicatat atau dicetak. Authenticated Clerk staging verification belum dapat dijalankan sampai owner mengatur akses Preview (atau menyediakan jalur bypass yang tidak dibagikan melalui chat).
+- BACKLOG tetap menahan F13-09; F13-03 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 261 - 2026-09-10
+**Status:** Needs Fix - F13-09 (Vercel Preview smoke)
+- Setelah owner membuka Deployment Protection, URL Preview merespons HTTP 200 untuk root.
+- Satu sesi Clerk Operator sementara dipakai hanya di memori dan langsung dicabut; `/operator/dashboard`, `/operator/data/rpd-realization`, dan `/operator/data/contracts-invoices` semuanya merespons HTTP 200 tanpa indikator konfigurasi database/Clerk yang hilang. Response body tidak dicetak.
+- Full ServerFn/mutation/cross-tenant, browser/UAT, dan provider verification belum dijalankan. Deployment Protection sebaiknya tetap nonaktif sementara; jika diaktifkan kembali, gunakan bypass automation hanya melalui secret manager lokal/CI.
+- F13-03 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 262 - 2026-09-10
+**Status:** Needs Fix - F13-09 (authenticated browser smoke)
+- Browser smoke read-only pada URL Preview menggunakan Chrome headless dan sesi Clerk Operator sementara lulus untuk `/operator/dashboard` dan `/operator/data/rpd-realization`; kedua halaman HTTP 200, judul aplikasi benar, tanpa tampilan sign-in atau internal/configuration error.
+- Session Clerk langsung dicabut setelah test; tidak ada mutation, response body, cookie, nonce, credential, token, atau data produksi yang dicetak.
+- Deployment Protection belum perlu diaktifkan kembali selama authenticated staging verification berlanjut. F13-09 belum Completed karena full ServerFn/mutation/cross-tenant, UAT, dan provider gate belum diverifikasi.
+
+### Session 263 - 2026-09-10
+**Status:** Needs Fix - F13-09 (Nitro/Vercel production SSR)
+- Akar 500 pada build SSR diisolasi ke `NODE_ENV=development` dari environment project yang membuat Vite menghasilkan `jsxDEV` untuk React production runtime. `apps/web/vite.config.ts` kini memaksa `NODE_ENV=production` dan mengosongkan `VITE_USER_NODE_ENV` hanya pada command `build`; mode development tidak diubah.
+- Build Node dan `NITRO_PRESET=vercel` lulus; artefak Vercel tidak memiliki marker `jsxDEV`. Smoke authenticated lokal menunjukkan `/operator/dashboard` dan route data RPD 200; `/operator/reminders` tetap 500 karena guard produksi sengaja fail-closed saat delivery/provider belum tersedia, sehingga F13-03 tetap blocker.
+- Quality gate: integration 14 file/92 test lulus; workspace 45 file/307 test lulus; typecheck, lint (0 error; 79 warning legacy), build, dan `git diff --check` lulus.
+- Preview yang sedang aktif belum memuat commit perbaikan sampai redeploy selesai. Deployment Protection tetap nonaktif selama verifikasi; belum ada secret/token/response sensitif yang dicetak, database production atau deployment manual disentuh.
+- F13-03 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 264 - 2026-09-10
+**Status:** Needs Fix - F13-09 (Vercel Preview redeploy smoke)
+- Commit `d456b69` dipush ke branch `staging`; Preview terbaru dapat diakses read-only dengan satu sesi Clerk Operator sementara yang langsung dicabut setelah test.
+- Authenticated HTTP smoke lulus untuk 11 route Operator (`dashboard`, `history`, `analysis`, `penyerapan`, `deviasi`, `up-tup`, lima route data, dan `output-achievement`) dengan HTTP 200 tanpa marker sign-in, configuration, `jsxDEV`, atau `TypeError`. Response body tidak dicetak.
+- `/operator/reminders` merespons HTTP 500 dan terkonfirmasi berasal dari pesan guard produksi `Reminder delivery records are unavailable in production.`; ini perilaku fail-closed yang menunggu delivery/provider F13-03, bukan regresi JSX/Nitro.
+- Deployment Protection tetap nonaktif dan belum aman diaktifkan kembali karena provider gate F13-03 serta mutation/cross-tenant, full ServerFn, dan UAT evidence belum lengkap. Tidak ada secret/token yang dicetak dan tidak ada database production yang disentuh.
+- F13-03 dan task Fase 13 lainnya tidak dikerjakan.
+
+### Session 265 - 2026-09-10
+**Status:** Blocked - F13-09 (manual Production/provider setup)
+- `docs/deployment-vercel.md` diperbarui dengan project/branch/Preview URL, build command, Nitro runtime, daftar environment variable, endpoint job, batasan Cron QStash, dan prosedur rollback.
+- Preview tetap lulus smoke authenticated read-only; Production/domain publik dan environment provider belum tersedia untuk diverifikasi otomatis. `/operator/reminders` tetap fail-closed sesuai guard produksi.
+- Sisa langkah memerlukan akses owner Vercel/Neon/Clerk/QStash/Resend dan keputusan domain/sender. Tidak ada credential yang dicetak, tidak ada perubahan database production, dan tidak ada perubahan perilaku aplikasi.
+- F13-03 dan task Fase 13 lainnya tidak dikerjakan.
 
 Entri terbaru berada di bawah bagian ini. Baca task-specific entry atau beberapa
 entri teratas; histori lama dicari berdasarkan task ID, fitur, atau path.

@@ -3,9 +3,14 @@ import {
 	AccessConflictError,
 	grantAdminAccess,
 	grantOperatorAccess,
+	hardDeleteUser,
 	LastAdminRevocationError,
+	OperatorAlreadyExistsError,
 	revokeAccess,
+	SelfDeleteError,
 	toggleAccessActive,
+	createPendingAccess,
+	claimPendingAccess,
 } from "./manage-access";
 
 const mockActorId = "11111111-1111-4111-8111-111111111111";
@@ -80,15 +85,17 @@ describe("manage-access", () => {
 				kppnScopeId: mockScopeId,
 				active: true,
 			};
-
+			let call = 0;
 			const mockDb = {
-				select: vi.fn().mockReturnValue({
+				select: vi.fn().mockImplementation(() => ({
 					from: vi.fn().mockReturnValue({
-						where: vi.fn().mockReturnValue({
-							limit: vi.fn().mockResolvedValue([]), // No conflicting operator access
+						where: vi.fn().mockImplementation(() => {
+							call++;
+							if (call === 1) return { limit: () => Promise.resolve([]) };
+							return Promise.resolve([]);
 						}),
 					}),
-				}),
+				})),
 				insert: vi.fn().mockReturnValue({
 					values: vi.fn().mockReturnValue({
 						returning: vi.fn().mockResolvedValue([mockCreated]),
@@ -272,6 +279,281 @@ describe("manage-access", () => {
 			});
 
 			expect(res).toEqual(updated);
+		});
+	});
+
+	describe("guard 1-operator-per-satker", () => {
+		it("rejects second active operator for same satker", async () => {
+			let selCall = 0;
+			const mockDb = {
+				select: vi.fn().mockImplementation(() => ({
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockImplementation(() => {
+							selCall++;
+							if (selCall === 1) return { limit: () => Promise.resolve([]) };
+							return { limit: () => Promise.resolve([{ id: "existing-op" }]) };
+						}),
+					}),
+				})),
+			} as unknown as Parameters<typeof grantOperatorAccess>[0];
+			await expect(grantOperatorAccess(mockDb, { actorUserId: mockActorId, targetUserId: mockTargetId, orgId: mockOrgId })).rejects.toThrow(OperatorAlreadyExistsError);
+		});
+	});
+
+	describe("admin_slot smallest free allocation", () => {
+		it("allocates smallest free slot in scope", async () => {
+			let selCall = 0;
+			const valuesCalls: unknown[] = [];
+			const mockCreated = { id: mockAccessId, userId: mockTargetId, accessType: "admin_kppn", kppnScopeId: mockScopeId, adminSlot: 2, active: true };
+			const mockDb = {
+				select: vi.fn().mockImplementation(() => ({
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockImplementation(() => {
+							selCall++;
+							if (selCall === 1) return { limit: () => Promise.resolve([]) };
+							return Promise.resolve([{ adminSlot: 1 }, { adminSlot: 3 }]);
+						}),
+					}),
+				})),
+				insert: vi.fn().mockImplementation(() => ({
+					values: vi.fn().mockImplementation((vals: unknown) => {
+						valuesCalls.push(vals);
+						return { returning: vi.fn().mockResolvedValue([mockCreated]) };
+					}),
+				})),
+			} as unknown as Parameters<typeof grantAdminAccess>[0];
+			const res = await grantAdminAccess(mockDb, { actorUserId: mockActorId, targetUserId: mockTargetId, kppnScopeId: mockScopeId });
+			expect(res).toEqual(mockCreated);
+			expect((valuesCalls[0] as { adminSlot: number }).adminSlot).toBe(2);
+		});
+		it("reuses slot 1 when scope empty", async () => {
+			let selCall = 0;
+			const valuesCalls: unknown[] = [];
+			const mockCreated = { id: mockAccessId, userId: mockTargetId, accessType: "admin_kppn", kppnScopeId: mockScopeId, adminSlot: 1, active: true };
+			const mockDb = {
+				select: vi.fn().mockImplementation(() => ({
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockImplementation(() => {
+							selCall++;
+							if (selCall === 1) return { limit: () => Promise.resolve([]) };
+							return Promise.resolve([]);
+						}),
+					}),
+				})),
+				insert: vi.fn().mockImplementation(() => ({
+					values: vi.fn().mockImplementation((vals: unknown) => {
+						valuesCalls.push(vals);
+						return { returning: vi.fn().mockResolvedValue([mockCreated]) };
+					}),
+				})),
+			} as unknown as Parameters<typeof grantAdminAccess>[0];
+			await grantAdminAccess(mockDb, { actorUserId: mockActorId, targetUserId: mockTargetId, kppnScopeId: mockScopeId });
+			expect((valuesCalls[0] as { adminSlot: number }).adminSlot).toBe(1);
+		});
+	});
+
+	describe("hardDeleteUser", () => {
+		it("rejects self delete", async () => {
+			const mockDb = {} as unknown as Parameters<typeof hardDeleteUser>[0];
+			await expect(hardDeleteUser(mockDb, { actorUserId: mockActorId, targetUserId: mockActorId })).rejects.toThrow(SelfDeleteError);
+		});
+		it("rejects deleting last active admin", async () => {
+			let call = 0;
+			const targetUser = { id: mockTargetId, email: "a@b.com", name: "A" };
+			const mockDb = {
+				select: vi.fn().mockImplementation(() => ({
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockImplementation(() => {
+							call++;
+							if (call === 1) return { limit: () => Promise.resolve([targetUser]) };
+							if (call === 2) return Promise.resolve([{ kppnScopeId: mockScopeId }]);
+							return Promise.resolve([{ total: 1 }]);
+						}),
+					}),
+				})),
+			} as unknown as Parameters<typeof hardDeleteUser>[0];
+			await expect(hardDeleteUser(mockDb, { actorUserId: mockActorId, targetUserId: mockTargetId })).rejects.toThrow(LastAdminRevocationError);
+		});
+		it("hard deletes user without retaining a deletion audit row", async () => {
+			let call = 0;
+			const targetUser = { id: mockTargetId, email: "a@b.com", name: "A" };
+			const mockDb = {
+				select: vi.fn().mockImplementation(() => ({
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockImplementation(() => {
+							call++;
+							if (call === 1) return { limit: () => Promise.resolve([targetUser]) };
+							if (call === 2) return Promise.resolve([{ kppnScopeId: mockScopeId }]);
+							if (call === 3) return Promise.resolve([{ total: 2 }]);
+							return Promise.resolve([]);
+						}),
+					}),
+				})),
+				insert: vi.fn().mockReturnValue({ values: vi.fn().mockResolvedValue({}) }),
+				delete: vi.fn().mockReturnValue({ where: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([targetUser]) }) }),
+			} as unknown as Parameters<typeof hardDeleteUser>[0];
+			const res = await hardDeleteUser(mockDb, { actorUserId: mockActorId, targetUserId: mockTargetId });
+			expect(res).toEqual(targetUser);
+			// auth verification records (trusted devices) + the users row
+			expect(mockDb.delete).toHaveBeenCalledTimes(2);
+			expect(mockDb.insert).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("createPendingAccess", () => {
+		it("creates pending access with invited email", async () => {
+			const mockCreated = {
+				id: mockAccessId,
+				userId: null,
+				accessType: "operator_satker",
+				status: "pending",
+				invitedEmail: "new@satker.go.id",
+				orgId: mockOrgId,
+				active: true,
+			};
+			const mockDb = {
+				select: vi.fn().mockReturnValue({
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockReturnValue({
+							limit: vi.fn().mockResolvedValue([]),
+						}),
+					}),
+				}),
+				insert: vi.fn().mockReturnValue({
+					values: vi.fn().mockReturnValue({
+						returning: vi.fn().mockResolvedValue([mockCreated]),
+					}),
+				}),
+			} as unknown as Parameters<typeof createPendingAccess>[0];
+
+			const res = await createPendingAccess(mockDb, {
+				actorUserId: mockActorId,
+				email: "NEW@SATKER.GO.ID",
+				accessType: "operator_satker",
+				orgId: mockOrgId,
+			});
+
+			expect(res).toEqual(mockCreated);
+			expect(mockDb.insert).toHaveBeenCalledTimes(2); // userAccesses + auditLogs
+		});
+
+		it("returns existing pending access idempotently", async () => {
+			const existingPending = {
+				id: mockAccessId,
+				userId: null,
+				accessType: "operator_satker",
+				status: "pending",
+				invitedEmail: "existing@satker.go.id",
+				orgId: mockOrgId,
+				active: true,
+			};
+			const mockDb = {
+				select: vi.fn().mockReturnValue({
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockReturnValue({
+							limit: vi.fn().mockResolvedValue([existingPending]),
+						}),
+					}),
+				}),
+				insert: vi.fn(),
+			} as unknown as Parameters<typeof createPendingAccess>[0];
+
+			const res = await createPendingAccess(mockDb, {
+				actorUserId: mockActorId,
+				email: "existing@satker.go.id",
+				accessType: "operator_satker",
+				orgId: mockOrgId,
+			});
+
+			expect(res).toEqual(existingPending);
+			expect(mockDb.insert).not.toHaveBeenCalled();
+		});
+
+		it("rejects a pending invitation with the opposite access type", async () => {
+			const mockDb = {
+				select: vi.fn().mockReturnValue({
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockReturnValue({
+							limit: vi.fn()
+								.mockResolvedValueOnce([])
+								.mockResolvedValueOnce([{ id: "pending-admin" }]),
+						}),
+					}),
+				}),
+				insert: vi.fn(),
+			} as unknown as Parameters<typeof createPendingAccess>[0];
+
+			await expect(
+				createPendingAccess(mockDb, {
+					actorUserId: mockActorId,
+					email: "existing@satker.go.id",
+					accessType: "operator_satker",
+					orgId: mockOrgId,
+				}),
+			).rejects.toThrow(AccessConflictError);
+		});
+	});
+
+	describe("claimPendingAccess", () => {
+		const pendingAccess = {
+			id: mockAccessId,
+			userId: null,
+			accessType: "operator_satker",
+			status: "pending",
+			invitedEmail: "new@satker.go.id",
+			orgId: mockOrgId,
+			active: true,
+		};
+		const verifiedUser = { id: mockTargetId, email: "new@satker.go.id", name: "New User", emailVerified: true };
+
+		function mockDbFor(user: unknown, pending: unknown[]) {
+			let selectCall = 0;
+			return {
+				select: vi.fn().mockImplementation(() => ({
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockImplementation(() => {
+							selectCall++;
+							// 1st: session user by id; 2nd: pending accesses by email
+							if (selectCall === 1) return { limit: () => Promise.resolve(user ? [user] : []) };
+							return Promise.resolve(pending);
+						}),
+					}),
+				})),
+				insert: vi.fn().mockReturnValue({ values: vi.fn().mockResolvedValue({}) }),
+				update: vi.fn().mockReturnValue({
+					set: vi.fn().mockReturnValue({
+						where: vi.fn().mockReturnValue({
+							returning: vi.fn().mockResolvedValue([{ id: mockAccessId }]),
+						}),
+					}),
+				}),
+			};
+		}
+
+		it("links pending access to the verified session user", async () => {
+			const mockDb = mockDbFor(verifiedUser, [pendingAccess]);
+			const res = await claimPendingAccess(mockDb as unknown as Parameters<typeof claimPendingAccess>[0], { userId: mockTargetId });
+
+			expect(res?.claimedAccesses).toBe(1);
+			expect(res?.user.id).toBe(mockTargetId);
+			expect(mockDb.insert).toHaveBeenCalledTimes(1); // audit only; never a second user
+		});
+
+		it("returns null when no pending accesses found", async () => {
+			const mockDb = mockDbFor(verifiedUser, []);
+			const res = await claimPendingAccess(mockDb as unknown as Parameters<typeof claimPendingAccess>[0], { userId: mockTargetId });
+
+			expect(res).toBeNull();
+			expect(mockDb.update).not.toHaveBeenCalled();
+		});
+
+		it("never claims for an account whose email is not verified", async () => {
+			const mockDb = mockDbFor({ ...verifiedUser, emailVerified: false }, [pendingAccess]);
+			const res = await claimPendingAccess(mockDb as unknown as Parameters<typeof claimPendingAccess>[0], { userId: mockTargetId });
+
+			expect(res).toBeNull();
+			expect(mockDb.select).toHaveBeenCalledTimes(1);
+			expect(mockDb.update).not.toHaveBeenCalled();
 		});
 	});
 });

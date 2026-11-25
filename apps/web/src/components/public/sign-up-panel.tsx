@@ -1,38 +1,22 @@
-import { SignUp as ClerkSignUp } from "@clerk/tanstack-react-start";
+import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import type { ComponentProps } from "react";
-import { Link } from "@tanstack/react-router";
 import { twMerge } from "tailwind-merge";
+import { AuthForm } from "./auth-form";
 
 export type SignUpPanelProps = ComponentProps<"section"> & {
 	redirectIntent?: string;
 };
-
-function isSafeRedirectIntent(value: unknown): value is string {
-	return (
-		typeof value === "string" &&
-		value.length <= 512 &&
-		value.startsWith("/") &&
-		!value.startsWith("//") &&
-		!value.includes("\\") &&
-		!/[\r\n]/.test(value)
-	);
-}
 
 export function SignUpPanel({
 	redirectIntent,
 	className,
 	...props
 }: SignUpPanelProps) {
-	const safeRedirectIntent = isSafeRedirectIntent(redirectIntent)
-		? redirectIntent
-		: undefined;
-
 	return (
 		<section
 			{...props}
 			className={twMerge("w-full max-w-xl self-center space-y-5", className)}
-			data-auth-provider="clerk"
 			data-slot="sign-up-panel"
 		>
 			<Link
@@ -43,8 +27,8 @@ export function SignUpPanel({
 				<span>Kembali ke Beranda</span>
 			</Link>
 
-			<div className="space-y-5 rounded-2xl border border-border bg-background p-3 shadow-sm sm:p-5">
-				<div className="px-3 pt-2 sm:px-5">
+			<div className="space-y-5 rounded-2xl border border-border bg-background p-6 shadow-sm sm:p-8">
+				<div>
 					<p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
 						Simulator IKPA
 					</p>
@@ -52,17 +36,12 @@ export function SignUpPanel({
 						Daftar Akun Baru
 					</h1>
 					<p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-						Buat akun baru untuk mulai menggunakan simulator IKPA. Anda dapat
-						mendaftarkan satuan kerja Anda setelah akun dibuat.
+						Daftarkan akun Operator untuk satuan kerja Anda. Akses aktif setelah
+						disetujui Admin KPPN. Sudah menerima undangan? Masuk dan gunakan Lupa
+						kata sandi.
 					</p>
 				</div>
-				<ClerkSignUp
-					routing="hash"
-					signInUrl="/sign-in"
-					forceRedirectUrl={safeRedirectIntent}
-					fallbackRedirectUrl="/sign-in"
-					signInFallbackRedirectUrl="/sign-in"
-				/>
+				<AuthForm initialMode="sign-up" redirectTo={redirectIntent} />
 			</div>
 		</section>
 	);

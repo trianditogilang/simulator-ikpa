@@ -1,23 +1,20 @@
 import { createDbClient } from "@simulator-ikpa/db";
 import { importJobs } from "@simulator-ikpa/db/schema";
 import { and, eq, lt } from "drizzle-orm";
-import { verifyQStashSignature } from "../qstash/handler";
+import { rejectUnauthorizedJob } from "../jobs/handler";
 
-// ponytail: import async handled inline for <10k rows; QStash only recovers stuck jobs & re-validates uploaded
+// ponytail: import async handled inline for <10k rows; the scheduler only recovers stuck jobs & re-validates uploaded
 // ceiling = large async queue; upgrade to dedicated worker if throughput matters
 
 function newRequestId(): string {
 	return `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export async function handleQStashImport(
+export async function handleImportJob(
 	dbUrl: string | undefined,
 	headers: Headers,
-	rawBody: string,
 ): Promise<{ requestId: string; processed: number; stuckRecovered: number }> {
-	if (!verifyQStashSignature(headers, rawBody)) {
-		throw Object.assign(new Error("Invalid QStash signature"), { statusCode: 401, code: "INVALID_SIGNATURE" });
-	}
+	rejectUnauthorizedJob(headers);
 	const requestId = headers.get("x-request-id") ?? newRequestId();
 	if (!dbUrl) {
 		if (process.env.NODE_ENV === "production") {
@@ -37,7 +34,7 @@ export async function handleQStashImport(
 	let stuckRecovered = 0;
 	for (const job of stuck) {
 		try {
-			await db.update(importJobs).set({ status: "failed" as never, updatedAt: now as never, errorReportJson: { ...(job.errorReportJson as object ?? {}), stuckError: "Job stuck >5m auto-failed by QStash" } as never }).where(eq(importJobs.id, job.id));
+			await db.update(importJobs).set({ status: "failed" as never, updatedAt: now as never, errorReportJson: { ...(job.errorReportJson as object ?? {}), stuckError: "Job stuck >5m auto-failed by scheduler" } as never }).where(eq(importJobs.id, job.id));
 			stuckRecovered++;
 		} catch {
 			// safe

@@ -87,12 +87,13 @@ export async function seed() {
 		})
 		.returning();
 
-	// 3. Users (2 Admin KPPN + 1 Operator Satker)
+	// 3. Users (2 Admin KPPN + 1 Operator Satker). No password is seeded: each
+	// account sets one through "Lupa kata sandi" (email OTP) on first use.
 	console.log("  -> Seeding users...");
 	const [admin1] = await db
 		.insert(users)
 		.values({
-			clerkUserId: "user_3IjPY3A3GQs6zNzUosQYErI9Z9j",
+			emailVerified: true,
 			email: "gilangrahmadian24@gmail.com",
 			name: "Admin KPPN 032",
 		})
@@ -105,7 +106,7 @@ export async function seed() {
 	const [admin2] = await db
 		.insert(users)
 		.values({
-			clerkUserId: "user_3IjQCSAXvbPFxqd85YbemGUlLjT",
+			emailVerified: true,
 			email: "trianditogilang@gmail.com",
 			name: "Admin KPPN 032 Pendamping",
 		})
@@ -118,14 +119,13 @@ export async function seed() {
 	const [operator1] = await db
 		.insert(users)
 		.values({
-			clerkUserId: "user_3Il6leCEkkMQCuU4c3hIAPXBPlB",
+			emailVerified: true,
 			email: "officialtgrid@gmail.com",
 			name: "Operator Satker 411782",
 		})
 		.onConflictDoUpdate({
 			target: users.email,
 			set: {
-				clerkUserId: "user_3Il6leCEkkMQCuU4c3hIAPXBPlB",
 				name: "Operator Satker 411782",
 				updatedAt: new Date(),
 			},

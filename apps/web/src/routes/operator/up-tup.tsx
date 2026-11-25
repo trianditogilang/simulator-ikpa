@@ -1952,9 +1952,9 @@ function UpTupPage() {
 				{/* Panel Simulasi %GUP Disebulankan */}
 				<section
 					aria-label="Simulasi %GUP Disebulankan"
-					className="space-y-4 rounded-2xl border border-blue-200/80 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900/60 p-4 sm:p-5 shadow-xs"
+					className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50/30 p-4 sm:p-5 shadow-xs"
 				>
-					<div className="flex flex-wrap items-center justify-between gap-3 border-b border-blue-200/80 dark:border-blue-900/60 pb-3">
+					<div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-200 pb-3">
 						<div>
 							<h2 className="text-sm font-bold text-foreground sm:text-base">
 								Simulasi %GUP Disebulankan · Interaktif
@@ -1970,7 +1970,7 @@ function UpTupPage() {
 								onClick={() =>
 									setAssumptions({ ...DEFAULT_UP_TUP_ASSUMPTIONS })
 								}
-								className="inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
+								className="inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-amber-700"
 							>
 								<Sparkles className="size-3.5" />
 								<span>Mulai Simulasi Rencana</span>
@@ -1980,7 +1980,7 @@ function UpTupPage() {
 								type="button"
 								onClick={() => setIsSaveDialogOpen(true)}
 								title="Simpan ke Skenario A, B, atau C"
-								className="inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90"
+								className="inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-amber-700"
 							>
 								<Save className="size-3.5" />
 								<span>Simpan Skenario (A/B/C)</span>
@@ -2008,7 +2008,7 @@ function UpTupPage() {
 							onReset={() => setAssumptions(null)}
 						/>
 					) : (
-						<div className="rounded-xl bg-background/60 p-4 text-xs text-muted-foreground border border-blue-200/60 dark:border-blue-900/40">
+						<div className="rounded-xl bg-background/60 p-4 text-xs text-muted-foreground border border-amber-200">
 							<p>
 								Tekan <strong>Mulai Simulasi Rencana</strong> untuk mengatur asumsi revolving GUP sisa tahun (nominal GUP, selisih hari SP2D, rasio perputaran) serta estimasi tambahan belanja KKP. Hasil nilai akan terproyeksi secara instan di atas data aktual.
 							</p>

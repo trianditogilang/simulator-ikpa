@@ -1,14 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { handleQStashImport } from "@/server/import/process-job";
+import { handleImportJob } from "@/server/import/process-job";
 
 export const Route = createFileRoute("/api/jobs/import/process")({
 	server: {
 		handlers: {
 			POST: async ({ request }) => {
-				const rawBody = await request.text();
 				const dbUrl = process.env.DATABASE_URL ?? process.env.DIRECT_URL;
 				try {
-					const res = await handleQStashImport(dbUrl, request.headers, rawBody);
+					const res = await handleImportJob(dbUrl, request.headers);
 					return new Response(JSON.stringify(res), {
 						status: 200,
 						headers: { "content-type": "application/json", "x-request-id": res.requestId },

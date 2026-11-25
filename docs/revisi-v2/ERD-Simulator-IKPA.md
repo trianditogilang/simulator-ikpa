@@ -2,6 +2,49 @@
 
 > Dokumen ini adalah model data aktif Revisi v2. Baseline v1.0 dipertahankan di bagian bawah hanya untuk histori; bila ada konflik, kontrak aktif v2 berlaku.
 
+## Addendum MIG-03 — 2026-11-16 — Skema Identitas Better Auth
+
+> Addendum ini menetapkan bentuk final yang ditunda oleh butir 2 Addendum ADR-008 (disetujui pemilik 2026-11-16) dan berlaku bila bertentangan dengan bagian lain dokumen ini. Implementasi: migration `0007_better_auth_identity.sql`, `packages/db/src/schema/{identity,auth}.ts`.
+
+1. **`users` adalah tabel user Better Auth.** `users.id` (uuid) menjadi identitas kanonis request; tidak ada tabel user auth terpisah dan tidak ada sinkronisasi. Seluruh foreign key ke `users.id` dan seluruh tabel domain tidak berubah.
+2. **Perubahan kolom:** `users.clerk_user_id` dan `organizations.clerk_org_id` dihapus. `users` mendapat `email_verified boolean NOT NULL DEFAULT false`, `two_factor_enabled boolean NOT NULL DEFAULT true`, dan `image text NULL` (kolom inti library, tidak dipakai).
+3. **Tabel auth baru** (semua `id uuid` buatan database):
+
+   | Tabel | Isi | Relasi |
+   |---|---|---|
+   | `auth_sessions` | `token` unik, `expires_at`, `ip_address`, `user_agent` | `user_id → users` `ON DELETE CASCADE` |
+   | `auth_accounts` | `provider_id = 'credential'`, `password` (hash scrypt); kolom OAuth bawaan nullable dan tidak dipakai | `user_id → users` `ON DELETE CASCADE` |
+   | `auth_verifications` | `identifier`, `value`, `expires_at`: OTP ter-hash, tantangan login yang menunggu OTP, dan perangkat tepercaya (`trust-device-*`, `value` = id user) | tanpa FK |
+   | `auth_two_factors` | diwajibkan plugin; TOTP dimatikan sehingga tidak berisi baris | `user_id → users` `ON DELETE CASCADE` |
+   | `auth_rate_limits` | `key` unik, `count`, `last_request`: batas per IP dan kuota kirim OTP per email | tanpa FK |
+
+4. **Perangkat tepercaya** tidak memiliki tabel sendiri: cookie bertanda tangan dipasangkan dengan baris `trust-device-*` di `auth_verifications`, berlaku 30 hari dan diperpanjang pada setiap login dari perangkat itu. Baris tersebut dan seluruh sesi user dihapus saat kata sandi di-reset, saat Admin mengubah email user, dan saat akun dihapus.
+5. **Undangan** tidak memiliki tabel atau token sendiri: undangan adalah baris `user_accesses` berstatus `pending` dengan `invited_email`. Baris itu dikaitkan ke `users.id` dan diaktifkan pada request pertama setelah email user terverifikasi OTP; akun yang emailnya belum terverifikasi tidak pernah mengklaim.
+6. **Hard delete** adalah satu transaksi lokal: baris `auth_verifications` milik user dihapus, lalu `DELETE FROM users` meng-cascade sesi, akun, mapping, dan data milik user sesuai butir 4 Addendum AUTH-01. Langkah "hapus akun Clerk" dan webhook `user.deleted` tidak ada lagi.
+7. **Data lama:** tidak ada migrasi data identitas (hanya data uji). Baris `users` hasil seed tidak memiliki kata sandi; kata sandi dibuat lewat alur lupa kata sandi (OTP email).
+8. **Permintaan akses (2026-11-23, migration `0008_access_requests`):** tabel `access_requests` (`id`, `user_id` unik → `users` `ON DELETE CASCADE`, `kode_satker`, `satker_name`, `status` enum `access_request_status` `pending`/`rejected`, `decided_by` → `users` `ON DELETE SET NULL`, `decided_at`, `created_at`, `updated_at`; index `status`). Satu permintaan per user; tidak menyentuh `organizations` dan `user_accesses` sampai disetujui. Persetujuan menghapus baris dan audit `onboard_satker` menyimpan jejaknya.
+9. **Undangan sejak 2026-11-23** membuat baris `users` tanpa kata sandi dan `user_accesses` berstatus `active`; baris `pending` ber-`invited_email` (butir 5) hanya tersisa untuk data lama dan tetap diklaim seperti sebelumnya.
+
+## Addendum ADR-008 — 2026-11-15 — Residensi Data dan Identitas Self-Hosted
+
+> Addendum ini adalah yang terbaru dan berlaku bila bertentangan dengan bagian lain dokumen ini. Rincian: [ADR-008](../adr/ADR-008-data-residency-self-hosted-stack.md).
+
+1. **Database:** PostgreSQL dijalankan pada VPS di Indonesia, bukan NeonDB (MIG-01). Skema tabel domain tidak berubah.
+2. **Identitas (target MIG-03):** `users.clerk_user_id` diganti rujukan ke user auth milik Better Auth, dan `organizations.clerk_org_id` dihapus. Tabel auth (user, session, account, verification) berada pada database yang sama. Nama kolom, tipe, constraint, dan aturan `ON DELETE` final belum ditetapkan; semuanya dicatat sebagai addendum ERD lanjutan pada tahap desain MIG-03 sebelum migration dibuat.
+3. **Hard delete (mengubah butir 4 Addendum AUTH-01 setelah MIG-03):** penghapusan akun menjadi satu transaksi lokal pada PostgreSQL; langkah "hapus akun Clerk terlebih dahulu" dan webhook `user.deleted` tidak berlaku lagi. Aturan cascade kepemilikan dan `SET NULL` untuk atribusi tetap.
+4. **Masa transisi:** sampai MIG-03 selesai, kolom `clerk_user_id`/`clerk_org_id` dan butir 4 Addendum AUTH-01 tetap menggambarkan skema yang berjalan.
+
+## Addendum AUTH-01 — 2026-09-12 — Fondasi Data Akses
+
+> Addendum ini menambah kontrak fondasi data AUTH-01 tanpa mengubah baseline historis di bawah garis pemisah. Bila ada konflik, addendum terbaru yang berlaku.
+
+1. **1 satker = 1 operator AKTIF (sementara):** `user_accesses` dengan `access_type = 'operator_satker'` dan `active = true` dibatasi satu baris aktif per `org_id` (partial unique index `WHERE active = true AND access_type = 'operator_satker'`). Riwayat mapping nonaktif (`active = false`) tetap disimpan dan tidak dihapus; pembatasan hanya berlaku untuk baris aktif.
+2. **Normalisasi `kode_satker` mengikat nama:** `organizations.kode_satker` selalu disimpan sebagai `trim().toUpperCase()`. Pada pembuatan satker baru, bila `kode_satker` yang ternormalisasi sudah ada namun `name` berbeda (perbandingan `trim()` case-insensitive) → transaksi ditolak (`KODE_SATKER_NAME_MISMATCH`). Kode identik dengan nama identik diperlakukan sebagai idempoten. Pada Manajemen Akses dan onboarding, baris organisasi yang tidak memiliki mapping Operator aktif/pending yang tampil dianggap orphan/inaktif dan boleh dipakai ulang; mismatch hanya berlaku jika kode sedang dipakai mapping yang tampil.
+3. **Admin slot permanen per scope:** `user_accesses.admin_slot` (`integer`, `NULL`) permanen untuk setiap `admin_kppn` aktif dalam satu `kppn_scope_id`. Unik parsial `UNIQUE (kppn_scope_id, admin_slot) WHERE access_type = 'admin_kppn' AND admin_slot IS NOT NULL`. Slot bebas dipakai ulang setelah baris dihapus (hard delete) atau dinonaktifkan (`active = false` → slot tidak lagi terhitung). Alokasi selalu mengambil slot terkecil kosong dalam transaksi. Perubahan alokasi/pelepasan akses dicatat di `audit_logs`; hard delete tidak membuat riwayat akun baru.
+4. **Hapus user = hard delete & sync reset:** aksi Admin KPPN menghapus akun Clerk terlebih dahulu, lalu `DELETE FROM users WHERE id = ?` di Neon. FK yang merepresentasikan kepemilikan user (`user_accesses.user_id`, `simulations.created_by`, `score_snapshots.created_by`, dan `audit_logs.actor_id`) memakai `ON DELETE CASCADE`; mapping, riwayat simulasi, snapshot, dan log milik user ikut hilang. Kolom `created_by`/`updated_by` pada data operasional bersama tetap `ON DELETE SET NULL` karena hanya metadata atribusi, bukan kepemilikan satker. `rule_sets.created_by` nullable agar creator yang dihapus tidak memblokir constraint. Webhook `user.deleted` menghapus identitas Neon secara idempoten sebagai fallback.
+5. **List akses hanya yang aktif:** Semua query daftar/resolusi akses operasional (`listAdminUserAccessFn`, `resolveUserAccess`, `listAdminOrganizations`, dsb.) memfilter `WHERE active = true`. Baris nonaktif tetap ada untuk audit/riwayat namun tidak muncul pada daftar operasional.
+6. **Scope tunggal KPPN Malang 032:** MVP hanya melayani satu scope `KPPN Malang 032` (`kppn_scopes.code = '032'` / `KPPN-032`). Seluruh validasi `assertAdminKppnScope` dan seed mengacu pada scope tersebut; penambahan scope baru berada di luar kontrak AUTH-01.
+
 ## Addendum Revisi v2 — 2026-09-09
 
 1. **Tanpa perubahan skema:** tidak ada tabel/kolom/relasi baru. Admin monitor hanya membaca tabel scoped yang sama.

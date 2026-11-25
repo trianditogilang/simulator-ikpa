@@ -62,7 +62,7 @@ export function RuleSetPublishDialog({
 								<strong className="text-foreground">
 									Snapshot historis tidak akan berubah
 								</strong>{" "}
-								guna menjamin integritas audit data masa lalu.
+									guna menjamin integritas data masa lalu.
 							</li>
 						</ul>
 					</div>

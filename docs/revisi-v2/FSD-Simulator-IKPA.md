@@ -1,13 +1,40 @@
 # FSD — Functional Specification Document (Revisi v2)
 
 > Dokumen ini adalah spesifikasi fungsional aktif Revisi v2. Baseline v1.0 dipertahankan di bagian bawah hanya untuk histori dan traceability; bila ada konflik, kontrak aktif v2 berlaku.
+>
+> Keputusan produk 2026-09-13: kemampuan Audit Log Admin (ADM-11, `/admin-kppn/audit-logs`) dipensiunkan. Menu, route, dan reader Admin tidak tersedia; pencatatan internal untuk menjaga integritas mutasi domain tetap berada di backend.
+
+## Addendum ADR-008 — 2026-11-15 — Residensi Data dan Stack Self-Hosted
+
+> Addendum ini adalah yang terbaru dan berlaku bila bertentangan dengan bagian lain dokumen ini. Rincian: [ADR-008](../adr/ADR-008-data-residency-self-hosted-stack.md) dan addendum ADR-008 pada TSD.
+
+1. **Login (PUB-02 dan alur akses):** setelah MIG-03 selesai, "login melalui Clerk" dibaca sebagai login email + kata sandi yang dikelola aplikasi (Better Auth). Pengguna dapat mendaftar sendiri; undangan Admin KPPN tetap tersedia tetapi bukan syarat. Hanya email terverifikasi yang dapat dipetakan sebagai akses aktif. **Amandemen pemilik 2026-11-23:** daftar mandiri tidak lagi memberi akses langsung; hasilnya permintaan akses Operator Satker yang harus disetujui Admin KPPN (butir 8).
+2. **Perilaku akses yang dipertahankan:** kode + nama satker (kini diajukan saat daftar dan diberlakukan saat Admin menyetujui, butir 8), satu Operator aktif per satker, slot admin, hard delete dengan proteksi self dan admin terakhir, serta blind auth guard.
+3. **Reminder dan job:** "QStash" dibaca sebagai scheduler cron di VPS dan "Resend" sebagai pengiriman SMTP setelah MIG-04 dan MIG-05 selesai. Aturan idempotency, retry, dan lead time tidak berubah.
+4. **Integrasi eksternal (§ daftar integrasi):** Clerk, Neon, QStash, Resend, Vercel, dan Cloudflare digantikan komponen self-hosted sesuai tabel pada addendum ADR-008 TSD.
+5. **Masa transisi:** sampai task MIG terkait selesai, bagian lama dokumen ini tetap menggambarkan perilaku yang berjalan.
+6. **Kode OTP email:** saat mendaftar, saat reset kata sandi, dan saat login dari perangkat yang belum dikenal, pengguna memasukkan kode 6 digit yang dikirim ke emailnya. Kode berlaku sekitar 10 menit dan sekali pakai; kirim ulang dan percobaan salah dibatasi. Login berikutnya dari perangkat yang sama cukup email + kata sandi.
+7. **Rincian alur setelah MIG-03 (2026-11-17):**
+   - Layar masuk, daftar, dan lupa kata sandi memakai satu formulir (di `/`, `/sign-in`, dan `/sign-up`); tidak ada halaman SSO.
+   - Kata sandi minimal 10 karakter. Kata sandi baru (daftar dan reset) wajib berisi minimal satu huruf dan satu angka; kata sandi lama tetap diterima saat masuk. Formulir daftar meminta kata sandi dua kali (konfirmasi harus sama), dan setiap kolom kata sandi memiliki tombol tampilkan/sembunyikan berikon mata (amandemen pemilik 2026-11-23, MIG-03). Kode OTP salah lebih dari 5 kali atau kedaluwarsa mengharuskan kode baru.
+   - Perangkat diingat 30 hari dan diperpanjang setiap kali dipakai masuk; reset kata sandi dan perubahan email oleh Admin mengeluarkan user dari semua perangkat.
+   - ~~Undangan Admin dikirim sebagai email berisi tautan pendaftaran.~~ Diganti butir 8 (2026-11-23).
+   - Akun tanpa kata sandi (hasil seed) mengatur kata sandinya lewat "Lupa kata sandi".
+8. **Jalur akses (amandemen pemilik 2026-11-23, MIG-03):** aplikasi terbuka ke internet, jadi tidak ada yang dapat mengklaim satker sendiri.
+   - **Daftar Akun Baru** meminta Kode Satker, Nama Satker, email, dan kata sandi (dua kali). Nama profil Operator = Nama Satker. Setelah OTP daftar benar, permintaan akses tersimpan dan pengguna melihat "Menunggu Persetujuan Admin KPPN"; permintaan tidak memberi akses dan tidak mengubah data satker apa pun.
+   - **Admin KPPN** melihat bagian "Permintaan Akses Operator" di Manajemen Akses (kode, nama, email, petunjuk "kode sudah ada di sistem" dan "sudah punya Operator aktif") dan memilih Setujui atau Tolak. Setujui memetakan pemohon sebagai Operator dengan aturan satu Operator per satker; satker yang sudah ada tetap memakai nama terdaftarnya. Tolak mempertahankan akun; pemohon dapat mengajukan ulang. Pemohon menerima email untuk kedua keputusan.
+   - **Undangan Admin** (Operator maupun Admin KPPN) langsung membuat akun tanpa kata sandi dengan akses aktif. Email undangan meminta penerima membuka Masuk → Lupa kata sandi; OTP reset membuktikan kepemilikan email. Di Manajemen Akses akun itu tampil "Menunggu" dengan keterangan "Belum membuat kata sandi" dan tetap dapat diedit atau dihapus.
+   - **Halaman Masuk dan Lupa kata sandi** menampilkan "Email belum terdaftar, silakan Daftar Akun Baru atau hubungi Admin KPPN." untuk email tanpa akun, dan mengarahkan akun tanpa kata sandi ke Lupa kata sandi. Pesan ini setara dengan pesan "Email sudah terdaftar" pada daftar.
+   - **Daftar Akun Baru (amandemen pemilik 2026-11-24)** ditolak sebelum akun dan kode OTP dibuat bila (a) email sudah terdaftar, yaitu punya akses aktif atau undangan yang menunggu kata sandi: "Email ini sudah terdaftar. Silakan Masuk, atau pilih Lupa kata sandi jika Anda tidak ingat kata sandi."; atau (b) Kode Satker atau Nama Satker (tanpa beda huruf besar/kecil) sudah dimiliki Operator aktif/undangan: "Satker 123456 – KPPN Jakarta I sudah memiliki akun dengan email ad****@kemenkeu.go.id. Silakan Masuk menggunakan email tersebut. Jika Operator sudah berganti, hubungi Admin KPPN Malang." Email ditampilkan tersamar (dua huruf pertama + domain). Email yang sedang ada di daftar permintaan ditolak dengan "Email ini sedang menunggu persetujuan Admin KPPN. Silakan Masuk untuk melihat status permintaan." Email lain yang tidak terlihat oleh Admin (akun tanpa akses dan tanpa permintaan pending, termasuk yang permintaannya ditolak atau yang tidak menyelesaikan OTP) boleh dipakai lagi untuk Daftar Akun Baru. Akun lama tanpa riwayat (tanpa audit, simulasi, atau snapshot) dihapus; akun lama yang punya riwayat tidak dihapus, hanya emailnya dilepas, sehingga riwayatnya tetap ada. Satker yang sudah ada tanpa Operator tetap boleh diajukan. Form ajukan akses di halaman Menunggu Akses menerapkan cek dan pesan yang sama. Kode Satker wajib tepat 6 digit angka, agar kode yang kehilangan nol di depan (Excel: 012345 → 12345) tidak menjadi satker ganda. Pergantian Operator dilakukan Admin KPPN dengan mengganti email akun Operator lama ke email penerus. Satu orang yang memegang lebih dari satu satker mendapat satker tambahan dari Admin, bukan lewat Daftar ulang. Kode Satker atau Nama Satker yang sudah ada di daftar permintaan pending milik email lain juga ditolak (amandemen pemilik 2026-11-24, menggantikan aturan "dua permintaan tetap diterima"): "Satker 123456 – KPPN Jakarta I sudah diajukan dengan email ad****@kemenkeu.go.id dan sedang menunggu persetujuan Admin KPPN Malang. Jika pengajuan itu bukan milik Anda, hubungi Admin KPPN Malang." Permintaan palsu dibereskan Admin dengan menolaknya, sehingga kode itu bebas lagi. Pemohon tetap boleh mengajukan ulang permintaannya sendiri. Penanda "N permintaan untuk kode ini" di panel Admin tetap ada untuk permintaan ganda yang sudah tersimpan sebelum aturan ini.
+   - **Nama akun Operator Satker = nama satker (amandemen pemilik 2026-11-24).** Operator tidak punya nama pribadi di aplikasi. Modal Tambah/Edit Akses hanya menampilkan kolom "Nama" untuk Admin KPPN. Nama akun Operator diisi nama satkernya saat Daftar, saat persetujuan, saat undangan/edit Admin, dan ikut berubah bila nama satker diubah di Pengaturan Satker.
+   - Undangan massal (INVITE-BULK-01) dan mode demo untuk umum (DEMO-01) adalah task terpisah.
 
 ## Addendum Revisi v2 — 2026-09-09
 
 1. **Workspace per indikator (CORR-02/03/04):** actual YTD terkunci, sisa tahun editable, skor via engine; `?`/drawer rumus singkat wajib.
 2. **Dashboard (CORR-05):** merakit 8 baris, 5 rekomendasi, estimasi bila indikator kosong, `Simpan skenario IKPA`.
 3. **Tagihan & Output (CORR-06):** strip reminder wajib (H+17, 5 hari kerja) + rekomendasi kontekstual; bukan kalkulator opsional.
-4. **Admin monitor (CORR-A-00 s.d. CORR-A-05, parkir):** dashboard agregat 8 baris, daftar satker (8 skor, gap, actual vs proyeksi), detail satker read-only, monitoring reminder mandatory; policy/kalender/akses/audit tetap.
+4. **Admin monitor (CORR-A-00 s.d. CORR-A-05, parkir):** dashboard agregat 8 baris, daftar satker (8 skor, gap, actual vs proyeksi), detail satker read-only, monitoring reminder mandatory; policy/kalender/akses tetap.
 5. **Freeze operator:** `docs/operator-freeze.md` — kode area operator tidak boleh diubah.
 
 ## Kontrak fungsional aktif Revisi v2
@@ -51,7 +78,7 @@ MVP mencakup:
 - Perhitungan simulasi IKPA, actual, forecast, dan skenario *what-if*.
 - Dashboard, rekomendasi, riwayat snapshot, visualisasi, dan ekspor.
 - Reminder Center untuk konfigurasi delivery reminder oleh Operator Satker dalam batas policy.
-- Dashboard monitoring KPPN, Admin Policy, kalender kerja, audit, dan manajemen mapping email.
+- Dashboard monitoring KPPN, Admin Policy, kalender kerja, dan manajemen mapping email.
 - Rule set berversi per tahun anggaran dan reminder policy berversi.
 
 ### 1.3 Di luar ruang lingkup MVP
@@ -90,7 +117,6 @@ MVP mencakup:
 | Rule set IKPA | Lihat versi aktif | Buat, edit draft, publish, retire |
 | Reminder policy | Lihat policy aktif | Kelola |
 | Kalender hari kerja | Lihat | Kelola |
-| Audit log | Lihat aktivitas satker sendiri yang relevan | Lihat seluruh scope KPPN |
 | Mapping email Operator Satker | Tidak | Kelola |
 | Mapping email Admin KPPN | Tidak | Kelola |
 
@@ -150,7 +176,6 @@ MVP mencakup:
 | ADM-08 | Reminder Policy | `/admin-kppn/policy/reminders` | Kelola event, kategori, deadline formula, batas lead time, penerima wajib |
 | ADM-09 | Kalender Hari Kerja | `/admin-kppn/policy/workdays` | Kelola kalender hari kerja dan hari libur |
 | ADM-10 | Riwayat Versi Policy | `/admin-kppn/policy/history` | Melihat versi rule set, perubahan, tanggal efektif, dan dampak |
-| ADM-11 | Audit Log | `/admin-kppn/audit-logs` | Menelusuri perubahan data, policy, access, dan delivery |
 | ADM-12 | Manajemen Akses | `/admin-kppn/access` | Mapping email Admin KPPN dan Operator Satker |
 
 ### 3.4 Struktur menu sidebar
@@ -189,7 +214,6 @@ Admin Policy
   Reminder Policy
   Kalender Hari Kerja
   Riwayat Versi
-Audit Log
 Manajemen Akses
 ```
 
@@ -778,34 +802,7 @@ Prioritas = Bobot\ indikator \times Gap\ nilai \times Faktor\ urgensi\ deadline
 - Daftar snapshot dan notification delivery yang menggunakan versi tersebut.
 - Dampak ke jadwal reminder mendatang setelah publish.
 
-### 4.26 ADM-11 — Audit Log
-
-**Tujuan:** Menyediakan jejak perubahan yang dapat ditelusuri.
-
-**Kolom minimum:**
-
-- Waktu.
-- Aktor/email.
-- Jenis akses.
-- Organisasi/satker terkait bila ada.
-- Entity type dan entity ID.
-- Aksi.
-- Nilai sebelum dan sesudah.
-- `rule_set_version` dan `policy_id` bila relevan.
-- IP/request metadata bila tersedia dan sesuai kebijakan privasi.
-
-**Aksi yang wajib dicatat:**
-
-- CRUD data operasional.
-- Import dan hasilnya.
-- Pembuatan/ubah/hapus simulation dan snapshot.
-- Perubahan konfigurasi reminder.
-- Pembuatan, edit, publish, dan retire rule set/policy.
-- Perubahan kalender hari kerja.
-- Perubahan mapping akses email.
-- Retry notification delivery.
-
-### 4.27 ADM-12 — Manajemen Akses
+### 4.26 ADM-12 — Manajemen Akses
 
 **Tujuan:** Mengelola mapping email untuk dua jenis akses MVP.
 
@@ -825,7 +822,6 @@ Prioritas = Bobot\ indikator \times Gap\ nilai \times Faktor\ urgensi\ deadline
 - Semua Admin KPPN memiliki hak yang sama untuk mengelola mapping, termasuk akses admin lain.
 - Sistem harus mencegah kondisi tidak ada Admin KPPN aktif dalam suatu scope; penghapusan/nonaktifkan admin terakhir harus ditolak.
 - Perubahan akses berlaku pada sesi berikutnya atau melalui refresh token/session sesuai kemampuan Clerk.
-- Semua perubahan dicatat pada audit log.
 
 ---
 

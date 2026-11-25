@@ -28,7 +28,7 @@ export const scoreSnapshots = pgTable(
 			.notNull(),
 		inputHash: text("input_hash").notNull(),
 		createdBy: uuid("created_by").references(() => users.id, {
-			onDelete: "set null",
+			onDelete: "cascade",
 		}),
 		createdAt: timestamp("created_at", { withTimezone: true })
 			.defaultNow()

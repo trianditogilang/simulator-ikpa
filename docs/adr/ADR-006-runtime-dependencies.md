@@ -6,6 +6,8 @@
 - Task: F0-08
 - Terkait: F7-01, F12-01–F12-06, ADR-005
 
+> **Scope note (2026-11-15):** [ADR-008](ADR-008-data-residency-self-hosted-stack.md) menggantikan bagian 4 (Cloudflare R2) dan seluruh asumsi runtime serverless Vercel pada ADR ini, termasuk batas body 4,5 MB dan alur presigned URL. Storage import menjadi direktori privat di VPS (MIG-06). Keputusan `big.js` dan `exceljs` tetap berlaku.
+>
 > **Scope note (2026-09-10):** Revisi v2 tidak mengaktifkan PDF Operator maupun ekspor Admin. Bagian PDF di ADR ini dipertahankan sebagai keputusan historis F0-08; kontrak aktif hanya memakai `exceljs` untuk Operator XLSX scoped, sedangkan Admin tetap read-only.
 
 ## Konteks

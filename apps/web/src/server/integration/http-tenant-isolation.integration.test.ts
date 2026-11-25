@@ -12,11 +12,11 @@ import { and, eq } from "drizzle-orm";
 
 const baseUrl = process.env.F13_02_HTTP_URL;
 const testDatabaseUrl = process.env.DATABASE_URL;
-const configuredClerkUserId = process.env.F13_02_CLERK_OPERATOR_USER_ID;
-const sessionToken = process.env.F13_02_CLERK_SESSION_TOKEN;
-if (!baseUrl || !testDatabaseUrl || !configuredClerkUserId || !sessionToken) {
+const configuredOperatorUserId = process.env.F13_02_OPERATOR_USER_ID;
+const sessionToken = process.env.F13_02_SESSION_COOKIE;
+if (!baseUrl || !testDatabaseUrl || !configuredOperatorUserId || !sessionToken) {
 	throw new Error(
-		"F13-02 HTTP integration requires HTTP URL, database URL, Clerk operator ID, and a short-lived Clerk session token.",
+		"F13-02 HTTP integration requires HTTP URL, database URL, operator user ID, and a session cookie.",
 	);
 }
 
@@ -51,7 +51,7 @@ async function callServerFn(args: {
 		"x-tsr-serverFn": "true",
 		accept: "application/json",
 	});
-	if (args.authToken) headers.set("authorization", `Bearer ${args.authToken}`);
+	if (args.authToken) headers.set("cookie", args.authToken);
 	const init: RequestInit = { method: args.method, headers };
 	let url = `${baseUrl}/_serverFn/${encodeURIComponent(args.id)}`;
 	if (args.method === "GET") {
@@ -66,19 +66,19 @@ async function callServerFn(args: {
 
 beforeAll(async () => {
 	const [operator] = await db
-		.select({ id: users.id, clerkUserId: users.clerkUserId })
+		.select({ id: users.id })
 		.from(users)
 		.innerJoin(userAccesses, eq(userAccesses.userId, users.id))
 		.where(
 			and(
 				eq(userAccesses.accessType, "operator_satker"),
-				eq(users.clerkUserId, configuredClerkUserId),
+				eq(users.id, configuredOperatorUserId),
 			),
 		)
 		.limit(1);
 	if (!operator) {
 		throw new Error(
-			"Configured Clerk operator is not mapped to an operator access row in the test database.",
+			"Configured operator is not mapped to an operator access row in the test database.",
 		);
 	}
 	const [access] = await db
@@ -126,7 +126,7 @@ afterAll(async () => {
 describe("F13-02 authenticated HTTP tenant boundary", () => {
 	it("serves an authenticated operator route through the real test database", async () => {
 		const response = await fetch(`${baseUrl}/operator/dashboard`, {
-			headers: { authorization: `Bearer ${sessionToken}` },
+			headers: { cookie: `${sessionToken}` },
 		});
 		expect(response.status).toBe(200);
 		expect(await response.text()).not.toContain("Error connecting to database");

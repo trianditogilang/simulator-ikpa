@@ -1,6 +1,5 @@
-import { neon, Pool } from "@neondatabase/serverless";
-import { drizzle as drizzleHttp } from "drizzle-orm/neon-http";
-import { drizzle as drizzleServerless } from "drizzle-orm/neon-serverless";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import * as schema from "./schema/index";
 
 export function getDatabaseUrl(): string {
@@ -13,25 +12,25 @@ export function getDatabaseUrl(): string {
 	return url;
 }
 
-/**
- * Creates an HTTP-based Neon database client (recommended for serverless functions / request handlers).
- */
+// Server modules call createDbClient() on every request, so the pool must be
+// shared per connection string; a new Pool per call would leak connections.
+const pools = new Map<string, Pool>();
+
 export function createDbClient(connectionString?: string) {
 	const url = connectionString || getDatabaseUrl();
-	const sql = neon(url);
-	return drizzleHttp(sql, { schema });
+	let pool = pools.get(url);
+	if (!pool) {
+		// allowExitOnIdle lets seed/CLI scripts exit without an explicit pool.end().
+		pool = new Pool({ connectionString: url, allowExitOnIdle: true });
+		pools.set(url, pool);
+	}
+	return drizzle(pool, { schema });
 }
 
-/**
- * Creates a WebSocket Pool-based Neon database client (recommended for long-running scripts / migrations / seeds).
- */
-export function createPoolDbClient(connectionString?: string) {
-	const url = connectionString || getDatabaseUrl();
-	const pool = new Pool({ connectionString: url });
-	return drizzleServerless(pool, { schema });
-}
+/** Kept for existing callers (seed, scripts); same pooled client. */
+export const createPoolDbClient = createDbClient;
 
 export type DbClient = ReturnType<typeof createDbClient>;
-export type PoolDbClient = ReturnType<typeof createPoolDbClient>;
+export type PoolDbClient = DbClient;
 
 export { schema };

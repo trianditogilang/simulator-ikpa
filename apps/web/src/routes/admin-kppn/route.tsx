@@ -3,15 +3,12 @@ import { ActiveContextProvider } from "@/components/layout/active-context";
 import { getAccessResolutionFn } from "@/server/access";
 
 export const Route = createFileRoute("/admin-kppn")({
-	beforeLoad: async ({ location }) => {
+	beforeLoad: async () => {
 		const access = await getAccessResolutionFn({ data: {} });
 
 		if (access.status === "unauthenticated") {
 			throw redirect({
-				to: "/sign-in",
-				search: {
-					next: location.href,
-				},
+				to: "/",
 			});
 		}
 

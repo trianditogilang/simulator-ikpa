@@ -1,6 +1,48 @@
 # TSD — Technical Specification Document (Revisi v2)
 
 > Dokumen ini adalah spesifikasi teknis aktif Revisi v2. Baseline v1.0 dipertahankan di bagian bawah hanya untuk histori; bila ada konflik, kontrak aktif v2 berlaku.
+>
+> Keputusan produk 2026-09-13: reader Audit Log Admin dan route `/admin-kppn/audit-logs` dipensiunkan. Helper/table audit internal tetap dipakai oleh mutasi domain dan tidak diekspos sebagai menu Admin.
+
+## Addendum ADR-008 — 2026-11-15 — Residensi Data dan Stack Self-Hosted
+
+> Addendum ini adalah yang terbaru dan berlaku bila bertentangan dengan bagian lain dokumen ini. Rincian dan alasan: [ADR-008](../adr/ADR-008-data-residency-self-hosted-stack.md).
+
+1. **Target arsitektur:** seluruh komponen yang menyimpan atau memproses data aplikasi dijalankan pada VPS di Indonesia. Penyebutan Vercel, Neon/NeonDB, Clerk, Upstash QStash, Resend, dan Cloudflare (termasuk R2) pada dokumen ini dibaca sesuai tabel berikut setelah task terkait selesai.
+
+   | Bagian dokumen | Stack lama | Target | Task |
+   |---|---|---|---|
+   | Database, environment | Neon | PostgreSQL di VPS, `pg` + `drizzle-orm/node-postgres` | MIG-01 |
+   | Hosting, deployment | Vercel | Nitro `node-server` dalam container di VPS | MIG-02, F13-09 |
+   | Auth, middleware, webhook | Clerk | Better Auth self-hosted; email + kata sandi, daftar mandiri, undangan Admin opsional; tanpa webhook identity | MIG-03 |
+   | Endpoint job (§6.8) | QStash signed request | Cron VPS + shared secret; idempotency dan retry tidak berubah | MIG-04 |
+   | Email | Resend | SMTP; template React Email tidak berubah | MIG-05 |
+   | Storage import | R2 / signed URL | Direktori privat di VPS; batas 10 MB dan 10.000 baris tetap | MIG-06 |
+   | Keamanan edge | Cloudflare | Reverse proxy + TLS + firewall + rate limit di VPS | F13-10 |
+   | Observability | Vercel Logs; Sentry opsional | Log terstruktur di host + alert SMTP | F13-11 |
+
+2. **Masa transisi:** sampai task MIG untuk suatu komponen selesai, implementasi dan bagian lama dokumen ini tetap menggambarkan perilaku yang berjalan. Setiap task MIG memperbarui bagian yang disentuhnya; dokumen tidak ditulis ulang sekaligus.
+3. **Kolom identitas:** `users.clerk_user_id` diganti rujukan ke user auth dan `organizations.clerk_org_id` dihapus. Bentuk final ditetapkan pada desain MIG-03 dan dicatat sebagai addendum ERD sebelum migration dibuat.
+4. **Variabel environment:** `CLERK_*`, `QSTASH_*`, `RESEND_API_KEY`, dan `R2_*` dihapus bertahap dan diganti secret auth, secret job, serta konfigurasi SMTP dan storage lokal. Secret disimpan pada environment server di VPS, bukan pada penyedia hosting.
+5. **Pengecualian mode Fase 13:** penggantian dependency dan perubahan lintas folder diizinkan hanya untuk MIG-01–MIG-07. Formula, IA 8 indikator, actual/what-if, Slot A/B/C, reminder mandatory, dan V2-AC-01..24 tidak berubah.
+6. **Verifikasi ulang:** bukti F13-02 sampai F13-08 diperoleh pada stack lama dan wajib dihijaukan ulang pada stack baru (MIG-07) sebelum F13-13.
+7. **OTP email menggantikan "MFA opsional":** kode OTP dikirim ke email saat mendaftar, saat reset kata sandi, dan saat login dari perangkat yang belum dikenal. Kode 6 digit, berlaku sekitar 10 menit, sekali pakai, disimpan ter-hash, dengan batas percobaan dan kirim ulang; tidak masuk log atau response. Tidak ada TOTP atau SMS. MIG-05 dikerjakan bersama MIG-03.
+8. **Status MIG-02 (2026-11-16):** runtime hosting sudah berjalan sebagai Nitro `node-server` dalam container (`Dockerfile`, `docker-compose.yml`, `Caddyfile` di root repo) dengan PostgreSQL 16 UTF8 dan reverse proxy Caddy; batas body di proxy 15 MB, batas berkas import 10 MB tetap di aplikasi. Bagian arsitektur, keamanan, dan langkah deployment yang masih menyebut Vercel diperbarui saat deployment VPS dikerjakan (F13-09).
+9. **Status MIG-03 dan MIG-05 (2026-11-17):** autentikasi berjalan pada Better Auth self-hosted dan email pada SMTP; bagian Auth, middleware, webhook, dan email yang masih menyebut Clerk/Resend dibaca sesuai butir ini.
+   - **Sesi:** cookie `HttpOnly`, `SameSite=Lax` (dan `Secure` saat `APP_URL` memakai HTTPS), berlaku 7 hari; server membaca sesi per request lewat `getServerAuthSession()` dan otorisasi tetap lewat Access Resolver (ADR-007). Tidak ada middleware request global dan tidak ada webhook identity.
+   - **Endpoint:** `/api/auth/*` hanya membuka daftar, masuk, keluar, pembacaan sesi, verifikasi email dengan OTP, reset kata sandi dengan OTP, dan OTP perangkat baru. Login tanpa kata sandi, TOTP, backup code, penonaktifan langkah kedua, serta ubah email/kata sandi/profil mandiri ditutup.
+   - **OTP:** 6 digit, berlaku 10 menit, sekali pakai, disimpan ter-hash, maksimal 5 percobaan salah per kode, dan maksimal 5 pengiriman per 15 menit per alamat email; batas per IP disimpan di database. Kata sandi minimal 10 karakter, di-hash dengan scrypt; `hooks.before` Better Auth menolak kata sandi baru tanpa huruf dan angka pada `/sign-up/email` dan `/email-otp/reset-password` (`400 PASSWORD_NEEDS_LETTER_AND_DIGIT`, amandemen 2026-11-23).
+   - **Environment:** `BETTER_AUTH_SECRET` (minimal 32 karakter), `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `NOTIFICATION_SENDER_EMAIL`. `CLERK_*`, `VITE_CLERK_PUBLISHABLE_KEY`, dan `RESEND_API_KEY` tidak dibaca lagi.
+   - **Email:** OTP dan undangan dikirim langsung lewat SMTP; reminder tetap lewat tabel delivery dengan klaim eksklusif per baris (SMTP tidak memiliki idempotency key). Pengembangan dan test memakai Mailpit (`docker compose --profile dev up -d mailpit`).
+   - **Skema:** lihat Addendum MIG-03 pada ERD.
+   - **Jalur akses (amandemen 2026-11-23):** `hooks.before` juga menjawab `400 EMAIL_NOT_REGISTERED` pada `/sign-in/email` dan `/email-otp/request-password-reset` untuk email tanpa akun, serta `400 PASSWORD_NOT_SET` pada `/sign-in/email` untuk akun tanpa akun `credential`. Amandemen 2026-11-24: `/sign-up/email` menjawab `400 EMAIL_ALREADY_REGISTERED` untuk email yang punya akses aktif (`user_accesses` `active` + `status = active`) atau undangan `pending` (menggantikan respons sukses semu Better Auth saat `requireEmailVerification`), lalu `400 EMAIL_REQUEST_PENDING` untuk email dengan `access_requests` `pending`. Email terdaftar lain (akun yatim) dilepas paling akhir, setelah semua cek lolos, oleh `releaseOrphanEmail`. Bila akun tidak punya baris `audit_logs.actor_id`, `simulations.created_by`, atau `score_snapshots.created_by`, baris `users` dihapus (auth dan permintaan ditolak ikut cascade). Selain itu sesi, perangkat tepercaya, `auth_accounts`, dan `auth_two_factors` dihapus, lalu `users.email` menjadi `released-<id>@released.invalid`. Baris yang punya riwayat tidak dihapus karena FK `audit_logs.actor_id`, `simulations`, dan `score_snapshots` bersifat `ON DELETE CASCADE`. dan `400 SATKER_ALREADY_HAS_OPERATOR` bila `kodeSatker`/`namaSatker` di body cocok dengan organisasi yang memiliki Operator terlihat; pesan memuat kode, nama, email tersamar, dan kalimat "Jika Operator sudah berganti, hubungi Admin KPPN Malang." (`findSatkerTakenMessage` di `auth.server.ts`), lalu `400 SATKER_REQUEST_PENDING` bila kode/nama cocok dengan `access_requests` `pending` milik user lain (pesan memuat kode, nama, dan email pemohon tersamar; parameter `exceptUserId` membiarkan pemohon mengajukan ulang miliknya sendiri). Kedua field body tidak disimpan Better Auth; probing dibatasi rate limit `/sign-up/email` 10/menit per IP. ServerFn `requestSatkerAccessFn` (sesi terverifikasi berstatus `unmapped`; `kodeSatker` wajib `^\d{6}$` (`KODE_SATKER_PATTERN`, juga dipakai kedua form klien, hook `/sign-up/email` dengan `400 KODE_SATKER_INVALID`, dan `assignUserAccessFn` untuk Operator Satker); menolak dengan `SATKER_ALREADY_HAS_OPERATOR` atau `SATKER_REQUEST_PENDING` (409) lewat `findSatkerTakenMessage` yang sama; lalu upsert permintaan milik sendiri) menggantikan `registerSatkerOnboardingFn`; `getMyAccessRequestFn` membaca permintaan milik sendiri. ServerFn Admin `listAccessRequestsFn` (tiap baris membawa `duplicateCount`, jumlah permintaan pending dengan kode yang sama; sejak 2026-11-24 hanya untuk data ganda lama), `approveAccessRequestFn`, dan `rejectAccessRequestFn` hanya untuk Admin scope KPPN-032; persetujuan memanggil `registerSatkerForUser` dengan guard yang sama seperti onboarding lama (scope, `SATKER_ALREADY_REGISTERED`, `ORGANIZATION_NAME_MISMATCH`, `SATKER_OPERATOR_EXISTS`) tetapi tidak mengganti nama organisasi yang sudah ada. `assignUserAccessFn` untuk email baru membuat baris `users` (`email_verified = false`) dan akses `active`; akun dihapus lagi bila pemberian akses gagal. Amandemen 2026-11-24: `users.name` milik Operator Satker selalu nama satkernya. `assignUserAccessFn` memakai `satkerName` (bukan `name` dari klien) untuk `operator_satker`, `registerSatkerForUser` (persetujuan) menulis `organizations.name`, `handleUpdateSatkerSettings` memperbarui nama semua Operator aktif satker itu, dan migration `0009_operator_account_name` menyamakan data lama. Batas: Operator dengan lebih dari satu satker hanya menyimpan satu nama (yang terakhir ditulis).
+10. **Status MIG-04 (2026-11-18):** QStash diganti cron di VPS; §6.8 dibaca sesuai butir ini.
+   - **Endpoint:** `POST /api/jobs/reminders/daily`, `POST /api/jobs/reminders/send`, dan `POST /api/jobs/import/process` (path sesuai tabel §6.8; `/api/qstash/*` dihapus). Setiap request wajib membawa `Authorization: Bearer <JOB_SECRET>`; secret minimal 32 karakter, dibandingkan waktu-konstan, dan bila tidak di-set semua request ditolak 401 `INVALID_JOB_SECRET`. Body request tidak dipakai.
+   - **Pemicu:** service compose `scheduler` (busybox `crond` pada `alpine:3.20`, tanpa dependency npm) memanggil `http://app:3000` lewat jaringan internal. Jadwal UTC: daily 23.00 (06.00 WIB), send setiap 15 menit, pemulihan import tertahan setiap 10 menit. Caddy menjawab 404 untuk `/api/jobs/*` dari luar.
+   - **Tidak berubah:** klaim eksklusif per baris delivery, status `scheduled`/`sent`/`failed`, retry dari Admin, dan pemulihan import tertahan lebih dari 5 menit.
+   - **Environment:** `JOB_SECRET`. `QSTASH_*` tidak dibaca lagi.
+11. **Status MIG-06 (2026-11-18):** berkas import tidak disimpan di storage mana pun. Upload dikirim sebagai base64 (batas body 15 MB di Caddy), di-parse di memori dengan batas 10 MB dan 10.000 baris serta pemeriksaan format dan signature, lalu hanya hasil parse yang masuk `import_jobs` (`storage_key` tetap null). Bagian yang menyebut R2, presigned URL, atau object storage dibaca sesuai butir ini; `R2_*` tidak dibaca lagi.
+12. **Penyedia SMTP (2026-11-18):** Gmail SMTP (`smtp.gmail.com`, port 465/587) dengan App Password akun khusus; `NOTIFICATION_SENDER_EMAIL` sama dengan akun itu. Ini pengecualian residensi untuk isi email; alasan, kuota (±500 penerima/hari), dan jalur keluar dicatat pada Amandemen SMTP ADR-008. Kode tidak berubah karena mailer membaca `SMTP_*`.
 
 ## Addendum Revisi v2 — 2026-09-09
 
@@ -136,7 +178,6 @@ apps/
           monitoring/
           reports.tsx
           policy/
-          audit-logs.tsx
           access.tsx
       components/
         layout/
@@ -1149,7 +1190,6 @@ type ApiError = {
 | Reminder policy | `listReminderPolicies`, `getReminderPolicy` | `upsertReminderPolicy`, `deleteReminderPolicy` |
 | Workdays | `listWorkdays` | `upsertWorkday`, `bulkImportWorkdays` |
 | Policy history | `getPolicyHistory` | — |
-| Audit | `listAuditLogs` | — |
 | Access | `listAccessMappings` | `createAccessMapping`, `updateAccessMapping`, `deleteAccessMapping` |
 
 ### 7.5 Contoh command server

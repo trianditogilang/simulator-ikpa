@@ -1,12 +1,11 @@
 import { createDbClient } from "@simulator-ikpa/db";
 import { createFileRoute } from "@tanstack/react-router";
-import { handleQStashDaily } from "@/server/qstash/handler";
+import { handleReminderSend } from "@/server/jobs/handler";
 
-export const Route = createFileRoute("/api/qstash/daily")({
+export const Route = createFileRoute("/api/jobs/reminders/send")({
 	server: {
 		handlers: {
 			POST: async ({ request }) => {
-				const rawBody = await request.text();
 				const dbUrl = process.env.DATABASE_URL ?? process.env.DIRECT_URL;
 				if (!dbUrl)
 					return new Response(JSON.stringify({ code: "NO_DB" }), {
@@ -14,7 +13,7 @@ export const Route = createFileRoute("/api/qstash/daily")({
 					});
 				const db = createDbClient(dbUrl);
 				try {
-					const res = await handleQStashDaily(db, request.headers, rawBody);
+					const res = await handleReminderSend(db, request.headers);
 					return new Response(JSON.stringify(res), {
 						status: 200,
 						headers: {

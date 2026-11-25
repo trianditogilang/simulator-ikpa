@@ -17,7 +17,7 @@ describe("writeAudit", () => {
 			beforeJson: null,
 			afterJson: {
 				amount: "1000",
-				clerkUserId: "user_123",
+				password: "hash_123",
 				nested: { token: "abc" },
 			},
 			orgId: "33333333-3333-4333-8333-333333333333",
@@ -29,7 +29,7 @@ describe("writeAudit", () => {
 		expect(calledValues.entityType).toBe("budgets");
 		expect(calledValues.requestId).toBe("req-1");
 		// redacted
-		expect(calledValues.afterJson.clerkUserId).toBe("[REDACTED]");
+		expect(calledValues.afterJson.password).toBe("[REDACTED]");
 		expect(calledValues.afterJson.nested.token).toBe("[REDACTED]");
 		expect(calledValues.afterJson.amount).toBe("1000");
 	});

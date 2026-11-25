@@ -1,0 +1,120 @@
+# Simulator IKPA — aplikasi + PostgreSQL + reverse proxy (ADR-008, MIG-02).
+#
+#   POSTGRES_PASSWORD=... BETTER_AUTH_SECRET=... SMTP_HOST=... docker compose up -d --build
+#   docker compose --profile dev up -d mailpit  # penangkap email lokal (SMTP_HOST=mailpit)
+#   docker compose run --rm migrate            # terapkan migration Drizzle
+#
+# DATABASE_URL sengaja dirakit di sini dan TIDAK dibaca dari .env, supaya
+# container tidak pernah tersambung ke database lain (mis. Neon lama).
+# Auth (MIG-03), SMTP (MIG-05), dan secret job (MIG-04) diteruskan di bawah.
+
+x-database-url: &database-url postgresql://ikpa:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD wajib diisi}@db:5432/simulator_ikpa
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ikpa
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD wajib diisi}
+      POSTGRES_DB: simulator_ikpa
+      # Temuan MIG-01: encoding selain UTF8 menolak karakter pada breakdown_json.
+      POSTGRES_INITDB_ARGS: --encoding=UTF8
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      # Hanya loopback host, untuk migrate/seed/test dari mesin pengembang.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ikpa -d simulator_ikpa"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: *database-url
+      DIRECT_URL: *database-url
+      APP_URL: ${APP_URL:-http://localhost}
+      # Kunci penanda tangan sesi/cookie Better Auth, minimal 32 karakter acak.
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET wajib diisi}
+      # OTP dan undangan bergantung pada SMTP; lokal: SMTP_HOST=mailpit, SMTP_PORT=1025.
+      SMTP_HOST: ${SMTP_HOST:?SMTP_HOST wajib diisi}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      NOTIFICATION_SENDER_EMAIL: ${NOTIFICATION_SENDER_EMAIL:?NOTIFICATION_SENDER_EMAIL wajib diisi}
+      # Bearer secret yang dikirim service `scheduler` ke /api/jobs/*, minimal 32 karakter acak.
+      JOB_SECRET: ${JOB_SECRET:?JOB_SECRET wajib diisi}
+    depends_on:
+      db:
+        condition: service_healthy
+    # Tidak ada `ports`: aplikasi hanya dapat dijangkau lewat reverse proxy.
+
+  # Cron VPS (ADR-008, MIG-04): memanggil endpoint job lewat jaringan internal,
+  # karena Caddy menjawab 404 untuk /api/jobs/* dari luar. Jadwal pada config
+  # `crontab` di bawah; hasil tiap panggilan tercatat di log container ini.
+  scheduler:
+    image: alpine:3.20
+    restart: unless-stopped
+    environment:
+      JOB_SECRET: ${JOB_SECRET:?JOB_SECRET wajib diisi}
+    configs:
+      - source: crontab
+        target: /etc/crontabs/root
+    command: ["crond", "-f", "-l", "8"]
+    depends_on:
+      - app
+
+  proxy:
+    image: caddy:2
+    restart: unless-stopped
+    environment:
+      # ":80" = HTTP lokal. Isi nama domain di VPS agar Caddy mengurus TLS.
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+  # Penangkap email untuk pengembangan dan test. Tidak pernah dijalankan di VPS:
+  # hanya aktif dengan `--profile dev`, dan port-nya hanya di loopback host.
+  mailpit:
+    profiles: ["dev"]
+    image: axllent/mailpit:v1.21
+    ports:
+      - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
+
+  migrate:
+    profiles: ["tools"]
+    build:
+      context: .
+      target: build
+    environment:
+      DIRECT_URL: *database-url
+    command: npm run migrate --workspace @simulator-ikpa/db
+    depends_on:
+      db:
+        condition: service_healthy
+
+# Jadwal dalam UTC (WIB = UTC+7): daily 06.00 WIB, kirim reminder tiap 15 menit,
+# pemulihan import tertahan tiap 10 menit. `$$` = `$` literal untuk crond.
+configs:
+  crontab:
+    content: |
+      0 23 * * * wget -q -O- --header "Authorization: Bearer $$JOB_SECRET" --post-data '' http://app:3000/api/jobs/reminders/daily > /proc/1/fd/1 2>&1; echo > /proc/1/fd/1
+      */15 * * * * wget -q -O- --header "Authorization: Bearer $$JOB_SECRET" --post-data '' http://app:3000/api/jobs/reminders/send > /proc/1/fd/1 2>&1; echo > /proc/1/fd/1
+      */10 * * * * wget -q -O- --header "Authorization: Bearer $$JOB_SECRET" --post-data '' http://app:3000/api/jobs/import/process > /proc/1/fd/1 2>&1; echo > /proc/1/fd/1
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

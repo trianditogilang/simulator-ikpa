@@ -12,12 +12,12 @@ import {
 import { and, eq } from "drizzle-orm";
 
 export interface ResolveAccessInput {
-	clerkUserId: string | null;
+	userId: string | null;
 	requestedOrgId?: string | null;
 }
 
 /**
- * Resolves application authorization state for a verified Clerk identity.
+ * Resolves application authorization state for a verified session identity.
  * Conforms strictly to ADR-007 invariant rules:
  * - unauthenticated -> status "unauthenticated"
  * - no active mapping -> status "unmapped"
@@ -30,15 +30,15 @@ export async function resolveUserAccess(
 	db: DbClient,
 	input: ResolveAccessInput,
 ): Promise<AccessResolution> {
-	if (!input.clerkUserId) {
+	if (!input.userId) {
 		return accessResolutionSchema.parse({ status: "unauthenticated" });
 	}
 
-	// 1. Find User by Clerk ID
+	// 1. Confirm the session user still exists
 	const [user] = await db
 		.select()
 		.from(users)
-		.where(eq(users.clerkUserId, input.clerkUserId))
+		.where(eq(users.id, input.userId))
 		.limit(1);
 
 	if (!user) {
@@ -61,7 +61,11 @@ export async function resolveUserAccess(
 		.leftJoin(organizations, eq(userAccesses.orgId, organizations.id))
 		.leftJoin(kppnScopes, eq(userAccesses.kppnScopeId, kppnScopes.id))
 		.where(
-			and(eq(userAccesses.userId, user.id), eq(userAccesses.active, true)),
+			and(
+				eq(userAccesses.userId, user.id),
+				eq(userAccesses.active, true),
+				eq(userAccesses.status, "active"),
+			),
 		);
 
 	if (accesses.length === 0) {

@@ -23,6 +23,25 @@ Catat commit, hasil command, migration revision, dan deployment ID di DEVLOG.
 - Review migration SQL, jalankan pada database kosong/preview, lalu cek data
   tenant dan scope sebelum promote.
 
+## Jejak audit
+
+Halaman Audit Log Admin (ADM-11) dipensiunkan sejak 2026-09-13; pemilik
+memutuskan 2026-11-24 audit cukup dibaca langsung dari tabel `audit_logs`.
+Hanya `select` — jangan ubah atau hapus baris audit lewat SQL.
+
+- Drizzle Studio: `cd packages/db; npx drizzle-kit studio` (memakai
+  `DIRECT_URL`/`DATABASE_URL` dari `.env` root), lalu buka
+  https://local.drizzle.studio dan pilih tabel `audit_logs`.
+- psql (lokal, atau VPS lewat SSH). Compose butuh file env yang sama dengan saat
+  `up`; di lokal `.env.compose.local` dan `.env.smtp.local`:
+
+  ```
+  docker compose --env-file .env.compose.local --env-file .env.smtp.local exec db psql -U ikpa -d simulator_ikpa -c "select a.created_at, a.action, a.entity_type, u.name, u.email from audit_logs a left join users u on u.id = a.actor_id order by a.created_at desc limit 50;"
+  ```
+
+- Akun yang emailnya dilepas (`released-<id>@released.invalid`) tidak menyimpan
+  email lamanya; cari lewat `users.name` atau `actor_id`.
+
 ## Reminder and delivery
 
 - Periksa policy mandatory Tagihan, Output, dan GUP/PTUP.

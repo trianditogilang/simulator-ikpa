@@ -2,13 +2,13 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AccessPending } from "@/components/access/access-pending";
 import { PublicShell } from "@/components/layout/public-shell";
 import { getAccessResolutionFn } from "@/server/access";
+import { getMyAccessRequestFn } from "@/server/settings";
 
 export const Route = createFileRoute("/access-pending")({
-	beforeLoad: async ({ context, location }) => {
+	beforeLoad: async ({ context }) => {
 		if (!context.auth.isAuthenticated) {
 			throw redirect({
-				to: "/sign-in",
-				search: { next: location.href },
+				to: "/",
 			});
 		}
 
@@ -34,15 +34,18 @@ export const Route = createFileRoute("/access-pending")({
 			});
 		}
 	},
+	// A failed read only hides the request status; the request form still works.
+	loader: () => getMyAccessRequestFn().catch(() => null),
 	component: AccessPendingPage,
 });
 
 function AccessPendingPage() {
 	const { auth } = Route.useRouteContext();
+	const request = Route.useLoaderData();
 
 	return (
 		<PublicShell contentClassName="py-8 sm:py-10">
-			<AccessPending email={auth.email ?? undefined} />
+			<AccessPending email={auth.email ?? undefined} request={request} />
 		</PublicShell>
 	);
 }

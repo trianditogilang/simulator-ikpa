@@ -55,7 +55,7 @@ import {
 import { buildOperatorXlsxBuffer } from "../exports/operator-xlsx";
 import { listDeliveriesForOperator } from "../reminders/delivery.queries";
 import { retryFailedDelivery } from "../reminders/delivery.mutations";
-import { handleQStashImport } from "../import/process-job";
+import { handleImportJob } from "../import/process-job";
 
 const testDatabaseUrl = process.env.DATABASE_URL;
 if (!testDatabaseUrl) {
@@ -85,6 +85,10 @@ let state: IsolationState | undefined;
 function requireState(): IsolationState {
 	if (!state) throw new Error("Integration state was not initialized.");
 	return state;
+}
+
+function jobHeaders(): Headers {
+	return new Headers({ authorization: "Bearer " + (process.env.JOB_SECRET ?? "") });
 }
 
 async function expectRejectedWithoutLeakage(
@@ -121,13 +125,13 @@ async function expectForbiddenWithoutLeakage(
 
 beforeAll(async () => {
 	const [operatorUser] = await db
-		.select({ id: users.id, clerkUserId: users.clerkUserId })
+		.select({ id: users.id })
 		.from(users)
 		.innerJoin(userAccesses, eq(userAccesses.userId, users.id))
 		.where(eq(userAccesses.accessType, "operator_satker"))
 		.limit(1);
 	const [adminUser] = await db
-		.select({ id: users.id, clerkUserId: users.clerkUserId })
+		.select({ id: users.id })
 		.from(users)
 		.innerJoin(userAccesses, eq(userAccesses.userId, users.id))
 		.where(eq(userAccesses.accessType, "admin_kppn"))
@@ -137,10 +141,10 @@ beforeAll(async () => {
 	}
 
 	const operatorAccess = await resolveUserAccess(db, {
-		clerkUserId: operatorUser.clerkUserId,
+		userId: operatorUser.id,
 	});
 	const adminAccess = await resolveUserAccess(db, {
-		clerkUserId: adminUser.clerkUserId,
+		userId: adminUser.id,
 	});
 	if (
 		(operatorAccess.status !== "operator_single_scope" &&
@@ -398,11 +402,11 @@ describe("F13-02 tenant isolation integration", () => {
 		expect(Array.from(buffer.slice(0, 4))).toEqual([0x50, 0x4b, 0x03, 0x04]);
 	});
 
-	it("requires a signed QStash import request and updates only a real test job", async () => {
+	it("requires the job secret for import processing and updates only a real test job", async () => {
 		if (!state) throw new Error("Integration state was not initialized.");
 		await expect(
-			handleQStashImport(testDatabaseUrl, new Headers(), "{}"),
-		).rejects.toMatchObject({ code: "INVALID_SIGNATURE", statusCode: 401 });
+			handleImportJob(testDatabaseUrl, new Headers()),
+		).rejects.toMatchObject({ code: "INVALID_JOB_SECRET", statusCode: 401 });
 
 		const [job] = await db
 			.insert(importJobs)
@@ -417,12 +421,7 @@ describe("F13-02 tenant isolation integration", () => {
 			.returning({ id: importJobs.id });
 		state.importJobId = job.id;
 
-		const signature = process.env.QSTASH_CURRENT_SIGNING_KEY ?? "f13-02-integration-signature";
-		const result = await handleQStashImport(
-			testDatabaseUrl,
-			new Headers({ "upstash-signature": signature }),
-			"{}",
-		);
+		const result = await handleImportJob(testDatabaseUrl, jobHeaders());
 		expect(result.processed).toBeGreaterThanOrEqual(1);
 		const [updated] = await db
 			.select({ status: importJobs.status, orgId: importJobs.orgId })

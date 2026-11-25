@@ -10,12 +10,12 @@ import {
 	Scale,
 	TriangleAlert,
 } from "lucide-react";
-import { useUser } from "@clerk/tanstack-react-start";
 import { Dialog } from "radix-ui";
 import type { ComponentProps } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { SignOutAction } from "@/components/auth/sign-out-action";
+import { getCurrentAdminProfileFn } from "@/server/admin-access";
 
 type NavigationItem = {
 	label: string;
@@ -72,7 +72,6 @@ const policyItems: readonly NavigationItem[] = [
 
 
 const secondaryItems: readonly NavigationItem[] = [
-	{ label: "Audit Log", href: "/admin-kppn/audit-logs", icon: ClipboardList },
 	{ label: "Manajemen Akses", href: "/admin-kppn/access", icon: KeyRound },
 ];
 
@@ -102,6 +101,7 @@ function toTitleCaseKppn(value: string): string {
 
 export type AdminNavigationProps = Omit<ComponentProps<"div">, "children"> & {
 	currentPath: string;
+	adminName?: string | null;
 };
 
 function normalizedPath(path: string): string {
@@ -160,46 +160,37 @@ function SectionLabel({ children }: { children: string }) {
 }
 
 type AdminNavigationProfile = {
-	clerkName?: string | null;
-	clerkEmail?: string | null;
+	profileName?: string | null;
+	profileEmail?: string | null;
 };
 
 export function AdminNavigation(props: AdminNavigationProps) {
-	if (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
-		return <ClerkAdminNavigation {...props} />;
-	}
-	return <AdminNavigationContent {...props} />;
-}
+	const [profile, setProfile] = useState<AdminNavigationProfile>({});
 
-function ClerkAdminNavigation(props: AdminNavigationProps) {
-	const { user, isLoaded } = useUser();
-	const clerkName =
-		isLoaded && user
-			? ((user.fullName as string | null) ||
-					(user.firstName as string | null) ||
-					(user.primaryEmailAddress?.emailAddress as string | null) ||
-					null)
-			: null;
-	const clerkEmail =
-		isLoaded && user
-				? ((user.primaryEmailAddress?.emailAddress as string | null) ?? null)
-				: null;
-	return <AdminNavigationContent {...props} clerkName={clerkName} clerkEmail={clerkEmail} />;
+	useEffect(() => {
+		getCurrentAdminProfileFn()
+			.then((user) => {
+				if (user) setProfile({ profileName: user.name, profileEmail: user.email });
+			})
+			.catch(() => {});
+	}, []);
+
+	return <AdminNavigationContent {...props} {...profile} />;
 }
 
 function AdminNavigationContent({
 	currentPath,
 	className,
-	clerkName = null,
-	clerkEmail = null,
+	profileName = null,
+	profileEmail = null,
 	...props
 }: AdminNavigationProps & AdminNavigationProfile) {
 	const [isMoreOpen, setIsMoreOpen] = useState(false);
 	const moreIsActive = moreItems.some((item) =>
 		isAdminRouteActive(currentPath, item.href),
 	);
-	const displayName = clerkName || "Admin KPPN Malang";
-	const displayEmail = clerkEmail || "admin.kppn@kemenkeu.go.id";
+	const displayName = props.adminName || profileName || "Admin KPPN Malang";
+	const displayEmail = profileEmail || "admin.kppn@kemenkeu.go.id";
 	const displayInitial = displayName.charAt(0).toUpperCase();
 
 	return (
@@ -241,12 +232,6 @@ function AdminNavigationContent({
 							))}
 						</div>
 					</div>
-					<div className="space-y-1">
-						<NavigationLink
-							currentPath={currentPath}
-							item={secondaryItems[0]}
-						/>
-					</div>
 					<div className="space-y-2">
 						<SectionLabel>Admin Policy</SectionLabel>
 						<div className="space-y-1 pl-2">
@@ -260,7 +245,7 @@ function AdminNavigationContent({
 						</div>
 					</div>
 					<div className="space-y-1">
-						{secondaryItems.slice(1).map((item) => (
+						{secondaryItems.map((item) => (
 							<NavigationLink
 								currentPath={currentPath}
 								item={item}

@@ -11,13 +11,12 @@
     "generate-routes": "tsr generate",
     "build": "vite build",
     "preview": "vite preview",
-		"test": "vitest run --config=vitest.config.ts",
+    "test": "vitest run --config=vitest.config.ts",
     "test:integration": "vitest run --config=vitest.integration.config.ts",
     "test:e2e": "playwright test --config=../../playwright.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@clerk/tanstack-react-start": "^1.5.9",
     "@hookform/resolvers": "5.9.1",
     "@ikpa/ui": "*",
     "@simulator-ikpa/access-control": "*",
@@ -29,10 +28,12 @@
     "@tanstack/react-router": "latest",
     "@tanstack/react-router-devtools": "latest",
     "@tanstack/react-start": "latest",
+    "better-auth": "^1.7.25",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "exceljs": "^4.4.0",
     "lucide-react": "1.38.0",
+    "nodemailer": "^10.6.0",
     "radix-ui": "1.6.7",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -40,7 +41,7 @@
     "recharts": "3.10.1",
     "tailwind-merge": "3.6.0",
     "tailwindcss": "^4.1.18",
-    "zod": "4.5.4"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.0",
@@ -49,14 +50,16 @@
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
     "@testing-library/user-event": "14.6.6",
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.1",
     "agentation": "^3.0.2",
     "jsdom": "30.0.1",
+    "nitro": "^3.0.260903-beta",
     "seroval": "^1.6.4",
     "shadcn": "4.19.1",
-    "vite": "^8.0.0",
+    "vite": "~8.2.6",
     "vitest": "4.1.11"
   }
 }

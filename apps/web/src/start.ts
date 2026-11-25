@@ -1,12 +1,7 @@
-import { clerkMiddleware } from "@clerk/tanstack-react-start/server";
 import { createStart } from "@tanstack/react-start";
 
-const requestMiddleware = process.env.CLERK_SECRET_KEY
-	? [clerkMiddleware()]
-	: [];
-
-export const startInstance = createStart(() => ({
-	requestMiddleware,
-}));
+// Sessions are verified per request by Better Auth (server/auth.server.ts);
+// no global request middleware is needed.
+export const startInstance = createStart(() => ({}));
 
 export const start = startInstance;

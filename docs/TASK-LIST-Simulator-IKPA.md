@@ -6,6 +6,8 @@
 
 > Simulator adalah alat bantu internal, bukan sumber nilai IKPA resmi. Parameter 2026 yang belum diverifikasi tidak boleh dianggap final atau mandatory.
 
+> **Catatan sinkronisasi (2026-11-18):** basis v1 di atas adalah histori. Kontrak aktif adalah `docs/revisi-v2/` beserta addendum-nya, dan stack mengikuti [ADR-008](adr/ADR-008-data-residency-self-hosted-stack.md): PostgreSQL + `pg`, Nitro `node-server` dalam container, Better Auth, SMTP, cron VPS, dan storage lokal. Rujukan Clerk, Neon, QStash, Resend, Vercel, Cloudflare, atau R2 pada task yang sudah selesai adalah bukti stack lama.
+
 ## 1. Cara Menggunakan Task List
 
 - Kerjakan task sesuai dependensi, bukan hanya urutan nomor.
@@ -848,6 +850,8 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
 > **Mode Fase 13:** verification-first dan behavior-preserving. Jangan melakukan redesign UI, mengubah IA 8 indikator, formula IKPA, actual/what-if, Slot A/B/C, atau reminder mandatory tanpa defect yang dapat direproduksi dan requirement v2 yang eksplisit. Hindari refactor lintas folder dan major dependency upgrade kecuali terbukti wajib untuk security/deployment. Setiap perubahan perilaku wajib memiliki regression test dan bukti sebelum/sesudah.
 >
 > **Depends:** PRE-F13 CORR-00..06 + CORR-A-00..05. Jangan mulai task F13 selain F13-00 sebelum CORR-00..06, CORR-A-00..05, dan kontrak aktif Revisi v2 siap; checkbox F13 tetap kosong sampai entry gate lulus.
+>
+> **Pengecualian ADR-008 (2026-11-15):** penggantian dependency dan perubahan lintas folder diizinkan hanya untuk task MIG-01–MIG-07 karena merupakan syarat deployment di server Indonesia. F13-09, F13-10, dan F13-11 ditulis ulang untuk infrastruktur VPS; F13-13 dijalankan setelah MIG-07 dan UIFIX yang disetujui selesai. Perubahan perilaku produk tetap dilarang di luar jalur UIFIX.
 
 - [x] **F13-00 — Bekukan kontrak rilis dan baseline aplikasi.** [Role: Release Readiness Agent]
   **Scope:** Kontrak `docs/revisi-v2`, acceptance criteria aktif, traceability, baseline typecheck/test/lint/build/smoke, runtime mock/fallback, dependency manifest, dan E2E harness.
@@ -861,48 +865,170 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **Scope:** Seluruh ServerFn query/mutation Operator/Admin, Operator XLSX export, import/job, QStash, delivery retry, dan cross-tenant/cross-KPPN IDs. PDF Operator dan ekspor Admin retired dari scope aktif berdasarkan keputusan 2026-09-10; route lama hanya boleh menjadi stub fail-safe tanpa mock.
   **DoD:** Read/write lintas satker/scope selalu ditolak tanpa data leakage pada error atau payload. Selesai 2026-09-10: 82 ServerFn aktif tercakup oleh 14 file/92 authenticated HTTP integration tests dengan Clerk dan Neon test nyata; fixture peer dibersihkan dan seluruh quality gate lulus.
 
-- [ ] **F13-03 â€” Buat integration test policy/reminder.** [Role: QA Agent]
+- [x] **F13-03 â€” Buat integration test policy/reminder.** [Role: QA Agent]
   **Scope:** Publish/re-evaluate, mandatory lock, Tagihan H+17, Output lima hari kerja, GUP/PTUP, workday, idempotency, retry, stale snapshot, dan policy version.
-  **DoD:** V2-AC-17..21 lulus pada database test; delivery replay tidak menggandakan notifikasi.
+  **DoD:** V2-AC-17..21 lulus pada database test; delivery replay tidak menggandakan notifikasi. Selesai 2026-09-12: policy/reminder tests dan probe QStash + Resend remote lulus setelah callback memakai raw body serta URL publik kanonis.
 
-- [ ] **F13-04 â€” Buat E2E Operator.** [Role: QA Agent]
+- [x] **F13-04 â€” Buat E2E Operator.** [Role: QA Agent]
   **Scope:** Login, navigasi 8 indikator, actual/proyeksi, what-if tanpa mutasi actual, Slot A/B/C, sinkronisasi nama, Dashboard 8 indikator, parity Dashboardâ€“Riwayat, compare Evaluasi bulanan dengan skenario, mandatory reminder, dan Operator XLSX export sesuai konteks.
   **DoD:** Skenario Playwright terisolasi lulus pada Chromium desktop dan Mobile Chrome dengan data tenant terisolasi; screenshot/trace tersedia saat gagal.
+  **Evidence 2026-09-13:** Runner authenticated Clerk/Neon `scripts/run-f13-04-e2e.mjs` lulus 12/12; dashboard, 8 workspace, what-if + Slot B, parity/compare bulanan+scenario, mandatory reminder, dan Operator XLSX terverifikasi.
 
-- [ ] **F13-05 â€” Buat E2E Admin KPPN.** [Role: QA Agent]
+- [x] **F13-05 â€” Buat E2E Admin KPPN.** [Role: QA Agent]
   **Scope:** Login, agregat 8 indikator, skor/gap/sumber aktual-proyeksi-kosong, detail read-only, mandatory reminder, access, publish policy, failed delivery retry, cross-scope rejection, dan audit. Ekspor Admin tidak termasuk scope aktif.
   **DoD:** Tidak ada kontrol mutasi operasional/sel kuning; last-admin protection, scope, audit, snapshot immutability, dan Admin V2-AC-22..23 terverifikasi.
 
-- [ ] **F13-06 â€” Lakukan security review aplikasi.** [Role: Security Agent]
+  **Evidence 2026-09-13:** Runner authenticated Clerk/Neon `scripts/run-f13-05-e2e.mjs` lulus 12/12 pada Chromium desktop + Mobile Chrome; agregat 8 indikator, sumber aktual/proyeksi/kosong, scope/detail read-only, peer rejection tanpa leakage, failed delivery retry + audit, last-admin protection, dan policy editor production fail-safe terverifikasi. Ekspor Admin tetap retired.
+
+- [x] **F13-06 â€” Lakukan security review aplikasi.** [Role: Security Agent]
   **Scope:** Auth/session, tenant isolation, upload, export signature/MIME, runtime mock/fallback, webhook, SSR data, XSS, CSV injection, secrets, dependency manifest, rate limits.
   **DoD:** Tidak ada critical/high terbuka; production tidak mengembalikan mock sukses atau file palsu; medium memiliki owner dan due date.
 
-- [ ] **F13-07 â€” Lakukan performance test.** [Role: QA Agent]
+  **Evidence 2026-09-13:** Review source dan authenticated isolation evidence selesai; production fallback/provider/import/export fail-closed. Perbaikan webhook Clerk memverifikasi raw-body HMAC digest, secret `whsec_`/signing-secret, dan replay timestamp; 3 regression test lulus. Drizzle 0.45.2 dan Vitest UI 4.1.11 menghapus critical/high dependency finding. Audit resmi exit 0 (tanpa critical/high), secret scan, migration check, workspace test 329, typecheck, lint, dan build lulus. Residual medium memiliki owner DevOps/Security dan due 2026-10-15: rate-limit provider route, `uuid` via ExcelJS, `esbuild` via drizzle-kit; generated-route drift diteruskan ke F13-08.
+
+- [x] **F13-07 â€” Lakukan performance test.** [Role: QA Agent]
   **Scope:** Kalkulasi satu satker, dashboard agregat, 10k import, scheduler batch, export  
   **DoD:** Kalkulasi normal <500 ms atau bottleneck/mitigasi terdokumentasi; query plan index ditinjau.
 
-- [ ] **F13-08 â€” Konfigurasi CI quality gate.** [Role: DevOps Agent]
-  **Files:** `.github/workflows/ci.yml`, `package.json`  
+  **Evidence 2026-09-14:** Runner `node --import tsx scripts/run-f13-07-performance.mjs` pada Neon test terisolasi lulus. Kalkulasi median 343,6 ms (3 sampel setelah warm-up), dashboard agregat 168,1 ms untuk 20 satker, parser CSV 10.000 baris 94,6 ms, scheduler event+planning 127,2 ms, dan Operator XLSX 110,7 ms. Delapan index scope/batch ditemukan; query plan direview dan Seq Scan pada tabel kecil dicatat sebagai perilaku low-cardinality. Runner membersihkan snapshot fixture dan tidak memanggil QStash/Resend. Coverage production-load, commit async 10k, dan EXPLAIN ANALYZE pada cardinality produksi masih menjadi prasyarat go-live.
+
+- [x] **F13-08 â€” Konfigurasi CI quality gate.** [Role: DevOps Agent]
+  **Files:** `.github/workflows/ci.yml`, `package.json`, `apps/web/tsr.config.json`
   **DoD:** `npm ci`, typecheck seluruh workspace, lint tanpa error, unit/golden termasuk web, integration, E2E smoke, production build, secret scan, generated-route check, dan migration check berjalan tanpa `continue-on-error` pada gate wajib.
 
-- [ ] **F13-09 â€” Konfigurasi deployment Vercel.** [Role: DevOps Agent]
-  **Files:** `vercel.json`, `docs/deployment-vercel.md`  
-  **DoD:** Preview/staging/production env, runtime limits, cron/job endpoints, domain, dan rollback terdokumentasi.
+  **Evidence 2026-09-14 QStash/Neon follow-up:** Rerun PR menerima DB credential terbaru dan sesi Clerk Admin, tetapi integration menemukan QStash signing key CI belum di-env, Admin Clerk belum mapped ke KPPN scope, dan satu settings denial assertion. Workflow menambahkan key fixture QStash non-produksi deterministik pada env sementara; F13-08 tetap Needs Fix.
 
-- [ ] **F13-10 â€” Konfigurasi Cloudflare security baseline.** [Role: DevOps Agent]
-  **File:** `docs/cloudflare-security-baseline.md`  
-  **DoD:** DNS/TLS/CDN/WAF/rate limit rules untuk login, upload, export, webhook/job, dan cache bypass data sensitif terdokumentasi serta diterapkan.
+  **Evidence 2026-09-14 remote follow-up:** PR Quality Gate `34814347631` menerima secret secara masked dan sesi Clerk Admin berhasil dibuat, tetapi authenticated integration gagal `password authentication failed` saat query Neon. Local `DATABASE_URL`/`DIRECT_URL` connection check lulus; F13-08 tetap Needs Fix sampai GitHub Neon credentials diperbarui dan PR rerun.
+
+  **Evidence 2026-09-14 Admin follow-up:** Secret `F13_02_CLERK_ADMIN_USER_ID` tersedia dan workflow memetakan ID Admin secara eksplisit ke runner authenticated integration. Perubahan belum dipush; F13-08 tetap Needs Fix sampai PR rerun dan fixture integration lulus.
+
+  **Evidence 2026-09-14 follow-up:** Lima repository secrets kini tersedia dan `.github/workflows/ci.yml` memakai nama secret tersebut. Perubahan mapping belum dipush; runner lokal tetap 84/92 test dengan 4 fixture failure, sehingga F13-08 masih Needs Fix.
+
+  **Evidence 2026-09-14:** Workflow diperketat tanpa `continue-on-error`: authenticated integration membaca lima secret test `F13_02_*` melalui file sementara yang selalu dibersihkan, E2E CI memakai smoke publik terpisah, audit memakai registry resmi, dan `apps/web/tsr.config.json` menyelaraskan footer generator TanStack Start. Local `npm ci`, typecheck, workspace test (46 file/329 test), lint (0 error/78 warning), generated-route, migration, secret scan, build, dan smoke desktop/mobile (2/2) lulus. Runner integration lulus 84/92 test; 4 fixture test existing gagal sehingga F13-08 tetap Needs Fix. Remote PR belum dijalankan karena repository secrets test belum tersedia.
+
+  **Evidence 2026-09-14 latest:** Remote PR Quality Gate `34815876027` menerima secret DB/Clerk dan lulus pemeriksaan signing key QStash setelah workflow memakai fixture CI deterministik; 12 file integration lulus, 1 skipped, dan tersisa 1 assertion settings serta fixture Admin yang belum memiliki mapping KPPN scope. Owner sudah memperbarui `DATABASE_URL`/`DIRECT_URL`; rerun berikutnya belum terkonfirmasi karena GitHub API mengalami TLS handshake timeout. F13-08 tetap Needs Fix.
+
+  **Evidence 2026-09-14 completed:** Branch Neon test `f13-02-test-20260910` dilengkapi 18 fiscal year 2026 KPPN-032 yang hilang dan fixture reminder operator terverifikasi. Commit `d968677` menstabilkan fixture/denial Admin; Quality Gate `34852663681` pada head `31aea75` lulus seluruh job dengan 14 file integration passed, 1 QStash file skipped normal, dan 91 passed + 1 skipped dari 92 test.
+
+### Sub-fase MIG — Migrasi ke Stack Self-Hosted di Indonesia (ADR-008)
+
+> **Dasar:** `docs/adr/ADR-008-data-residency-self-hosted-stack.md`. Task MIG adalah task besar (lintas modul). Setiap task ditutup dengan `npm run typecheck`, `npm run test`, `npm run lint`, `npm run build`, dan pengecekan migration Drizzle dari database kosong; perilaku produk tidak boleh berubah.
+
+- [x] **MIG-00 — Catat keputusan residensi data dan addendum dokumen.** [Role: Solution Architect]
+  **Files:** `docs/adr/ADR-008-data-residency-self-hosted-stack.md`, addendum pada `docs/revisi-v2/{TSD,PRD,FSD,ERD}`, dokumen operasional terkait
+  **DoD:** Setiap layanan luar negeri memiliki pengganti dan task; pengecualian mode Fase 13 dibatasi; F13-09..11 ditulis ulang; tidak ada kode aplikasi berubah. Selesai 2026-11-15 (docs only).
+
+- [x] **MIG-01 — Ganti driver Neon dengan PostgreSQL standar.** [Role: Database Agent]
+  **Evidence 2026-11-15:** `createDbClient` memakai satu `pg.Pool` per connection string (regression test `packages/db/src/client.test.ts`); 7 migration dan seed lulus pada PostgreSQL 16.15 kosong; 47 file/330 test, typecheck, lint, build, dan `check:migrations` lulus; dev server lokal melayani 12 halaman (1 publik, 8 Operator, 3 Admin) dengan status 200 dan koneksi berhenti di batas pool. Integration/E2E authenticated dan koneksi `pg` ke Neon tidak dijalankan (menunggu MIG-03/MIG-07).
+  **Files:** `packages/db/src/client.ts`, `packages/db/package.json`, `packages/db/src/seed.ts`, `scripts/run-f13-*.mjs`
+  **Depends:** MIG-00
+  **DoD:** `createDbClient`/`createPoolDbClient` tetap diekspor dengan nama yang sama dan memakai `pg` + `drizzle-orm/node-postgres`; seluruh migration `packages/db/drizzle/*` berjalan dari database kosong pada PostgreSQL lokal; seed minimum lulus; `@neondatabase/serverless` tidak lagi diimpor; workspace test tetap hijau.
+
+- [x] **MIG-02 — Jalankan aplikasi sebagai server Node dalam container.** [Role: DevOps Agent]
+  **Evidence 2026-11-16:** preset `node-server` dikunci di `vite.config.ts`; `docker compose up` (Docker 29.9.3) menjalankan aplikasi + PostgreSQL 16.16 UTF8 + Caddy; 7 migration dan seed lulus dari database kosong di container; smoke publik 2/2 lewat Caddy; body 16 MB ditolak 413 dan 12 MB diteruskan (batas proxy 15 MB disetujui pemilik karena upload base64, batas berkas 10 MB tetap di aplikasi); audit browser 0 host pihak ketiga pada image, Clerk masih dipanggil pada build berkunci Clerk sampai MIG-03; typecheck, 47 file/330 test, lint, build, dan `check:migrations` lulus. Query aplikasi ke database di container dan upload nyata lewat proxy belum diuji (butuh sesi, menunggu MIG-03).
+  **Files:** `apps/web/vite.config.ts`, `Dockerfile`, `docker-compose.yml`, konfigurasi reverse proxy, `.env.example`
+  **Depends:** MIG-01
+  **DoD:** Build memakai Nitro preset `node-server`; `docker compose up` menjalankan aplikasi + PostgreSQL lokal dan smoke publik desktop/mobile lulus; batas upload 10 MB diatur di reverse proxy; audit panggilan pihak ketiga dari browser (font, script, analytics) selesai dan hasilnya tercatat; tidak ada dependensi pada Vercel.
+
+- [x] **MIG-03 — Ganti Clerk dengan Better Auth.** [Role: Auth & Access Agent]
+  **Evidence 2026-11-24 (Completed):** pemilik meninjau layar masuk/daftar/reset dan panel Permintaan Akses, menyetujui dan menolak permintaan nyata; daftar ganda (email terdaftar atau satker ber-Operator) ditolak sebelum akun dibuat. `npm run check`, integration 100 + 2 skip, E2E Operator dan Admin 12/12 (build produksi, database uji terpisah). CI GitHub belum dijalankan (commit belum di-push). Rincian: DEVLOG Session 326.
+  **Amandemen pemilik 2026-11-23 (masih Needs Fix):** layar masuk/daftar diubah (tombol mata, konfirmasi kata sandi, aturan huruf + angka) dan jalur akses diganti: daftar mandiri menjadi permintaan akses yang disetujui Admin KPPN, undangan membuat akun tanpa kata sandi yang diaktifkan lewat Lupa kata sandi, serta pesan "Email belum terdaftar" (FSD Addendum ADR-008 butir 8, migration `0008_access_requests`). Rincian: DEVLOG Session 324–325.
+  **Evidence 2026-11-17 (Needs Fix, belum dicentang):** seluruh butir DoD terverifikasi lokal: daftar/masuk mandiri, OTP email saat daftar, reset, dan perangkat baru (6 digit, 10 menit, sekali pakai, ter-hash, batas percobaan dan kirim ulang), undangan opsional, onboarding kode + nama satker, blind guard, hard delete; `/api/webhooks/clerk`, `sso-callback`, dan `@clerk/*` dihapus. Typecheck, 45 file/320 test, lint, build, `check:migrations`, 8 migration dari database kosong lewat compose, integration 91 + 1 skip, E2E Operator dan Admin 12/12 pada image container. Task ditahan terbuka karena ADR-008 mensyaratkan penyedia SMTP dan DNS pengirim sebelum dinyatakan selesai; CI baru belum dijalankan di GitHub. Rincian dan residual: DEVLOG Session 313.
+  **Files:** `apps/web/src/start.ts`, `apps/web/src/server/auth-session.server.ts`, `apps/web/src/server/admin-access.ts`, `apps/web/src/server/access.server.ts`, `apps/web/src/env.server.ts`, komponen `components/public/*` dan `components/auth/*`, `routes/__root.tsx`, `routes/admin-kppn/access.tsx`, `packages/db/src/schema/identity.ts` + migration, `packages/access-control/src/*`, fixture E2E dan integration test
+  **Depends:** MIG-01, MIG-02; dikerjakan bersama MIG-05 karena OTP email adalah bagian alur login
+  **Catatan keputusan 2026-11-16:** pemilik memilih undangan tanpa token; undangan diklaim saat penerima mendaftar dengan email itu dan memverifikasinya lewat OTP (FSD Addendum ADR-008 butir 7). Kata "bertoken" pada langkah (b) tidak berlaku lagi.
+  **Langkah:** (a) desain skema identitas + addendum ERD; (b) server: sesi, middleware, daftar/masuk, undangan bertoken, hard delete satu transaksi; (c) UI masuk/daftar/lupa kata sandi dan Manajemen Akses; (d) fixture E2E, integration test, dan CI tanpa secret Clerk/Neon.
+  **DoD:** Daftar dan masuk mandiri dengan email + kata sandi; kode OTP email diminta saat daftar, reset kata sandi, dan login dari perangkat yang belum dikenal (6 digit, ±10 menit, sekali pakai, ter-hash, dengan batas percobaan dan kirim ulang); tanpa aplikasi authenticator; undangan Admin opsional; onboarding kode + nama satker, satu Operator aktif per satker, slot admin, proteksi self/admin terakhir, dan blind guard tetap lulus test yang ada; `/api/webhooks/clerk` dan `sso-callback` dihapus; hash kata sandi dan token tidak pernah masuk log atau response; tidak ada impor `@clerk/*`.
+
+- [x] **MIG-04 — Ganti QStash dengan scheduler di VPS.** [Role: Policy & Reminder Agent]
+  **Evidence 2026-11-18:** endpoint `/api/jobs/reminders/{daily,send}` (path TSD §6.8) dan `/api/jobs/import/process` hanya menerima `Authorization: Bearer $JOB_SECRET` (401 tanpa secret, juga bila secret tidak di-set); service compose `scheduler` (busybox `crond`) memanggilnya lewat jaringan internal dan tercatat menembak `send` dan `import` pada 13.30 UTC; Caddy menjawab 404 untuk `/api/jobs/*` dari luar. Runner F13-03 baru (SMTP ke Mailpit) 2/2: tanpa secret ditolak, satu delivery terkirim dan tiba di Mailpit, replay mengirim 0. Integration F13-02 91 lulus + 2 skip; E2E Operator dan Admin 12/12 (termasuk retry delivery gagal); typecheck, 45 file/318 test, lint, build, `check:migrations`, secret scan, `npm ls`; `@upstash/qstash` dihapus. Jadwal daily 23.00 UTC belum teramati menembak sendiri (dipanggil manual dengan perintah yang sama). Rincian: DEVLOG Session 317.
+  **Files:** `apps/web/src/server/qstash/handler.ts`, `apps/web/src/routes/api/qstash/{daily,send}.ts`, `apps/web/src/routes/api/jobs/import/process.ts`
+  **Depends:** MIG-02
+  **DoD:** Endpoint job menolak request tanpa shared secret yang benar; pemicu harian dan pengiriman berjalan dari cron; idempotency key, status delivery, dan retry F13-03 tetap lulus; replay tidak menggandakan notifikasi; tidak ada impor `@upstash/qstash`.
+
+- [x] **MIG-05 — Ganti Resend dengan SMTP.** [Role: Policy & Reminder Agent]
+  **Evidence 2026-11-24 (Completed):** lewat Gmail SMTP nyata, OTP daftar/reset/perangkat baru, reminder uji, dan email persetujuan akses tiba di Kotak Masuk Gmail; email uji ke alamat non-Gmail (`pknstan.ac.id`) juga tiba di Kotak Masuk (dikonfirmasi pemilik). Rincian: DEVLOG Session 323 dan 326.
+  **Evidence 2026-11-17 (Needs Fix, belum dicentang):** reminder, OTP, reset, dan undangan terkirim lewat SMTP ke Mailpit lokal; template `emails/*` tidak berubah; kegagalan SMTP menjadi delivery `failed` yang dapat di-retry; body dan penerima tidak masuk log. Belum terpenuhi: uji keterkiriman ke kotak masuk Gmail dari domain pengirim (menunggu penyedia SMTP dan DNS dari pemilik).
+  **Keputusan 2026-11-18:** penyedia = Gmail SMTP dengan App Password akun khusus (ADR-008 Amandemen SMTP). SPF, DKIM, dan DMARC dikelola Google, jadi langkah DNS pengirim tidak berlaku; "domain pengirim" pada DoD dibaca sebagai `gmail.com`. Uji kotak masuk memakai `scripts/smtp-smoke.mjs` dan alur OTP nyata.
+  **Files:** `apps/web/src/server/jobs/handler.ts` (pengiriman), `apps/web/src/env.server.ts`
+  **Depends:** MIG-02; dikerjakan bersama MIG-03; penyedia SMTP dan DNS pengirim (SPF, DKIM, DMARC) ditetapkan pemilik
+  **DoD:** Reminder, digest, eskalasi, kode OTP, dan reset kata sandi terkirim lewat SMTP pada environment uji; pengembangan lokal memakai penangkap email lokal; keterkiriman ke kotak masuk Gmail (bukan spam) diuji dari domain pengirim sebelum task ditutup; template `apps/web/src/emails/*` tidak berubah; kegagalan SMTP tercatat sebagai delivery gagal yang dapat di-retry; body email dan daftar penerima penuh tidak masuk log.
+
+- [x] **MIG-06 — Simpan berkas import pada storage lokal privat.** [Role: Import & Export Agent]
+  **Amandemen DoD (keputusan pemilik 2026-11-18):** `uploadImportFn` tidak pernah menyimpan berkas; berkas di-parse di memori dan hanya hasilnya yang masuk `import_jobs` (`storage_key` selalu null). Karena berkas tidak pernah menyentuh disk, syarat "tidak dilayani publik", "dihapus saat job terminal", dan "sapuan yatim 7 hari" terpenuhi tanpa direktori storage, dan direktori tidak dibuat. Bila kelak berkas perlu disimpan (misalnya untuk commit penuh pada IMPORT-FIX-01), DoD asli berlaku kembali.
+  **Evidence 2026-11-18:** `R2_*` dihapus dari `env.server.ts` dan `.env.example`; komentar batas Vercel/R2 diperbarui; unit test baru `server/import/parser.test.ts` mengunci penolakan format, signature ZIP pada `.csv`, > 10 MB, dan > 10.000 baris. Typecheck, 46 file/322 test, lint, build, `check:migrations`, secret scan; migrate + seed dari database kosong; integration F13-02 91 lulus + 2 skip (termasuk ServerFn upload/list/get/commit/cancel import). Rincian: DEVLOG Session 318.
+  **Files:** `apps/web/src/server/import.ts`, adapter storage server baru, `apps/web/src/env.server.ts`
+  **Depends:** MIG-02
+  **DoD:** Berkas import disimpan dengan nama acak buatan server di direktori yang tidak dilayani publik; dihapus saat job terminal; sapuan berkas yatim maksimal 7 hari terjadwal; validasi extension, MIME, signature, 10 MB, dan 10.000 baris tetap; variabel `R2_*` dihapus.
+
+- [x] **MIG-07 — Bersihkan dependency lama dan verifikasi ulang gate Fase 13.** [Role: QA Agent / Security Agent]
+  **Evidence 2026-11-25:** paket dan variabel lama tidak ada lagi; dua workaround neon-http dihapus (`calculate.ts`, `manage-access.ts`). Gate lokal hijau pada PostgreSQL kosong: integration F13-02 102 + 2 skip, F13-03 2/2, E2E F13-04 dan F13-05 12/12 pada build produksi, F13-07, serta seluruh langkah `ci.yml` (audit exit 0). Quality Gate GitHub `45540194127` hijau pada `266d47e` (PR #1). Security review tanpa critical/high; residual medium CSRF server function dibawa ke F13-09/F13-10. Rincian: DEVLOG Session 327.
+  **Files:** `package.json` workspace, `.github/workflows/ci.yml`, `.env.example`, `docs/uat-report.md`
+  **Depends:** MIG-01–MIG-06
+  **DoD:** Paket dan variabel environment Clerk, Neon, QStash, Resend, dan R2 terhapus; integration tenant isolation (F13-02), policy/reminder (F13-03), E2E Operator dan Admin (F13-04, F13-05), performance baseline (F13-07), dan CI quality gate (F13-08) hijau pada stack baru; security review ulang untuk autentikasi, sesi, reset kata sandi, undangan, dan endpoint job tanpa temuan critical/high (F13-06).
+
+- [ ] **SMTP-DOMAIN-01 — Pindahkan pengirim email ke `notifikasi@ikpa.web.id` lewat Brevo free.** [Role: Policy & Reminder Agent] — **Dibatalkan pemilik 2026-11-18:** Brevo free menampilkan logo Brevo di footer email; Gmail SMTP dipakai permanen. Task tidak dikerjakan dan checkbox tetap kosong.
+  **Dasar:** keputusan pemilik 2026-11-18 — Gmail SMTP dipakai dulu (ADR-008 Amandemen SMTP); setelah domain tersedia, pengirim memakai alamat no-reply berdomain sendiri (tanpa mailbox dan tanpa forwarding) lewat Brevo free (300 email/hari, DKIM domain sendiri). Tidak ada perubahan kode; hanya variabel `SMTP_*`.
+  **Files:** `.env.smtp.local` / environment server (tidak di-commit), `docs/adr/ADR-008-data-residency-self-hosted-stack.md`, `docs/revisi-v2/TSD-Simulator-IKPA.md`
+  **Depends:** domain `ikpa.web.id` terdaftar (sejalan dengan F13-09); akun Brevo, verifikasi domain (Brevo code, DKIM, DMARC `p=none`), dan SMTP key dibuat pemilik; MIG-05
+  **DoD:** `scripts/smtp-smoke.mjs` exit 0 ke Gmail dan ke alamat kemenkeu dan email tiba di Kotak Masuk (bukan Spam); header asli Gmail menunjukkan DKIM dan DMARC pass untuk `ikpa.web.id`; OTP daftar dan reset terkirim lewat Brevo dan dapat dipakai masuk; gate standar tidak berubah; DMARC dinaikkan ke `p=quarantine` setelah laporan bersih ±1–2 minggu.
+
+### Sub-fase SEC-AUDIT — Pemeliharaan Dependency Audit
+
+> **Dasar:** gate `npm audit --omit=dev --audit-level=high` pada F13-06/F13-08. Task ini tidak mengubah perilaku produk; tidak ada kenaikan major tanpa persetujuan pemilik. Ditambahkan ke task list pada 2026-11-18 karena sebelumnya hanya tercatat di BACKLOG.
+
+- [x] **SEC-AUDIT-01 — Hijaukan audit produksi tanpa mengubah perilaku produk.** [Role: DevOps/Security Agent]
+  **Files:** `apps/web/package.json`, `package-lock.json`
+  **DoD:** Audit produksi exit 0 tanpa kenaikan major; typecheck, test, lint, build, integration, dan E2E tidak berubah. Selesai 2026-11-17 (`434710c`, DEVLOG Session 314).
+
+- [x] **SEC-AUDIT-02 — Naikkan `drizzle-kit` agar peer `better-auth` valid.** [Role: DevOps/Security Agent]
+  **Files:** `packages/db/package.json`, `package-lock.json`
+  **DoD:** `npm ls` exit 0; migration dari database kosong menghasilkan skema identik; dependency lain tidak berubah. Selesai 2026-11-18 (`05c14c6`, DEVLOG Session 315). Belum diverifikasi: `drizzle-kit generate` (butuh TTY).
+
+- [x] **SEC-AUDIT-03 — Kembalikan audit produksi ke exit 0 setelah advisory `picomatch`.** [Role: DevOps/Security Agent]
+  **Files:** `package-lock.json` (perkiraan) · **Depends:** versi patch `picomatch` untuk GHSA-fc5q-39xc-vjpf, atau keputusan penerimaan risiko oleh pemilik
+  **DoD:** `npm audit --omit=dev --audit-level=high` exit 0 tanpa menurunkan `vite` atau kenaikan major; gate standar, integration, dan E2E tidak berubah. Selesai 2026-11-23 tanpa perubahan lockfile: advisory ditarik GitHub (DEVLOG Session 322).
+
+### Sub-fase UIFIX — Perbaikan Tampilan dan Perilaku Fitur
+
+- [ ] **INVITE-BULK-01 — Undangan massal Operator Satker dari Excel.** [Role: Auth & Access Agent]
+  **Dasar:** keputusan pemilik 2026-11-23 — satker KPPN Malang (±150) masuk lewat undangan Admin agar Admin tidak memverifikasi permintaan satu per satu saat peluncuran.
+  **Files:** `apps/web/src/server/admin-access.ts`, `apps/web/src/routes/admin-kppn/access.tsx` · **Depends:** MIG-03; format daftar satker dan PIC (kode, nama satker, email) dari pemilik
+  **DoD:** Admin mengunggah satu berkas, melihat pratinjau per baris (valid, duplikat, satker sudah punya Operator) sebelum mengirim; setiap baris valid menjalankan jalur undangan yang sama dengan `assignUserAccessFn`; laporan hasil per baris; tenant isolation F13-02 tetap lulus.
+
+- [ ] **DEMO-01 — Mode demo untuk umum.** [Role: Product & IKPA Analyst]
+  **Dasar:** keinginan pemilik 2026-11-23 agar aplikasi dapat dicoba umum tanpa mengklaim satker sungguhan.
+  **Depends:** keputusan produk pemilik (bentuk demo, data contoh, batas waktu/akun) · **DoD:** ditetapkan setelah keputusan; data demo terpisah dari data satker asli dan tidak dapat mengubahnya.
+
+- [ ] **UIFIX-00 — Inventarisasi dan klasifikasi perbaikan.** [Role: Product & IKPA Analyst]
+  **File:** `docs/BACKLOG.md`
+  **Depends:** daftar perbaikan dari pemilik
+  **Kandidat tercatat:** IMPORT-FIX-01 di bawah.
+  **DoD:** Setiap butir memiliki ID `UIFIX-nn`, halaman/komponen terdampak, dan klasifikasi: *tampilan saja* (freeze-exception seperti `UI-DISPLAY-ONLY-*`, boleh paralel dengan MIG) atau *perilaku* (wajib amandemen FSD/acceptance criteria v2 dan regression test, dikerjakan setelah MIG-06). Butir pada layar masuk, daftar, atau Manajemen Akses digabung ke MIG-03.
+
+- [ ] **IMPORT-FIX-01 — Commit import memakai seluruh baris valid, bukan 100 pertama.** [Role: Import & Export Agent]
+  **Temuan 2026-11-18 (MIG-06):** `uploadImportFn` menyimpan hanya `validRows.slice(0, 100)` di `error_report_json`, dan `commitImportFn` meng-commit dari situ, sehingga berkas dengan lebih dari 100 baris valid terpotong diam-diam dan job tetap `completed`. Menu Import sedang dinonaktifkan, jadi belum berdampak pada pengguna.
+  **Files:** `apps/web/src/server/import.ts` (dan storage berkas bila dipilih) · **Depends:** keputusan pemilik mengaktifkan kembali menu Import; klasifikasi perilaku pada UIFIX-00
+  **DoD:** Seluruh baris valid (hingga 10.000) ter-commit atau user diberi tahu dengan jelas; regression test untuk berkas > 100 baris; tenant isolation F13-02 tetap lulus.
+
+- [ ] **F13-09 â€” Konfigurasi deployment VPS Indonesia (semula deployment Vercel; diubah ADR-008).** [Role: DevOps Agent]
+  **Files:** `docs/deployment-vps.md` (baru), `docker-compose.yml`, konfigurasi reverse proxy; `docs/deployment-vercel.md` historis · **Depends:** MIG-07  
+  **DoD:** Environment staging dan production terpisah pada VPS di Indonesia; database dibuat dengan encoding UTF8 (temuan MIG-01: WIN1252 menolak karakter pada `breakdown_json`); domain dan TLS aktif; migration dan seed dijalankan lewat prosedur tertulis; cron job harian terpasang; backup `pg_dump` terjadwal dengan uji restore dan lokasi backup di Indonesia; rollback terdokumentasi; secret hanya ada di environment server.
+
+- [ ] **F13-10 â€” Konfigurasi security baseline VPS dan reverse proxy (semula Cloudflare; diubah ADR-008).** [Role: DevOps Agent]
+  **File:** `docs/security-baseline-vps.md` (baru); `docs/cloudflare-security-baseline.md` historis · **Depends:** F13-09  
+  **DoD:** TLS dan HSTS aktif; firewall host hanya membuka port yang diperlukan; SSH hanya dengan kunci; rate limit di reverse proxy untuk login, daftar, reset kata sandi, upload, export, dan endpoint job (menutup residual medium F13-06); endpoint job tidak dapat dipanggil dari internet publik tanpa secret; response data sensitif tidak di-cache; keputusan mitigasi DDoS tercatat; seluruh aturan terdokumentasi dan diterapkan pada staging.
 
 - [ ] **F13-11 â€” Tambahkan observability dan alert.** [Role: DevOps Agent]
   **Scope:** Structured logs, request ID, redaction, calculation latency, job/delivery/import failures, publish errors  
-  **DoD:** Alert harian/job gagal, delivery threshold, stuck import, dan publish failure dapat diuji.
+  **DoD:** Alert harian/job gagal, delivery threshold, stuck import, dan publish failure dapat diuji. Sesuai ADR-008, log ditulis terstruktur ke stdout dengan rotasi di host VPS dan alert dikirim lewat SMTP; layanan observability di luar Indonesia tidak dipakai.
 
 - [x] **F13-12 â€” Buat runbook operasional.** [Role: Technical Writer]
   **Files:** `docs/runbook-operations.md`, `docs/runbook-incidents.md`  
   **DoD:** Seed/admin recovery, failed migration/job/email/import, rule rollback, secret rotation, dan escalation owner tersedia. Selesai 2026-09-09; runbook sengaja menyatakan preview/staging sebagai prasyarat dan tidak mengasumsikan credential vendor.
 
 - [ ] **F13-13 â€” Laksanakan UAT berbasis acceptance criteria.** [Role: Product & IKPA Analyst]
-  **File:** `docs/uat-report.md`  
+  **File:** `docs/uat-report.md` · **Depends tambahan (ADR-008):** MIG-07, F13-09, dan seluruh UIFIX yang disetujui; UAT dijalankan pada staging VPS  
   **Depends:** F13-00â€“F13-12
   **DoD:** Seluruh `V2-AC-01..24` pada `docs/revisi-v2/ACCEPTANCE-CRITERIA.md` memiliki bukti pass/fail, environment, owner defect, severity, dan keputusan rilis; acceptance criteria v1 yang historis tidak digunakan sebagai kontrak aktif.
 
@@ -930,7 +1056,7 @@ Task teknis harus memeriksa dokumentasi terkini lagi saat mulai dikerjakan karen
 - [TanStack Start â€” routing](https://tanstack.com/start/latest/docs/framework/react/guide/routing): file-based routes berada di `src/routes` dan route tree dihasilkan oleh tooling.
 - [TanStack Start â€” middleware](https://tanstack.com/start/latest/docs/framework/react/guide/middleware): global request middleware dikonfigurasi melalui `createStart` di `src/start.ts`.
 - [TanStack Start â€” server functions](https://tanstack.com/start/latest/docs/framework/react/guide/server-functions): loader dan komponen dapat memanggil server functions; otorisasi tetap server-authoritative.
-- [Clerk TanStack React Start quickstart](https://clerk.com/docs/tanstack-react-start/getting-started/quickstart): `clerkMiddleware()` dipasang pada request middleware; route tetap public sampai guard diterapkan; `auth()` digunakan server-side.
+- [Better Auth — TanStack Start](https://www.better-auth.com/docs/integrations/tanstack): handler dipasang pada server route catch-all `src/routes/api/auth/$.ts` (GET/POST ke `auth.handler`); sesi dibaca server-side. Menggantikan rujukan Clerk sejak MIG-03 (ADR-008).
 - [Drizzle ORM PostgreSQL schema](https://orm.drizzle.team/docs/schemas): schema, enum, table, FK, index, dan inferred types didefinisikan secara type-safe.
 - [Drizzle Kit migrate](https://orm.drizzle.team/docs/drizzle-kit-migrate): migration SQL yang belum diterapkan dijalankan dan dicatat pada migration log; migration generated harus direview dan diuji pada database kosong.
 

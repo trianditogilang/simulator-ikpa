@@ -1,5 +1,6 @@
 export * from "./assessment-exclusion";
 export * from "./audit-logs";
+export * from "./auth";
 export * from "./budget-revisions";
 export * from "./contracts";
 export * from "./enums";

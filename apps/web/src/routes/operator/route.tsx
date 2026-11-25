@@ -9,17 +9,14 @@ export const Route = createFileRoute("/operator")({
 			? String(search.org)
 			: undefined,
 	}),
-	beforeLoad: async ({ location, search }) => {
+	beforeLoad: async ({ search }) => {
 		const access = await getAccessResolutionFn({
 			data: search.org ? { requestedOrgId: search.org } : {},
 		});
 
 		if (access.status === "unauthenticated") {
 			throw redirect({
-				to: "/sign-in",
-				search: {
-					next: location.href,
-				},
+				to: "/",
 			});
 		}
 

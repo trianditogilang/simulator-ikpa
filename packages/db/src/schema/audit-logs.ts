@@ -18,7 +18,7 @@ export const auditLogs = pgTable(
 			onDelete: "set null",
 		}),
 		actorId: uuid("actor_id").references(() => users.id, {
-			onDelete: "set null",
+			onDelete: "cascade",
 		}),
 		actorAccessType: accessTypeEnum("actor_access_type"),
 		entityType: text("entity_type").notNull(),

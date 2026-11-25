@@ -1,5 +1,5 @@
-import { useClerk } from "@clerk/tanstack-react-start";
 import { type ComponentProps, useState } from "react";
+import { authClient } from "@/lib/auth-client";
 import { clearActiveOrganizationFn } from "@/server/access";
 
 export type SignOutActionProps = Omit<
@@ -10,36 +10,11 @@ export type SignOutActionProps = Omit<
 	redirectUrl?: string;
 };
 
-function clearDemoCookies() {
-	document.cookie = "dev_session=; Max-Age=0; Path=/; SameSite=Lax";
-	document.cookie = "ikpa_active_org=; Max-Age=0; Path=/; SameSite=Lax";
-}
-
-function DemoSignOutAction({
+export function SignOutAction({
 	children,
 	redirectUrl = "/",
 	...props
 }: SignOutActionProps) {
-	return (
-		<button
-			{...props}
-			onClick={() => {
-				clearDemoCookies();
-				window.location.assign(redirectUrl);
-			}}
-			type="button"
-		>
-			{children}
-		</button>
-	);
-}
-
-function ClerkSignOutAction({
-	children,
-	redirectUrl = "/",
-	...props
-}: SignOutActionProps) {
-	const { signOut } = useClerk();
 	const [isBusy, setIsBusy] = useState(false);
 
 	const handleSignOut = async () => {
@@ -52,9 +27,10 @@ function ClerkSignOutAction({
 			await clearActiveOrganizationFn({ data: undefined });
 		} finally {
 			try {
-				await signOut({ redirectUrl });
+				await authClient.signOut();
 			} finally {
-				setIsBusy(false);
+				// Full reload so no authenticated UI state survives the session.
+				window.location.assign(redirectUrl);
 			}
 		}
 	};
@@ -69,12 +45,4 @@ function ClerkSignOutAction({
 			{children}
 		</button>
 	);
-}
-
-export function SignOutAction(props: SignOutActionProps) {
-	if (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.trim()) {
-		return <ClerkSignOutAction {...props} />;
-	}
-
-	return <DemoSignOutAction {...props} />;
 }

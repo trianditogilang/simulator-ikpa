@@ -16,9 +16,7 @@ import { Route as OperatorRouteRouteImport } from './routes/operator/route'
 import { Route as SelectOrganizationRouteImport } from './routes/select-organization'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
-import { Route as SsoCallbackRouteImport } from './routes/sso-callback'
 import { Route as AdminKppnAccessRouteImport } from './routes/admin-kppn/access'
-import { Route as AdminKppnAuditLogsRouteImport } from './routes/admin-kppn/audit-logs'
 import { Route as AdminKppnDashboardRouteImport } from './routes/admin-kppn/dashboard'
 import { Route as AdminKppnReportsRouteImport } from './routes/admin-kppn/reports'
 import { Route as OperatorAnalysisRouteImport } from './routes/operator/analysis'
@@ -40,8 +38,7 @@ import { Route as AdminKppnPolicyFairnessRouteImport } from './routes/admin-kppn
 import { Route as AdminKppnPolicyHistoryRouteImport } from './routes/admin-kppn/policy/history'
 import { Route as AdminKppnPolicyRemindersRouteImport } from './routes/admin-kppn/policy/reminders'
 import { Route as AdminKppnPolicyWorkdaysRouteImport } from './routes/admin-kppn/policy/workdays'
-import { Route as ApiQstashDailyRouteImport } from './routes/api/qstash/daily'
-import { Route as ApiQstashSendRouteImport } from './routes/api/qstash/send'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as OperatorDataBudgetRevisionsRouteImport } from './routes/operator/data/budget-revisions'
 import { Route as OperatorDataContractsInvoicesRouteImport } from './routes/operator/data/contracts-invoices'
 import { Route as OperatorDataOutputAchievementRouteImport } from './routes/operator/data/output-achievement'
@@ -50,6 +47,8 @@ import { Route as OperatorDataSpmDispensationRouteImport } from './routes/operat
 import { Route as AdminKppnPolicyRuleSetsIndexRouteImport } from './routes/admin-kppn/policy/rule-sets/index'
 import { Route as AdminKppnPolicyRuleSetsRuleSetIdRouteImport } from './routes/admin-kppn/policy/rule-sets/$ruleSetId'
 import { Route as ApiJobsImportProcessRouteImport } from './routes/api/jobs/import/process'
+import { Route as ApiJobsRemindersDailyRouteImport } from './routes/api/jobs/reminders/daily'
+import { Route as ApiJobsRemindersSendRouteImport } from './routes/api/jobs/reminders/send'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -86,19 +85,9 @@ const SignUpRoute = SignUpRouteImport.update({
   path: '/sign-up',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SsoCallbackRoute = SsoCallbackRouteImport.update({
-  id: '/sso-callback',
-  path: '/sso-callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminKppnAccessRoute = AdminKppnAccessRouteImport.update({
   id: '/access',
   path: '/access',
-  getParentRoute: () => AdminKppnRouteRoute,
-} as any)
-const AdminKppnAuditLogsRoute = AdminKppnAuditLogsRouteImport.update({
-  id: '/audit-logs',
-  path: '/audit-logs',
   getParentRoute: () => AdminKppnRouteRoute,
 } as any)
 const AdminKppnDashboardRoute = AdminKppnDashboardRouteImport.update({
@@ -210,14 +199,9 @@ const AdminKppnPolicyWorkdaysRoute = AdminKppnPolicyWorkdaysRouteImport.update({
   path: '/policy/workdays',
   getParentRoute: () => AdminKppnRouteRoute,
 } as any)
-const ApiQstashDailyRoute = ApiQstashDailyRouteImport.update({
-  id: '/api/qstash/daily',
-  path: '/api/qstash/daily',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiQstashSendRoute = ApiQstashSendRouteImport.update({
-  id: '/api/qstash/send',
-  path: '/api/qstash/send',
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OperatorDataBudgetRevisionsRoute =
@@ -267,6 +251,16 @@ const ApiJobsImportProcessRoute = ApiJobsImportProcessRouteImport.update({
   path: '/api/jobs/import/process',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiJobsRemindersDailyRoute = ApiJobsRemindersDailyRouteImport.update({
+  id: '/api/jobs/reminders/daily',
+  path: '/api/jobs/reminders/daily',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiJobsRemindersSendRoute = ApiJobsRemindersSendRouteImport.update({
+  id: '/api/jobs/reminders/send',
+  path: '/api/jobs/reminders/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -276,9 +270,7 @@ export interface FileRoutesByFullPath {
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/sso-callback': typeof SsoCallbackRoute
   '/admin-kppn/access': typeof AdminKppnAccessRoute
-  '/admin-kppn/audit-logs': typeof AdminKppnAuditLogsRoute
   '/admin-kppn/dashboard': typeof AdminKppnDashboardRoute
   '/admin-kppn/reports': typeof AdminKppnReportsRoute
   '/operator/analysis': typeof OperatorAnalysisRoute
@@ -299,8 +291,7 @@ export interface FileRoutesByFullPath {
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
   '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
   '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
-  '/api/qstash/daily': typeof ApiQstashDailyRoute
-  '/api/qstash/send': typeof ApiQstashSendRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
   '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
@@ -309,6 +300,8 @@ export interface FileRoutesByFullPath {
   '/admin-kppn/organizations/': typeof AdminKppnOrganizationsIndexRoute
   '/admin-kppn/policy/rule-sets/$ruleSetId': typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
   '/api/jobs/import/process': typeof ApiJobsImportProcessRoute
+  '/api/jobs/reminders/daily': typeof ApiJobsRemindersDailyRoute
+  '/api/jobs/reminders/send': typeof ApiJobsRemindersSendRoute
   '/admin-kppn/policy/rule-sets/': typeof AdminKppnPolicyRuleSetsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -319,9 +312,7 @@ export interface FileRoutesByTo {
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/sso-callback': typeof SsoCallbackRoute
   '/admin-kppn/access': typeof AdminKppnAccessRoute
-  '/admin-kppn/audit-logs': typeof AdminKppnAuditLogsRoute
   '/admin-kppn/dashboard': typeof AdminKppnDashboardRoute
   '/admin-kppn/reports': typeof AdminKppnReportsRoute
   '/operator/analysis': typeof OperatorAnalysisRoute
@@ -342,8 +333,7 @@ export interface FileRoutesByTo {
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
   '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
   '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
-  '/api/qstash/daily': typeof ApiQstashDailyRoute
-  '/api/qstash/send': typeof ApiQstashSendRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
   '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
@@ -352,6 +342,8 @@ export interface FileRoutesByTo {
   '/admin-kppn/organizations': typeof AdminKppnOrganizationsIndexRoute
   '/admin-kppn/policy/rule-sets/$ruleSetId': typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
   '/api/jobs/import/process': typeof ApiJobsImportProcessRoute
+  '/api/jobs/reminders/daily': typeof ApiJobsRemindersDailyRoute
+  '/api/jobs/reminders/send': typeof ApiJobsRemindersSendRoute
   '/admin-kppn/policy/rule-sets': typeof AdminKppnPolicyRuleSetsIndexRoute
 }
 export interface FileRoutesById {
@@ -363,9 +355,7 @@ export interface FileRoutesById {
   '/select-organization': typeof SelectOrganizationRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/sso-callback': typeof SsoCallbackRoute
   '/admin-kppn/access': typeof AdminKppnAccessRoute
-  '/admin-kppn/audit-logs': typeof AdminKppnAuditLogsRoute
   '/admin-kppn/dashboard': typeof AdminKppnDashboardRoute
   '/admin-kppn/reports': typeof AdminKppnReportsRoute
   '/operator/analysis': typeof OperatorAnalysisRoute
@@ -386,8 +376,7 @@ export interface FileRoutesById {
   '/admin-kppn/policy/history': typeof AdminKppnPolicyHistoryRoute
   '/admin-kppn/policy/reminders': typeof AdminKppnPolicyRemindersRoute
   '/admin-kppn/policy/workdays': typeof AdminKppnPolicyWorkdaysRoute
-  '/api/qstash/daily': typeof ApiQstashDailyRoute
-  '/api/qstash/send': typeof ApiQstashSendRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/operator/data/budget-revisions': typeof OperatorDataBudgetRevisionsRoute
   '/operator/data/contracts-invoices': typeof OperatorDataContractsInvoicesRoute
   '/operator/data/output-achievement': typeof OperatorDataOutputAchievementRoute
@@ -396,6 +385,8 @@ export interface FileRoutesById {
   '/admin-kppn/organizations/': typeof AdminKppnOrganizationsIndexRoute
   '/admin-kppn/policy/rule-sets/$ruleSetId': typeof AdminKppnPolicyRuleSetsRuleSetIdRoute
   '/api/jobs/import/process': typeof ApiJobsImportProcessRoute
+  '/api/jobs/reminders/daily': typeof ApiJobsRemindersDailyRoute
+  '/api/jobs/reminders/send': typeof ApiJobsRemindersSendRoute
   '/admin-kppn/policy/rule-sets/': typeof AdminKppnPolicyRuleSetsIndexRoute
 }
 export interface FileRouteTypes {
@@ -408,9 +399,7 @@ export interface FileRouteTypes {
     | '/select-organization'
     | '/sign-in'
     | '/sign-up'
-    | '/sso-callback'
     | '/admin-kppn/access'
-    | '/admin-kppn/audit-logs'
     | '/admin-kppn/dashboard'
     | '/admin-kppn/reports'
     | '/operator/analysis'
@@ -431,8 +420,7 @@ export interface FileRouteTypes {
     | '/admin-kppn/policy/history'
     | '/admin-kppn/policy/reminders'
     | '/admin-kppn/policy/workdays'
-    | '/api/qstash/daily'
-    | '/api/qstash/send'
+    | '/api/auth/$'
     | '/operator/data/budget-revisions'
     | '/operator/data/contracts-invoices'
     | '/operator/data/output-achievement'
@@ -441,6 +429,8 @@ export interface FileRouteTypes {
     | '/admin-kppn/organizations/'
     | '/admin-kppn/policy/rule-sets/$ruleSetId'
     | '/api/jobs/import/process'
+    | '/api/jobs/reminders/daily'
+    | '/api/jobs/reminders/send'
     | '/admin-kppn/policy/rule-sets/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -451,9 +441,7 @@ export interface FileRouteTypes {
     | '/select-organization'
     | '/sign-in'
     | '/sign-up'
-    | '/sso-callback'
     | '/admin-kppn/access'
-    | '/admin-kppn/audit-logs'
     | '/admin-kppn/dashboard'
     | '/admin-kppn/reports'
     | '/operator/analysis'
@@ -474,8 +462,7 @@ export interface FileRouteTypes {
     | '/admin-kppn/policy/history'
     | '/admin-kppn/policy/reminders'
     | '/admin-kppn/policy/workdays'
-    | '/api/qstash/daily'
-    | '/api/qstash/send'
+    | '/api/auth/$'
     | '/operator/data/budget-revisions'
     | '/operator/data/contracts-invoices'
     | '/operator/data/output-achievement'
@@ -484,6 +471,8 @@ export interface FileRouteTypes {
     | '/admin-kppn/organizations'
     | '/admin-kppn/policy/rule-sets/$ruleSetId'
     | '/api/jobs/import/process'
+    | '/api/jobs/reminders/daily'
+    | '/api/jobs/reminders/send'
     | '/admin-kppn/policy/rule-sets'
   id:
     | '__root__'
@@ -494,9 +483,7 @@ export interface FileRouteTypes {
     | '/select-organization'
     | '/sign-in'
     | '/sign-up'
-    | '/sso-callback'
     | '/admin-kppn/access'
-    | '/admin-kppn/audit-logs'
     | '/admin-kppn/dashboard'
     | '/admin-kppn/reports'
     | '/operator/analysis'
@@ -517,8 +504,7 @@ export interface FileRouteTypes {
     | '/admin-kppn/policy/history'
     | '/admin-kppn/policy/reminders'
     | '/admin-kppn/policy/workdays'
-    | '/api/qstash/daily'
-    | '/api/qstash/send'
+    | '/api/auth/$'
     | '/operator/data/budget-revisions'
     | '/operator/data/contracts-invoices'
     | '/operator/data/output-achievement'
@@ -527,6 +513,8 @@ export interface FileRouteTypes {
     | '/admin-kppn/organizations/'
     | '/admin-kppn/policy/rule-sets/$ruleSetId'
     | '/api/jobs/import/process'
+    | '/api/jobs/reminders/daily'
+    | '/api/jobs/reminders/send'
     | '/admin-kppn/policy/rule-sets/'
   fileRoutesById: FileRoutesById
 }
@@ -538,10 +526,10 @@ export interface RootRouteChildren {
   SelectOrganizationRoute: typeof SelectOrganizationRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
-  SsoCallbackRoute: typeof SsoCallbackRoute
-  ApiQstashDailyRoute: typeof ApiQstashDailyRoute
-  ApiQstashSendRoute: typeof ApiQstashSendRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiJobsImportProcessRoute: typeof ApiJobsImportProcessRoute
+  ApiJobsRemindersDailyRoute: typeof ApiJobsRemindersDailyRoute
+  ApiJobsRemindersSendRoute: typeof ApiJobsRemindersSendRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -595,25 +583,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignUpRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sso-callback': {
-      id: '/sso-callback'
-      path: '/sso-callback'
-      fullPath: '/sso-callback'
-      preLoaderRoute: typeof SsoCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin-kppn/access': {
       id: '/admin-kppn/access'
       path: '/access'
       fullPath: '/admin-kppn/access'
       preLoaderRoute: typeof AdminKppnAccessRouteImport
-      parentRoute: typeof AdminKppnRouteRoute
-    }
-    '/admin-kppn/audit-logs': {
-      id: '/admin-kppn/audit-logs'
-      path: '/audit-logs'
-      fullPath: '/admin-kppn/audit-logs'
-      preLoaderRoute: typeof AdminKppnAuditLogsRouteImport
       parentRoute: typeof AdminKppnRouteRoute
     }
     '/admin-kppn/dashboard': {
@@ -763,18 +737,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminKppnPolicyWorkdaysRouteImport
       parentRoute: typeof AdminKppnRouteRoute
     }
-    '/api/qstash/daily': {
-      id: '/api/qstash/daily'
-      path: '/api/qstash/daily'
-      fullPath: '/api/qstash/daily'
-      preLoaderRoute: typeof ApiQstashDailyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/qstash/send': {
-      id: '/api/qstash/send'
-      path: '/api/qstash/send'
-      fullPath: '/api/qstash/send'
-      preLoaderRoute: typeof ApiQstashSendRouteImport
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/operator/data/budget-revisions': {
@@ -833,12 +800,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiJobsImportProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/jobs/reminders/daily': {
+      id: '/api/jobs/reminders/daily'
+      path: '/api/jobs/reminders/daily'
+      fullPath: '/api/jobs/reminders/daily'
+      preLoaderRoute: typeof ApiJobsRemindersDailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/jobs/reminders/send': {
+      id: '/api/jobs/reminders/send'
+      path: '/api/jobs/reminders/send'
+      fullPath: '/api/jobs/reminders/send'
+      preLoaderRoute: typeof ApiJobsRemindersSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AdminKppnRouteRouteChildren {
   AdminKppnAccessRoute: typeof AdminKppnAccessRoute
-  AdminKppnAuditLogsRoute: typeof AdminKppnAuditLogsRoute
   AdminKppnDashboardRoute: typeof AdminKppnDashboardRoute
   AdminKppnReportsRoute: typeof AdminKppnReportsRoute
   AdminKppnMonitoringRemindersRoute: typeof AdminKppnMonitoringRemindersRoute
@@ -854,7 +834,6 @@ interface AdminKppnRouteRouteChildren {
 
 const AdminKppnRouteRouteChildren: AdminKppnRouteRouteChildren = {
   AdminKppnAccessRoute: AdminKppnAccessRoute,
-  AdminKppnAuditLogsRoute: AdminKppnAuditLogsRoute,
   AdminKppnDashboardRoute: AdminKppnDashboardRoute,
   AdminKppnReportsRoute: AdminKppnReportsRoute,
   AdminKppnMonitoringRemindersRoute: AdminKppnMonitoringRemindersRoute,
@@ -924,10 +903,10 @@ const rootRouteChildren: RootRouteChildren = {
   SelectOrganizationRoute: SelectOrganizationRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
-  SsoCallbackRoute: SsoCallbackRoute,
-  ApiQstashDailyRoute: ApiQstashDailyRoute,
-  ApiQstashSendRoute: ApiQstashSendRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiJobsImportProcessRoute: ApiJobsImportProcessRoute,
+  ApiJobsRemindersDailyRoute: ApiJobsRemindersDailyRoute,
+  ApiJobsRemindersSendRoute: ApiJobsRemindersSendRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

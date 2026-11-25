@@ -17,3 +17,5 @@ __unconfig*
 test-results/
 playwright-report/
 todos.json
+.tmp/
+__pycache__/

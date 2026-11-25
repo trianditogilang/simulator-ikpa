@@ -1,9 +1,7 @@
-import {
-	assertOperatorOrgScope,
-	syncClerkUser,
-} from "@simulator-ikpa/access-control";
+import { assertOperatorOrgScope } from "@simulator-ikpa/access-control";
 import { createDbClient } from "@simulator-ikpa/db";
 import {
+	accessRequests,
 	fiscalYears,
 	kppnScopes,
 	organizations,
@@ -11,15 +9,11 @@ import {
 	userAccesses,
 	users,
 } from "@simulator-ikpa/db/schema";
-import { setCookie } from "@tanstack/react-start/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
 import { getAccessResolutionForSession } from "../access.server";
 import { writeAudit } from "../audit/write-audit";
-import {
-	ACTIVE_ORGANIZATION_COOKIE,
-	getClerkIdentity,
-	getServerAuthSession,
-} from "../auth-session.server";
+import { findSatkerTakenMessage } from "../auth.server";
+import { getServerAuthSession } from "../auth-session.server";
 import { failIfProduction } from "../runtime-guards";
 
 export interface SatkerSettingsData {
@@ -44,81 +38,112 @@ function getDatabase() {
 	return createDbClient(dbUrl);
 }
 
-export async function handleRegisterSatkerOnboarding(data: {
+async function findVisibleOperatorForOrganization(
+	db: ReturnType<typeof createDbClient>,
+	orgId: string,
+) {
+	const visibleStatus = or(
+		and(eq(userAccesses.status, "active"), isNotNull(userAccesses.userId)),
+		and(eq(userAccesses.status, "pending"), isNull(userAccesses.userId)),
+	);
+	if (!visibleStatus) return undefined;
+
+	const [operator] = await db
+		.select({ id: userAccesses.id })
+		.from(userAccesses)
+		.where(
+			and(
+				eq(userAccesses.orgId, orgId),
+				eq(userAccesses.accessType, "operator_satker"),
+				eq(userAccesses.active, true),
+				visibleStatus,
+			),
+		)
+		.limit(1);
+	return operator;
+}
+
+export type RegisterSatkerForUserInput = {
+	userId: string;
 	kodeSatker: string;
 	name: string;
 	isBlu?: boolean;
-}) {
-	const auth = await getServerAuthSession();
-	if (!auth.isAuthenticated || !auth.clerkUserId) {
-		throw new Error("Sesi tidak valid. Silakan login terlebih dahulu.");
+	/** Admin KPPN approving the request (ADR-008 amendment 2026-11-23). */
+	actorId: string;
+	actorAccessType: "operator_satker" | "admin_kppn";
+};
+
+/**
+ * Maps `userId` as Operator of the satker (creating the organization when the
+ * code is new). Only an Admin approval reaches this since 2026-11-23: a
+ * self-service sign-up files an access request instead, so nobody can claim a
+ * satker, or read its data, on their own.
+ */
+export async function registerSatkerForUser(
+	db: ReturnType<typeof createDbClient>,
+	input: RegisterSatkerForUserInput,
+) {
+	const normalizedKode = input.kodeSatker.trim().toUpperCase();
+	const normalizedName = input.name.trim();
+	if (!normalizedKode) throw new Error("Kode Satker tidak boleh kosong.");
+	if (!normalizedName) throw new Error("Nama Satker tidak boleh kosong.");
+
+	// 2. Resolve default KPPN scope — Malang 032
+	let [scope] = await db.select().from(kppnScopes).where(eq(kppnScopes.code, "KPPN-032")).limit(1);
+	if (!scope) {
+		[scope] = await db.select().from(kppnScopes).where(eq(kppnScopes.code, "032")).limit(1) as unknown as typeof scope[];
 	}
-
-	const db = getDatabase();
-	if (!db) {
-		if (process.env.NODE_ENV === "production") {
-			throw new Error("DATABASE_URL is required in production");
-		}
-		return {
-			success: true,
-			orgId: "22222222-2222-4222-8222-222222222222",
-			satkerName: data.name,
-			kodeSatker: data.kodeSatker,
-		};
+	if (!scope) {
+		[scope] = await db.select().from(kppnScopes).limit(1) as unknown as typeof scope[];
 	}
-
-	// 1. Ensure user exists
-	let [user] = await db
-		.select()
-		.from(users)
-		.where(eq(users.clerkUserId, auth.clerkUserId))
-		.limit(1);
-
-	if (!user) {
-		const identity = process.env.CLERK_SECRET_KEY
-			? await getClerkIdentity(auth.clerkUserId)
-			: {
-					clerkUserId: auth.clerkUserId,
-					email: auth.email || `${auth.clerkUserId}@kemenkeu.go.id`,
-					name: auth.name || "Operator Satker",
-				};
-		user = await syncClerkUser(db, identity);
-	}
-
-	// 2. Resolve default KPPN scope
-	let [scope] = await db.select().from(kppnScopes).limit(1);
 	if (!scope) {
 		[scope] = await db
 			.insert(kppnScopes)
 			.values({
-				code: "KPPN-089",
-				name: "KPPN Jakarta II",
+				code: "KPPN-032",
+				name: "KPPN Malang",
 			})
 			.returning();
+	} else if (scope.code !== "KPPN-032" || scope.name !== "KPPN Malang") {
+		const [updated] = await db.update(kppnScopes).set({ code: "KPPN-032", name: "KPPN Malang", updatedAt: new Date() }).where(eq(kppnScopes.id, scope.id)).returning();
+		if (updated) scope = updated;
 	}
 
-	// 3. Find or create organization. An unmapped user may create a new satker,
-	// but may not claim an already-registered satker by guessing its code.
-	let createdOrganization = false;
+	// 3. Find or create organization. An unmapped user may reuse an organization
+	// row that has no visible operator/pending mapping; the access list is the
+	// source of truth for whether the code is already claimed.
 	let [org] = await db
 		.select()
 		.from(organizations)
-		.where(eq(organizations.kodeSatker, data.kodeSatker))
+		.where(eq(organizations.kodeSatker, normalizedKode))
 		.limit(1);
 
-	if (!org) {
+	if (org) {
+		if (org.kppnScopeId !== scope.id) {
+			throw Object.assign(
+				new Error("Akses onboarding ditolak: Satker sudah terdaftar. Minta Admin KPPN memetakan akses Anda."),
+				{ statusCode: 409, code: "SATKER_ALREADY_REGISTERED" },
+			);
+		}
+		if (org.name.trim().toLowerCase() !== normalizedName.toLowerCase()) {
+			if (await findVisibleOperatorForOrganization(db, org.id)) {
+				throw Object.assign(new Error("Kode satker sudah terdaftar dengan nama berbeda."), { statusCode: 409, code: "ORGANIZATION_NAME_MISMATCH" });
+			}
+		}
+		// An existing organization keeps its registered name: a requester's
+		// spelling never renames it (the Admin saw both names when approving).
+	} else {
 		[org] = await db
 			.insert(organizations)
 			.values({
-				kodeSatker: data.kodeSatker,
-				name: data.name,
+				kodeSatker: normalizedKode,
+				name: normalizedName,
 				kppnScopeId: scope.id,
 				kppnName: scope.name,
-				isBlu: data.isBlu ?? false,
+				isBlu: input.isBlu ?? false,
 				timezone: "Asia/Jakarta",
 			})
 			.returning();
-		createdOrganization = true;
 	}
 
 	// 4. Ensure Fiscal Year 2026 exists
@@ -149,45 +174,39 @@ export async function handleRegisterSatkerOnboarding(data: {
 		.select()
 		.from(userAccesses)
 		.where(
-			and(eq(userAccesses.userId, user.id), eq(userAccesses.orgId, org.id)),
+			and(eq(userAccesses.userId, input.userId), eq(userAccesses.orgId, org.id)),
 		)
 		.limit(1);
 
-	if (!createdOrganization && !existingAccess) {
-		throw Object.assign(
-			new Error("Satker sudah terdaftar. Minta Admin KPPN memetakan akses Anda."),
-			{ statusCode: 409, code: "SATKER_ALREADY_REGISTERED" },
-		);
+	if (!existingAccess) {
+		if (await findVisibleOperatorForOrganization(db, org.id)) {
+			throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
+		}
 	}
 
 	if (!existingAccess) {
 		await db.insert(userAccesses).values({
-			userId: user.id,
+			userId: input.userId,
 			accessType: "operator_satker",
 			orgId: org.id,
 			active: true,
-			createdBy: user.id,
+			createdBy: input.actorId,
 		});
 	} else if (!existingAccess.active) {
-		await db
-			.update(userAccesses)
-			.set({ active: true, updatedAt: new Date() })
-			.where(eq(userAccesses.id, existingAccess.id));
+		const visibleOperator = await findVisibleOperatorForOrganization(db, org.id);
+		if (visibleOperator && visibleOperator.id !== existingAccess.id) {
+			throw Object.assign(new Error("Satker sudah memiliki operator aktif."), { statusCode: 409, code: "SATKER_OPERATOR_EXISTS" });
+		}
+		await db.update(userAccesses).set({ active: true, updatedAt: new Date() }).where(eq(userAccesses.id, existingAccess.id));
 	}
 
-	// 6. Set active organization cookie
-	setCookie(ACTIVE_ORGANIZATION_COOKIE, org.id, {
-		httpOnly: true,
-		maxAge: 60 * 60 * 24 * 30,
-		path: "/",
-		sameSite: "lax",
-		secure: process.env.NODE_ENV === "production",
-	});
+	// Owner decision 2026-11-24: an Operator account is named after its satker.
+	await db.update(users).set({ name: org.name, updatedAt: new Date() }).where(eq(users.id, input.userId));
 
 	// 7. Write audit log
 	await writeAudit(db, {
-		actorId: user.id,
-		actorAccessType: "operator_satker",
+		actorId: input.actorId,
+		actorAccessType: input.actorAccessType,
 		entityType: "organizations",
 		entityId: org.id,
 		action: "onboard_satker",
@@ -200,12 +219,88 @@ export async function handleRegisterSatkerOnboarding(data: {
 		orgId: org.id,
 	});
 
-	return {
-		success: true,
-		orgId: org.id,
-		satkerName: org.name,
-		kodeSatker: org.kodeSatker,
+	return org;
+}
+
+async function getVerifiedSessionUser() {
+	const auth = await getServerAuthSession();
+	if (!auth.isAuthenticated || !auth.userId) {
+		throw new Error("Sesi tidak valid. Silakan login terlebih dahulu.");
+	}
+	const db = getDatabase();
+	if (!db) {
+		throw new Error("Database belum dikonfigurasi.");
+	}
+	const [user] = await db
+		.select()
+		.from(users)
+		.where(eq(users.id, auth.userId))
+		.limit(1);
+	if (!user?.emailVerified) {
+		throw new Error("Sesi tidak valid. Silakan login terlebih dahulu.");
+	}
+	return { auth, db, user };
+}
+
+export type MyAccessRequest = {
+	kodeSatker: string;
+	satkerName: string;
+	status: "pending" | "rejected";
+} | null;
+
+/** The session user's own access request, if any. */
+export async function handleGetMyAccessRequest(): Promise<MyAccessRequest> {
+	const { db, user } = await getVerifiedSessionUser();
+	const [request] = await db
+		.select({
+			kodeSatker: accessRequests.kodeSatker,
+			satkerName: accessRequests.satkerName,
+			status: accessRequests.status,
+		})
+		.from(accessRequests)
+		.where(eq(accessRequests.userId, user.id))
+		.limit(1);
+	return request ?? null;
+}
+
+/**
+ * Files (or refiles) the session user's request to become Operator of a
+ * satker. It grants nothing and touches no organization. Since 2026-11-24 it
+ * refuses a satker that already has an Operator or someone else's pending
+ * request, like sign-up does (owner decision: the masked email beats silent
+ * probing protection).
+ */
+export async function handleRequestSatkerAccess(data: {
+	kodeSatker: string;
+	name: string;
+}): Promise<{ success: true }> {
+	const { auth, db, user } = await getVerifiedSessionUser();
+	const access = await getAccessResolutionForSession(auth);
+	if (access.status !== "unmapped") {
+		throw Object.assign(new Error("Akun ini sudah memiliki akses."), {
+			statusCode: 409,
+			code: "ACCESS_ALREADY_GRANTED",
+		});
+	}
+
+	const taken = await findSatkerTakenMessage(db, data.kodeSatker, data.name, user.id);
+	if (taken) {
+		throw Object.assign(new Error(taken.message), { statusCode: 409, code: taken.code });
+	}
+
+	const values = {
+		kodeSatker: data.kodeSatker.trim().toUpperCase(),
+		satkerName: data.name.trim(),
+		status: "pending" as const,
+		decidedBy: null,
+		decidedAt: null,
+		updatedAt: new Date(),
 	};
+	await db
+		.insert(accessRequests)
+		.values({ userId: user.id, ...values })
+		.onConflictDoUpdate({ target: accessRequests.userId, set: values });
+	return { success: true };
 }
 
 export async function handleGetSatkerSettings(data?: {
@@ -233,8 +328,8 @@ export async function handleGetSatkerSettings(data?: {
 			satkerId: targetOrgId,
 			satkerCode: "411782",
 			satkerName: "Kantor Pelayanan Perbendaharaan Satker Contoh",
-			kppnName: "KPPN Jakarta II",
-			kppnCode: "089",
+			kppnName: "KPPN Malang",
+			kppnCode: "032",
 			isBlu: false,
 			targetIkpa: 95.0,
 			timezone: "Asia/Jakarta (WIB)",
@@ -317,8 +412,8 @@ export async function handleGetSatkerSettings(data?: {
 		satkerId: org.id,
 		satkerCode: org.kodeSatker,
 		satkerName: org.name,
-		kppnName: org.kppnName || "KPPN Jakarta II",
-		kppnCode: org.kppnCode || "089",
+		kppnName: org.kppnName || "KPPN Malang",
+		kppnCode: org.kppnCode || "032",
 		isBlu: org.isBlu,
 		targetIkpa: 95.0,
 		timezone: "Asia/Jakarta (WIB)",
@@ -361,6 +456,25 @@ export async function handleUpdateSatkerSettings(data: {
 		})
 		.where(eq(organizations.id, data.orgId))
 		.returning();
+	// Operator accounts carry the satker name (owner decision 2026-11-24).
+	await db
+		.update(users)
+		.set({ name: data.name, updatedAt: new Date() })
+		.where(
+			inArray(
+				users.id,
+				db
+					.select({ id: userAccesses.userId })
+					.from(userAccesses)
+					.where(
+						and(
+							eq(userAccesses.orgId, data.orgId),
+							eq(userAccesses.accessType, "operator_satker"),
+							eq(userAccesses.active, true),
+						),
+					),
+			),
+		);
 
 	const actorId =
 		access.status === "operator_single_scope" ||

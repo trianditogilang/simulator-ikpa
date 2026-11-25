@@ -1,28 +1,28 @@
 import { uuidSchema } from "@simulator-ikpa/contracts";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { KODE_SATKER_PATTERN, KODE_SATKER_RULE } from "./auth-session";
 import {
+	handleGetMyAccessRequest,
 	handleGetSatkerSettings,
-	handleRegisterSatkerOnboarding,
+	handleRequestSatkerAccess,
 	handleUpdateSatkerSettings,
+	type MyAccessRequest,
 	type SatkerSettingsData,
 } from "./domains/settings.server";
 
-export type { SatkerSettingsData };
+export type { MyAccessRequest, SatkerSettingsData };
 
-export const registerSatkerOnboardingSchema = z.strictObject({
+export const requestSatkerAccessSchema = z.strictObject({
 	kodeSatker: z
 		.string()
 		.trim()
-		.min(4, "Kode Satker minimal 4 karakter")
-		.max(12, "Kode Satker maksimal 12 karakter")
-		.regex(/^[A-Za-z0-9]+$/, "Kode Satker hanya boleh berupa huruf dan angka"),
+		.regex(KODE_SATKER_PATTERN, KODE_SATKER_RULE),
 	name: z
 		.string()
 		.trim()
 		.min(3, "Nama Satker minimal 3 karakter")
 		.max(200, "Nama Satker maksimal 200 karakter"),
-	isBlu: z.boolean().optional().default(false),
 });
 
 export const updateSatkerSettingsSchema = z.strictObject({
@@ -35,11 +35,16 @@ export const updateSatkerSettingsSchema = z.strictObject({
 	isBlu: z.boolean(),
 });
 
-export const registerSatkerOnboardingFn = createServerFn({ method: "POST" })
-	.validator((data: z.input<typeof registerSatkerOnboardingSchema>) =>
-		registerSatkerOnboardingSchema.parse(data),
+/** Self-service sign-up files a request; an Admin KPPN grants the access. */
+export const requestSatkerAccessFn = createServerFn({ method: "POST" })
+	.validator((data: z.input<typeof requestSatkerAccessSchema>) =>
+		requestSatkerAccessSchema.parse(data),
 	)
-	.handler(async ({ data }) => handleRegisterSatkerOnboarding(data));
+	.handler(async ({ data }) => handleRequestSatkerAccess(data));
+
+export const getMyAccessRequestFn = createServerFn({ method: "GET" }).handler(
+	async (): Promise<MyAccessRequest> => handleGetMyAccessRequest(),
+);
 
 export const getSatkerSettingsFn = createServerFn({ method: "GET" })
 	.validator((data?: { orgId?: string }) => data)

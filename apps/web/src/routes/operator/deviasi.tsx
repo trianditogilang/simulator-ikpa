@@ -710,7 +710,7 @@ function DeviasiPage() {
 									onClick={() => setActiveTab("simulation")}
 									className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
 										activeTab === "simulation"
-											? "bg-primary text-primary-foreground shadow-xs"
+											? "bg-amber-600 text-white shadow-xs hover:bg-amber-700"
 											: "text-muted-foreground hover:text-foreground hover:bg-surface-muted"
 									}`}
 								>
@@ -1204,7 +1204,7 @@ function DeviasiPage() {
 													<th className="p-2.5 text-right">Skor Kumulatif</th>
 												</tr>
 											</thead>
-											<tbody className="divide-y divide-border">
+								<tbody className="divide-y divide-amber-100">
 												{historicalTrail.map((m) => {
 													const rpdTot =
 														(m.rpd["51"] ?? 0) +
@@ -1339,14 +1339,14 @@ function DeviasiPage() {
 						{/* 4 Score Cards (Simulasi vs Aktual vs Dampak vs Rata-rata) */}
 						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
 							{/* Card 1: Skor Simulasi */}
-							<div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 shadow-xs space-y-1">
+							<div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 shadow-xs space-y-1">
 								<div className="flex items-center justify-between text-muted-foreground">
 									<span className="text-xs font-semibold text-foreground">
 										Skor Simulasi
 									</span>
-									<ShieldCheck className="size-4 text-primary" />
+									<ShieldCheck className="size-4 text-amber-600" />
 								</div>
-								<p className="text-2xl font-extrabold text-primary">
+								<p className="text-2xl font-extrabold text-amber-700">
 									{simScore.score !== null ? formatPercent(simScore.score) : "—"}
 								</p>
 								<p className="text-[11px] text-muted-foreground">
@@ -1420,9 +1420,9 @@ function DeviasiPage() {
 						</div>
 
 						{/* Simulation Action Strip */}
-						<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface p-4 shadow-xs">
+						<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/30 p-4 shadow-xs">
 							<div className="flex items-center gap-2">
-								<Sparkles className="size-4 text-primary" />
+								<Sparkles className="size-4 text-amber-600" />
 								<span className="text-xs font-semibold text-foreground">
 									Simpan Skenario Simulasi ke Riwayat Snapshot
 								</span>
@@ -1433,7 +1433,7 @@ function DeviasiPage() {
 								disabled={!hasPlan}
 								onClick={() => setIsSaveDialogOpen(true)}
 								title={!hasPlan ? "Ubah minimal satu asumsi rencana agar skenario dapat disimpan" : `Simpan ke Skenario A, B, atau C`}
-								className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:opacity-50"
+								className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-amber-700 disabled:opacity-50"
 							>
 								<Save className="size-3.5" />
 								<span>
@@ -1443,7 +1443,7 @@ function DeviasiPage() {
 						</div>
 
 						{/* Simulation What-If Table for Future Months */}
-						<div className="rounded-2xl border border-border bg-background p-5 shadow-xs space-y-4">
+						<div className="rounded-2xl border border-amber-200/80 bg-background p-5 shadow-xs space-y-4">
 							<div>
 								<h3 className="text-sm font-bold text-foreground">
 									Tabel Rencana RPD &amp; Realisasi Sisa Tahun (Sel Kuning = Simulasi)
@@ -1453,10 +1453,10 @@ function DeviasiPage() {
 								</p>
 							</div>
 
-							<div className="overflow-x-auto">
+							<div className="overflow-x-auto rounded-xl border border-amber-200/80 bg-background">
 								<table className="w-full text-left text-xs border-collapse">
 									<thead>
-										<tr className="border-b border-border bg-surface/70 font-semibold text-muted-foreground">
+										<tr className="bg-amber-100/50 text-amber-950 font-semibold border-b border-amber-200">
 											<th className="p-3">Bulan</th>
 											{DEVIASI_ACCOUNTS.map((acc) => (
 												<th key={acc} className="p-3 text-center">
@@ -1518,10 +1518,10 @@ function DeviasiPage() {
 											);
 
 											return (
-												<tr key={m} className="bg-warning/5">
+												<tr key={m} className="bg-amber-50/50 hover:bg-amber-50 transition-colors">
 													<td className="p-3 font-semibold text-foreground whitespace-nowrap">
 														<div className="flex items-center gap-1.5">
-															<Sparkles className="size-3 text-warning" />
+															<Sparkles className="size-3 text-amber-600" />
 															<span>{MONTH_NAMES[m - 1]} (Rencana)</span>
 														</div>
 													</td>
@@ -1536,13 +1536,13 @@ function DeviasiPage() {
 																		placeholder="RPD (Rp)"
 																		value={currentRpd}
 																		onChange={(val) => setRpdValue(m, acc, val)}
-																		className="min-h-8 w-full rounded-lg border border-warning/40 bg-warning/10 px-2 text-[11px] text-foreground focus:border-primary focus:outline-none"
+																		className="min-h-8 w-full rounded-lg border border-amber-300 bg-amber-50/70 px-2 text-[11px] text-amber-950 focus:bg-white focus:border-amber-500"
 																	/>
 																	<FormattedNumberInput
 																		placeholder="Realisasi (Rp)"
 																		value={currentReal}
 																		onChange={(val) => setRealValue(m, acc, val)}
-																		className="min-h-8 w-full rounded-lg border border-warning/40 bg-warning/10 px-2 text-[11px] text-foreground focus:border-primary focus:outline-none"
+																		className="min-h-8 w-full rounded-lg border border-amber-300 bg-amber-50/70 px-2 text-[11px] text-amber-950 focus:bg-white focus:border-amber-500"
 																	/>
 																</div>
 															</td>

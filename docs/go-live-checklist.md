@@ -7,11 +7,15 @@
       pass.
 - [x] Production mock/fallback/export signature guards are fail-closed.
 - [ ] Isolated preview database migrated and seeded with non-production data.
-- [ ] Clerk/authenticated Operator and Admin E2E pass on desktop and mobile.
+- [ ] No service outside Indonesia stores or processes application data
+      (ADR-008 inventory verified after MIG-01..MIG-07).
+- [ ] Authenticated Operator and Admin E2E pass on desktop and mobile on the
+      ADR-008 stack (Better Auth + self-hosted PostgreSQL).
 - [ ] Cross-tenant/cross-KPPN integration suite pass.
 - [ ] Mandatory reminder policy and idempotent delivery replay pass.
 - [ ] CI quality gate runs on a remote pull request without skipped steps.
-- [ ] Vercel preview and Cloudflare rules are verified.
+- [ ] VPS staging deployment, reverse-proxy/firewall rules, and backup restore
+      are verified (F13-09, F13-10).
 - [ ] Observability, alert, rollback, and secret-rotation drills pass.
 - [ ] UAT report has no unresolved Blocked/Needs Fix criteria.
 - [ ] 2026 regulatory parameters have source and approver recorded.

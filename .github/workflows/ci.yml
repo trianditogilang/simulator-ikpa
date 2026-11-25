@@ -8,9 +8,36 @@ on:
 permissions:
   contents: read
 
+# ADR-008: the gate runs entirely on throwaway service containers. It needs no
+# repository secret and never reaches an external database or mail provider.
+env:
+  DATABASE_URL: postgresql://ikpa:ikpa_ci@127.0.0.1:5432/simulator_ikpa
+  DIRECT_URL: postgresql://ikpa:ikpa_ci@127.0.0.1:5432/simulator_ikpa
+
 jobs:
   quality:
     runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ikpa
+          POSTGRES_PASSWORD: ikpa_ci
+          POSTGRES_DB: simulator_ikpa
+          POSTGRES_INITDB_ARGS: --encoding=UTF8
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ikpa -d simulator_ikpa"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      # Mail catcher: OTP codes for the integration fixtures are read from it.
+      mailpit:
+        image: axllent/mailpit:v1.21
+        ports:
+          - 1025:1025
+          - 8025:8025
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,19 +52,25 @@ jobs:
         run: npm run typecheck
       - name: Unit and golden tests all workspaces
         run: npm run test
+      - name: Migration check
+        run: npm run check:migrations
+      - name: Migrate and seed an empty database
+        run: |
+          npm run migrate --workspace @simulator-ikpa/db
+          npm run seed
+      - name: Authenticated integration isolation
+        run: npm run test:integration
       - name: Lint
         run: npm run lint
       - name: Generated route check
         run: npm run check:generated-routes
-      - name: Migration check
-        run: npm run check:migrations
       - name: Secret scan
         run: npm run check:secrets
       - name: Dependency audit
-        run: npm audit --omit=dev --audit-level=high
+        run: npm audit --registry=https://registry.npmjs.org --omit=dev --audit-level=high
       - name: Production build
         run: npm run build
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
       - name: E2E smoke
-        run: npm run test:e2e
+        run: npm run test:e2e:smoke

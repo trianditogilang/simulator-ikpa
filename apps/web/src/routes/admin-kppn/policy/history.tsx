@@ -25,7 +25,7 @@ function AdminPolicyHistoryPage() {
 							Riwayat Versi Policy &amp; Regulasi
 						</h1>
 						<p className="text-xs text-muted-foreground sm:text-sm">
-							Rekam jejak perubahan parameter, aktor penerbitan, audit pemakaian
+							Rekam jejak perubahan parameter, aktor penerbitan, pemakaian
 							snapshot, dan dampak schedule
 						</p>
 					</div>
@@ -100,7 +100,7 @@ function AdminPolicyHistoryPage() {
 						</div>
 					</div>
 
-					{/* Right: Version Diff & Audit Details */}
+					{/* Right: Version Diff & Usage Details */}
 					<div className="space-y-4 lg:col-span-7">
 						<div className="rounded-xl border border-border/80 bg-surface p-5 shadow-xs space-y-4">
 							<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-border/80 pb-3.5">
@@ -205,7 +205,7 @@ function AdminPolicyHistoryPage() {
 								)}
 							</div>
 
-							{/* Audit Guarantee Note */}
+							{/* Data Integrity Note */}
 							<div className="flex items-start gap-2 rounded-lg bg-surface-muted/50 p-3 text-xs text-muted-foreground">
 								<Info className="size-4 shrink-0 text-primary mt-0.5" />
 								<p>
