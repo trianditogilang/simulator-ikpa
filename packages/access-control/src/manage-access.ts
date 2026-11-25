@@ -95,18 +95,12 @@ function normalizeEmail(email: string): string {
 	return email.trim().toLowerCase();
 }
 
+// A failed transaction is never re-run without one (the neon-http fallback is
+// gone with MIG-01); only unit-test mocks lack transaction().
 async function runWithFallback<T>(db: DbClient, exec: (tx: DbClient) => Promise<T>): Promise<T> {
 	const maybeTx = db as unknown as { transaction?: (fn: (tx: DbClient) => Promise<T>) => Promise<T> };
 	if (typeof maybeTx.transaction === "function") {
-		try {
-			return await maybeTx.transaction((tx) => exec(tx as DbClient));
-		} catch (e) {
-			const msg = String((e as Error)?.message ?? e);
-			if (msg.includes("No transactions support") || msg.includes("transaction")) {
-				return await exec(db);
-			}
-			throw e;
-		}
+		return await maybeTx.transaction((tx) => exec(tx as DbClient));
 	}
 	return await exec(db);
 }

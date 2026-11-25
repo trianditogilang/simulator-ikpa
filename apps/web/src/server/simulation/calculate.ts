@@ -736,8 +736,8 @@ export async function calculateAndPersistSnapshot(
 		}
 	}
 
-	// ponytail: neon-http driver does not support transactions (throws "No transactions support in neon-http driver");
-	// sequential inserts are sufficient for dashboard read path; use Pool driver only if strict atomicity needed
+	// Simulation, overrides and snapshot commit together (pg Pool, MIG-01), so a
+	// failure never leaves a simulation without its snapshot.
 	const doPersist = async (tx: DbClient) => {
 		const [simulation] = await tx
 			.insert(simulations)
@@ -802,5 +802,5 @@ export async function calculateAndPersistSnapshot(
 		};
 	};
 
-	return doPersist(db as DbClient);
+	return db.transaction((tx) => doPersist(tx as unknown as DbClient));
 }

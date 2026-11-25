@@ -310,7 +310,7 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 | WCAG AA dan keyboard dasar | F5-02 | Planned |
 | Tenant isolation | F8-04, F13-02, F13-06 | Planned |
 | Observability dan alert | F13-11 | Planned |
-| Residensi data di Indonesia (ADR-008) | MIG-00–MIG-07, F13-09, F13-10 | MIG-00–MIG-02, MIG-04, dan MIG-06 selesai; MIG-03 dan MIG-05 terimplementasi dan terverifikasi lokal (Needs Fix, menunggu SMTP pemilik); MIG-07 Planned. Bukti F13-02..F13-08 pada stack Clerk/Neon/Vercel wajib diverifikasi ulang pada MIG-07 |
+| Residensi data di Indonesia (ADR-008) | MIG-00–MIG-07, F13-09, F13-10 | MIG-00–MIG-06 selesai (MIG-03/MIG-05 2026-11-24); MIG-07 Needs Fix: F13-02..F13-07 hijau ulang secara lokal pada stack baru 2026-11-25, Quality Gate GitHub (F13-08) menunggu push |
 
 ## 9. Coverage Summary
 

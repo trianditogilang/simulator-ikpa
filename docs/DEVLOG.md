@@ -27,8 +27,36 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - MIG-04 (2026-11-18): QStash diganti service compose `scheduler` (busybox `crond`) yang memanggil `/api/jobs/*` dengan Bearer `JOB_SECRET` lewat jaringan internal; Caddy menjawab 404 dari luar. Baseline: 45 file/318 test, integration 91 + 2 skip, F13-03 2/2 lewat SMTP Mailpit, E2E Operator dan Admin 12/12. Storage import (MIG-06) masih stack lama.
 - MIG-06 (2026-11-18): berkas import tidak pernah disimpan (parse di memori), sehingga DoD direktori privat diamandemen pemilik dan `R2_*` dihapus. Baseline: 46 file/322 test, integration 91 + 2 skip. Temuan IMPORT-FIX-01: commit import hanya memakai 100 baris valid pertama.
 - SEC-AUDIT-03 (2026-11-23): advisory `picomatch` GHSA-fc5q-39xc-vjpf ditarik, sehingga audit produksi kembali exit 0 tanpa perubahan dependency; residual tetap 8 moderate.
+- MIG-07 (2026-11-25, Needs Fix): gate F13-02..F13-07 hijau lokal pada stack baru dan security review tanpa critical/high; Quality Gate GitHub menunggu push + PR. Baseline: 47 file/326 test, integration 102 + 2 skip, E2E Operator dan Admin 12/12.
 
 ## Recent Sessions
+
+### Session 327 - 2026-11-25
+**Status:** Needs Fix — MIG-07: semua gate lokal hijau pada stack baru; Quality Gate GitHub belum berjalan
+- **Inventaris stack lama:** tidak ada paket atau variabel Clerk, Neon, QStash, Resend, maupun R2 di manifest workspace, `.env.example`, `.github/workflows/ci.yml`, atau `scripts/`. `npm ls` exit 0. Sisa di `package-lock.json` hanya daftar peer opsional `drizzle-orm`, dan `smtp.resend.com` di bundle server berasal dari daftar layanan bawaan `nodemailer`. Berkas lokal pemilik `.env` dan `.env.f13-02.local` masih memuat nilai Neon/Clerk; runner tidak membacanya ketika `DATABASE_URL` di-set di proses, dan pemilik dapat menghapusnya.
+- **Diubah (dua workaround neon-http):**
+  - `calculate.ts`: simulasi, override, dan snapshot kini disimpan dalam satu `db.transaction`, sehingga kegagalan tidak meninggalkan simulasi tanpa snapshot.
+  - `manage-access.ts`: `runWithFallback` tidak lagi menjalankan ulang operasi tanpa transaksi bila pesan error mengandung "transaction". Di `pg` fallback itu dapat melewati atomisitas guard slot admin dan satu-Operator-per-satker. Cabang tanpa `transaction()` tetap ada hanya untuk mock unit test.
+- **Gate (database uji terpisah `f13test` di Postgres compose, dihapus setelahnya; server build produksi `NODE_ENV=production` di `127.0.0.1:3100`, SMTP ke Mailpit):**
+  - `npm run check` exit 0: 47 file/326 test, lint 0 error/74 warning.
+  - Migrate 10 migration + seed dari database kosong; `check:migrations` OK.
+  - Integration F13-02 102 lulus + 2 skip (2 skip = test F13-03 di suite ini).
+  - Runner F13-03 2/2: tanpa secret ditolak, satu delivery tiba di Mailpit, replay mengirim 0.
+  - E2E Operator `run-f13-04-e2e.mjs` 12/12 (1,2 menit) dan Admin `run-f13-05-e2e.mjs` 12/12 (42 detik), Chromium + Mobile Chrome; smoke publik 2/2.
+  - F13-07 (median): kalkulasi 69 ms, parser 10k 88,5 ms, dashboard agregat 15,6 ms, scheduler 13,3 ms, export XLSX 51,2 ms. Angka ini dari PostgreSQL lokal, bukan pembanding angka Neon.
+  - `check:generated-routes`, secret scan, `git diff --check` lulus; `npm audit --omit=dev --audit-level=high` exit 0 (8 moderate tetap).
+  - Probe build: `/` dan `/sign-in` 200, `/operator/dashboard` 307, `POST /api/jobs/reminders/daily` tanpa secret 401.
+- **Security review ulang (F13-06), tanpa critical/high:**
+  - Sesi dibuat hanya setelah OTP perangkat baru; reset kata sandi mencabut seluruh sesi dan perangkat tepercaya; jalur Better Auth yang tidak dipakai ditutup (`disabledPaths`).
+  - Undangan membuat akun tanpa kata sandi dan `emailVerified: false`; penerima membuktikan kepemilikan email lewat OTP Lupa kata sandi.
+  - Endpoint job: Bearer `JOB_SECRET` minimal 32 karakter, perbandingan konstan-waktu, fail-closed; Caddy menjawab 404 dari luar.
+  - Rate limit per IP membaca `X-Forwarded-For`. Menurut dokumentasi Caddy (context7), `reverse_proxy` mengabaikan nilai kiriman klien tanpa `trusted_proxies`, jadi IP tidak dapat dipalsukan selama Caddy menjadi titik masuk pertama; port aplikasi tidak dipublikasikan.
+- **Residual:**
+  - (medium, baru) TanStack Start 1.169.5 memperingatkan server function belum memakai `createCsrfMiddleware`. Mitigasi yang ada: cookie sesi `SameSite=Lax`, sehingga POST lintas situs tidak membawa sesi. Middleware menolak request tanpa `Sec-Fetch-Site`/`Origin`/`Referer` dan membandingkan origin URL request. Di balik Caddy (HTTP ke `app:3000`) origin itu kemungkinan perlu `origin: APP_URL`, jadi pemasangannya perlu diuji dengan TLS (F13-09/F13-10). Belum dikerjakan.
+  - (low) `token` sesi masih ada di body sign-in dan `get-session`; tanpa tanda tangan cookie dan tanpa plugin bearer token itu tidak dapat dipakai.
+  - (info) Chunk klien `reports-*.js` memuat nama tabel/kolom Drizzle, tanpa data atau secret; kondisi lama.
+- **Belum diverifikasi:** Quality Gate GitHub. Workflow hanya berjalan pada push ke `main` dan pull request, sedangkan `staging` 20 commit di depan `origin/staging` dan belum di-push. Juga belum: cookie `Secure` di balik TLS (F13-09).
+- **Berikutnya:** pemilik menyetujui push `staging` dan PR ke `main` untuk menjalankan Quality Gate; setelah hijau, MIG-07 ditutup dan F13-09 dapat dimulai (butuh domain dan lokasi backup).
 
 ### Session 326 - 2026-11-24
 **Status:** Completed — MIG-03 dan MIG-05 ditutup: tinjauan pemilik, uji email nyata, dan penolakan daftar ganda

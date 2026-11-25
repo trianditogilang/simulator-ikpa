@@ -962,6 +962,7 @@ Route lama jangan dihapus. IA domain-centric diarsip di docs/future_plan.md.
   **DoD:** Berkas import disimpan dengan nama acak buatan server di direktori yang tidak dilayani publik; dihapus saat job terminal; sapuan berkas yatim maksimal 7 hari terjadwal; validasi extension, MIME, signature, 10 MB, dan 10.000 baris tetap; variabel `R2_*` dihapus.
 
 - [ ] **MIG-07 — Bersihkan dependency lama dan verifikasi ulang gate Fase 13.** [Role: QA Agent / Security Agent]
+  **Evidence 2026-11-25 (Needs Fix, belum dicentang):** paket dan variabel lama tidak ada lagi; dua workaround neon-http dihapus (`calculate.ts`, `manage-access.ts`). Gate lokal hijau pada PostgreSQL kosong: integration F13-02 102 + 2 skip, F13-03 2/2, E2E F13-04 dan F13-05 12/12 pada build produksi, F13-07, serta seluruh langkah `ci.yml` (audit exit 0). Security review tanpa critical/high; residual medium CSRF server function. Belum terpenuhi: Quality Gate GitHub, karena commit belum di-push. Rincian: DEVLOG Session 327.
   **Files:** `package.json` workspace, `.github/workflows/ci.yml`, `.env.example`, `docs/uat-report.md`
   **Depends:** MIG-01–MIG-06
   **DoD:** Paket dan variabel environment Clerk, Neon, QStash, Resend, dan R2 terhapus; integration tenant isolation (F13-02), policy/reminder (F13-03), E2E Operator dan Admin (F13-04, F13-05), performance baseline (F13-07), dan CI quality gate (F13-08) hijau pada stack baru; security review ulang untuk autentikasi, sesi, reset kata sandi, undangan, dan endpoint job tanpa temuan critical/high (F13-06).
