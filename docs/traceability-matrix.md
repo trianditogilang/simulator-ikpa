@@ -310,7 +310,7 @@ Tabel v1 di bawah dipertahankan sebagai histori. Acceptance criteria aktif dan b
 | WCAG AA dan keyboard dasar | F5-02 | Planned |
 | Tenant isolation | F8-04, F13-02, F13-06 | Planned |
 | Observability dan alert | F13-11 | Planned |
-| Residensi data di Indonesia (ADR-008) | MIG-00–MIG-07, F13-09, F13-10 | MIG-00–MIG-06 selesai (MIG-03/MIG-05 2026-11-24); MIG-07 Needs Fix: F13-02..F13-07 hijau ulang secara lokal pada stack baru 2026-11-25, Quality Gate GitHub (F13-08) menunggu push |
+| Residensi data di Indonesia (ADR-008) | MIG-00–MIG-07, F13-09, F13-10 | MIG-00–MIG-07 selesai (MIG-07 2026-11-25: F13-02..F13-08 hijau ulang pada stack baru, termasuk Quality Gate GitHub); F13-09/F13-10 menunggu domain dan lokasi backup |
 
 ## 9. Coverage Summary
 

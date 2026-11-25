@@ -4,7 +4,7 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 
 ## Current Phase
 
-**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06/F13-07/F13-08 selesai; MIG-00, MIG-01, MIG-02, MIG-04, dan MIG-06 selesai; MIG-03 dan MIG-05 selesai 2026-11-24; F13-09 Blocked menunggu MIG-07.**
+**Fase 13 — F13-00/F13-01/F13-02/F13-03/F13-04/F13-05/F13-06/F13-07/F13-08 selesai; MIG-00, MIG-01, MIG-02, MIG-04, dan MIG-06 selesai; MIG-03 dan MIG-05 selesai 2026-11-24; MIG-07 selesai 2026-11-25; F13-09 Blocked menunggu domain dan lokasi backup.**
 
 - Kontrak aktif: `docs/revisi-v2/` dan `docs/revisi-v2/ACCEPTANCE-CRITERIA.md`.
 - Baseline hijau: typecheck lulus, workspace Vitest 46 test files/329 tests lulus setelah source export retired dan regression webhook, `npm run lint` exit 0 (78 warning legacy), production build lulus, dan E2E smoke desktop/mobile 2/2 lulus.
@@ -27,12 +27,14 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
 - MIG-04 (2026-11-18): QStash diganti service compose `scheduler` (busybox `crond`) yang memanggil `/api/jobs/*` dengan Bearer `JOB_SECRET` lewat jaringan internal; Caddy menjawab 404 dari luar. Baseline: 45 file/318 test, integration 91 + 2 skip, F13-03 2/2 lewat SMTP Mailpit, E2E Operator dan Admin 12/12. Storage import (MIG-06) masih stack lama.
 - MIG-06 (2026-11-18): berkas import tidak pernah disimpan (parse di memori), sehingga DoD direktori privat diamandemen pemilik dan `R2_*` dihapus. Baseline: 46 file/322 test, integration 91 + 2 skip. Temuan IMPORT-FIX-01: commit import hanya memakai 100 baris valid pertama.
 - SEC-AUDIT-03 (2026-11-23): advisory `picomatch` GHSA-fc5q-39xc-vjpf ditarik, sehingga audit produksi kembali exit 0 tanpa perubahan dependency; residual tetap 8 moderate.
-- MIG-07 (2026-11-25, Needs Fix): gate F13-02..F13-07 hijau lokal pada stack baru dan security review tanpa critical/high; Quality Gate GitHub menunggu push + PR. Baseline: 47 file/326 test, integration 102 + 2 skip, E2E Operator dan Admin 12/12.
+- MIG-07 (2026-11-25): gate F13-02..F13-07 hijau lokal pada stack baru, Quality Gate GitHub `45540194127` hijau, security review tanpa critical/high. Baseline: 47 file/326 test, integration 102 + 2 skip, E2E Operator dan Admin 12/12.
 
 ## Recent Sessions
 
 ### Session 327 - 2026-11-25
-**Status:** Needs Fix — MIG-07: semua gate lokal hijau pada stack baru; Quality Gate GitHub belum berjalan
+**Status:** Completed — MIG-07: gate Fase 13 hijau ulang pada stack baru, lokal dan di Quality Gate GitHub
+- **Penutupan (setelah pemilik menyetujui push):** `266d47e` di-push ke `staging`; PR #1 (`staging` → `main`, sudah terbuka sejak September) memuat 21 commit. Quality Gate `45540194127` hijau di seluruh langkah, tanpa secret repository: 47 file unit, migrate + seed database kosong, integration 102 lulus + 2 skip, lint, generated routes, secret scan, audit exit 0 (8 moderate), build, dan smoke 2/2.
+- **Check Vercel gagal di PR:** integrasi Vercel for GitHub masih tersambung ke repo, jadi setiap push membuat deployment Preview, dan kali ini deployment itu gagal. Vercel bukan target sejak ADR-008, jadi ini bukan gate MIG-07. Tidak diperbaiki: pemutusan integrasi (atau mematikan deployment git) adalah keputusan pemilik.
 - **Inventaris stack lama:** tidak ada paket atau variabel Clerk, Neon, QStash, Resend, maupun R2 di manifest workspace, `.env.example`, `.github/workflows/ci.yml`, atau `scripts/`. `npm ls` exit 0. Sisa di `package-lock.json` hanya daftar peer opsional `drizzle-orm`, dan `smtp.resend.com` di bundle server berasal dari daftar layanan bawaan `nodemailer`. Berkas lokal pemilik `.env` dan `.env.f13-02.local` masih memuat nilai Neon/Clerk; runner tidak membacanya ketika `DATABASE_URL` di-set di proses, dan pemilik dapat menghapusnya.
 - **Diubah (dua workaround neon-http):**
   - `calculate.ts`: simulasi, override, dan snapshot kini disimpan dalam satu `db.transaction`, sehingga kegagalan tidak meninggalkan simulasi tanpa snapshot.
@@ -55,8 +57,8 @@ Catatan pengembangan kronologis. Tambahkan entri terbaru tepat di bawah bagian i
   - (medium, baru) TanStack Start 1.169.5 memperingatkan server function belum memakai `createCsrfMiddleware`. Mitigasi yang ada: cookie sesi `SameSite=Lax`, sehingga POST lintas situs tidak membawa sesi. Middleware menolak request tanpa `Sec-Fetch-Site`/`Origin`/`Referer` dan membandingkan origin URL request. Di balik Caddy (HTTP ke `app:3000`) origin itu kemungkinan perlu `origin: APP_URL`, jadi pemasangannya perlu diuji dengan TLS (F13-09/F13-10). Belum dikerjakan.
   - (low) `token` sesi masih ada di body sign-in dan `get-session`; tanpa tanda tangan cookie dan tanpa plugin bearer token itu tidak dapat dipakai.
   - (info) Chunk klien `reports-*.js` memuat nama tabel/kolom Drizzle, tanpa data atau secret; kondisi lama.
-- **Belum diverifikasi:** Quality Gate GitHub. Workflow hanya berjalan pada push ke `main` dan pull request, sedangkan `staging` 20 commit di depan `origin/staging` dan belum di-push. Juga belum: cookie `Secure` di balik TLS (F13-09).
-- **Berikutnya:** pemilik menyetujui push `staging` dan PR ke `main` untuk menjalankan Quality Gate; setelah hijau, MIG-07 ditutup dan F13-09 dapat dimulai (butuh domain dan lokasi backup).
+- **Belum diverifikasi:** cookie `Secure` di balik TLS (F13-09).
+- **Berikutnya:** F13-09 (deploy VPS) menunggu domain dan lokasi backup dari pemilik; residual CSRF dibawa ke F13-09/F13-10. Pemilik juga memutuskan nasib integrasi Vercel di repo.
 
 ### Session 326 - 2026-11-24
 **Status:** Completed — MIG-03 dan MIG-05 ditutup: tinjauan pemilik, uji email nyata, dan penolakan daftar ganda
